@@ -1,0 +1,207 @@
+.settle-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 48rpx;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+}
+
+/* 头部 */
+.settle-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 48rpx;
+}
+
+.cat-icon {
+  width: 140rpx;
+  height: 140rpx;
+  margin-bottom: 24rpx;
+}
+
+.cat-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.header-title {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12rpx;
+}
+
+.header-sub {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+/* 金额卡片 */
+.amount-card {
+  padding: 40rpx;
+  margin-bottom: 24rpx;
+}
+
+.amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.amount-row:last-child {
+  margin-bottom: 0;
+}
+
+.amount-row.highlight {
+  margin-top: 8rpx;
+}
+
+.amount-label {
+  font-size: 30rpx;
+  color: var(--text-secondary);
+}
+
+.amount-value {
+  font-size: 32rpx;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.amount-value.per {
+  font-size: 48rpx;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.amount-divider {
+  height: 2rpx;
+  background: var(--bg);
+  margin: 24rpx 0;
+}
+
+/* 成员卡片 */
+.member-card {
+  flex: 1;
+  padding: 32rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.card-header {
+  margin-bottom: 24rpx;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.paid-count {
+  display: flex;
+  align-items: baseline;
+}
+
+.paid-num {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.paid-total {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  margin-left: 4rpx;
+}
+
+.member-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid var(--bg);
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  background: var(--bg);
+}
+
+.member-name {
+  flex: 1;
+  font-size: 30rpx;
+  color: var(--text);
+}
+
+.member-status {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 28rpx;
+  transition: all 0.15s;
+}
+
+.member-status.paid {
+  background: rgba(212, 101, 42, 0.1);
+}
+
+.member-status.unpaid {
+  background: var(--bg);
+}
+
+.status-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.member-status.paid .status-dot {
+  background: var(--primary);
+}
+
+.member-status.unpaid .status-dot {
+  background: var(--soft);
+}
+
+.status-text {
+  font-size: 26rpx;
+}
+
+.member-status.paid .status-text {
+  color: var(--primary);
+}
+
+.member-status.unpaid .status-text {
+  color: var(--soft);
+}
+
+/* 底部按钮 */
+.bottom-panel {
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+}
+
+.settle-btn {
+  width: 100%;
+}
+
+.settle-btn.complete {
+  background: var(--secondary);
+}

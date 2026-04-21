@@ -1,0 +1,93 @@
+<!--pages/create-mode-a/create-mode-a.wxml-->
+<view class="create-a-container">
+  <!-- 顶部 -->
+  <view class="header">
+    <text class="title">我挑好了</text>
+    <text class="subtitle">上传美团/大众点评海报，让大家投票</text>
+  </view>
+
+  <!-- 海报上传区 -->
+  <view class="poster-section">
+    <view class="poster-grid">
+      <!-- 已上传海报 -->
+      <view 
+        class="poster-item {{item.platformSource ? 'has-platform' : ''}}" 
+        wx:for="{{posters}}" 
+        wx:key="index"
+      >
+        <image class="poster-img" src="{{item.tempFilePath || item.imageUrl}}" mode="aspectFill"/>
+        <view class="poster-platform {{item.platformSource}}" wx:if="{{item.platformSource}}">
+          {{item.platformSource === 'meituan' ? '美团' : '点评'}}
+        </view>
+        <view class="poster-actions">
+          <text class="action-btn" bindtap="markPlatform" data-index="{{index}}">标记平台</text>
+          <text class="action-btn delete" bindtap="removePoster" data-index="{{index}}">删除</text>
+        </view>
+      </view>
+
+      <!-- 添加按钮 -->
+      <view class="add-poster" bindtap="addPoster" wx:if="{{posters.length < 6}}">
+        <text class="add-icon">+</text>
+        <text class="add-text">添加海报</text>
+        <text class="add-hint">{{posters.length}}/6</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 平台选择弹窗 -->
+  <view class="platform-popup" wx:if="{{showPlatformPopup}}">
+    <view class="popup-mask" bindtap="closePopup"></view>
+    <view class="popup-content">
+      <text class="popup-title">选择平台来源</text>
+      <view class="platform-options">
+        <view class="platform-opt meituan {{selectedPlatform === 'meituan' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="meituan">
+          <text>美团</text>
+        </view>
+        <view class="platform-opt dianping {{selectedPlatform === 'dianping' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="dianping">
+          <text>大众点评</text>
+        </view>
+      </view>
+      <button class="btn-confirm" bindtap="confirmPlatform">确定</button>
+    </view>
+  </view>
+
+  <!-- 基础设置 -->
+  <view class="settings-section">
+    <view class="setting-item">
+      <text class="setting-label">标题</text>
+      <input class="setting-input" placeholder="如：周五部门聚餐" bindinput="onTitleInput" value="{{title}}"/>
+    </view>
+
+    <view class="setting-item">
+      <text class="setting-label">地点</text>
+      <input class="setting-input" placeholder="如：公司附近" bindinput="onLocationInput" value="{{location}}"/>
+    </view>
+
+    <view class="setting-item">
+      <text class="setting-label">人数</text>
+      <input class="setting-input" type="number" placeholder="预计参与人数" bindinput="onPeopleInput" value="{{peopleCount}}"/>
+    </view>
+
+    <view class="setting-item">
+      <text class="setting-label">截止时间</text>
+      <picker mode="multiSelector" range="{{timeRange}}" bindchange="onDeadlineChange">
+        <view class="picker-value">{{deadlineText || '选择截止时间'}}</view>
+      </picker>
+    </view>
+
+    <view class="setting-item switch-item">
+      <text class="setting-label">开启时间辅助</text>
+      <switch checked="{{timeAuxiliary}}" bindchange="onTimeAuxiliaryChange" color="#D4652A"/>
+    </view>
+
+    <view class="setting-item switch-item">
+      <text class="setting-label">顺便拼个单</text>
+      <switch checked="{{groupOrderOption}}" bindchange="onGroupOrderChange" color="#D4652A"/>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-bar">
+    <button class="btn-create {{canCreate ? '' : 'disabled'}}" bindtap="createRoom">生成房间</button>
+  </view>
+</view>

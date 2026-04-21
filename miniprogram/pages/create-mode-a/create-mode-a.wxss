@@ -1,0 +1,269 @@
+/* pages/create-mode-a/create-mode-a.wxss */
+.create-a-container {
+  min-height: 100vh;
+  background: #F5F0E8;
+  padding-bottom: 140rpx;
+}
+
+.header {
+  padding: 40rpx 32rpx;
+}
+
+.title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #3D3D3D;
+  margin-bottom: 12rpx;
+}
+
+.subtitle {
+  font-size: 26rpx;
+  color: #8A8A8A;
+}
+
+/* 海报上传区 */
+.poster-section {
+  padding: 0 32rpx;
+  margin-bottom: 32rpx;
+}
+
+.poster-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.poster-item {
+  position: relative;
+  aspect-ratio: 3/4;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: #FFFDF7;
+  border: 2rpx solid rgba(212, 101, 42, 0.2);
+}
+
+.poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.poster-platform {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: 500;
+}
+
+.poster-platform.meituan { background: #FFC300; color: #333; }
+.poster-platform.dianping { background: #FF6633; }
+
+.poster-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 8rpx;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.action-btn {
+  font-size: 22rpx;
+  color: #fff;
+  padding: 4rpx 12rpx;
+}
+
+.action-btn.delete {
+  color: #FF6B6B;
+}
+
+/* 添加按钮 */
+.add-poster {
+  aspect-ratio: 3/4;
+  border-radius: 16rpx;
+  border: 2rpx dashed #D4652A;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(212, 101, 42, 0.05);
+}
+
+.add-icon {
+  font-size: 48rpx;
+  color: #D4652A;
+  font-weight: 300;
+}
+
+.add-text {
+  font-size: 24rpx;
+  color: #D4652A;
+  margin-top: 8rpx;
+}
+
+.add-hint {
+  font-size: 20rpx;
+  color: #8A8A8A;
+  margin-top: 4rpx;
+}
+
+/* 平台弹窗 */
+.platform-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.popup-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.popup-content {
+  position: relative;
+  background: #FFFDF7;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 40rpx 32rpx;
+  width: 100%;
+  animation: slideUp 0.3s ease-out;
+}
+
+.popup-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #3D3D3D;
+  margin-bottom: 32rpx;
+  text-align: center;
+}
+
+.platform-options {
+  display: flex;
+  gap: 24rpx;
+  margin-bottom: 32rpx;
+}
+
+.platform-opt {
+  flex: 1;
+  height: 120rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid #E0E0E0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30rpx;
+  color: #3D3D3D;
+}
+
+.platform-opt.active {
+  border-color: #D4652A;
+  background: rgba(212, 101, 42, 0.1);
+  color: #D4652A;
+}
+
+.platform-opt.meituan.active {
+  border-color: #FFC300;
+  background: rgba(255, 195, 0, 0.1);
+}
+
+.platform-opt.dianping.active {
+  border-color: #FF6633;
+  background: rgba(255, 102, 51, 0.1);
+}
+
+.btn-confirm {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #D4652A;
+  color: #fff;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+}
+
+/* 设置区 */
+.settings-section {
+  padding: 0 32rpx;
+}
+
+.setting-item {
+  background: #FFFDF7;
+  border-radius: 16rpx;
+  padding: 24rpx 32rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+}
+
+.setting-label {
+  font-size: 30rpx;
+  color: #3D3D3D;
+  width: 200rpx;
+  flex-shrink: 0;
+}
+
+.setting-input {
+  flex: 1;
+  font-size: 30rpx;
+  color: #3D3D3D;
+  text-align: right;
+}
+
+.picker-value {
+  flex: 1;
+  font-size: 30rpx;
+  color: #8A8A8A;
+  text-align: right;
+}
+
+.switch-item {
+  justify-content: space-between;
+}
+
+/* 底部 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24rpx 32rpx 40rpx;
+  background: #F5F0E8;
+  border-top: 2rpx solid rgba(0, 0, 0, 0.05);
+}
+
+.btn-create {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--radius-button);
+  font-size: 34rpx;
+  font-weight: 500;
+  box-shadow: var(--shadow-button);
+  transition: all 0.15s;
+}
+
+.btn-create.disabled {
+  background: #CCC;
+  color: #888;
+  box-shadow: none;
+}

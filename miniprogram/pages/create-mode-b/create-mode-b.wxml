@@ -1,0 +1,64 @@
+<view class="page modeb-page anim-page-enter">
+  <!-- 头部：橘仔提示 -->
+  <view class="modeb-header">
+    <view class="cat-hint anim-breathe">
+      <image class="cat-img" src="/assets/images/juze_avatar.png" mode="aspectFit" />
+      <view class="speech-bubble">
+        <text class="bubble-text">你们来定</text>
+      </view>
+    </view>
+    <text class="header-sub">让大家先选口味，你再决定</text>
+  </view>
+
+  <!-- 表单卡片 -->
+  <view class="form-card card anim-slide-up">
+    <view class="form-group">
+      <text class="form-label">聚餐标题</text>
+      <input class="form-input" placeholder="如：周五部门聚餐" value="{{title}}" bindinput="onTitleInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">聚餐地点</text>
+      <view class="location-picker" bindtap="onChooseLocation">
+        <text class="picker-value {{location.name ? 'has-value' : ''}}">{{location.name || '选择地点'}}</text>
+        <view class="picker-arrow"></view>
+      </view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">投票截止时间</text>
+      <picker mode="multiSelector" range="{{timeRange}}" value="{{timeIndex}}" bindchange="onTimeChange">
+        <view class="time-picker">
+          <text class="picker-value {{deadlineText ? 'has-value' : ''}}">{{deadlineText || '请选择截止时间'}}</text>
+          <view class="picker-arrow"></view>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 流程说明 -->
+  <view class="flow-section anim-slide-up" style="animation-delay:0.1s">
+    <text class="flow-title">流程说明</text>
+    <view class="flow-list">
+      <view class="flow-item">
+        <view class="flow-num">1</view>
+        <text class="flow-text">成员先选择口味偏好</text>
+      </view>
+      <view class="flow-item">
+        <view class="flow-num">2</view>
+        <text class="flow-text">你根据统计结果选店</text>
+      </view>
+      <view class="flow-item">
+        <view class="flow-num">3</view>
+        <text class="flow-text">推送结果给所有人</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-panel safe-bottom">
+    <button class="btn btn-primary submit-btn {{canSubmit() ? '' : 'btn-disabled'}}" bindtap="createRoom">
+      生成房间
+    </button>
+  </view>
+</view>

@@ -1,0 +1,69 @@
+<view class="page tank-page anim-page-enter">
+  <!-- 头部 -->
+  <view class="tank-header">
+    <view class="header-title">
+      <view class="tank-icon"></view>
+      <text class="title-text">鱼塘</text>
+    </view>
+    <text class="header-sub">看看大家都在点什么</text>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="stats-card card anim-slide-up">
+    <view class="stat-item">
+      <text class="stat-value">¥{{total}}</text>
+      <text class="stat-label">已凑金额</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">¥{{targetAmount}}</text>
+      <text class="stat-label">目标金额</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{orders.length}}</text>
+      <text class="stat-label">参与人数</text>
+    </view>
+  </view>
+
+  <!-- 进度条 -->
+  <view class="progress-card card anim-slide-up" style="animation-delay:0.05s">
+    <view class="progress-header flex-between">
+      <text class="progress-label">凑单进度</text>
+      <text class="progress-percent">{{progressPercent}}%</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progressPercent}}%"></view>
+    </view>
+    <text class="progress-hint" wx:if="{{progressPercent >= 100}}">已满足起送条件</text>
+    <text class="progress-hint" wx:else>还差 ¥{{remaining}} 满足起送</text>
+  </view>
+
+  <!-- 订单列表 -->
+  <view class="order-section card anim-slide-up" style="animation-delay:0.1s">
+    <view class="section-header flex-between">
+      <text class="section-title">参与人员</text>
+      <text class="section-count">{{orders.length}}人</text>
+    </view>
+    <view class="order-list">
+      <view class="order-item" wx:for="{{orders}}" wx:key="id">
+        <image class="order-avatar" src="{{item.avatar}}" mode="aspectFill" />
+        <view class="order-info">
+          <text class="order-name">{{item.name}}</text>
+          <text class="order-items">{{item.items}}</text>
+        </view>
+        <text class="order-amount">¥{{item.amount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="bottom-panel safe-bottom">
+    <button class="btn btn-primary join-btn" bindtap="joinOrder">
+      <text class="btn-text">我要跟单</text>
+    </button>
+    <button class="btn btn-secondary share-btn" bindtap="shareOrder">
+      <text class="btn-text">邀请好友</text>
+    </button>
+  </view>
+</view>

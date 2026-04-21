@@ -1,0 +1,87 @@
+<view class="create-page">
+  <!-- 顶部渐变区域 -->
+  <view class="header-section">
+    <view class="header-content">
+      <view class="back-btn" bindtap="goBack">
+        <text class="back-icon">←</text>
+      </view>
+      <text class="page-title">发起聚餐</text>
+      <text class="page-subtitle">选择一种方式开始</text>
+    </view>
+    
+    <!-- 装饰猫爪 -->
+    <view class="paw-decoration">
+      <view class="paw p1">🐾</view>
+      <view class="paw p2">🐾</view>
+    </view>
+  </view>
+
+  <!-- 波浪分割线 -->
+  <view class="wave-divider">
+    <view class="wave"></view>
+  </view>
+
+  <!-- 模式选择卡片 - 蜡笔风格 -->
+  <view class="mode-list">
+    <!-- 模式A -->
+    <view class="mode-card crayon-card anim-fade-in-up delay-100" bindtap="goModeA">
+      <view class="card-bg icon-a"></view>
+      <view class="mode-icon">
+        <text class="icon-emoji">🍽️</text>
+      </view>
+      <view class="mode-content">
+        <text class="mode-title">我挑好了</text>
+        <text class="mode-desc">已看好2-6家店，大家直接投票选</text>
+      </view>
+      <view class="mode-arrow">
+        <text>→</text>
+      </view>
+      <view class="crayon-border"></view>
+    </view>
+
+    <!-- 模式B -->
+    <view class="mode-card crayon-card anim-fade-in-up delay-200" bindtap="goModeB">
+      <view class="card-bg icon-b"></view>
+      <view class="mode-icon">
+        <text class="icon-emoji">🤔</text>
+      </view>
+      <view class="mode-content">
+        <text class="mode-title">你们来定</text>
+        <text class="mode-desc">不确定去哪，大家先选口味偏好</text>
+      </view>
+      <view class="mode-arrow">
+        <text>→</text>
+      </view>
+      <view class="crayon-border"></view>
+    </view>
+
+    <!-- 拼单 -->
+    <view class="mode-card crayon-card anim-fade-in-up delay-300" bindtap="goGroup">
+      <view class="card-bg icon-group"></view>
+      <view class="mode-icon">
+        <text class="icon-emoji">🛒</text>
+      </view>
+      <view class="mode-content">
+        <text class="mode-title">拼个单</text>
+        <text class="mode-desc">美团/京东外卖，一起凑单免运费</text>
+      </view>
+      <view class="mode-arrow">
+        <text>→</text>
+      </view>
+      <view class="crayon-border"></view>
+    </view>
+  </view>
+
+  <!-- 底部提示 - 玻璃拟态 -->
+  <view class="footer-tips glass-tips anim-fade-in-up delay-400">
+    <view class="tips-icon">🔒</view>
+    <text class="tips-text">所有投票匿名，只有发起人可见结果</text>
+  </view>
+
+  <!-- 底部装饰 -->
+  <view class="bottom-decoration">
+    <view class="fish fish1">🐟</view>
+    <view class="fish fish2">🐠</view>
+    <view class="fish fish3">🐡</view>
+  </view>
+</view>

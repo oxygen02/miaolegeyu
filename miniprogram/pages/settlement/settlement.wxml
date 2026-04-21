@@ -1,0 +1,55 @@
+<view class="page settle-page anim-page-enter">
+  <!-- 头部 -->
+  <view class="settle-header">
+    <view class="cat-icon anim-breathe">
+      <image class="cat-img" src="/assets/images/juze_avatar.png" mode="aspectFit" />
+    </view>
+    <text class="header-title">结算</text>
+    <text class="header-sub">聚餐费用分摊</text>
+  </view>
+
+  <!-- 金额卡片 -->
+  <view class="amount-card card anim-slide-up">
+    <view class="amount-row">
+      <text class="amount-label">总金额</text>
+      <text class="amount-value">¥{{totalAmount}}</text>
+    </view>
+    <view class="amount-row">
+      <text class="amount-label">参与人数</text>
+      <text class="amount-value">{{peopleCount}}人</text>
+    </view>
+    <view class="amount-divider"></view>
+    <view class="amount-row highlight">
+      <text class="amount-label">人均</text>
+      <text class="amount-value per">¥{{perPerson}}</text>
+    </view>
+  </view>
+
+  <!-- 成员列表 -->
+  <view class="member-card card anim-slide-up" style="animation-delay:0.08s">
+    <view class="card-header flex-between">
+      <text class="card-title">参与人员</text>
+      <view class="paid-count">
+        <text class="paid-num">{{paidCount}}</text>
+        <text class="paid-total">/{{members.length}} 已付</text>
+      </view>
+    </view>
+    <view class="member-list">
+      <view class="member-item" wx:for="{{members}}" wx:key="id">
+        <image class="member-avatar" src="{{item.avatar}}" mode="aspectFill" />
+        <text class="member-name">{{item.name}}</text>
+        <view class="member-status {{item.paid ? 'paid' : 'unpaid'}}" bindtap="togglePaid" data-id="{{item.id}}">
+          <view class="status-dot"></view>
+          <text class="status-text">{{item.paid ? '已付' : '未付'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 结算按钮 -->
+  <view class="bottom-panel safe-bottom">
+    <button class="btn btn-primary settle-btn {{allPaid ? 'complete' : ''}}" bindtap="settleUp">
+      <text class="btn-text">{{allPaid ? '结算完成' : '完成结算'}}</text>
+    </button>
+  </view>
+</view>

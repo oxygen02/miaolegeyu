@@ -1,0 +1,69 @@
+<view class="page group-page anim-page-enter">
+  <!-- 头部 -->
+  <view class="group-header">
+    <view class="cat-hint anim-breathe">
+      <image class="cat-img" src="/assets/images/juze_avatar.png" mode="aspectFit" />
+      <view class="speech-bubble">
+        <text class="bubble-text">拼个单</text>
+      </view>
+    </view>
+    <text class="header-sub">外卖凑单，一起免运费</text>
+  </view>
+
+  <!-- 表单卡片 -->
+  <view class="form-card card anim-slide-up">
+    <view class="form-group">
+      <text class="form-label">拼单标题</text>
+      <input class="form-input" placeholder="如：下午茶拼单" value="{{title}}" bindinput="onTitleInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">店铺名称</text>
+      <input class="form-input" placeholder="如：喜茶" value="{{shopName}}" bindinput="onShopInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">起送金额</text>
+      <view class="amount-input-wrapper">
+        <text class="currency">¥</text>
+        <input class="form-input amount-input" type="digit" placeholder="30" value="{{minAmount}}" bindinput="onAmountInput" />
+      </view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">截止时间</text>
+      <picker mode="multiSelector" range="{{timeRange}}" value="{{timeIndex}}" bindchange="onTimeChange">
+        <view class="time-picker">
+          <text class="picker-value {{deadlineText ? 'has-value' : ''}}">{{deadlineText || '请选择截止时间'}}</text>
+          <view class="picker-arrow"></view>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 平台选择 -->
+  <view class="platform-section card anim-slide-up" style="animation-delay:0.08s">
+    <text class="section-label">外卖平台</text>
+    <view class="platform-list">
+      <view class="platform-item {{selectedPlatform === 'meituan' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="meituan">
+        <view class="platform-icon meituan-icon"></view>
+        <text class="platform-name">美团</text>
+      </view>
+      <view class="platform-item {{selectedPlatform === 'eleme' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="eleme">
+        <view class="platform-icon eleme-icon"></view>
+        <text class="platform-name">饿了么</text>
+      </view>
+      <view class="platform-item {{selectedPlatform === 'jd' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="jd">
+        <view class="platform-icon jd-icon"></view>
+        <text class="platform-name">京东</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-panel safe-bottom">
+    <button class="btn btn-primary submit-btn {{canSubmit() ? '' : 'btn-disabled'}}" bindtap="createGroupOrder">
+      发起拼单
+    </button>
+  </view>
+</view>

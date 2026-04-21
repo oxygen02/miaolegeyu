@@ -1,0 +1,47 @@
+<view class="page filter-page anim-page-enter">
+  <!-- 头部 -->
+  <view class="filter-header">
+    <view class="cat-icon anim-breathe">
+      <image class="cat-img" src="/assets/images/juze_avatar.png" mode="aspectFit" />
+    </view>
+    <text class="filter-title">选择口味偏好</text>
+    <text class="filter-sub">帮助发起人了解大家的喜好</text>
+  </view>
+
+  <!-- 硬性禁忌 -->
+  <view class="filter-section card anim-slide-up">
+    <view class="section-header">
+      <view class="header-icon hard-icon"></view>
+      <view class="header-text">
+        <text class="section-title">硬性禁忌</text>
+        <text class="section-desc">一票否决，有这些的店会被排除</text>
+      </view>
+    </view>
+    <view class="tag-list">
+      <view class="tag tag-hard {{item.selected ? 'active' : ''}}" wx:for="{{hardTaboos}}" wx:key="name" bindtap="toggleHard" data-name="{{item.name}}">
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 软性偏好 -->
+  <view class="filter-section card anim-slide-up" style="animation-delay:0.08s">
+    <view class="section-header">
+      <view class="header-icon soft-icon"></view>
+      <view class="header-text">
+        <text class="section-title">软性偏好</text>
+        <text class="section-desc">仅供参考，发起人可以看到</text>
+      </view>
+    </view>
+    <view class="tag-list">
+      <view class="tag tag-soft {{item.selected ? 'active' : ''}}" wx:for="{{softTaboos}}" wx:key="name" bindtap="toggleSoft" data-name="{{item.name}}">
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-panel safe-bottom">
+    <button class="btn btn-primary submit-btn" bindtap="submit">提交</button>
+  </view>
+</view>

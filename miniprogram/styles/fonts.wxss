@@ -1,0 +1,144 @@
+/* ==================== 喵了个鱼 - 萌系字体 ==================== */
+
+/* ---------- 字体变量 ---------- */
+:root {
+  /* 标题字体 - 圆润可爱 */
+  --font-title: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  /* 正文字体 - 清晰可读 */
+  --font-body: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  /* 手写风格 - 温馨可爱 */
+  --font-handwriting: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  /* 装饰字体 - 超萌 */
+  --font-decorative: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  /* 书法字体 - 大气可爱 */
+  --font-calligraphy: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+}
+
+/* ---------- 字体应用类 ---------- */
+
+/* 标题字体 */
+.font-title {
+  font-family: var(--font-title);
+  font-weight: 600;
+}
+
+/* 正文字体 */
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* 手写字体 */
+.font-handwriting {
+  font-family: var(--font-handwriting);
+}
+
+/* 装饰字体 - 超萌 */
+.font-cute {
+  font-family: var(--font-decorative);
+}
+
+/* 书法字体 */
+.font-calligraphy {
+  font-family: var(--font-calligraphy);
+}
+
+/* ---------- 字体大小规范 ---------- */
+.text-xs {
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+.text-sm {
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.text-base {
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.text-lg {
+  font-size: 32rpx;
+  line-height: 1.5;
+}
+
+.text-xl {
+  font-size: 40rpx;
+  line-height: 1.4;
+}
+
+.text-2xl {
+  font-size: 48rpx;
+  line-height: 1.3;
+}
+
+.text-3xl {
+  font-size: 56rpx;
+  line-height: 1.2;
+}
+
+/* ---------- 字重规范 ---------- */
+.font-normal {
+  font-weight: 400;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+/* ---------- 特殊文字效果 ---------- */
+
+/* 描边文字 */
+.text-stroke {
+  -webkit-text-stroke: 2rpx #FF9F43;
+  text-stroke: 2rpx #FF9F43;
+  color: #fff;
+}
+
+/* 阴影文字 */
+.text-shadow {
+  text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.1);
+}
+
+.text-shadow-lg {
+  text-shadow: 4rpx 4rpx 8rpx rgba(0, 0, 0, 0.15);
+}
+
+/* 渐变文字 */
+.text-gradient {
+  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
+  -webkit-background-clip: text;
+  -webkit-background-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 蜡笔风格文字 */
+.text-crayon {
+  font-family: var(--font-handwriting);
+  letter-spacing: 2rpx;
+  transform: rotate(-1deg);
+}
+
+/* 可爱波浪文字 */
+.text-wavy {
+  font-family: var(--font-decorative);
+  letter-spacing: 4rpx;
+}
+
+/* ---------- 全局字体设置 ---------- */
+page {
+  font-family: var(--font-body);
+}

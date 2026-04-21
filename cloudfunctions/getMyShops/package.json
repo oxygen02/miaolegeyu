@@ -1,0 +1,9 @@
+{
+  "name": "getMyShops",
+  "version": "1.0.0",
+  "description": "获取我的店铺",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

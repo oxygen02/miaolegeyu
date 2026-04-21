@@ -1,0 +1,223 @@
+.tank-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 48rpx;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+}
+
+/* 头部 */
+.tank-header {
+  margin-bottom: 32rpx;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+
+.tank-icon {
+  width: 48rpx;
+  height: 48rpx;
+  background: var(--water);
+  border-radius: 50%;
+  position: relative;
+}
+
+.tank-icon::before {
+  content: '';
+  position: absolute;
+  top: 30%;
+  left: 30%;
+  width: 12rpx;
+  height: 12rpx;
+  background: var(--secondary);
+  border-radius: 50%;
+}
+
+.tank-icon::after {
+  content: '';
+  position: absolute;
+  bottom: 20%;
+  right: 25%;
+  width: 0;
+  height: 0;
+  border-left: 8rpx solid transparent;
+  border-right: 8rpx solid transparent;
+  border-top: 12rpx solid var(--secondary);
+}
+
+.title-text {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.header-sub {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+/* 统计卡片 */
+.stats-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8rpx;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.stat-divider {
+  width: 2rpx;
+  height: 60rpx;
+  background: rgba(212, 101, 42, 0.1);
+}
+
+/* 进度条 */
+.progress-card {
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.progress-header {
+  margin-bottom: 20rpx;
+}
+
+.progress-label {
+  font-size: 28rpx;
+  color: var(--text);
+}
+
+.progress-percent {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.progress-bar {
+  height: 16rpx;
+  background: var(--bg);
+  border-radius: 8rpx;
+  overflow: hidden;
+  margin-bottom: 16rpx;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border-radius: 8rpx;
+  transition: width 0.3s ease;
+}
+
+.progress-hint {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+/* 订单列表 */
+.order-section {
+  flex: 1;
+  padding: 32rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.section-header {
+  margin-bottom: 24rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.section-count {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.order-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid var(--bg);
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  background: var(--bg);
+}
+
+.order-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.order-name {
+  font-size: 30rpx;
+  color: var(--text);
+  margin-bottom: 8rpx;
+}
+
+.order-items {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.order-amount {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* 底部操作 */
+.bottom-panel {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+}
+
+.join-btn {
+  flex: 1;
+}
+
+.share-btn {
+  flex: 1;
+}

@@ -1,0 +1,31 @@
+<!-- 自定义底部导航栏 - 蜡笔像素风 -->
+<view class="tab-bar">
+  <view class="tab-bar-border"></view>
+
+  <!-- 三个导航项的容器 - 带边框 -->
+  <view class="tab-bar-container">
+    <!-- 首页 -->
+    <view class="tab-bar-item {{selected === 0 ? 'active' : ''}}" data-index="0" bindtap="switchTab">
+      <view class="icon-wrapper">
+        <image class="tab-icon" src="/assets/images/paw-home-icon.png" mode="aspectFit" />
+      </view>
+      <text class="tab-text">首页</text>
+    </view>
+
+    <!-- 鱼塘拼单 -->
+    <view class="tab-bar-item {{selected === 1 ? 'active' : ''}}" data-index="1" catchtap="switchTab">
+      <view class="icon-wrapper">
+        <image class="tab-icon fish-icon" src="/assets/images/fish-icon.png" mode="aspectFit" catchtap="" />
+      </view>
+      <text class="tab-text" catchtap="">鱼塘</text>
+    </view>
+
+    <!-- 我的 -->
+    <view class="tab-bar-item {{selected === 2 ? 'active' : ''}}" data-index="2" bindtap="switchTab">
+      <view class="icon-wrapper">
+        <image class="tab-icon" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+      </view>
+      <text class="tab-text">我的</text>
+    </view>
+  </view>
+</view>

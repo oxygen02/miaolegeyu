@@ -1,0 +1,45 @@
+<view class="page create-page">
+  <view class="create-header">
+    <text class="create-title">发起什么？</text>
+    <text class="create-sub">橘仔已经准备好了</text>
+  </view>
+
+  <view class="option-list">
+    <view class="option-card anim-slide-up" style="animation-delay:0s" bindtap="goModeA">
+      <view class="option-icon" style="background:rgba(212,101,42,0.1)">
+        <view class="icon-shape telescope"></view>
+      </view>
+      <view class="option-info">
+        <text class="option-name">我挑好了</text>
+        <text class="option-desc">已确定 2-6 家候选店，大家投票选一家</text>
+      </view>
+      <view class="option-arrow"></view>
+    </view>
+
+    <view class="option-card anim-slide-up" style="animation-delay:0.08s" bindtap="goModeB">
+      <view class="option-icon" style="background:rgba(74,124,140,0.1)">
+        <view class="icon-shape hands"></view>
+      </view>
+      <view class="option-info">
+        <text class="option-name">你们来定</text>
+        <text class="option-desc">不确定去哪，大家先选口味偏好</text>
+      </view>
+      <view class="option-arrow"></view>
+    </view>
+
+    <view class="option-card anim-slide-up" style="animation-delay:0.16s" bindtap="goGroup">
+      <view class="option-icon" style="background:rgba(255,195,0,0.1)">
+        <view class="icon-shape bag"></view>
+      </view>
+      <view class="option-info">
+        <text class="option-name">拼个单</text>
+        <text class="option-desc">美团 / 京东外卖，一起凑单</text>
+      </view>
+      <view class="option-arrow"></view>
+    </view>
+  </view>
+
+  <view class="create-bottom">
+    <image class="bottom-cat" src="/assets/cat-ready.png" mode="aspectFit" />
+  </view>
+</view>

@@ -1,0 +1,114 @@
+<!-- 上传店铺页面 -->
+<view class="upload-shop-page">
+  <!-- 顶部标题 -->
+  <view class="header-section">
+    <text class="page-title">推荐美食店铺</text>
+  </view>
+
+  <!-- 表单区域 -->
+  <view class="form-section">
+    <!-- 店铺图片 -->
+    <view class="form-item required">
+      <text class="form-label">店铺图片</text>
+      <view class="image-upload-section" bindtap="onChooseImage">
+        <view class="image-list">
+          <view class="image-item" wx:for="{{images}}" wx:key="*this" catchtap="onPreviewImage" data-index="{{index}}">
+            <image class="uploaded-image" src="{{item}}" mode="aspectFill" />
+            <view class="delete-btn" catchtap="onDeleteImage" data-index="{{index}}">
+              <text class="delete-icon">×</text>
+            </view>
+          </view>
+          <view class="add-image-item" wx:if="{{images.length < maxImages}}">
+            <text class="add-icon">+</text>
+            <text class="add-text">{{images.length === 0 ? '点击上传' : '添加'}}</text>
+          </view>
+        </view>
+        <text class="image-hint" wx:if="{{images.length === 0}}">至少1张，最多6张（需包含店铺名称）</text>
+      </view>
+    </view>
+
+    <!-- 店铺名称 + 推荐指数 并列 -->
+    <view class="form-row">
+      <view class="form-item required flex-2">
+        <text class="form-label">店铺名称</text>
+        <input class="form-input" placeholder="请输入店铺名称" value="{{name}}" bindinput="onNameInput" />
+      </view>
+      <view class="form-item required flex-1">
+        <text class="form-label">推荐指数</text>
+        <view class="paw-rating compact" bindtouchstart="onRatingTouchStart" bindtouchmove="onRatingTouchMove" bindtouchend="onRatingTouchEnd">
+          <view wx:for="{{[1,2,3,4,5]}}" wx:key="*this" class="paw-item {{rating >= item ? 'active' : ''}}" data-rating="{{item}}" bindtap="onRatingSelect">
+            <image class="paw-image" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 菜系标签 -->
+    <view class="form-item required">
+      <text class="form-label">菜系</text>
+      <view class="cuisine-tags">
+        <view 
+          class="cuisine-tag-item {{cuisine === item.id ? 'active' : ''}}"
+          wx:for="{{cuisineOptions}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+          bindtap="onCuisineTagTap"
+        >
+          {{item.name}}
+        </view>
+        <view class="cuisine-tag-item custom {{cuisine === 'custom' ? 'active' : ''}}" bindtap="onCustomCuisineTap">
+          {{customCuisineName || '+ 自定义'}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 装饰Logo - 喵了个鱼 -->
+    <view class="decoration-logo">
+      <image class="logo-image" src="/assets/images/cat-fish-logo.png" mode="aspectFit" />
+    </view>
+
+    <!-- 人均消费 + 地点 -->
+    <view class="form-row">
+      <view class="form-item required flex-1">
+        <text class="form-label">人均消费</text>
+        <view class="price-input-wrapper">
+          <text class="price-symbol">¥</text>
+          <input class="price-input" placeholder="价格" type="digit" value="{{avgPrice}}" bindinput="onPriceInput" />
+        </view>
+      </view>
+      <view class="form-item required flex-2">
+        <text class="form-label">地点</text>
+        <input class="form-input" placeholder="请输入地址" value="{{location}}" bindinput="onLocationInput" />
+      </view>
+    </view>
+
+    <!-- 推荐理由 -->
+    <view class="form-item">
+      <text class="form-label">推荐理由（选填）</text>
+      <textarea class="form-textarea small" placeholder="推荐菜、口味、环境等" value="{{reason}}" bindinput="onReasonInput" />
+    </view>
+
+    <!-- 注意事项 -->
+    <view class="form-item">
+      <text class="form-label">注意事项（选填）</text>
+      <input class="form-input" placeholder="如：需预约、停车难等" value="{{notice}}" bindinput="onNoticeInput" />
+    </view>
+
+    <!-- 匿名选项 -->
+    <view class="form-item anonymous-item">
+      <view class="anonymous-wrapper">
+        <text class="form-label">匿名发布</text>
+        <switch class="anonymous-switch" checked="{{isAnonymous}}" bindchange="onAnonymousChange" color="#FF9F43" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="button-section">
+    <button class="cancel-btn" bindtap="onCancel">取消</button>
+    <button class="submit-btn {{submitting || !isValid ? 'disabled' : ''}}" bindtap="onSubmit" disabled="{{submitting || !isValid}}">
+      {{submitting ? '提交中...' : '发布推荐'}}
+    </button>
+  </view>
+</view>

@@ -1,0 +1,351 @@
+/* ==================== 创建页 - 蜡笔像素风 ==================== */
+@import "../../styles/variables.wxss";
+@import "../../styles/animations.wxss";
+
+.create-page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---------- 顶部区域 ---------- */
+.header-section {
+  position: relative;
+  background: linear-gradient(180deg, #FF9F43 0%, #FFB347 70%, #FFC875 100%);
+  padding: 60rpx 32rpx 100rpx;
+  overflow: hidden;
+}
+
+/* 背景装饰 */
+.header-section::before {
+  content: '';
+  position: absolute;
+  top: -50rpx;
+  right: -50rpx;
+  width: 300rpx;
+  height: 300rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.header-content {
+  position: relative;
+  z-index: 2;
+}
+
+.back-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 64rpx;
+  height: 64rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.back-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.95);
+}
+
+.back-icon {
+  font-size: 32rpx;
+  color: #fff;
+  font-weight: bold;
+}
+
+.page-title {
+  display: block;
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: 64rpx;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  margin-top: 20rpx;
+  text-shadow:
+    0 2rpx 0 rgba(0, 0, 0, 0.1),
+    0 4rpx 8rpx rgba(0, 0, 0, 0.2),
+    0 8rpx 16rpx rgba(0, 0, 0, 0.15);
+  letter-spacing: 8rpx;
+  transform: rotate(-1deg);
+  -webkit-text-stroke: 2rpx rgba(255, 255, 255, 0.3);
+}
+
+.page-subtitle {
+  display: block;
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: 30rpx;
+  color: #fff;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 16rpx;
+  letter-spacing: 4rpx;
+  text-shadow:
+    0 2rpx 4rpx rgba(0, 0, 0, 0.15),
+    0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 装饰猫爪 */
+.paw-decoration {
+  position: absolute;
+  bottom: 20rpx;
+  right: 40rpx;
+  opacity: 0.3;
+}
+
+.paw {
+  font-size: 60rpx;
+  animation: float 3s ease-in-out infinite;
+}
+
+.paw.p1 {
+  animation-delay: 0s;
+}
+
+.paw.p2 {
+  animation-delay: 0.5s;
+  margin-left: 40rpx;
+}
+
+/* ---------- 波浪分割线 ---------- */
+.wave-divider {
+  position: relative;
+  height: 60rpx;
+  margin-top: -40rpx;
+  z-index: 3;
+}
+
+.wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23FFF8F0' d='M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,250.7C960,235,1056,181,1152,165.3C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+  background-size: 50% 100%;
+  animation: waveMove 15s linear infinite;
+}
+
+/* ---------- 模式列表 ---------- */
+.mode-list {
+  padding: 32rpx;
+  margin-top: -20rpx;
+  position: relative;
+  z-index: 2;
+}
+
+/* 蜡笔卡片 */
+.crayon-card {
+  position: relative;
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 40rpx 32rpx;
+  margin-bottom: 24rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 8rpx 32rpx rgba(255, 159, 67, 0.15);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+
+.crayon-card::before {
+  content: '';
+  position: absolute;
+  top: -2rpx;
+  left: -2rpx;
+  right: -2rpx;
+  bottom: -2rpx;
+  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 50%, #FF9F43 100%);
+  border-radius: 34rpx;
+  z-index: -1;
+  opacity: 0.2;
+}
+
+.crayon-card:active {
+  transform: scale(0.98) translateX(8rpx);
+  box-shadow: 0 4rpx 16rpx rgba(255, 159, 67, 0.1);
+}
+
+/* 蜡笔边框效果 */
+.crayon-border {
+  position: absolute;
+  top: 6rpx;
+  left: 6rpx;
+  right: 6rpx;
+  bottom: 6rpx;
+  border: 2rpx dashed rgba(255, 159, 67, 0.15);
+  border-radius: 26rpx;
+  pointer-events: none;
+}
+
+/* 卡片背景图标 */
+.card-bg {
+  position: absolute;
+  right: -20rpx;
+  bottom: -20rpx;
+  width: 160rpx;
+  height: 160rpx;
+  opacity: 0.05;
+  border-radius: 50%;
+}
+
+.card-bg.icon-a {
+  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
+}
+
+.card-bg.icon-b {
+  background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+}
+
+.card-bg.icon-group {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* 模式图标 */
+.mode-icon {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.mode-card:nth-child(1) .mode-icon {
+  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
+  box-shadow: 0 8rpx 24rpx rgba(255, 159, 67, 0.35);
+}
+
+.mode-card:nth-child(2) .mode-icon {
+  background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+  box-shadow: 0 8rpx 24rpx rgba(78, 205, 196, 0.35);
+}
+
+.mode-card:nth-child(3) .mode-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.35);
+}
+
+.icon-emoji {
+  font-size: 48rpx;
+}
+
+/* 模式内容 */
+.mode-content {
+  flex: 1;
+  position: relative;
+  z-index: 2;
+}
+
+.mode-title {
+  display: block;
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8rpx;
+  letter-spacing: 2rpx;
+}
+
+.mode-desc {
+  display: block;
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* 箭头 */
+.mode-arrow {
+  width: 56rpx;
+  height: 56rpx;
+  background: rgba(255, 159, 67, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 16rpx;
+  transition: all 0.3s;
+}
+
+.mode-arrow text {
+  font-size: 28rpx;
+  color: var(--color-primary);
+  font-weight: bold;
+}
+
+.crayon-card:active .mode-arrow {
+  background: var(--color-primary);
+  transform: translateX(4rpx);
+}
+
+.crayon-card:active .mode-arrow text {
+  color: #fff;
+}
+
+/* ---------- 底部提示 ---------- */
+.glass-tips {
+  margin: 0 32rpx 32rpx;
+  padding: 24rpx 32rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20rpx);
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+  border: 2rpx solid rgba(255, 159, 67, 0.1);
+}
+
+.tips-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+
+.tips-text {
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+}
+
+/* ---------- 底部装饰 ---------- */
+.bottom-decoration {
+  position: fixed;
+  bottom: 40rpx;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 80rpx;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.fish {
+  font-size: 48rpx;
+  animation: swim 4s ease-in-out infinite;
+}
+
+.fish1 { animation-delay: 0s; }
+.fish2 { animation-delay: 1.3s; }
+.fish3 { animation-delay: 2.6s; }
+
+@keyframes swim {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10rpx) rotate(5deg);
+  }
+  75% {
+    transform: translateY(10rpx) rotate(-5deg);
+  }
+}

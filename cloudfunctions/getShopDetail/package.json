@@ -1,0 +1,9 @@
+{
+  "name": "getShopDetail",
+  "version": "1.0.0",
+  "description": "获取店铺详情",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

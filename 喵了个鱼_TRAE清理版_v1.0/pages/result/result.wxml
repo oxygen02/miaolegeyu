@@ -1,0 +1,52 @@
+<view class="page result-page">
+  <view class="result-header">
+    <text class="result-label">定了</text>
+    <view class="result-line"></view>
+  </view>
+
+  <view class="winner-card card anim-pop">
+    <image class="winner-img" src="{{finalPoster.imageUrl}}" mode="aspectFill" bindtap="previewPoster" />
+    <view class="winner-platform {{finalPoster.platform}}">
+      <text>{{finalPoster.platform === 'meituan' ? '美团' : finalPoster.platform === 'dianping' ? '大众点评' : '京东'}}</text>
+    </view>
+  </view>
+
+  <view class="info-card card">
+    <view class="info-row">
+      <text class="info-label">聚餐</text>
+      <text class="info-value">{{room.title}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">时间</text>
+      <text class="info-value">{{finalPoster.time || '待定'}}</text>
+    </view>
+    <view class="info-row" wx:if="{{finalPoster.address}}">
+      <text class="info-label">地址</text>
+      <text class="info-value">{{finalPoster.address}}</text>
+    </view>
+  </view>
+
+  <view class="action-group">
+    <button class="btn btn-primary action-btn" bindtap="goNavigate">
+      <view class="btn-icon nav-icon"></view>
+      <text>导航去店</text>
+    </button>
+    <button class="btn btn-secondary action-btn" bindtap="goPlatform">
+      <text>去平台看看</text>
+    </button>
+  </view>
+
+  <view class="group-order-area" wx:if="{{room.groupOrderOption}}">
+    <text class="go-text">顺便拼个单？</text>
+    <button class="btn btn-primary go-btn" bindtap="goGroupOrder">发起拼单</button>
+  </view>
+
+  <view class="creator-bar" wx:if="{{isCreator}}">
+    <button class="btn btn-primary settle-btn" bindtap="goSettlement">去结算</button>
+  </view>
+
+  <view class="result-bottom">
+    <image class="bottom-cat" src="/assets/cat-celebrate.png" mode="aspectFit" />
+    <text class="bottom-say">记得拍照给我看看</text>
+  </view>
+</view>

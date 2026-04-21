@@ -1,0 +1,9 @@
+{
+  "name": "checkFavorite",
+  "version": "1.0.0",
+  "description": "检查收藏状态",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

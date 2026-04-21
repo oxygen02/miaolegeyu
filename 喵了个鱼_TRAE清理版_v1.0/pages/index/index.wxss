@@ -1,0 +1,192 @@
+.index-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* === 区域1: 橘仔 30% === */
+.cat-zone {
+  height: 30vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 24rpx;
+  position: relative;
+}
+
+.cat-illustration {
+  position: relative;
+  width: 280rpx;
+  height: 280rpx;
+}
+
+.cat-img {
+  width: 100%;
+  height: 100%;
+}
+
+.bell {
+  position: absolute;
+  top: 60%;
+  left: 55%;
+  width: 24rpx;
+  height: 24rpx;
+  background: linear-gradient(135deg, #FFD700, #DAA520);
+  border-radius: 50%;
+  animation: wiggle 2s ease-in-out infinite;
+}
+
+.cat-caption {
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  letter-spacing: 4rpx;
+}
+
+/* === 区域2: 池塘 70% === */
+.pond-zone {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 48rpx 40rpx;
+}
+
+/* 水波纹 - 纯 CSS */
+.water-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wave {
+  position: absolute;
+  width: 200%;
+  height: 4rpx;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 40rpx,
+    var(--water) 40rpx,
+    var(--water) 80rpx,
+    transparent 80rpx,
+    transparent 120rpx
+  );
+  opacity: 0.5;
+}
+.w1 { top: 15%; animation: waveMove 10s linear infinite; }
+.w2 { top: 35%; animation: waveMove 8s linear infinite reverse; opacity: 0.3; }
+.w3 { top: 55%; animation: waveMove 12s linear infinite; opacity: 0.2; }
+
+/* 鱼宝 */
+.fish-container {
+  position: absolute;
+  bottom: 35%;
+  right: 10%;
+  width: 120rpx;
+  height: 80rpx;
+  z-index: 1;
+  animation: fishSwim 6s ease-in-out infinite;
+}
+
+.fish-img {
+  width: 100%;
+  height: 100%;
+}
+
+/* 入口按钮 */
+.entry-group {
+  width: 100%;
+  margin-top: 80rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+  z-index: 2;
+}
+
+.entry-btn {
+  width: 100%;
+  height: 160rpx;
+  border-radius: var(--radius-card);
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.btn-main-text {
+  font-size: 40rpx;
+  font-weight: 600;
+  letter-spacing: 4rpx;
+}
+
+.btn-sub-text {
+  font-size: 24rpx;
+  opacity: 0.8;
+}
+
+/* 最近活动 */
+.recent-section {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 40rpx;
+  z-index: 2;
+}
+
+.section-header {
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.section-more {
+  font-size: 24rpx;
+  color: var(--primary);
+}
+
+.recent-scroll {
+  white-space: nowrap;
+}
+
+.recent-card {
+  display: inline-block;
+  width: 200rpx;
+  margin-right: 20rpx;
+  background: var(--card);
+  border-radius: 16rpx;
+  padding: 12rpx;
+  box-shadow: var(--shadow-card);
+}
+
+.recent-poster {
+  width: 100%;
+  height: 160rpx;
+  border-radius: 12rpx;
+  background: #EEE;
+}
+
+.recent-name {
+  display: block;
+  font-size: 26rpx;
+  color: var(--text);
+  margin-top: 12rpx;
+}
+
+.recent-status {
+  display: block;
+  font-size: 22rpx;
+  margin-top: 4rpx;
+}
+.recent-status.voting { color: var(--primary); }
+.recent-status.locked { color: var(--secondary); }
+.recent-status.cancelled { color: var(--soft); }

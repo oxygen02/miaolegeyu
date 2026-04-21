@@ -1,0 +1,83 @@
+<view class="result-page">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-icon cat-sleeping"></view>
+    <text class="loading-text">橘仔正在计算...</text>
+  </view>
+
+  <!-- 主要内容 -->
+  <block wx:else>
+    <!-- 结果头部 -->
+    <view class="result-header">
+      <view class="result-icon cat-happy"></view>
+      <text class="result-title">橘仔宣布</text>
+      <text class="result-subtitle">本次聚餐地点已定</text>
+    </view>
+
+    <!-- 最终海报 -->
+    <view class="final-poster-section" wx:if="{{room.finalPoster}}">
+      <view class="poster-card" bindtap="previewPoster">
+        <image 
+          class="poster-image" 
+          src="{{room.finalPoster.imageUrl}}" 
+          mode="aspectFill"
+        />
+        <view class="platform-badge {{room.finalPoster.platformSource}}">
+          <text>{{room.finalPoster.platformSource === 'meituan' ? '美团' : room.finalPoster.platformSource === 'dianping' ? '点评' : '京东'}}</text>
+        </view>
+      </view>
+
+      <!-- 聚餐信息 -->
+      <view class="dinner-info" wx:if="{{room.finalPoster.time || room.finalPoster.address}}">
+        <view class="info-item" wx:if="{{room.finalPoster.time}}">
+          <text class="info-label">时间</text>
+          <text class="info-value">{{room.finalPoster.time}}</text>
+        </view>
+        <view class="info-item" wx:if="{{room.finalPoster.address}}">
+          <text class="info-label">地址</text>
+          <text class="info-value">{{room.finalPoster.address}}</text>
+          <text class="copy-btn" bindtap="copyAddress">复制</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 无结果状态 -->
+    <view class="no-result-section" wx:if="{{!room.finalPoster}}">
+      <view class="no-result-icon cat-sad"></view>
+      <text class="no-result-text">还没有最终结果哦</text>
+      <text class="no-result-hint">等橘仔选好了会通知你~</text>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-section">
+      <button class="btn-primary" bindtap="goToPlatform">
+        <view class="btn-icon icon-fork"></view>
+        <text>去平台看看</text>
+      </button>
+      
+      <button class="btn-secondary" bindtap="openNavigation" wx:if="{{room.finalPoster && room.finalPoster.address}}">
+        <view class="btn-icon icon-location"></view>
+        <text>导航去店</text>
+      </button>
+      
+      <button class="btn-secondary" bindtap="goSettlement" wx:if="{{room.groupOrderOption}}">
+        <view class="btn-icon icon-money"></view>
+        <text>去结算</text>
+      </button>
+    </view>
+
+    <!-- 分享提示 -->
+    <view class="share-section">
+      <text class="share-text">分享结果给小伙伴们</text>
+      <button class="btn-share" open-type="share">
+        <view class="share-icon icon-heart"></view>
+        <text>分享</text>
+      </button>
+    </view>
+
+    <!-- 返回首页 -->
+    <view class="back-section">
+      <text class="back-link" bindtap="goHome">返回首页</text>
+    </view>
+  </block>
+</view>

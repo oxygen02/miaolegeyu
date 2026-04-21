@@ -1,0 +1,873 @@
+/* ==================== 首页 - 蜡笔像素风 ==================== */
+
+.index-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #FFF8F0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 4vw calc(140rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---------- Hero 区域 - 条纹背景 + 栅栏 ---------- */
+.hero-section {
+  position: relative;
+  padding: 6vh 0 0;
+  margin: 0 -4vw;
+  overflow: visible;
+  min-height: 320rpx;
+}
+
+/* 条纹背景 */
+.stripe-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 48rpx;
+  background: repeating-linear-gradient(
+    90deg,
+    #FF9F43 0rpx,
+    #FF9F43 24rpx,
+    #FFB347 24rpx,
+    #FFB347 48rpx
+  );
+  z-index: 0;
+}
+
+/* 内容区域 - 左对齐 */
+.hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0 4vw;
+  gap: 40rpx;
+}
+
+.title-area {
+  text-align: left;
+}
+
+.app-title {
+  display: block;
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #fff;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  /* 投影阴影效果 */
+  text-shadow:
+    /* 右下方向投影阴影 */
+    6rpx 10rpx 0 rgba(61, 61, 61, 0.4),
+    8rpx 14rpx 8rpx rgba(61, 61, 61, 0.25);
+  letter-spacing: 8rpx;
+  margin-bottom: 16rpx;
+  line-height: 1.2;
+}
+
+.app-subtitle {
+  display: block;
+  font-size: 28rpx;
+  color: #fff;
+  font-weight: 500;
+  /* 无阴影 */
+  letter-spacing: 2rpx;
+}
+
+/* ---------- 橘仔头像 ---------- */
+.cat-container {
+  position: relative;
+  width: 156rpx;
+  height: 156rpx;
+  flex-shrink: 0;
+  margin-left: 60rpx;
+  animation: balloonFloat 4s ease-in-out infinite;
+}
+
+.cat-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140%;
+  height: 140%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+.cat-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  border: 3rpx solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: ringPulse 4s ease-in-out infinite;
+}
+
+.cat-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 4rpx solid #3D3D3D;
+  box-shadow:
+    0 10rpx 0 rgba(61, 61, 61, 0.15),
+    0 16rpx 30rpx rgba(61, 61, 61, 0.25);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  background: #fff;
+}
+
+/* 气球升降漂浮动画 */
+@keyframes balloonFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  25% {
+    transform: translateY(-15rpx) rotate(2deg);
+  }
+  50% {
+    transform: translateY(-8rpx) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(-20rpx) rotate(1deg);
+  }
+}
+
+/* 光环呼吸动画 */
+@keyframes breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+  50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+/* 圆环脉冲动画 */
+@keyframes ringPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.3; }
+}
+
+/* ---------- 栅栏锯齿装饰 ---------- */
+.fence-decoration {
+  position: relative;
+  height: 48rpx;
+  margin-top: 74rpx;
+  z-index: 2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 48' width='120' height='48'%3E%3Cpath d='M0 48 L0 24 L10 12 L30 12 L40 24 L40 48 L40 48 L40 32 L50 20 L70 20 L80 32 L80 48 L80 48 L80 28 L90 16 L110 16 L120 28 L120 48 Z' fill='%23FFF8F0'/%3E%3C/svg%3E");
+  background-size: 120rpx 48rpx;
+  background-repeat: repeat-x;
+  background-position: top;
+}
+
+/* ---------- 中间区域 - Banner轮播 ---------- */
+.middle-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+  min-height: 200rpx;
+  margin-top: -2rpx;
+}
+
+/* ---------- Banner轮播 - 蜡笔像素风 ---------- */
+.banner-swiper {
+  height: 180rpx;
+  border-radius: 24rpx;
+  overflow: visible;
+}
+
+.banner-card {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border-radius: 24rpx;
+  /* 上左细，下右粗 */
+  border-top: 4rpx solid #3D3D3D;
+  border-left: 4rpx solid #3D3D3D;
+  border-bottom: 8rpx solid #3D3D3D;
+  border-right: 8rpx solid #3D3D3D;
+  /* 阴影效果 */
+  box-shadow: 
+    4rpx 6rpx 0 rgba(61, 61, 61, 0.15),
+    8rpx 12rpx 20rpx rgba(61, 61, 61, 0.1);
+  display: flex;
+  align-items: center;
+  padding: 0 28rpx;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.banner-card:active {
+  transform: translateY(4rpx);
+  box-shadow: 
+    2rpx 3rpx 0 rgba(61, 61, 61, 0.15),
+    4rpx 6rpx 10rpx rgba(61, 61, 61, 0.1);
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.banner-icon-bg {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.banner-emoji {
+  font-size: 44rpx;
+}
+
+.banner-icon-image {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 20rpx;
+}
+
+.banner-text {
+  flex: 1;
+}
+
+.banner-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #3D3D3D;
+  margin-bottom: 8rpx;
+}
+
+.banner-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #8A8A8A;
+}
+
+/* 简化版约饭活动轮播样式 */
+.simple-banner {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  overflow: hidden;
+}
+
+.banner-shop-image {
+  width: 180rpx;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.banner-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20rpx 24rpx;
+  gap: 8rpx;
+}
+
+.banner-shop-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #3D3D3D;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.banner-countdown {
+  font-size: 26rpx;
+  color: #FF6B6B;
+  font-weight: 600;
+}
+
+/* 广告位轮播样式 */
+.ad-banner {
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ad-image {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- 底部功能卡片区域 ---------- */
+.feature-section {
+  margin-top: 40rpx;
+  padding-bottom: 2vh;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+/* 蜡笔像素风卡片 */
+.feature-card {
+  border-radius: 24rpx;
+  /* 上左细，下右粗 */
+  border-top: 4rpx solid #3D3D3D;
+  border-left: 4rpx solid #3D3D3D;
+  border-bottom: 8rpx solid #3D3D3D;
+  border-right: 8rpx solid #3D3D3D;
+  /* 阴影效果 */
+  box-shadow: 
+    4rpx 6rpx 0 rgba(61, 61, 61, 0.15),
+    8rpx 12rpx 20rpx rgba(61, 61, 61, 0.1);
+  transition: all 0.15s ease;
+  overflow: hidden;
+  min-height: 200rpx;
+  display: flex;
+  align-items: stretch;
+}
+
+/* 四个卡片的背景色 */
+.feature-card:nth-child(1) {
+  background: #FFF8F0;
+}
+
+.feature-card:nth-child(2) {
+  background: #E8F8F5;
+}
+
+.feature-card:nth-child(3) {
+  background: #F0F4FF;
+}
+
+.feature-card:nth-child(4) {
+  background: #FFF5F5;
+}
+
+.feature-card:active {
+  transform: translateY(4px);
+  box-shadow: 
+    2rpx 3rpx 0 rgba(61, 61, 61, 0.15),
+    4rpx 6rpx 10rpx rgba(61, 61, 61, 0.1);
+}
+
+/* 触摸滑动时的弹起放大效果 */
+.feature-card.touch-active {
+  transform: translateY(-8rpx) scale(1.05);
+  box-shadow: 
+    6rpx 10rpx 0 rgba(61, 61, 61, 0.2),
+    12rpx 20rpx 30rpx rgba(61, 61, 61, 0.15);
+  z-index: 10;
+  transition: all 0.15s ease;
+}
+
+.card-inner {
+  padding: 20rpx 20rpx 20rpx 12rpx;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.feature-icon-wrapper {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.feature-emoji {
+  font-size: 52rpx;
+}
+
+.feature-icon-image {
+  width: 68rpx;
+  height: 68rpx;
+}
+
+.feature-icon-image.large-icon {
+  width: 84rpx;
+  height: 84rpx;
+}
+
+.fish-emoji-large {
+  font-size: 48rpx;
+}
+
+.feature-text-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+}
+
+.feature-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #3D3D3D;
+  margin-bottom: 8rpx;
+  text-align: left !important;
+}
+
+.feature-desc {
+  font-size: 24rpx;
+  color: #8A8A8A;
+  text-align: left !important;
+  white-space: nowrap;
+}
+
+/* ---------- 适配小屏幕 ---------- */
+@media (max-height: 700px) {
+  .app-title {
+    font-size: 44rpx;
+  }
+  
+  .app-subtitle {
+    font-size: 24rpx;
+  }
+  
+  .cat-container {
+    width: 120rpx;
+    height: 120rpx;
+  }
+  
+  .banner-swiper {
+    height: 140rpx;
+  }
+  
+  .banner-icon-bg {
+    width: 76rpx;
+    height: 76rpx;
+  }
+  
+  .banner-title {
+    font-size: 28rpx;
+  }
+  
+  .card-inner {
+    padding: 20rpx 12rpx;
+  }
+  
+  .feature-icon-wrapper {
+    width: 64rpx;
+    height: 64rpx;
+  }
+  
+  .feature-title {
+    font-size: 26rpx;
+    text-align: left !important;
+  }
+
+  .feature-desc {
+    font-size: 20rpx;
+    text-align: left !important;
+  }
+}
+
+/* ---------- 游动的小鱼区域 ---------- */
+.fish-tank {
+  position: relative;
+  height: 200rpx;
+  margin-top: 20rpx;
+  margin-bottom: 20rpx;
+  overflow: visible;
+  z-index: 5;
+}
+
+/* 小鱼基础样式 */
+.fish {
+  position: absolute;
+  width: 48rpx;
+  height: 24rpx;
+  transform-style: preserve-3d;
+}
+
+/* 鱼身 - 2D渐变效果 */
+.fish-body {
+  position: absolute;
+  width: 32rpx;
+  height: 20rpx;
+  background: linear-gradient(135deg, #87CEEB 0%, #ADD8E6 50%, #87CEEB 100%);
+  border-radius: 50% 60% 60% 50% / 50% 60% 40% 50%;
+  box-shadow: 
+    inset -2rpx -2rpx 4rpx rgba(0,0,0,0.1),
+    inset 2rpx 2rpx 4rpx rgba(255,255,255,0.4),
+    2rpx 4rpx 8rpx rgba(135,206,235,0.2);
+  top: 2rpx;
+  left: 0;
+}
+
+/* 鱼尾 - 使用圆角矩形制作更自然的扇形尾巴 */
+.fish-tail {
+  position: absolute;
+  width: 16rpx;
+  height: 14rpx;
+  background: linear-gradient(135deg, #87CEEB 0%, #ADD8E6 100%);
+  border-radius: 0 80% 80% 0;
+  top: 5rpx;
+  right: -6rpx;
+  transform-origin: left center;
+  animation: tailWag 0.6s ease-in-out infinite;
+  filter: drop-shadow(1rpx 2rpx 2rpx rgba(135,206,235,0.2));
+}
+
+/* 鱼尾分叉效果 */
+.fish-tail::before {
+  content: '';
+  position: absolute;
+  width: 10rpx;
+  height: 6rpx;
+  background: linear-gradient(135deg, #87CEEB 0%, #ADD8E6 100%);
+  border-radius: 0 60% 60% 0;
+  top: -2rpx;
+  left: 3rpx;
+  transform: rotate(-20deg);
+}
+
+.fish-tail::after {
+  content: '';
+  position: absolute;
+  width: 10rpx;
+  height: 6rpx;
+  background: linear-gradient(135deg, #87CEEB 0%, #ADD8E6 100%);
+  border-radius: 0 60% 60% 0;
+  bottom: -2rpx;
+  left: 3rpx;
+  transform: rotate(20deg);
+}
+
+/* 鱼鳍 */
+.fish-fin {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 5rpx solid transparent;
+  border-right: 5rpx solid transparent;
+  border-bottom: 10rpx solid #ADD8E6;
+  top: -3rpx;
+  left: 12rpx;
+  transform-origin: bottom center;
+  animation: finWave 0.8s ease-in-out infinite;
+  opacity: 0.9;
+}
+
+/* 鱼眼 */
+.fish-eye {
+  position: absolute;
+  width: 5rpx;
+  height: 5rpx;
+  background: #fff;
+  border-radius: 50%;
+  top: 6rpx;
+  left: 22rpx;
+  box-shadow: inset 1rpx 1rpx 2rpx rgba(0,0,0,0.3);
+}
+
+.fish-eye::after {
+  content: '';
+  position: absolute;
+  width: 2rpx;
+  height: 2rpx;
+  background: #333;
+  border-radius: 50%;
+  top: 1rpx;
+  left: 2rpx;
+}
+
+/* 小鱼1 - 从右到左贯穿游动 */
+.fish-1 {
+  top: -20rpx;
+  animation: swimRightToLeft1 30s linear infinite;
+}
+
+/* 小鱼2 - 从左到右贯穿游动 */
+.fish-2 {
+  top: 20rpx;
+  animation: swimLeftToRight1 25s linear infinite;
+  animation-delay: 5s;
+}
+
+.fish-2 .fish-body {
+  background: linear-gradient(135deg, #FFB6C1 0%, #FFC0CB 50%, #FFB6C1 100%);
+}
+
+.fish-2 .fish-tail,
+.fish-2 .fish-tail::before,
+.fish-2 .fish-tail::after {
+  background: linear-gradient(135deg, #FFB6C1 0%, #FFC0CB 100%);
+}
+
+.fish-2 .fish-fin {
+  border-bottom-color: #FFC0CB;
+}
+
+/* 小鱼3 - 从右到左贯穿游动 */
+.fish-3 {
+  top: 60rpx;
+  animation: swimRightToLeft2 35s linear infinite;
+  animation-delay: 10s;
+}
+
+.fish-3 .fish-body {
+  background: linear-gradient(135deg, #98E4D6 0%, #B2F0E8 50%, #98E4D6 100%);
+}
+
+.fish-3 .fish-tail,
+.fish-3 .fish-tail::before,
+.fish-3 .fish-tail::after {
+  background: linear-gradient(135deg, #98E4D6 0%, #B2F0E8 100%);
+}
+
+.fish-3 .fish-fin {
+  border-bottom-color: #B2F0E8;
+}
+
+/* 小鱼4 - 从左到右贯穿游动 */
+.fish-4 {
+  top: 0rpx;
+  animation: swimLeftToRight2 28s linear infinite;
+  animation-delay: 3s;
+}
+
+.fish-4 .fish-body {
+  background: linear-gradient(135deg, #FFE66D 0%, #FFF0A0 50%, #FFE66D 100%);
+}
+
+.fish-4 .fish-tail,
+.fish-4 .fish-tail::before,
+.fish-4 .fish-tail::after {
+  background: linear-gradient(135deg, #FFE66D 0%, #FFF0A0 100%);
+}
+
+.fish-4 .fish-fin {
+  border-bottom-color: #FFF0A0;
+}
+
+/* 小鱼5 - 从右到左贯穿游动 */
+.fish-5 {
+  top: 40rpx;
+  animation: swimRightToLeft3 32s linear infinite;
+  animation-delay: 15s;
+}
+
+/* 鱼被触碰后快速游走 - 根据点击位置决定逃走方向，速度为正常的3倍 */
+.fish.scared-left {
+  animation: swimEscapeLeft 3s ease-out forwards !important;
+}
+
+.fish.scared-right {
+  animation: swimEscapeRight 3s ease-out forwards !important;
+}
+
+.fish-5 .fish-body {
+  background: linear-gradient(135deg, #A8E6CF 0%, #C8F7E8 50%, #A8E6CF 100%);
+}
+
+.fish-5 .fish-tail,
+.fish-5 .fish-tail::before,
+.fish-5 .fish-tail::after {
+  background: linear-gradient(135deg, #A8E6CF 0%, #C8F7E8 100%);
+}
+
+.fish-5 .fish-fin {
+  border-bottom-color: #C8F7E8;
+}
+
+/* 鱼尾摆动动画 */
+@keyframes tailWag {
+  0%, 100% { transform: rotate(-15deg); }
+  50% { transform: rotate(15deg); }
+}
+
+/* 鱼鳍摆动动画 */
+@keyframes finWave {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+/* 从右到左贯穿游动 - 带上下起伏 */
+@keyframes swimRightToLeft1 {
+  0% {
+    left: 110%;
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  15% {
+    transform: translateX(-15vw) translateY(-30rpx) rotate(-5deg);
+  }
+  30% {
+    transform: translateX(-30vw) translateY(20rpx) rotate(3deg);
+  }
+  45% {
+    transform: translateX(-45vw) translateY(-25rpx) rotate(-4deg);
+  }
+  60% {
+    transform: translateX(-60vw) translateY(15rpx) rotate(2deg);
+  }
+  75% {
+    transform: translateX(-75vw) translateY(-20rpx) rotate(-3deg);
+  }
+  90% {
+    transform: translateX(-90vw) translateY(10rpx) rotate(1deg);
+  }
+  100% {
+    left: -10%;
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes swimRightToLeft2 {
+  0% {
+    left: 110%;
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  20% {
+    transform: translateX(-20vw) translateY(25rpx) rotate(4deg);
+  }
+  40% {
+    transform: translateX(-40vw) translateY(-30rpx) rotate(-5deg);
+  }
+  60% {
+    transform: translateX(-60vw) translateY(20rpx) rotate(3deg);
+  }
+  80% {
+    transform: translateX(-80vw) translateY(-15rpx) rotate(-2deg);
+  }
+  100% {
+    left: -10%;
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes swimRightToLeft3 {
+  0% {
+    left: 110%;
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-25vw) translateY(-20rpx) rotate(-6deg);
+  }
+  50% {
+    transform: translateX(-50vw) translateY(30rpx) rotate(4deg);
+  }
+  75% {
+    transform: translateX(-75vw) translateY(-25rpx) rotate(-3deg);
+  }
+  100% {
+    left: -10%;
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+}
+
+/* 从左到右贯穿游动 - 带上下起伏 */
+@keyframes swimLeftToRight1 {
+  0% {
+    left: -10%;
+    transform: translateX(0) translateY(0) rotate(0deg) scaleX(-1);
+  }
+  15% {
+    transform: translateX(15vw) translateY(20rpx) rotate(5deg) scaleX(-1);
+  }
+  30% {
+    transform: translateX(30vw) translateY(-25rpx) rotate(-3deg) scaleX(-1);
+  }
+  45% {
+    transform: translateX(45vw) translateY(30rpx) rotate(4deg) scaleX(-1);
+  }
+  60% {
+    transform: translateX(60vw) translateY(-20rpx) rotate(-2deg) scaleX(-1);
+  }
+  75% {
+    transform: translateX(75vw) translateY(25rpx) rotate(3deg) scaleX(-1);
+  }
+  90% {
+    transform: translateX(90vw) translateY(-15rpx) rotate(-1deg) scaleX(-1);
+  }
+  100% {
+    left: 110%;
+    transform: translateX(0) translateY(0) rotate(0deg) scaleX(-1);
+  }
+}
+
+@keyframes swimLeftToRight2 {
+  0% {
+    left: -10%;
+    transform: translateX(0) translateY(0) rotate(0deg) scaleX(-1);
+  }
+  20% {
+    transform: translateX(20vw) translateY(-30rpx) rotate(-4deg) scaleX(-1);
+  }
+  40% {
+    transform: translateX(40vw) translateY(25rpx) rotate(5deg) scaleX(-1);
+  }
+  60% {
+    transform: translateX(60vw) translateY(-20rpx) rotate(-3deg) scaleX(-1);
+  }
+  80% {
+    transform: translateX(80vw) translateY(15rpx) rotate(2deg) scaleX(-1);
+  }
+  100% {
+    left: 110%;
+    transform: translateX(0) translateY(0) rotate(0deg) scaleX(-1);
+  }
+}
+
+/* 鱼被惊吓后向左侧逃逸 */
+@keyframes swimEscapeLeft {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateX(-100vw) translateY(0) rotate(0deg);
+  }
+}
+
+/* 鱼被惊吓后向右侧逃逸 */
+@keyframes swimEscapeRight {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg) scaleX(-1);
+  }
+  100% {
+    transform: translateX(100vw) translateY(0) rotate(0deg) scaleX(-1);
+  }
+}
+
+/* ---------- 适配大屏幕 ---------- */
+@media (min-height: 850px) {
+  .banner-swiper {
+    height: 180rpx;
+  }
+  
+  .card-inner {
+    padding: 28rpx 20rpx;
+  }
+  
+  .feature-icon-wrapper {
+    width: 80rpx;
+    height: 80rpx;
+  }
+}

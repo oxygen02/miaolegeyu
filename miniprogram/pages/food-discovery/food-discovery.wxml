@@ -1,0 +1,170 @@
+<!-- 发现美食页面 -->
+<view class="food-discovery-page">
+  <!-- 顶部标题区 -->
+  <view class="header-section">
+    <view class="header-content">
+      <text class="page-title">发现美食</text>
+      <text class="page-subtitle">探索喵星人推荐的美味</text>
+    </view>
+  </view>
+
+  <!-- 菜系筛选 -->
+  <view class="cuisine-filter">
+    <view class="cuisine-list">
+      <view 
+        class="cuisine-item {{selectedCuisine === item.id ? 'active' : ''}}"
+        wx:for="{{cuisines}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onCuisineTap"
+      >
+        <text class="cuisine-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 店铺列表 -->
+  <view class="shop-list">
+    <view 
+      class="shop-item"
+      style="background: {{item.bgColor}};"
+      wx:for="{{shops}}"
+      wx:key="_id"
+      data-id="{{item._id}}"
+      bindtap="onShopItemTap"
+    >
+      <!-- 右上角：付费模式 -->
+      <view class="payment-badge-top" wx:if="{{item.appointments && item.appointments.length > 0}}">
+        {{item.appointments[0].paymentMode === 'AA' ? 'AA' : '喵大佬买单'}}
+      </view>
+      
+      <!-- 左侧：店铺信息 -->
+      <view class="shop-left-section">
+        <!-- 店铺图片 -->
+        <view class="shop-thumb" data-index="{{index}}" catchtap="onThumbTap">
+          <image class="thumb-image" src="{{item.images && item.images[0] ? item.images[0] : '/assets/images/shop-placeholder.png'}}" mode="aspectFill" />
+          <view class="image-count" wx:if="{{item.images && item.images.length > 1}}">{{item.images.length}}</view>
+        </view>
+        
+        <!-- 店铺详情 -->
+        <view class="shop-info">
+          <view class="info-row">
+            <text class="shop-name">{{item.name}}</text>
+            <view class="cuisine-tag">{{item.cuisineName}}</view>
+          </view>
+          
+          <view class="info-row">
+            <text class="shop-address" bindtap="onAddressTap" data-address="{{item.address}}" data-name="{{item.name}}">{{item.location}}</text>
+            <text class="nav-icon">📍</text>
+          </view>
+          
+          <view class="info-row">
+            <view class="shop-rating">
+              <view class="paw-rating">
+                <image 
+                  wx:for="{{item.pawRating}}"
+                  wx:for-index="pawIndex"
+                  wx:key="pawIndex"
+                  class="paw-icon {{item ? 'filled' : 'empty'}}"
+                  src="/assets/images/cat-paw-icon.png"
+                  mode="aspectFit"
+                  style="opacity: {{item ? 1 : 0.3}}; filter: {{item ? 'none' : 'grayscale(100%)'}}"
+                />
+              </view>
+              <text class="rating-score">{{item.rating}}分</text>
+            </view>
+            <text class="shop-price">¥{{item.avgPrice}}/人</text>
+          </view>
+          
+          <view class="info-row uploader-row">
+            <image class="uploader-avatar" src="{{item.isAnonymous ? '/assets/images/cat-avatar-icon.png' : (item.uploaderAvatar || '/assets/images/cat-avatar-icon.png')}}" mode="aspectFit" />
+            <text class="uploader-name">{{item.isAnonymous ? '匿名喵友' : (item.uploaderName || '神秘喵友')}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 中间分隔线 -->
+      <view class="divider" wx:if="{{item.appointments && item.appointments.length > 0}}"></view>
+      
+      <!-- 右侧：约饭活动 -->
+      <view class="shop-right-section" wx:if="{{item.appointments && item.appointments.length > 0}}">
+        <scroll-view class="appointments-list" scroll-y="true" enhanced="true" show-scrollbar="false">
+          <view 
+            class="appointment-card"
+            wx:for="{{item.appointments}}"
+            wx:for-item="app"
+            wx:key="_id"
+          >
+            <!-- 发起人 -->
+            <view class="app-row initiator-row">
+              <image class="initiator-avatar" src="{{app.initiatorAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+              <text class="initiator-name">{{app.initiatorName || '神秘喵友'}}</text>
+            </view>
+            
+            <!-- 时间 -->
+            <view class="app-row time-row">
+              <text class="app-time">{{app.appointmentTimeStr}}</text>
+            </view>
+            
+            <!-- 倒计时 -->
+            <view class="app-row countdown-row">
+              <text class="countdown-text">{{app.countdownText}}</text>
+            </view>
+            
+            <!-- 人数 + 按钮 -->
+            <view class="app-row action-row">
+              <text class="participant-count">喵×{{app.participantCount}}</text>
+              <view class="join-btn {{app.isJoined ? 'joined' : ''}}" catchtap="onAppointmentAction" data-appointment="{{app}}">
+                {{app.isJoined ? '已参加' : '参加'}}
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+      
+      <!-- 右侧：发起约饭按钮（无活动时） -->
+      <view class="shop-right-empty" wx:elif="{{!item.appointments || item.appointments.length === 0}}" catchtap="onCreateAppointmentTap" data-shop="{{item}}">
+        <view class="create-btn-wide">
+          <text class="btn-text">发起约饭</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading}}">
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 没有更多 -->
+    <view class="no-more" wx:if="{{!hasMore && shops.length > 0}}">
+      <text class="no-more-text">没有更多店铺了</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && shops.length === 0}}">
+      <image class="empty-icon" src="/assets/images/sleeping-cat-icon.png" mode="aspectFit" />
+      <text class="empty-text">还没有店铺推荐</text>
+      <text class="empty-subtext">快来成为第一个推荐者吧！</text>
+    </view>
+  </view>
+
+  <!-- 底部浮动推荐按钮 -->
+  <view class="floating-recommend-bar" bindtap="onUploadTap">
+    <view class="floating-recommend-icon-wrapper">
+      <image class="floating-recommend-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+    </view>
+    <text class="floating-recommend-text">推荐好吃好喝哒</text>
+  </view>
+
+  <!-- 图片预览弹窗 -->
+  <view class="image-preview-mask" wx:if="{{previewVisible}}" bindtap="closePreview">
+    <swiper class="preview-swiper" current="{{previewCurrent}}" bindchange="onPreviewChange">
+      <swiper-item wx:for="{{previewImages}}" wx:key="*this">
+        <image class="preview-image" src="{{item}}" mode="aspectFit" catchtap="onPreviewImageTap" />
+      </swiper-item>
+    </swiper>
+    <view class="preview-indicator">{{previewCurrent + 1}} / {{previewImages.length}}</view>
+    <view class="preview-close" bindtap="closePreview">×</view>
+  </view>
+
+</view>

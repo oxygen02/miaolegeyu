@@ -1,0 +1,55 @@
+<view class="page index-page">
+  <!-- 区域1: 橘仔凝视区 30% -->
+  <view class="cat-zone">
+    <view class="cat-illustration anim-breathe">
+      <!-- 占位：橘仔趴姿插画，由设计师提供 280x280 PNG -->
+      <image class="cat-img" src="/assets/cat-standby.png" mode="aspectFit" />
+      <!-- 铃铛装饰 -->
+      <view class="bell"></view>
+    </view>
+    <text class="cat-caption">今天吃啥？</text>
+  </view>
+
+  <!-- 区域2: 池塘操作区 70% -->
+  <view class="pond-zone">
+    <!-- 水波纹背景层 -->
+    <view class="water-layer">
+      <view class="wave w1"></view>
+      <view class="wave w2"></view>
+      <view class="wave w3"></view>
+    </view>
+
+    <!-- 鱼宝 -->
+    <view class="fish-container">
+      <image class="fish-img" src="/assets/fish-swim.png" mode="aspectFit" />
+    </view>
+
+    <!-- 入口按钮组 -->
+    <view class="entry-group">
+      <button class="btn btn-primary entry-btn anim-slide-up" style="animation-delay:0.1s" bindtap="goCreate">
+        <text class="btn-main-text">吃鱼啊</text>
+        <text class="btn-sub-text">发起聚餐 / 拼单</text>
+      </button>
+
+      <button class="btn btn-secondary entry-btn anim-slide-up" style="animation-delay:0.2s" bindtap="goJoin">
+        <text class="btn-main-text">吃啥鱼</text>
+        <text class="btn-sub-text">参与投票 / 跟单</text>
+      </button>
+    </view>
+
+    <!-- 最近活动（仅当有数据时显示，避免空区域杂乱） -->
+    <view class="recent-section" wx:if="{{recentRooms.length > 0}}">
+      <view class="section-header flex-between">
+        <text class="section-title">最近活动</text>
+        <text class="section-more" bindtap="viewAllRecent">查看全部</text>
+      </view>
+      <scroll-view class="recent-scroll" scroll-x enhanced show-scrollbar="false">
+        <view class="recent-card" wx:for="{{recentRooms}}" wx:key="_id" bindtap="enterRoom" data-id="{{item._id}}">
+          <image class="recent-poster" src="{{item.posterUrl}}" mode="aspectFill" />
+          <text class="recent-name ellipsis">{{item.title}}</text>
+          <text class="recent-status {{item.status}}">{{item.statusText}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

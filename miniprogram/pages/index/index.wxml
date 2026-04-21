@@ -1,0 +1,151 @@
+<view class="index-page">
+  <!-- 中间区域 - 标题、头像、栅栏背景 -->
+  <view class="hero-section">
+    <!-- 条纹背景 -->
+    <view class="stripe-background"></view>
+    
+    <!-- 内容区域 -->
+    <view class="hero-content">
+      <!-- 左侧标题 -->
+      <view class="title-area">
+        <text class="app-title">喵了个鱼</text>
+        <text class="app-subtitle">今天吃什么？让橘仔来决定</text>
+      </view>
+      
+      <!-- 右侧头像 -->
+      <view class="cat-container">
+        <view class="cat-glow"></view>
+        <view class="cat-ring"></view>
+        <image class="cat-avatar" src="/assets/images/juze_avatar.png" mode="aspectFill" />
+      </view>
+    </view>
+    
+    <!-- 底部栅栏锯齿 -->
+    <view class="fence-decoration"></view>
+  </view>
+
+  <!-- Banner轮播 - 约饭活动 + 广告位 -->
+  <view class="middle-section">
+    <swiper class="banner-swiper" indicator-dots autoplay circular interval="4000" duration="600">
+      <!-- 约饭活动轮播 - 简化版 -->
+      <swiper-item wx:for="{{appointmentBanners}}" wx:key="_id">
+        <view class="banner-card simple-banner" bindtap="onBannerTap" data-appointment-id="{{item._id}}">
+          <image class="banner-shop-image" src="{{item.shopImage || '/assets/images/love-cat-icon.png'}}" mode="aspectFill" />
+          <view class="banner-info">
+            <text class="banner-shop-name">{{item.shopName || '约饭活动'}}</text>
+            <text class="banner-countdown">{{item.countdownText}}</text>
+          </view>
+        </view>
+      </swiper-item>
+      <!-- 广告位轮播 -->
+      <swiper-item>
+        <view class="banner-card ad-banner" bindtap="onBannerTap" data-type="ad">
+          <image class="ad-image" src="/assets/images/lunbozhanwe.png" mode="aspectFill" />
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+
+  <!-- 底部四个功能卡片 - 蜡笔像素风 -->
+  <view class="feature-section">
+    <view class="feature-grid">
+      <view class="feature-card crayon-card {{touchIndex === 0 ? 'touch-active' : ''}}"
+            bindtap="goCreate"
+            bindtouchstart="onTouchStart"
+            bindtouchend="onTouchEnd"
+            bindtouchmove="onTouchMove"
+            data-index="0">
+        <view class="card-inner">
+          <view class="feature-icon-wrapper" style="background: #FFF5E9;">
+            <image class="feature-icon-image" src="/assets/images/wink-cat-icon.png" mode="aspectFit" />
+          </view>
+          <view class="feature-text-wrapper">
+            <text class="feature-title">发起聚餐</text>
+            <text class="feature-desc">创建投票房间</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="feature-card crayon-card {{touchIndex === 1 ? 'touch-active' : ''}}"
+            bindtap="goJoin"
+            bindtouchstart="onTouchStart"
+            bindtouchend="onTouchEnd"
+            bindtouchmove="onTouchMove"
+            data-index="1">
+        <view class="card-inner">
+          <view class="feature-icon-wrapper" style="background: #E8F8F5;">
+            <image class="feature-icon-image" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+          </view>
+          <view class="feature-text-wrapper">
+            <text class="feature-title">参与投票</text>
+            <text class="feature-desc">加入已有房间</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="feature-card crayon-card"
+            bindtap="goFishTank"
+            hover-class="feature-card-hover"
+            hover-stay-time="100">
+        <view class="card-inner">
+          <view class="feature-icon-wrapper" style="background: #E8F4FD;">
+            <image class="feature-icon-image large-icon" src="/assets/images/yutangpindan.png" mode="aspectFit" />
+          </view>
+          <view class="feature-text-wrapper">
+            <text class="feature-title">鱼塘拼单</text>
+            <text class="feature-desc">一起凑单免运费</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="feature-card crayon-card"
+            bindtap="goFoodDiscovery"
+            hover-class="feature-card-hover"
+            hover-stay-time="100">
+        <view class="card-inner">
+          <view class="feature-icon-wrapper" style="background: #FFF5E9;">
+            <image class="feature-icon-image" src="/assets/images/love-cat-icon.png" mode="aspectFit" />
+          </view>
+          <view class="feature-text-wrapper">
+            <text class="feature-title">发现美食</text>
+            <text class="feature-desc">橘仔推荐好味道</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 游动的小鱼区域 -->
+  <view class="fish-tank">
+    <view class="fish fish-1 {{scaredFish === '1' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" bindtouchstart="onFishTouch" data-fish="1">
+      <view class="fish-body"></view>
+      <view class="fish-tail"></view>
+      <view class="fish-fin"></view>
+      <view class="fish-eye"></view>
+    </view>
+    <view class="fish fish-2 {{scaredFish === '2' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" bindtouchstart="onFishTouch" data-fish="2">
+      <view class="fish-body"></view>
+      <view class="fish-tail"></view>
+      <view class="fish-fin"></view>
+      <view class="fish-eye"></view>
+    </view>
+    <view class="fish fish-3 {{scaredFish === '3' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" bindtouchstart="onFishTouch" data-fish="3">
+      <view class="fish-body"></view>
+      <view class="fish-tail"></view>
+      <view class="fish-fin"></view>
+      <view class="fish-eye"></view>
+    </view>
+    <view class="fish fish-4 {{scaredFish === '4' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" bindtouchstart="onFishTouch" data-fish="4">
+      <view class="fish-body"></view>
+      <view class="fish-tail"></view>
+      <view class="fish-fin"></view>
+      <view class="fish-eye"></view>
+    </view>
+    <view class="fish fish-5 {{scaredFish === '5' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" bindtouchstart="onFishTouch" data-fish="5">
+      <view class="fish-body"></view>
+      <view class="fish-tail"></view>
+      <view class="fish-fin"></view>
+      <view class="fish-eye"></view>
+    </view>
+  </view>
+</view>

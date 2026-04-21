@@ -1,0 +1,205 @@
+/* ==================== 喵了个鱼 - 全局变量 ==================== */
+/* 设计系统：蜡笔像素风 | 暖橙渐变 | 大圆角 | 柔和投影 */
+
+/* ---------- 色彩系统 ---------- */
+:root {
+  /* 主色渐变 */
+  --color-primary: #FF9F43;
+  --color-primary-light: #FFB347;
+  --color-primary-dark: #E8913A;
+  --gradient-primary: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
+  --gradient-primary-hover: linear-gradient(135deg, #FFB347 0%, #FF9F43 100%);
+  
+  /* 背景色 */
+  --color-bg: #FFF8F0;
+  --color-bg-warm: #FFF5E9;
+  --color-card: #FFFFFF;
+  --color-card-hover: #FFFCF8;
+  
+  /* 辅助色 */
+  --color-secondary: #4A7C8C;
+  --color-secondary-light: #5A8C9C;
+  --color-accent: #E74C3C;
+  --color-success: #27AE60;
+  --color-warning: #F39C12;
+  
+  /* 文字色 */
+  --color-text: #3D3D3D;
+  --color-text-secondary: #8A8A8A;
+  --color-text-light: #B0B0B0;
+  --color-text-white: #FFFFFF;
+  
+  /* 边框与分割 */
+  --color-border: rgba(255, 159, 67, 0.2);
+  --color-divider: #FFE4CC;
+  
+  /* 投影 */
+  --shadow-sm: 0 2rpx 8rpx rgba(255, 159, 67, 0.08);
+  --shadow-md: 0 8rpx 24rpx rgba(255, 159, 67, 0.12);
+  --shadow-lg: 0 16rpx 48rpx rgba(255, 159, 67, 0.16);
+  --shadow-card: 0 8rpx 32rpx rgba(255, 159, 67, 0.15);
+  --shadow-float: 0 12rpx 40rpx rgba(255, 159, 67, 0.2);
+  
+  /* 圆角 */
+  --radius-sm: 16rpx;
+  --radius-md: 24rpx;
+  --radius-lg: 32rpx;
+  --radius-xl: 48rpx;
+  --radius-full: 9999rpx;
+  
+  /* 间距 */
+  --space-xs: 8rpx;
+  --space-sm: 16rpx;
+  --space-md: 24rpx;
+  --space-lg: 32rpx;
+  --space-xl: 48rpx;
+  
+  /* 字体 */
+  --font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-size-xs: 22rpx;
+  --font-size-sm: 24rpx;
+  --font-size-md: 28rpx;
+  --font-size-lg: 32rpx;
+  --font-size-xl: 40rpx;
+  --font-size-xxl: 48rpx;
+  
+  /* 动画时长 */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 800ms;
+}
+
+/* ---------- 页面基础 ---------- */
+page {
+  background-color: var(--color-bg);
+  font-family: var(--font-family);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 通用卡片样式 ---------- */
+.card {
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: all var(--duration-normal) ease;
+}
+
+.card-hover {
+  transform: translateY(-4rpx);
+  box-shadow: var(--shadow-float);
+}
+
+.card-pressed {
+  transform: scale(0.98);
+}
+
+/* ---------- 按钮样式 ---------- */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  transition: all var(--duration-fast) ease;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  color: var(--color-text-white);
+  box-shadow: 0 8rpx 24rpx rgba(255, 159, 67, 0.35);
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+  box-shadow: 0 4rpx 12rpx rgba(255, 159, 67, 0.25);
+}
+
+.btn-secondary {
+  background: var(--color-card);
+  color: var(--color-primary);
+  border: 2rpx solid var(--color-primary);
+}
+
+.btn-secondary:active {
+  background: var(--color-bg-warm);
+  transform: scale(0.96);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn-ghost:active {
+  background: rgba(255, 159, 67, 0.1);
+}
+
+/* ---------- 标签样式 ---------- */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 20rpx;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.tag-primary {
+  background: rgba(255, 159, 67, 0.15);
+  color: var(--color-primary);
+}
+
+.tag-secondary {
+  background: rgba(74, 124, 140, 0.15);
+  color: var(--color-secondary);
+}
+
+/* ---------- 输入框样式 ---------- */
+.input {
+  width: 100%;
+  height: 96rpx;
+  padding: 0 var(--space-md);
+  background: var(--color-bg-warm);
+  border: 2rpx solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  transition: all var(--duration-fast) ease;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-card);
+  box-shadow: 0 0 0 4rpx rgba(255, 159, 67, 0.1);
+}
+
+/* ---------- 波浪分割线 ---------- */
+.wave-divider {
+  position: relative;
+  height: 40rpx;
+  overflow: hidden;
+}
+
+.wave-divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 40rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 40'%3E%3Cpath fill='%23FFF8F0' d='M0,20 C240,40 480,0 720,20 C960,40 1200,0 1440,20 L1440,40 L0,40 Z'/%3E%3C/svg%3E") repeat-x;
+  background-size: 1440rpx 40rpx;
+}
+
+/* ---------- 纸张纹理背景 ---------- */
+.paper-texture {
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(255, 159, 67, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 179, 71, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(255, 200, 150, 0.02) 0%, transparent 30%);
+}

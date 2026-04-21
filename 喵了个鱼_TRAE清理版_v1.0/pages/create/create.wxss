@@ -1,0 +1,106 @@
+.create-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 60rpx 48rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.create-header { margin-bottom: 48rpx; }
+.create-title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12rpx;
+}
+.create-sub {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.option-card {
+  background: var(--card);
+  border-radius: var(--radius-card);
+  padding: 32rpx;
+  display: flex;
+  align-items: center;
+  border: 2rpx solid rgba(212, 101, 42, 0.1);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s, background 0.15s;
+}
+.option-card:active {
+  transform: scale(0.98);
+  background: var(--bg);
+}
+
+.option-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+/* CSS 图标占位 */
+.icon-shape {
+  width: 40rpx;
+  height: 40rpx;
+}
+.telescope {
+  background: var(--primary);
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+}
+.hands {
+  background: var(--secondary);
+  border-radius: 50% 50% 0 0;
+}
+.bag {
+  background: #FFC300;
+  border-radius: 8rpx;
+}
+
+.option-info { flex: 1; }
+.option-name {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8rpx;
+}
+.option-desc {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.option-arrow {
+  width: 16rpx;
+  height: 16rpx;
+  border-right: 3rpx solid var(--primary);
+  border-bottom: 3rpx solid var(--primary);
+  transform: rotate(-45deg);
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
+.create-bottom {
+  margin-top: auto;
+  padding-top: 60rpx;
+  display: flex;
+  justify-content: center;
+}
+.bottom-cat {
+  width: 200rpx;
+  height: 200rpx;
+  opacity: 0.6;
+}

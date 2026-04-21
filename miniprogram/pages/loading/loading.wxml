@@ -1,0 +1,45 @@
+<view class="loading-container">
+  <!-- 纸张纹理背景 -->
+  <view class="paper-texture"></view>
+  
+  <!-- 装饰波浪 -->
+  <view class="wave-decoration wave-top"></view>
+  <view class="wave-decoration wave-bottom"></view>
+  
+  <!-- 主内容区域 -->
+  <view class="content-wrapper">
+    <!-- 猫咪图片容器 - 使用躺着的橘猫 -->
+    <view class="cat-image-container {{imageLoaded ? 'loaded' : ''}}">
+      <image 
+        class="cat-image" 
+        src="/assets/images/loading-cat.png" 
+        mode="aspectFit"
+        bindload="onImageLoad"
+      />
+      <!-- 装饰圆圈 -->
+      <view class="decoration-ring ring-1"></view>
+      <view class="decoration-ring ring-2"></view>
+    </view>
+    
+    <!-- 标题区域 -->
+    <view class="title-wrapper {{showTitle ? 'visible' : ''}}">
+      <text class="app-title">喵了个鱼</text>
+      <text class="app-subtitle">一起决定吃什么</text>
+    </view>
+    
+    <!-- 加载进度 -->
+    <view class="loading-wrapper {{showLoading ? 'visible' : ''}}">
+      <view class="loading-bar">
+        <view class="loading-progress" style="width: {{progress}}%"></view>
+      </view>
+      <text class="loading-text">{{loadingText}}</text>
+    </view>
+  </view>
+  
+  <!-- 底部装饰 - 使用CSS绘制的爪印 -->
+  <view class="bottom-decoration">
+    <view class="paw-print paw-1"></view>
+    <view class="paw-print paw-2"></view>
+    <view class="paw-print paw-3"></view>
+  </view>
+</view>

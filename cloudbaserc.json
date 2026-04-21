@@ -1,0 +1,97 @@
+{
+  "version": "2.0",
+  "envId": "cloud1-d5ggnf5wh2d872f3c",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "createShop",
+      "timeout": 30,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "getShops",
+      "timeout": 15,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "getShopDetail",
+      "timeout": 15,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "createDiningAppointment",
+      "timeout": 20,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "joinDiningAppointment",
+      "timeout": 15,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "getDiningAppointments",
+      "timeout": 20,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "toggleFavorite",
+      "timeout": 10,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "getFavorites",
+      "timeout": 15,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "checkFavorite",
+      "timeout": 5,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "deleteShop",
+      "timeout": 10,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "updateShop",
+      "timeout": 10,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "deleteDiningAppointment",
+      "timeout": 10,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "updateDiningAppointment",
+      "timeout": 10,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "getMyShops",
+      "timeout": 10,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "getMyAppointments",
+      "timeout": 10,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    }
+  ]
+}

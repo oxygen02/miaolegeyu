@@ -1,0 +1,295 @@
+.vote-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 顶部 */
+.vote-header {
+  padding: 32rpx 48rpx;
+}
+.vote-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+.vote-progress {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+/* 滑动区域 */
+.swipe-area {
+  flex: 1;
+  position: relative;
+  margin: 0 48rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.poster-card {
+  position: absolute;
+  width: 100%;
+  height: 70%;
+  background: var(--card);
+  border-radius: var(--radius-card);
+  border: 2rpx solid var(--primary);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+
+.poster-img {
+  width: 100%;
+  height: 100%;
+}
+
+.platform-badge {
+  position: absolute;
+  right: 20rpx;
+  bottom: 20rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 24rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  color: #fff;
+}
+.platform-badge.meituan { background: #FFC300; color: #333; }
+.platform-badge.dianping { background: #FF6633; }
+
+/* 抓痕 - 纯 CSS */
+.scratch-layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+}
+.scratch {
+  position: absolute;
+  width: 200rpx;
+  height: 6rpx;
+  background: linear-gradient(90deg, transparent, var(--hard), transparent);
+  border-radius: 3rpx;
+  transform: rotate(-25deg);
+}
+.scratch.s1 { top: 30%; left: 20%; animation: scratchLine 0.4s ease-out forwards; }
+.scratch.s2 { top: 45%; left: 25%; animation: scratchLine 0.4s ease-out 0.1s forwards; }
+.scratch.s3 { top: 60%; left: 15%; animation: scratchLine 0.4s ease-out 0.2s forwards; }
+
+/* 掌印 - 纯 CSS */
+.paw-layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.paw {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+}
+.pad {
+  position: absolute;
+  background: rgba(232, 145, 58, 0.5);
+  border-radius: 50%;
+  animation: pawPad 0.5s ease-out forwards;
+}
+.pad.main { width: 100rpx; height: 80rpx; bottom: 10rpx; left: 50rpx; }
+.pad.toe { width: 36rpx; height: 44rpx; }
+.toe.t1 { top: 30rpx; left: 30rpx; transform: rotate(-20deg); animation-delay: 0.08s; }
+.toe.t2 { top: 10rpx; left: 70rpx; animation-delay: 0.16s; }
+.toe.t3 { top: 20rpx; left: 110rpx; transform: rotate(15deg); animation-delay: 0.24s; }
+.toe.t4 { top: 50rpx; left: 140rpx; transform: rotate(30deg); animation-delay: 0.32s; }
+
+/* 否决印章 */
+.veto-stamp {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+.stamp-circle {
+  width: 220rpx;
+  height: 220rpx;
+  border: 8rpx solid var(--hard);
+  border-radius: 20rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(245, 240, 232, 0.9);
+  animation: stampDrop 0.4s ease-out;
+}
+.stamp-text {
+  font-size: 72rpx;
+  color: var(--hard);
+  font-weight: 700;
+}
+.stamp-sub {
+  font-size: 24rpx;
+  color: var(--hard);
+  margin-top: 8rpx;
+}
+
+/* 完成态 */
+.done-state {
+  text-align: center;
+}
+.done-cat {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+.done-text {
+  font-size: 32rpx;
+  color: var(--text-secondary);
+}
+
+/* 滑动提示 */
+.swipe-hint {
+  padding: 0 60rpx 20rpx;
+}
+.hint-left, .hint-right {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+.hint-arrow {
+  width: 0;
+  height: 0;
+  border-top: 8rpx solid transparent;
+  border-bottom: 8rpx solid transparent;
+  border-right: 12rpx solid var(--text-secondary);
+}
+.hint-arrow.right {
+  border-right: none;
+  border-left: 12rpx solid var(--text-secondary);
+}
+
+/* 撤销条 */
+.undo-bar {
+  position: fixed;
+  bottom: 320rpx;
+  left: 48rpx;
+  right: 48rpx;
+  background: var(--card);
+  border: 2rpx solid var(--primary);
+  border-radius: 16rpx;
+  padding: 20rpx 32rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
+  animation: undoBarIn 0.3s ease-out;
+  z-index: 100;
+}
+.undo-text {
+  font-size: 28rpx;
+  color: var(--text);
+}
+.undo-timer {
+  font-size: 28rpx;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* 底部面板 */
+.bottom-panel {
+  background: var(--card);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  padding: 24rpx 48rpx 40rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.05);
+  max-height: 45vh;
+  overflow-y: auto;
+}
+
+/* 禁忌区 */
+.taboo-section { margin-bottom: 20rpx; }
+.taboo-header { padding: 16rpx 0; }
+.taboo-title { font-size: 30rpx; font-weight: 500; color: var(--text); }
+.taboo-count {
+  font-size: 22rpx;
+  color: var(--hard);
+  background: rgba(200, 75, 49, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  margin-right: 12rpx;
+}
+.arrow {
+  width: 16rpx;
+  height: 16rpx;
+  border-right: 3rpx solid var(--text-secondary);
+  border-bottom: 3rpx solid var(--text-secondary);
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+}
+.arrow.up { transform: rotate(-135deg); }
+
+.taboo-body { animation: slideUp 0.2s ease-out; }
+.taboo-group { margin-bottom: 16rpx; }
+.group-label {
+  display: block;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-bottom: 12rpx;
+}
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+/* 时间区 */
+.time-section { margin-bottom: 20rpx; }
+.time-tabs {
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+.time-tab {
+  flex: 1;
+  text-align: center;
+  padding: 12rpx 0;
+  border-radius: 28rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border: 2rpx solid transparent;
+}
+.time-tab.active {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(212, 101, 42, 0.1);
+}
+.time-tab.leave.active {
+  color: var(--hard);
+  border-color: var(--hard);
+  background: rgba(200, 75, 49, 0.1);
+}
+.time-picker {
+  padding: 16rpx 24rpx;
+  background: var(--bg);
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: var(--text);
+}
+.leave-input {
+  width: 100%;
+  padding: 16rpx 24rpx;
+  background: var(--bg);
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+/* 提交栏 */
+.submit-bar { gap: 24rpx; padding-top: 20rpx; }
+.waive-btn { flex: 1; height: 88rpx; }
+.submit-btn { flex: 2; height: 88rpx; }

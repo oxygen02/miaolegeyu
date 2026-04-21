@@ -1,0 +1,116 @@
+<view class="page control-page">
+  <!-- 头部信息 -->
+  <view class="control-header">
+    <text class="room-title">{{room.title}}</text>
+    <text class="room-role">发起人控制台</text>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="stats-card card">
+    <view class="stat-item">
+      <text class="stat-num">{{stats.total}}</text>
+      <text class="stat-label">参与</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num">{{stats.voted}}</text>
+      <text class="stat-label">已投</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num">{{stats.leave}}</text>
+      <text class="stat-label">请假</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num">{{stats.unvoted}}</text>
+      <text class="stat-label">未投</text>
+    </view>
+  </view>
+
+  <!-- 请假人员 -->
+  <view class="section card" wx:if="{{leaveList.length > 0}}">
+    <view class="section-header flex-between">
+      <text class="section-title">请假人员</text>
+      <text class="section-count">{{leaveList.length}}人</text>
+    </view>
+    <view class="leave-list">
+      <view class="leave-tag" wx:for="{{leaveList}}" wx:key="_id">
+        <text class="leave-name">{{item.realName}}</text>
+        <text class="leave-reason">{{item.reason}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 硬性雷区 -->
+  <view class="section card" wx:if="{{hardMinefields.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">硬性雷区</text>
+      <text class="section-sub">以下禁忌必须避开</text>
+    </view>
+    <view class="mine-list">
+      <view class="mine-tag" wx:for="{{hardMinefields}}" wx:key="name">
+        <text class="mine-label">{{item.label}}</text>
+        <text class="mine-count">{{item.count}}人</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 投票结果 -->
+  <view class="section card">
+    <view class="section-header flex-between">
+      <text class="section-title">投票结果</text>
+      <text class="section-sub" wx:if="{{isTie}}">出现平局，请手动选择</text>
+    </view>
+
+    <!-- 有效候选 -->
+    <view class="result-list">
+      <view 
+        class="result-item {{selectedWinner === item.index ? 'selected' : ''}}" 
+        wx:for="{{validPosters}}" 
+        wx:key="index"
+        bindtap="selectWinner"
+        data-index="{{item.index}}"
+      >
+        <image class="result-img" src="{{item.imageUrl}}" mode="aspectFill" />
+        <view class="result-body">
+          <text class="result-votes">{{item.likes}} 票</text>
+          <text class="result-rank" wx:if="{{index === 0}}">领先</text>
+        </view>
+        <view class="result-check" wx:if="{{selectedWinner === item.index}}">
+          <view class="check-circle"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 否决池 -->
+    <view class="veto-section" wx:if="{{vetoedPosters.length > 0}}">
+      <view class="veto-header">
+        <text class="veto-title">已否决（硬性禁忌）</text>
+      </view>
+      <view class="result-list veto-list">
+        <view class="result-item vetoed" wx:for="{{vetoedPosters}}" wx:key="index">
+          <image class="result-img gray" src="{{item.imageUrl}}" mode="aspectFill" />
+          <view class="result-body">
+            <text class="veto-reason">{{item.vetoReasons.join('、')}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="control-footer">
+    <view class="footer-actions">
+      <button class="btn btn-secondary footer-btn" bindtap="extendTime">加时 30 分</button>
+      <button class="btn btn-secondary footer-btn" bindtap="randomPick">随机选</button>
+    </view>
+    <button class="btn btn-primary lock-btn {{selectedWinner >= 0 ? '' : 'btn-disabled'}}" bindtap="lockRoom">
+      {{selectedWinner >= 0 ? '确定结果' : '请选择一家店'}}
+    </button>
+    <view class="footer-links">
+      <text class="footer-link" bindtap="goFishTank">查看鱼塘推荐</text>
+      <text class="footer-link danger" bindtap="cancelRoom">取消聚餐</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,448 @@
+<!-- 店铺详情页面 -->
+<view class="shop-detail-page">
+  <block wx:if="{{!loading && shop}}">
+    <!-- 顶部操作栏 -->
+    <view class="top-actions">
+      <view class="action-btn back-btn" bindtap="goBack">
+        <text class="action-icon">←</text>
+      </view>
+      <view class="action-group">
+        <view class="action-btn favorite-btn" bindtap="toggleFavorite">
+          <text class="action-icon {{isFavorited ? 'favorited' : ''}}">{{isFavorited ? '★' : '☆'}}</text>
+        </view>
+        <button class="action-btn share-btn" open-type="share">
+          <text class="action-icon">↗</text>
+        </button>
+        <view class="action-btn more-btn" wx:if="{{isShopOwner}}" bindtap="showOwnerActions">
+          <text class="action-icon">⋯</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 图片轮播 -->
+    <view class="image-section">
+      <swiper 
+        class="image-swiper" 
+        indicator-dots="{{shop.images.length > 1}}"
+        autoplay="{{false}}"
+        bindchange="onImageChange"
+      >
+        <swiper-item wx:for="{{shop.images}}" wx:key="*this">
+          <image 
+            class="shop-image" 
+            src="{{item}}" 
+            mode="aspectFill"
+            data-url="{{item}}"
+            bindtap="onImageTap"
+          />
+        </swiper-item>
+      </swiper>
+      <view class="image-counter" wx:if="{{shop.images.length > 1}}">
+        <text class="counter-text">{{currentImageIndex + 1}} / {{shop.images.length}}</text>
+      </view>
+    </view>
+
+    <!-- 店铺信息 -->
+    <view class="info-section">
+      <view class="shop-header">
+        <text class="shop-name">{{shop.name}}</text>
+        <view class="cuisine-tag">{{shop.cuisineName}}</view>
+      </view>
+
+      <!-- 推荐指数 -->
+      <view class="rating-section">
+        <text class="rating-label">推荐指数</text>
+        <view class="paw-rating">
+          <image 
+            wx:for="{{shop.pawRating}}"
+            wx:for-index="pawIndex"
+            wx:key="pawIndex"
+            class="paw-icon {{item ? 'filled' : 'empty'}}"
+            src="/assets/images/cat-paw-icon.png"
+            mode="aspectFit"
+            style="opacity: {{item ? 1 : 0.3}}; filter: {{item ? 'none' : 'grayscale(100%)'}}"
+          />
+        </view>
+        <text class="rating-text">{{shop.rating}} 分</text>
+      </view>
+
+      <!-- 基本信息 -->
+      <view class="basic-info">
+        <view class="info-item">
+          <text class="info-label">人均消费</text>
+          <text class="info-value price">¥{{shop.avgPrice}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">地点</text>
+          <text class="info-value">{{shop.location}}</text>
+        </view>
+      </view>
+
+      <!-- 推荐菜 -->
+      <view class="section" wx:if="{{shop.recommendedDishes && shop.recommendedDishes.length > 0}}">
+        <text class="section-title">推荐菜</text>
+        <view class="dishes-list">
+          <view class="dish-tag" wx:for="{{shop.recommendedDishes}}" wx:key="*this">
+            {{item}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 推荐理由 -->
+      <view class="section" wx:if="{{shop.reason}}">
+        <text class="section-title">推荐理由</text>
+        <text class="reason-text">{{shop.reason}}</text>
+      </view>
+
+      <!-- 注意要点 -->
+      <view class="section warning-section" wx:if="{{shop.notice}}">
+        <text class="section-title warning-title">注意要点</text>
+        <text class="notice-text">{{shop.notice}}</text>
+      </view>
+
+      <!-- 约饭报名区域 -->
+      <view class="section appointment-section" wx:if="{{appointment}}">
+        <view class="appointment-header">
+          <image class="appointment-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+          <text class="section-title appointment-title">喵不喵 - 约饭报名中</text>
+          <!-- 付费模式标识 -->
+          <view class="payment-badge {{appointment.paymentMode === 'AA' ? 'aa' : 'treat'}}">
+            {{appointment.paymentMode === 'AA' ? 'AA' : '喵大佬买单'}}
+          </view>
+        </view>
+        
+        <!-- 倒计时显示 -->
+        <view class="countdown-banner">
+          <text class="countdown-text">{{appointment.countdownText}}</text>
+        </view>
+        
+        <view class="appointment-info">
+          <view class="info-row">
+            <text class="info-label">约饭时间</text>
+            <text class="info-value">{{appointment.appointmentTimeStr}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">报名截止</text>
+            <text class="info-value">{{appointment.deadlineStr}}</text>
+          </view>
+          <view class="info-row" wx:if="{{appointment.maxParticipants > 0}}">
+            <text class="info-label">人数上限</text>
+            <text class="info-value">{{appointment.maxParticipants}}人</text>
+          </view>
+          <view class="info-row" wx:if="{{appointment.note}}">
+            <text class="info-label">发起人备注</text>
+            <text class="info-value note">{{appointment.note}}</text>
+          </view>
+        </view>
+
+        <!-- 约束条件标签 -->
+        <view class="requirements-section" wx:if="{{appointment.requirements.length > 0 || appointment.customRequirement}}">
+          <text class="requirements-title">参与要求</text>
+          <view class="requirements-list">
+            <view class="requirement-tag" wx:for="{{appointment.requirements}}" wx:key="*this">
+              {{item}}
+            </view>
+            <view class="requirement-tag custom" wx:if="{{appointment.customRequirement}}">
+              {{appointment.customRequirement}}
+            </view>
+          </view>
+        </view>
+
+        <!-- 参与者列表 - 头像重叠显示 -->
+        <view class="participants-section">
+          <view class="participants-header">
+            <text class="participants-title">已报名小伙伴</text>
+            <view class="participant-count">
+              <text class="miao-text">喵</text>
+              <text class="count">×{{appointment.participantCount}}</text>
+            </view>
+          </view>
+          <view class="participants-avatars">
+            <view class="avatar-stack">
+              <image 
+                wx:for="{{appointment.participants}}" 
+                wx:key="openId"
+                class="stack-avatar {{item.openId === appointment.initiatorOpenId ? 'initiator' : ''}}"
+                style="z-index: {{appointment.participants.length - index}}; margin-left: {{index > 0 ? '-20rpx' : '0'}}"
+                src="{{item.avatar || '/assets/images/cat-avatar-icon.png'}}" 
+                mode="aspectFit"
+                data-name="{{item.name}}"
+                bindtap="showParticipantName"
+              />
+            </view>
+            <text class="participants-names" wx:if="{{showParticipantNames}}">
+              {{participantNames}}
+            </text>
+          </view>
+        </view>
+
+        <!-- 参加按钮 -->
+        <view class="appointment-action">
+          <button 
+            class="join-btn {{appointment.isJoined ? 'joined' : ''}} {{appointment.isFull ? 'full' : ''}}" 
+            bindtap="onJoinAppointment"
+            disabled="{{appointment.isJoined || appointment.remainingTime <= 0 || appointment.isFull}}"
+          >
+            {{appointment.isJoined ? '已参加' : (appointment.isFull ? '已满员' : (appointment.remainingTime <= 0 ? '已截止' : '我要参加'))}}
+          </button>
+        </view>
+
+        <!-- 发起者评价区域（组团完成后显示） -->
+        <view class="rating-section" wx:if="{{appointment.isCompleted && appointment.rating}}">
+          <text class="rating-title">发起者评价</text>
+          <view class="rating-content">
+            <text class="rating-stars">{{appointment.rating.stars}}</text>
+            <text class="rating-comment">{{appointment.rating.comment}}</text>
+          </view>
+        </view>
+
+        <!-- 发起者评价按钮（组团完成且是发起者） -->
+        <view class="rating-action" wx:if="{{appointment.isCompleted && !appointment.rating && isInitiator}}">
+          <button class="rate-btn" bindtap="showRatingModal">评价本次约饭</button>
+        </view>
+      </view>
+
+      <!-- 发起约饭按钮（没有约饭时显示） -->
+      <view class="section create-appointment-section" wx:if="{{!appointment}}">
+        <view class="create-appointment-hint">
+          <image class="hint-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+          <text class="hint-text">想找小伙伴一起去吃？</text>
+        </view>
+        <button class="create-btn" bindtap="onCreateAppointment">发起约饭</button>
+      </view>
+
+      <!-- 历史组团记录 -->
+      <view class="section history-section" wx:if="{{historyAppointments.length > 0}}">
+        <text class="section-title">历史组团</text>
+        <view class="history-list">
+          <view class="history-item" wx:for="{{historyAppointments}}" wx:key="_id">
+            <view class="history-header">
+              <text class="history-time">{{item.appointmentTimeStr}}</text>
+              <view class="history-count">
+                <text class="miao-text">喵</text>
+                <text class="count">×{{item.participantCount}}</text>
+              </view>
+            </view>
+            <view class="history-participants">
+              <view class="avatar-stack small">
+                <image 
+                  wx:for="{{item.participants}}" 
+                  wx:for-item="p"
+                  wx:key="openId"
+                  class="stack-avatar small"
+                  style="z-index: {{item.participants.length - index}}; margin-left: {{index > 0 ? '-16rpx' : '0'}}"
+                  src="{{p.avatar || '/assets/images/cat-avatar-icon.png'}}" 
+                  mode="aspectFit"
+                />
+              </view>
+            </view>
+            <view class="history-rating" wx:if="{{item.rating}}">
+              <text class="rating-stars">{{item.rating.stars}}</text>
+              <text class="rating-text">{{item.rating.comment}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 上传者信息 -->
+      <view class="uploader-section">
+        <view class="uploader-header">
+          <text class="section-title">推荐人</text>
+        </view>
+        <view class="uploader-info">
+          <block wx:if="{{shop.isAnonymous}}">
+            <image class="uploader-avatar" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+            <view class="uploader-detail">
+              <text class="uploader-name">匿名喵友</text>
+              <text class="upload-time">{{shop.createTime}}</text>
+            </view>
+          </block>
+          <block wx:else>
+            <image class="uploader-avatar" src="{{shop.uploaderAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+            <view class="uploader-detail">
+              <text class="uploader-name">{{shop.uploaderName || '神秘喵友'}}</text>
+              <text class="upload-time">{{shop.createTime}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 发起约饭弹窗 -->
+  <view class="appointment-modal" wx:if="{{showAppointmentModal}}" bindtap="closeAppointmentModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">发起约饭</text>
+        <text class="modal-close" bindtap="closeAppointmentModal">×</text>
+      </view>
+      <scroll-view class="modal-body" scroll-y="true">
+        <view class="form-item">
+          <text class="form-label">店铺</text>
+          <text class="form-value">{{shop.name}}</text>
+        </view>
+        <view class="form-item">
+          <text class="form-label required">约饭时间</text>
+          <view class="datetime-inputs">
+            <input class="datetime-input" type="number" maxlength="4" placeholder="2026" value="{{appointmentYear}}" bindinput="onAppointmentYearInput" />
+            <text class="datetime-separator">年</text>
+            <input class="datetime-input" type="number" maxlength="2" placeholder="04" value="{{appointmentMonth}}" bindinput="onAppointmentMonthInput" />
+            <text class="datetime-separator">月</text>
+            <input class="datetime-input" type="number" maxlength="2" placeholder="21" value="{{appointmentDay}}" bindinput="onAppointmentDayInput" />
+            <text class="datetime-separator">日</text>
+            <input class="datetime-input time" type="number" maxlength="2" placeholder="20" value="{{appointmentHour}}" bindinput="onAppointmentHourInput" />
+            <text class="datetime-separator">:</text>
+            <input class="datetime-input time" type="number" maxlength="2" placeholder="00" value="{{appointmentMinute}}" bindinput="onAppointmentMinuteInput" />
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label required">报名截止</text>
+          <view class="datetime-inputs">
+            <input class="datetime-input" type="number" maxlength="4" placeholder="2026" value="{{deadlineYear}}" bindinput="onDeadlineYearInput" />
+            <text class="datetime-separator">年</text>
+            <input class="datetime-input" type="number" maxlength="2" placeholder="04" value="{{deadlineMonth}}" bindinput="onDeadlineMonthInput" />
+            <text class="datetime-separator">月</text>
+            <input class="datetime-input" type="number" maxlength="2" placeholder="21" value="{{deadlineDay}}" bindinput="onDeadlineDayInput" />
+            <text class="datetime-separator">日</text>
+            <input class="datetime-input time" type="number" maxlength="2" placeholder="20" value="{{deadlineHour}}" bindinput="onDeadlineHourInput" />
+            <text class="datetime-separator">:</text>
+            <input class="datetime-input time" type="number" maxlength="2" placeholder="00" value="{{deadlineMinute}}" bindinput="onDeadlineMinuteInput" />
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">人数上限</text>
+          <input class="form-input" type="number" placeholder="不填表示不限人数" value="{{maxParticipants}}" bindinput="onMaxParticipantsInput" />
+        </view>
+        <!-- 付费模式选择 -->
+        <view class="form-item">
+          <text class="form-label">付费模式</text>
+          <view class="payment-selector">
+            <view 
+              class="payment-option {{paymentMode === 'AA' ? 'selected' : ''}}" 
+              data-mode="AA"
+              bindtap="selectPaymentMode"
+            >
+              <text class="option-title">AA制</text>
+              <text class="option-desc">各付各的，公平合理</text>
+            </view>
+            <view 
+              class="payment-option {{paymentMode === 'treat' ? 'selected' : ''}}" 
+              data-mode="treat"
+              bindtap="selectPaymentMode"
+            >
+              <text class="option-title">喵大佬买单</text>
+              <text class="option-desc">发起人请客，大方豪气</text>
+            </view>
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">参与要求</text>
+          <view class="requirements-selector">
+            <view 
+              class="req-tag {{item.selected ? 'selected' : ''}}" 
+              wx:for="{{requirementOptions}}" 
+              wx:key="id"
+              data-id="{{item.id}}"
+              bindtap="toggleRequirement"
+            >
+              {{item.name}}
+            </view>
+          </view>
+        </view>
+        <view class="form-item" wx:if="{{showCustomRequirement}}">
+          <text class="form-label">自定义要求</text>
+          <input class="form-input" placeholder="请输入其他要求..." value="{{customRequirement}}" bindinput="onCustomRequirementInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">备注</text>
+          <textarea class="form-textarea" placeholder="写点什么吸引小伙伴吧..." value="{{appointmentNote}}" bindinput="onNoteInput" maxlength="100" />
+        </view>
+      </scroll-view>
+      <view class="modal-footer">
+        <button class="submit-btn" bindtap="submitAppointment">发起约饭</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 评价弹窗 -->
+  <view class="rating-modal" wx:if="{{showRatingModal}}" bindtap="closeRatingModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">评价本次约饭</text>
+        <text class="modal-close" bindtap="closeRatingModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">靠谱度评分</text>
+          <view class="star-selector">
+            <text 
+              class="star {{index < ratingStars ? 'active' : ''}}" 
+              wx:for="[1,2,3,4,5]" 
+              wx:key="*this"
+              data-index="{{index}}"
+              bindtap="selectRating"
+            >★</text>
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">评价内容</text>
+          <textarea class="form-textarea" placeholder="说说这次约饭体验如何..." value="{{ratingComment}}" bindinput="onRatingCommentInput" maxlength="200" />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="submit-btn" bindtap="submitRating">提交评价</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑店铺弹窗 -->
+  <view class="edit-shop-modal" wx:if="{{showEditShopModal}}" bindtap="closeEditShopModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">编辑店铺信息</text>
+        <text class="modal-close" bindtap="closeEditShopModal">×</text>
+      </view>
+      <scroll-view class="modal-body" scroll-y="true">
+        <view class="form-item">
+          <text class="form-label required">店铺名称</text>
+          <input class="form-input" placeholder="请输入店铺名称" value="{{editShopName}}" bindinput="onEditShopNameInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">地址</text>
+          <input class="form-input" placeholder="请输入店铺地址" value="{{editShopAddress}}" bindinput="onEditShopAddressInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">推荐理由</text>
+          <textarea class="form-textarea" placeholder="请输入推荐理由..." value="{{editShopReason}}" bindinput="onEditShopReasonInput" maxlength="500" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">注意要点</text>
+          <textarea class="form-textarea" placeholder="请输入注意事项..." value="{{editShopTips}}" bindinput="onEditShopTipsInput" maxlength="500" />
+        </view>
+      </scroll-view>
+      <view class="modal-footer">
+        <button class="submit-btn" bindtap="submitEditShop">保存修改</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 发起者操作菜单 -->
+  <view class="owner-actions-modal" wx:if="{{showOwnerActions}}" bindtap="closeOwnerActions">
+    <view class="owner-actions-content" catchtap="preventBubble">
+      <view class="owner-action-item" bindtap="showEditShopModal">
+        <text class="action-text">编辑店铺</text>
+      </view>
+      <view class="owner-action-item delete" bindtap="deleteShop">
+        <text class="action-text">删除店铺</text>
+      </view>
+      <view class="owner-action-item cancel" bindtap="closeOwnerActions">
+        <text class="action-text">取消</text>
+      </view>
+    </view>
+  </view>
+</view>

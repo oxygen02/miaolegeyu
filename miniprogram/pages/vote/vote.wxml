@@ -1,0 +1,143 @@
+<view class="vote-page">
+  <!-- 顶部渐变区域 -->
+  <view class="header-section">
+    <text class="room-title">{{room.title || '投票中'}}</text>
+    <text class="progress-text">{{currentIndex + 1}} / {{posters.length}}</text>
+  </view>
+
+  <!-- 波浪分割线 -->
+  <view class="wave-divider"></view>
+
+  <!-- 滑动区域 -->
+  <view class="card-area" style="height: {{cardAreaHeight}}px;">
+    <block wx:for="{{posters}}" wx:key="index">
+      <view 
+        class="poster-card {{item.status}} {{item.animClass}}" 
+        style="{{item.style}}; z-index: {{posters.length - index}};"
+        wx:if="{{index >= currentIndex}}"
+        bindtouchstart="onTouchStart"
+        bindtouchmove="onTouchMove"
+        bindtouchend="onTouchEnd"
+        data-index="{{index}}"
+      >
+        <!-- 蜡笔边框 -->
+        <view class="crayon-edge"></view>
+        
+        <!-- 海报图片 -->
+        <image 
+          class="poster-image" 
+          src="{{item.imageUrl}}" 
+          mode="aspectFill"
+          bindtap="previewPoster"
+          data-url="{{item.imageUrl}}"
+        />
+
+        <!-- 平台角标 -->
+        <view class="platform-badge {{item.platformSource}}">
+          <text>{{item.platformSource === 'meituan' ? '美团' : item.platformSource === 'dianping' ? '点评' : '京东'}}</text>
+        </view>
+
+        <!-- 左滑抓痕动画层 -->
+        <view class="scratch-layer" wx:if="{{item.showScratch}}">
+          <view class="scratch-line s1"></view>
+          <view class="scratch-line s2"></view>
+          <view class="scratch-line s3"></view>
+        </view>
+
+        <!-- 右滑掌印动画层 -->
+        <view class="paw-layer" wx:if="{{item.showPaw}}">
+          <view class="paw-print"></view>
+        </view>
+
+        <!-- 否决印章 -->
+        <view class="veto-stamp" wx:if="{{item.isVetoed}}">
+          <text class="stamp-text">禁</text>
+          <text class="stamp-sub">有人不吃这个</text>
+        </view>
+      </view>
+    </block>
+
+    <!-- 空状态（全部滑完） -->
+    <view class="empty-state" wx:if="{{currentIndex >= posters.length}}">
+      <view class="empty-cat-icon cat-surprised"></view>
+      <text class="empty-text">都筛完了，去提交吧</text>
+    </view>
+  </view>
+
+  <!-- 滑动提示 -->
+  <view class="swipe-hint" wx:if="{{currentIndex < posters.length}}">
+    <text class="hint-left">排除</text>
+    <text class="hint-right">选择</text>
+  </view>
+
+  <!-- 撤销条 -->
+  <view class="undo-bar" wx:if="{{showUndo}}" bindtap="undoLast">
+    <text class="undo-text">已{{lastAction === 'left' ? '排除' : '选择'}} {{lastPosterName}}，撤销？</text>
+    <text class="undo-count">{{undoCountdown}}s</text>
+  </view>
+
+  <!-- 底部操作区 -->
+  <view class="bottom-section">
+    <!-- 禁忌快速选择 -->
+    <view class="taboo-section">
+      <view class="taboo-header" bindtap="toggleTaboo">
+        <text class="taboo-title">
+          我的禁忌
+          <text class="taboo-arrow {{tabooExpanded ? 'expanded' : ''}}">▼</text>
+        </text>
+        <text class="taboo-count" wx:if="{{selectedHardTaboos.length > 0}}">{{selectedHardTaboos.length}}项硬性</text>
+      </view>
+      <view class="taboo-list" wx:if="{{tabooExpanded}}">
+        <view class="taboo-group">
+          <text class="group-label">硬性（一票否决）</text>
+          <view class="tag-list">
+            <view 
+              class="taboo-tag hard {{item.selected ? 'selected' : ''}}" 
+              wx:for="{{hardTaboos}}" 
+              wx:key="name"
+              bindtap="toggleHardTaboo"
+              data-name="{{item.name}}"
+            >{{item.label}}</view>
+          </view>
+        </view>
+        <view class="taboo-group">
+          <text class="group-label">软性（仅供参考）</text>
+          <view class="tag-list">
+            <view 
+              class="taboo-tag soft {{item.selected ? 'selected' : ''}}" 
+              wx:for="{{softTaboos}}" 
+              wx:key="name"
+              bindtap="toggleSoftTaboo"
+              data-name="{{item.name}}"
+            >{{item.label}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 时间/请假 -->
+    <view class="time-section">
+      <picker mode="multiSelector" range="{{timeRange}}" bindchange="onTimeChange" wx:if="{{timeType === 'departure' || timeType === 'arrival'}}">
+        <view class="time-picker">
+          <text class="picker-label">{{timeType === 'departure' ? '我能出发' : '我能到达'}}</text>
+          <text class="picker-value">{{selectedTime || '选择时间'}}</text>
+        </view>
+      </picker>
+      <view class="time-type-switch">
+        <text class="type-tag {{timeType === 'departure' ? 'active' : ''}}" bindtap="setTimeType" data-type="departure">我能出发</text>
+        <text class="type-tag {{timeType === 'arrival' ? 'active' : ''}}" bindtap="setTimeType" data-type="arrival">我能到达</text>
+        <text class="type-tag {{timeType === 'leave' ? 'active leave' : ''}}" bindtap="setTimeType" data-type="leave">我十分想去但是</text>
+      </view>
+      <!-- 请假输入 -->
+      <view class="leave-input" wx:if="{{timeType === 'leave'}}">
+        <input placeholder="说说啥事，别让发起人猜" bindinput="onLeaveInput" value="{{leaveReason}}"/>
+      </view>
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-bar">
+      <button class="btn-waive" bindtap="onWaive">弃权</button>
+      <button class="btn-submit {{canSubmit ? '' : 'disabled'}}" bindtap="onSubmit">提交</button>
+    </view>
+  </view>
+</view>
