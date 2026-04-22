@@ -566,9 +566,7 @@
 
 .feature-card:active {
   transform: translateY(4px);
-  box-shadow: 
-    2rpx 3rpx 0 rgba(61, 61, 61, 0.15),
-    4rpx 6rpx 10rpx rgba(61, 61, 61, 0.1);
+  box-shadow: none;
 }
 
 /* 触摸滑动时的弹起放大效果 */

@@ -108,7 +108,7 @@
             data-index="0">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #FFF5E9;">
-            <image class="feature-icon-image" src="/assets/images/wink-cat-icon.png" mode="aspectFit" />
+            <image class="feature-icon-image" src="/assets/images/faqijucan.png" mode="aspectFit" />
           </view>
           <view class="feature-text-wrapper">
             <text class="feature-title">发起聚餐</text>
