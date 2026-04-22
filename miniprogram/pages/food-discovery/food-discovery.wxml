@@ -1,37 +1,165 @@
 <!-- 发现美食页面 -->
 <view class="food-discovery-page">
-  <!-- 顶部标题区 -->
-  <view class="header-section">
-    <view class="header-content">
-      <text class="page-title">发现美食</text>
-      <text class="page-subtitle">探索喵星人推荐的美味</text>
+  <!-- 顶部固定区域：标题 + 分类筛选 + 第一条店铺 -->
+  <view class="sticky-header">
+    <!-- 顶部标题区 -->
+    <view class="header-section">
+      <view class="header-content">
+        <text class="page-title">发现美食</text>
+        <text class="page-subtitle">探索喵星人推荐的美味</text>
+      </view>
     </view>
-  </view>
 
-  <!-- 菜系筛选 -->
-  <view class="cuisine-filter">
-    <view class="cuisine-list">
-      <view 
-        class="cuisine-item {{selectedCuisine === item.id ? 'active' : ''}}"
-        wx:for="{{cuisines}}"
-        wx:key="id"
-        data-id="{{item.id}}"
-        bindtap="onCuisineTap"
+    <!-- 菜系筛选 -->
+    <view class="cuisine-filter">
+      <view class="cuisine-list">
+        <view
+          class="cuisine-item {{selectedCuisine === item.id ? 'active' : ''}}"
+          wx:for="{{cuisines}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onCuisineTap"
+        >
+          <text class="cuisine-name">{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 第一条店铺 - 固定在顶部 -->
+    <view class="first-shop-wrapper" wx:if="{{shops.length > 0}}">
+      <view
+        class="shop-item first-shop"
+        style="background: {{shops[0].bgColor}};"
+        data-id="{{shops[0]._id}}"
+        bindtap="onShopItemTap"
       >
-        <text class="cuisine-name">{{item.name}}</text>
+        <!-- 右上角：付费模式 -->
+        <view class="payment-badge-top" wx:if="{{shops[0].appointments && shops[0].appointments.length > 0}}">
+          {{shops[0].appointments[0].paymentMode === 'AA' ? 'AA' : '喵大佬买单'}}
+        </view>
+
+        <!-- 左侧：店铺信息 -->
+        <view class="shop-left-section">
+          <!-- 店铺图片 -->
+          <view class="shop-thumb" data-index="0" catchtap="onThumbTap">
+            <image class="thumb-image" src="{{shops[0].images && shops[0].images[0] ? shops[0].images[0] : '/assets/images/shop-placeholder.png'}}" mode="aspectFill" />
+            <view class="image-count" wx:if="{{shops[0].images && shops[0].images.length > 1}}">{{shops[0].images.length}}</view>
+          </view>
+
+          <!-- 店铺详情 -->
+          <view class="shop-info">
+            <view class="info-row">
+              <text class="shop-name">{{shops[0].name}}</text>
+              <view class="cuisine-tag">{{shops[0].cuisineName}}</view>
+            </view>
+
+            <view class="info-row">
+              <text class="shop-address" bindtap="onAddressTap" data-address="{{shops[0].address}}" data-name="{{shops[0].name}}">{{shops[0].location}}</text>
+              <text class="nav-icon">��</text>
+            </view>
+
+            <view class="info-row">
+              <view class="shop-rating">
+                <view class="paw-rating">
+                  <image
+                    wx:for="{{shops[0].pawRating}}"
+                    wx:for-index="pawIndex"
+                    wx:key="pawIndex"
+                    class="paw-icon {{item ? 'filled' : 'empty'}}"
+                    src="/assets/images/cat-paw-icon.png"
+                    mode="aspectFit"
+                    style="opacity: {{item ? 1 : 0.3}}; filter: {{item ? 'none' : 'grayscale(100%)'}}"
+                  />
+                </view>
+                <text class="rating-score">{{shops[0].rating}}分</text>
+              </view>
+              <text class="shop-price">¥{{shops[0].avgPrice}}/人</text>
+            </view>
+
+            <view class="info-row uploader-row">
+              <image class="uploader-avatar" src="{{shops[0].isAnonymous ? '/assets/images/cat-avatar-icon.png' : (shops[0].uploaderAvatar || '/assets/images/cat-avatar-icon.png')}}" mode="aspectFit" />
+              <text class="uploader-name">{{shops[0].isAnonymous ? '匿名喵友' : (shops[0].uploaderName || '神秘喵友')}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 中间分隔线 -->
+        <view class="divider" wx:if="{{shops[0].appointments && shops[0].appointments.length > 0}}"></view>
+
+        <!-- 右侧：约饭活动 - 翻页式展示 -->
+        <view class="shop-right-section" wx:if="{{shops[0].appointments && shops[0].appointments.length > 0}}">
+          <!-- 右侧竖线红点标记 -->
+          <view class="flip-indicator" wx:if="{{shops[0].appointments.length > 1}}">
+            <view class="indicator-line"></view>
+            <view class="indicator-dots">
+              <view wx:for="{{shops[0].appointments}}" wx:key="*this" class="indicator-dot {{(shops[0].currentAppointmentIndex || 1) === index + 1 ? 'active' : ''}}"></view>
+            </view>
+          </view>
+
+          <swiper
+            class="appointments-swiper"
+            indicator-dots="{{false}}"
+            vertical="{{true}}"
+            autoplay="{{false}}"
+            circular="{{false}}"
+            bindchange="onFirstShopSwiperChange"
+          >
+            <swiper-item
+              wx:for="{{shops[0].appointments}}"
+              wx:for-item="app"
+              wx:key="_id"
+              class="appointment-swiper-item"
+            >
+              <view class="appointment-card">
+                <!-- 发起人 -->
+                <view class="app-row initiator-row">
+                  <image class="initiator-avatar" src="{{app.initiatorAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+                  <text class="initiator-name">{{app.initiatorName || '神秘喵友'}}</text>
+                </view>
+
+                <!-- 时间 -->
+                <view class="app-row time-row">
+                  <text class="app-time">{{app.appointmentTimeStr}}</text>
+                </view>
+
+                <!-- 倒计时 -->
+                <view class="app-row countdown-row">
+                  <text class="countdown-text">{{app.countdownText}}</text>
+                </view>
+
+                <!-- 人数 + 按钮 -->
+                <view class="app-row action-row">
+                  <text class="participant-count">喵×{{app.participantCount}}</text>
+                  <view class="join-btn {{app.isJoined ? 'joined' : ''}}" catchtap="onFirstShopAppointmentAction" data-appointment="{{app}}">
+                    {{app.isJoined ? '已参加' : '参加'}}
+                  </view>
+                </view>
+              </view>
+            </swiper-item>
+          </swiper>
+        </view>
+
+        <!-- 右侧：发起约饭按钮（无活动时） -->
+        <view class="shop-right-empty" wx:elif="{{!shops[0].appointments || shops[0].appointments.length === 0}}" catchtap="onFirstShopCreateAppointment" data-shop="{{shops[0]}}">
+          <view class="create-btn-wide">
+            <text class="btn-text">发起约饭</text>
+          </view>
+        </view>
       </view>
     </view>
   </view>
 
-  <!-- 店铺列表 -->
+  <!-- 店铺列表 - 从第二条开始 -->
   <view class="shop-list">
-    <view 
+    <view
       class="shop-item"
       style="background: {{item.bgColor}};"
       wx:for="{{shops}}"
+      wx:for-index="shopIndex"
       wx:key="_id"
       data-id="{{item._id}}"
       bindtap="onShopItemTap"
+      wx:if="{{shopIndex > 0}}"
     >
       <!-- 右上角：付费模式 -->
       <view class="payment-badge-top" wx:if="{{item.appointments && item.appointments.length > 0}}">
@@ -86,40 +214,58 @@
       <!-- 中间分隔线 -->
       <view class="divider" wx:if="{{item.appointments && item.appointments.length > 0}}"></view>
       
-      <!-- 右侧：约饭活动 -->
+      <!-- 右侧：约饭活动 - 翻页式展示 -->
       <view class="shop-right-section" wx:if="{{item.appointments && item.appointments.length > 0}}">
-        <scroll-view class="appointments-list" scroll-y="true" enhanced="true" show-scrollbar="false">
-          <view 
-            class="appointment-card"
+        <!-- 右侧竖线红点标记 -->
+        <view class="flip-indicator" wx:if="{{item.appointments.length > 1}}">
+          <view class="indicator-line"></view>
+          <view class="indicator-dots">
+            <view wx:for="{{item.appointments}}" wx:key="*this" class="indicator-dot {{(item.currentAppointmentIndex || 1) === index + 1 ? 'active' : ''}}"></view>
+          </view>
+        </view>
+
+        <swiper
+          class="appointments-swiper"
+          indicator-dots="{{false}}"
+          vertical="{{true}}"
+          autoplay="{{false}}"
+          circular="{{false}}"
+          bindchange="onAppointmentSwiperChange"
+          data-shop-index="{{index}}"
+        >
+          <swiper-item
             wx:for="{{item.appointments}}"
             wx:for-item="app"
             wx:key="_id"
+            class="appointment-swiper-item"
           >
-            <!-- 发起人 -->
-            <view class="app-row initiator-row">
-              <image class="initiator-avatar" src="{{app.initiatorAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
-              <text class="initiator-name">{{app.initiatorName || '神秘喵友'}}</text>
-            </view>
-            
-            <!-- 时间 -->
-            <view class="app-row time-row">
-              <text class="app-time">{{app.appointmentTimeStr}}</text>
-            </view>
-            
-            <!-- 倒计时 -->
-            <view class="app-row countdown-row">
-              <text class="countdown-text">{{app.countdownText}}</text>
-            </view>
-            
-            <!-- 人数 + 按钮 -->
-            <view class="app-row action-row">
-              <text class="participant-count">喵×{{app.participantCount}}</text>
-              <view class="join-btn {{app.isJoined ? 'joined' : ''}}" catchtap="onAppointmentAction" data-appointment="{{app}}">
-                {{app.isJoined ? '已参加' : '参加'}}
+            <view class="appointment-card">
+              <!-- 发起人 -->
+              <view class="app-row initiator-row">
+                <image class="initiator-avatar" src="{{app.initiatorAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+                <text class="initiator-name">{{app.initiatorName || '神秘喵友'}}</text>
+              </view>
+
+              <!-- 时间 -->
+              <view class="app-row time-row">
+                <text class="app-time">{{app.appointmentTimeStr}}</text>
+              </view>
+
+              <!-- 倒计时 -->
+              <view class="app-row countdown-row">
+                <text class="countdown-text">{{app.countdownText}}</text>
+              </view>
+
+              <!-- 人数 + 按钮 -->
+              <view class="app-row action-row">
+                <text class="participant-count">喵×{{app.participantCount}}</text>
+                <view class="join-btn {{app.isJoined ? 'joined' : ''}}" catchtap="onAppointmentAction" data-appointment="{{app}}">
+                  {{app.isJoined ? '已参加' : '参加'}}
+                </view>
               </view>
             </view>
-          </view>
-        </scroll-view>
+          </swiper-item>
+        </swiper>
       </view>
       
       <!-- 右侧：发起约饭按钮（无活动时） -->

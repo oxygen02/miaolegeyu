@@ -260,56 +260,257 @@
   color: #8A8A8A;
 }
 
-/* 简化版约饭活动轮播样式 */
-.simple-banner {
-  padding: 0;
+/* 约饭活动轮播样式 - 三行均衡布局 */
+.appointment-banner {
+  padding: 12rpx 16rpx;
   height: 100%;
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: stretch;
   overflow: hidden;
+  gap: 12rpx;
 }
 
-.banner-shop-image {
-  width: 180rpx;
-  height: 100%;
+/* 左侧：喵不喵艺术字 + 大图标 */
+.banner-left-brand {
+  width: 140rpx;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.banner-info {
+.brand-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+/* 喵不喵艺术字 - 斜上倾斜 */
+.brand-title-art {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4rpx;
+  transform: rotate(-5deg);
+  margin-bottom: 4rpx;
+}
+
+.title-char {
+  font-size: 32rpx;
+  font-weight: 900;
+  color: #FF6B35;
+  line-height: 1;
+  /* 艺术字效果 */
+  text-shadow: 
+    3rpx 3rpx 0rpx rgba(255, 107, 53, 0.4),
+    -1rpx -1rpx 0rpx rgba(255, 255, 255, 0.9);
+  letter-spacing: 1rpx;
+}
+
+/* 大图标 */
+.brand-icon-large {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  border: 5rpx solid rgba(255, 107, 53, 0.6);
+  background: linear-gradient(135deg, #FFF5E9 0%, #FFECD2 100%);
+  padding: 8rpx;
+  box-sizing: border-box;
+  box-shadow: 0 6rpx 16rpx rgba(255, 107, 53, 0.35);
+}
+
+/* 中间：三行内容自适应 - 右对齐 */
+.banner-middle-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 20rpx 24rpx;
+  gap: 10rpx;
+  min-width: 0;
+  padding: 8rpx 0;
+}
+
+.content-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10rpx;
+  width: 100%;
+}
+
+/* 信息标签 - 内容居中、自适应 */
+.info-tag {
+  border-radius: 20rpx;
+  padding: 8rpx 16rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
   gap: 8rpx;
 }
 
-.banner-shop-name {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #3D3D3D;
+.info-label {
+  font-size: 20rpx;
+  color: #888;
+  white-space: nowrap;
+}
+
+.info-value {
+  font-size: 22rpx;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.banner-countdown {
-  font-size: 26rpx;
-  color: #FF6B6B;
+.red-text {
+  color: #FF6B6B !important;
   font-weight: 600;
+}
+
+/* 昵称标签 - 马卡龙绿 */
+.info-tag.tag-nickname {
+  background: #C8E6C9;
+}
+
+.info-tag.tag-nickname .info-value {
+  color: #2E7D32;
+}
+
+/* 店名标签 - 马卡龙蓝 */
+.info-tag.tag-shop {
+  background: #BBDEFB;
+  flex: 1;
+}
+
+.info-tag.tag-shop .info-value {
+  color: #1565C0;
+  font-weight: 600;
+}
+
+/* 类别标签 - 马卡龙橙 */
+.info-tag.tag-cuisine {
+  background: #FFE0B2;
+}
+
+.info-tag.tag-cuisine .info-value {
+  color: #E65100;
+  font-weight: 600;
+}
+
+/* 时间标签 - 马卡龙紫 */
+.info-tag.tag-time {
+  background: #E1BEE7;
+  flex: 1;
+}
+
+.info-tag.tag-time .info-value {
+  color: #7B1FA2;
+}
+
+/* 倒计时标签 - 马卡龙粉 */
+.info-tag.tag-countdown {
+  background: #F8BBD0;
+}
+
+.info-tag.tag-countdown .info-value {
+  color: #C2185B;
+}
+
+/* 地址标签 - 马卡龙灰 */
+.info-tag.tag-address {
+  background: #F5F5F5;
+  flex: 1;
+}
+
+.info-tag.tag-address .info-value {
+  color: #616161;
+}
+
+/* 右侧：猫爪 + 报名按钮 */
+.banner-right-action {
+  width: 100rpx;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+}
+
+.action-paw {
+  width: 70rpx;
+  height: 70rpx;
+}
+
+/* 报名按钮 - 马卡龙薄荷绿 */
+.action-btn {
+  background: #B2DFDB;
+  border-radius: 24rpx;
+  padding: 14rpx 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 10rpx rgba(0, 150, 136, 0.2);
+}
+
+.action-text {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #00695C;
+  line-height: 1;
+}
+
+/* 已喵 - 马卡龙黄，艺术字效果 */
+.action-btn.joined {
+  background: #FFF9C4;
+  box-shadow: 0 4rpx 10rpx rgba(253, 216, 53, 0.3);
+  padding: 16rpx 28rpx;
+  position: relative;
+}
+
+.action-btn.joined .action-text {
+  color: #FF6B35;
+  font-size: 28rpx;
+  font-weight: 900;
+  /* 艺术字效果，和喵不喵一样 */
+  text-shadow: 
+    3rpx 3rpx 0rpx rgba(255, 107, 53, 0.4),
+    -1rpx -1rpx 0rpx rgba(255, 255, 255, 0.9);
+  letter-spacing: 2rpx;
+  transform: rotate(-3deg);
+}
+
+/* 猫爪盖章 - 右上角 */
+.paw-stamp {
+  position: absolute;
+  top: -16rpx;
+  right: -16rpx;
+  width: 48rpx;
+  height: 48rpx;
+  transform: rotate(-25deg);
+  opacity: 0.9;
 }
 
 /* 广告位轮播样式 */
 .ad-banner {
-  padding: 0;
+  padding: 12rpx;
   height: 100%;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .ad-image {
-  width: 100%;
-  height: 100%;
+  width: 264%;
+  height: 264%;
+  border-radius: 16rpx;
+  margin-bottom: 40rpx;
 }
 
 /* ---------- 底部功能卡片区域 ---------- */

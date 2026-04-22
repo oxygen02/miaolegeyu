@@ -1,69 +1,191 @@
-<view class="page tank-page anim-page-enter">
+<view class="page miaobumiao-page anim-page-enter">
   <!-- 头部 -->
-  <view class="tank-header">
+  <view class="miaobumiao-header">
     <view class="header-title">
-      <view class="tank-icon"></view>
-      <text class="title-text">鱼塘</text>
+      <image class="header-icon" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+      <text class="title-text">喵不喵</text>
     </view>
-    <text class="header-sub">看看大家都在点什么</text>
+    <text class="header-sub">拼美食 · 拼奶茶 · 拼生活</text>
   </view>
 
-  <!-- 统计卡片 -->
-  <view class="stats-card card anim-slide-up">
-    <view class="stat-item">
-      <text class="stat-value">¥{{total}}</text>
-      <text class="stat-label">已凑金额</text>
+  <!-- 分类标签 -->
+  <view class="category-tabs">
+    <view class="tab-item {{activeTab === 'ongoing' ? 'active' : ''}}" bindtap="switchTab" data-tab="ongoing">
+      <text class="tab-name">正在进行</text>
+      <text class="tab-badge" wx:if="{{ongoingCount > 0}}">{{ongoingCount}}</text>
     </view>
-    <view class="stat-divider"></view>
-    <view class="stat-item">
-      <text class="stat-value">¥{{targetAmount}}</text>
-      <text class="stat-label">目标金额</text>
+    <view class="tab-item {{activeTab === 'my' ? 'active' : ''}}" bindtap="switchTab" data-tab="my">
+      <text class="tab-name">我发起的</text>
+      <text class="tab-badge" wx:if="{{myCount > 0}}">{{myCount}}</text>
     </view>
-    <view class="stat-divider"></view>
-    <view class="stat-item">
-      <text class="stat-value">{{orders.length}}</text>
-      <text class="stat-label">参与人数</text>
+    <view class="tab-item {{activeTab === 'history' ? 'active' : ''}}" bindtap="switchTab" data-tab="history">
+      <text class="tab-name">历史参与</text>
     </view>
   </view>
 
-  <!-- 进度条 -->
-  <view class="progress-card card anim-slide-up" style="animation-delay:0.05s">
-    <view class="progress-header flex-between">
-      <text class="progress-label">凑单进度</text>
-      <text class="progress-percent">{{progressPercent}}%</text>
-    </view>
-    <view class="progress-bar">
-      <view class="progress-fill" style="width: {{progressPercent}}%"></view>
-    </view>
-    <text class="progress-hint" wx:if="{{progressPercent >= 100}}">已满足起送条件</text>
-    <text class="progress-hint" wx:else>还差 ¥{{remaining}} 满足起送</text>
-  </view>
-
-  <!-- 订单列表 -->
-  <view class="order-section card anim-slide-up" style="animation-delay:0.1s">
-    <view class="section-header flex-between">
-      <text class="section-title">参与人员</text>
-      <text class="section-count">{{orders.length}}人</text>
-    </view>
-    <view class="order-list">
-      <view class="order-item" wx:for="{{orders}}" wx:key="id">
-        <image class="order-avatar" src="{{item.avatar}}" mode="aspectFill" />
-        <view class="order-info">
-          <text class="order-name">{{item.name}}</text>
-          <text class="order-items">{{item.items}}</text>
-        </view>
-        <text class="order-amount">¥{{item.amount}}</text>
+  <!-- 外卖平台快捷入口 -->
+  <view class="platform-section card anim-slide-up">
+    <text class="section-title">外卖平台</text>
+    <view class="platform-grid">
+      <view class="platform-item" bindtap="goToPlatform" data-type="lunch">
+        <view class="platform-icon lunch-icon">🍱</view>
+        <text class="platform-name">午餐</text>
+      </view>
+      <view class="platform-item" bindtap="goToPlatform" data-type="dinner">
+        <view class="platform-icon dinner-icon">🍜</view>
+        <text class="platform-name">晚餐</text>
+      </view>
+      <view class="platform-item" bindtap="goToPlatform" data-type="milktea">
+        <view class="platform-icon milktea-icon">🧋</view>
+        <text class="platform-name">奶茶</text>
+      </view>
+      <view class="platform-item" bindtap="goToFoodDiscovery">
+        <view class="platform-icon discovery-icon">🔍</view>
+        <text class="platform-name">发现美食</text>
       </view>
     </view>
   </view>
 
-  <!-- 底部操作 -->
+  <!-- 活动列表 -->
+  <scroll-view class="activity-list" scroll-y="true" enhanced="true" show-scrollbar="false">
+    <!-- 正在进行的活动 -->
+    <block wx:if="{{activeTab === 'ongoing'}}">
+      <view class="activity-card card anim-slide-up" wx:for="{{ongoingActivities}}" wx:key="id" bindtap="goToActivityDetail" data-id="{{item.id}}">
+        <view class="activity-header">
+          <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
+          <text class="activity-status {{item.status}}">{{item.statusName}}</text>
+        </view>
+        <view class="activity-content">
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" />
+          <view class="activity-info">
+            <text class="activity-title">{{item.title}}</text>
+            <text class="activity-shop">{{item.shopName}}</text>
+            <view class="activity-meta">
+              <text class="activity-time">{{item.time}}</text>
+              <text class="activity-participants">{{item.participantCount}}人参与</text>
+            </view>
+          </view>
+        </view>
+        <view class="activity-footer">
+          <view class="progress-bar" wx:if="{{item.type === 'group'}}">
+            <view class="progress-fill" style="width: {{item.progress}}%"></view>
+          </view>
+          <view class="activity-stats" wx:if="{{item.type === 'group'}}">
+            <text class="stats-text">已凑 ¥{{item.currentAmount}}/¥{{item.targetAmount}}</text>
+            <text class="stats-text">还差 ¥{{item.remaining}}</text>
+          </view>
+          <view class="activity-action">
+            <button class="btn btn-primary btn-small" wx:if="{{item.isJoined}}">已参加</button>
+            <button class="btn btn-primary btn-small" wx:else>立即参加</button>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 我发起的活动 -->
+    <block wx:if="{{activeTab === 'my'}}">
+      <view class="activity-card card anim-slide-up" wx:for="{{myActivities}}" wx:key="id" bindtap="goToActivityDetail" data-id="{{item.id}}">
+        <view class="activity-header">
+          <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
+          <text class="activity-status {{item.status}}">{{item.statusName}}</text>
+        </view>
+        <view class="activity-content">
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" />
+          <view class="activity-info">
+            <text class="activity-title">{{item.title}}</text>
+            <text class="activity-shop">{{item.shopName}}</text>
+            <view class="activity-meta">
+              <text class="activity-time">{{item.time}}</text>
+              <text class="activity-participants">{{item.participantCount}}人参与</text>
+            </view>
+          </view>
+        </view>
+        <view class="activity-footer">
+          <view class="activity-stats" wx:if="{{item.type === 'group'}}">
+            <text class="stats-text">已凑 ¥{{item.currentAmount}}/¥{{item.targetAmount}}</text>
+          </view>
+          <view class="activity-action">
+            <button class="btn btn-secondary btn-small">管理</button>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 历史参与 -->
+    <block wx:if="{{activeTab === 'history'}}">
+      <view class="activity-card card anim-slide-up history-card" wx:for="{{historyActivities}}" wx:key="id" bindtap="goToActivityDetail" data-id="{{item.id}}">
+        <view class="activity-header">
+          <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
+          <text class="activity-status completed">已完成</text>
+        </view>
+        <view class="activity-content">
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" />
+          <view class="activity-info">
+            <text class="activity-title">{{item.title}}</text>
+            <text class="activity-shop">{{item.shopName}}</text>
+            <view class="activity-meta">
+              <text class="activity-time">{{item.time}}</text>
+              <text class="activity-participants">{{item.participantCount}}人参与</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{(activeTab === 'ongoing' && ongoingActivities.length === 0) || (activeTab === 'my' && myActivities.length === 0) || (activeTab === 'history' && historyActivities.length === 0)}}">
+      <image class="empty-icon" src="/assets/images/sleeping-cat-icon.png" mode="aspectFit" />
+      <text class="empty-text">暂无相关活动</text>
+      <text class="empty-subtext">去发现美食或发起拼单吧</text>
+      <button class="btn btn-primary" bindtap="goToFoodDiscovery">去发现美食</button>
+    </view>
+  </scroll-view>
+
+  <!-- 底部发起按钮 -->
   <view class="bottom-panel safe-bottom">
-    <button class="btn btn-primary join-btn" bindtap="joinOrder">
-      <text class="btn-text">我要跟单</text>
+    <button class="btn btn-primary create-btn" bindtap="showCreateOptions">
+      <text class="btn-icon">+</text>
+      <text class="btn-text">发起拼单</text>
     </button>
-    <button class="btn btn-secondary share-btn" bindtap="shareOrder">
-      <text class="btn-text">邀请好友</text>
-    </button>
+  </view>
+
+  <!-- 发起选项弹窗 -->
+  <view class="create-modal" wx:if="{{showCreateModal}}" bindtap="closeCreateModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">选择拼单类型</text>
+        <text class="modal-close" bindtap="closeCreateModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="create-option" bindtap="createGroupOrder" data-type="meal">
+          <view class="option-icon">🍱</view>
+          <view class="option-info">
+            <text class="option-title">拼饭</text>
+            <text class="option-desc">午餐、晚餐一起凑单</text>
+          </view>
+        </view>
+        <view class="create-option" bindtap="createGroupOrder" data-type="milktea">
+          <view class="option-icon">🧋</view>
+          <view class="option-info">
+            <text class="option-title">拼奶茶</text>
+            <text class="option-desc">下午茶一起点</text>
+          </view>
+        </view>
+        <view class="create-option" bindtap="createGroupOrder" data-type="other">
+          <view class="option-icon">🛒</view>
+          <view class="option-info">
+            <text class="option-title">拼单</text>
+            <text class="option-desc">其他物品凑单</text>
+          </view>
+        </view>
+        <view class="create-option" bindtap="createDining">
+          <view class="option-icon">🍽️</view>
+          <view class="option-info">
+            <text class="option-title">发起聚餐</text>
+            <text class="option-desc">约饭活动</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </view>

@@ -12,18 +12,18 @@
       <text class="tab-text">首页</text>
     </view>
 
-    <!-- 鱼塘拼单 -->
+    <!-- 喵不喵 -->
     <view class="tab-bar-item {{selected === 1 ? 'active' : ''}}" data-index="1" catchtap="switchTab">
       <view class="icon-wrapper">
-        <image class="tab-icon fish-icon" src="/assets/images/fish-icon.png" mode="aspectFit" catchtap="" />
+        <image class="tab-icon fish-icon" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" catchtap="" />
       </view>
-      <text class="tab-text" catchtap="">鱼塘</text>
+      <text class="tab-text" catchtap="">喵不喵</text>
     </view>
 
     <!-- 我的 -->
     <view class="tab-bar-item {{selected === 2 ? 'active' : ''}}" data-index="2" bindtap="switchTab">
       <view class="icon-wrapper">
-        <image class="tab-icon" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+        <image class="tab-icon" src="/assets/images/fish-icon.png" mode="aspectFit" />
       </view>
       <text class="tab-text">我的</text>
     </view>

@@ -68,7 +68,11 @@ Page({
           .map(app => ({
             ...app,
             countdownText: this.formatCountdown(app.remainingTime),
-            appointmentTimeStr: this.formatAppointmentTime(app.appointmentTime)
+            appointmentTimeStr: this.formatAppointmentTime(app.appointmentTime),
+            // 补充新字段
+            cuisineName: app.cuisineName || this.getCuisineName(app.cuisine),
+            location: app.location || app.shopLocation || '地址待定',
+            shopImage: app.shopImage || app.shopImages?.[0] || '/assets/images/love-cat-icon.png'
           }));
         
         // 如果超过4条，随机抽取4条
@@ -96,6 +100,27 @@ Page({
     return newArray;
   },
 
+  // 获取菜系名称
+  getCuisineName(cuisineId) {
+    const cuisineMap = {
+      'chinese': '中餐',
+      'japanese': '日韩餐',
+      'western': '西餐',
+      'bbq': '烧烤',
+      'hotpot': '火锅',
+      'meat': '烤肉',
+      'seafood': '海鲜',
+      'crayfish': '小龙虾',
+      'local': '地方特色',
+      'dessert': '甜品',
+      'tea': '奶茶',
+      'cafe': '咖啡',
+      'bar': '酒吧',
+      'snack': '大排档'
+    };
+    return cuisineMap[cuisineId] || '美食';
+  },
+
   // 格式化倒计时
   formatCountdown(remainingTime) {
     if (remainingTime <= 0) return '已截止';
@@ -121,6 +146,51 @@ Page({
     const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
     const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
     return `${month}/${day}`;
+  },
+
+  // 轮播图报名按钮点击
+  onBannerJoinTap(e) {
+    e.stopPropagation();
+    const { appointment } = e.currentTarget.dataset;
+    
+    if (!appointment) {
+      wx.showToast({ title: '活动信息错误', icon: 'none' });
+      return;
+    }
+
+    if (appointment.isJoined) {
+      wx.showToast({ title: '您已报名', icon: 'none' });
+      return;
+    }
+
+    // 调用报名逻辑
+    this.joinAppointment(appointment);
+  },
+
+  // 报名约饭活动
+  async joinAppointment(appointment) {
+    try {
+      wx.showLoading({ title: '报名中...' });
+
+      const { result } = await wx.cloud.callFunction({
+        name: 'joinDiningAppointment',
+        data: { appointmentId: appointment._id }
+      });
+
+      wx.hideLoading();
+
+      if (result.success) {
+        wx.showToast({ title: '报名成功', icon: 'success' });
+        // 刷新轮播图数据
+        this.loadAppointmentBanners();
+      } else {
+        wx.showToast({ title: result.message || '报名失败', icon: 'none' });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('报名失败:', err);
+      wx.showToast({ title: '报名失败', icon: 'none' });
+    }
   },
 
   // 启动倒计时

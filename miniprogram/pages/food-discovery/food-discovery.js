@@ -65,7 +65,16 @@ Page({
   async onLoad() {
     // 先加载店铺，再加载约饭数据
     await this.loadShops();
+    console.log('店铺加载完成，数量:', this.data.shops.length);
     await this.loadAppointments();
+    console.log('约饭数据加载完成');
+  },
+
+  async onShow() {
+    // 页面显示时刷新数据
+    if (this.data.shops.length > 0) {
+      await this.loadAppointments();
+    }
   },
 
   onUnload() {
@@ -105,9 +114,9 @@ Page({
         }
       });
 
-      // 5秒超时
+      // 10秒超时
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('timeout')), 5000);
+        setTimeout(() => reject(new Error('timeout')), 10000);
       });
 
       const { result } = await Promise.race([callFunctionPromise, timeoutPromise]);
@@ -149,7 +158,7 @@ Page({
       });
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('timeout')), 5000);
+        setTimeout(() => reject(new Error('timeout')), 10000);
       });
 
       const { result } = await Promise.race([callFunctionPromise, timeoutPromise]);
@@ -210,9 +219,9 @@ Page({
         name: 'getDiningAppointments'
       });
 
-      // 5秒超时
+      // 10秒超时
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('timeout')), 5000);
+        setTimeout(() => reject(new Error('timeout')), 10000);
       });
 
       const { result } = await Promise.race([callFunctionPromise, timeoutPromise]);
@@ -223,11 +232,13 @@ Page({
         // 将约饭信息按店铺ID分组
         const appointmentsMap = {};
         result.appointments.forEach(app => {
-          console.log('处理约饭数据:', app.shopId, app);
-          if (!appointmentsMap[app.shopId]) {
-            appointmentsMap[app.shopId] = [];
+          // 确保 shopId 是字符串类型
+          const shopId = app.shopId ? String(app.shopId) : '';
+          console.log('处理约饭数据:', shopId, app);
+          if (!appointmentsMap[shopId]) {
+            appointmentsMap[shopId] = [];
           }
-          appointmentsMap[app.shopId].push({
+          appointmentsMap[shopId].push({
             ...app,
             countdownText: this.formatCountdown(app.remainingTime),
             appointmentTimeStr: this.formatAppointmentTime(app.appointmentTime)
@@ -236,17 +247,21 @@ Page({
 
         console.log('appointmentsMap:', appointmentsMap);
 
-        const shops = this.data.shops.map(shop => {
-          const appointments = appointmentsMap[shop._id] || [];
-          console.log('店铺:', shop._id, shop.name, '关联约饭:', appointments);
+        const updatedShops = this.data.shops.map(shop => {
+          // 处理 _id 可能是对象或字符串的情况
+          const shopId = shop._id ? String(shop._id) : '';
+          const appointments = appointmentsMap[shopId] || [];
+          console.log('店铺:', shopId, shop.name, '关联约饭:', appointments.length, '个活动');
           return {
             ...shop,
             appointments: appointments,
-            hasAppointment: appointments.length > 0
+            hasAppointment: appointments.length > 0,
+            currentAppointmentIndex: 1
           };
         });
 
-        this.setData({ shops });
+        console.log('更新店铺数据:', updatedShops.length, '个店铺');
+        this.setData({ shops: updatedShops });
 
         // 启动倒计时
         this.startCountdowns(result.appointments);
@@ -379,6 +394,66 @@ Page({
     this.loadAppointments();
   },
 
+  // 约饭活动翻页切换
+  onAppointmentSwiperChange(e) {
+    const { current } = e.detail;
+    const { shopIndex } = e.currentTarget.dataset;
+
+    // 更新当前店铺的约饭活动索引
+    const shops = this.data.shops.map((shop, index) => {
+      if (index === parseInt(shopIndex)) {
+        return {
+          ...shop,
+          currentAppointmentIndex: current + 1
+        };
+      }
+      return shop;
+    });
+
+    this.setData({ shops });
+  },
+
+  // 第一条店铺的约饭活动翻页切换
+  onFirstShopSwiperChange(e) {
+    const { current } = e.detail;
+    const shops = this.data.shops.map((shop, index) => {
+      if (index === 0) {
+        return {
+          ...shop,
+          currentAppointmentIndex: current + 1
+        };
+      }
+      return shop;
+    });
+    this.setData({ shops });
+  },
+
+  // 第一条店铺的约饭活动参加
+  onFirstShopAppointmentAction(e) {
+    e.stopPropagation();
+    const { appointment } = e.currentTarget.dataset;
+    // 复用原有的参加逻辑
+    this.onAppointmentAction({
+      ...e,
+      currentTarget: {
+        dataset: { appointment }
+      }
+    });
+  },
+
+  // 第一条店铺的发起约饭
+  onFirstShopCreateAppointment(e) {
+    e.stopPropagation();
+    const { shop } = e.currentTarget.dataset;
+    // 复用原有的发起约饭逻辑
+    this.onCreateAppointmentTap({
+      ...e,
+      currentTarget: {
+        dataset: { shop }
+      }
+    });
+  },
+
   // 点击整个店铺条目 - 跳转到详情
   onShopItemTap(e) {
     const { id } = e.currentTarget.dataset;
@@ -455,7 +530,7 @@ Page({
       });
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('timeout')), 5000);
+        setTimeout(() => reject(new Error('timeout')), 10000);
       });
 
       const { result } = await Promise.race([callFunctionPromise, timeoutPromise]);

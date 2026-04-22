@@ -1,70 +1,77 @@
 <!-- 店铺详情页面 -->
 <view class="shop-detail-page">
   <block wx:if="{{!loading && shop}}">
-    <!-- 顶部操作栏 -->
-    <view class="top-actions">
-      <view class="action-btn back-btn" bindtap="goBack">
-        <text class="action-icon">←</text>
-      </view>
-      <view class="action-group">
-        <view class="action-btn favorite-btn" bindtap="toggleFavorite">
-          <text class="action-icon {{isFavorited ? 'favorited' : ''}}">{{isFavorited ? '★' : '☆'}}</text>
+    <!-- 顶部固定区域 -->
+    <view class="sticky-header">
+      <!-- 顶部操作栏 -->
+      <view class="top-actions">
+        <view class="action-btn back-btn" bindtap="goBack">
+          <text class="action-icon">←</text>
         </view>
-        <button class="action-btn share-btn" open-type="share">
-          <text class="action-icon">↗</text>
-        </button>
-        <view class="action-btn more-btn" wx:if="{{isShopOwner}}" bindtap="showOwnerActions">
-          <text class="action-icon">⋯</text>
+        <view class="action-group">
+          <view class="action-btn favorite-btn" bindtap="toggleFavorite">
+            <text class="action-icon {{isFavorited ? 'favorited' : ''}}">{{isFavorited ? '★' : '☆'}}</text>
+          </view>
+          <button class="action-btn share-btn" open-type="share">
+            <text class="action-icon">↗</text>
+          </button>
+          <view class="action-btn more-btn" wx:if="{{isShopOwner}}" bindtap="showOwnerActions">
+            <text class="action-icon">⋯</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 图片轮播 -->
+      <view class="image-section">
+        <swiper 
+          class="image-swiper" 
+          indicator-dots="{{shop.images.length > 1}}"
+          autoplay="{{false}}"
+          bindchange="onImageChange"
+        >
+          <swiper-item wx:for="{{shop.images}}" wx:key="*this">
+            <image 
+              class="shop-image" 
+              src="{{item}}" 
+              mode="aspectFill"
+              data-url="{{item}}"
+              bindtap="onImageTap"
+            />
+          </swiper-item>
+        </swiper>
+        <view class="image-counter" wx:if="{{shop.images.length > 1}}">
+          <text class="counter-text">{{currentImageIndex + 1}} / {{shop.images.length}}</text>
+        </view>
+      </view>
+
+      <!-- 店铺信息 -->
+      <view class="info-section">
+        <view class="shop-header">
+          <text class="shop-name">{{shop.name}}</text>
+          <view class="cuisine-tag">{{shop.cuisineName}}</view>
+        </view>
+
+        <!-- 推荐指数 -->
+        <view class="rating-section">
+          <text class="rating-label">推荐指数</text>
+          <view class="paw-rating">
+            <image 
+              wx:for="{{shop.pawRating}}"
+              wx:for-index="pawIndex"
+              wx:key="pawIndex"
+              class="paw-icon {{item ? 'filled' : 'empty'}}"
+              src="/assets/images/cat-paw-icon.png"
+              mode="aspectFit"
+              style="opacity: {{item ? 1 : 0.3}}; filter: {{item ? 'none' : 'grayscale(100%)'}}"
+            />
+          </view>
+          <text class="rating-text">{{shop.rating}} 分</text>
         </view>
       </view>
     </view>
 
-    <!-- 图片轮播 -->
-    <view class="image-section">
-      <swiper 
-        class="image-swiper" 
-        indicator-dots="{{shop.images.length > 1}}"
-        autoplay="{{false}}"
-        bindchange="onImageChange"
-      >
-        <swiper-item wx:for="{{shop.images}}" wx:key="*this">
-          <image 
-            class="shop-image" 
-            src="{{item}}" 
-            mode="aspectFill"
-            data-url="{{item}}"
-            bindtap="onImageTap"
-          />
-        </swiper-item>
-      </swiper>
-      <view class="image-counter" wx:if="{{shop.images.length > 1}}">
-        <text class="counter-text">{{currentImageIndex + 1}} / {{shop.images.length}}</text>
-      </view>
-    </view>
-
-    <!-- 店铺信息 -->
-    <view class="info-section">
-      <view class="shop-header">
-        <text class="shop-name">{{shop.name}}</text>
-        <view class="cuisine-tag">{{shop.cuisineName}}</view>
-      </view>
-
-      <!-- 推荐指数 -->
-      <view class="rating-section">
-        <text class="rating-label">推荐指数</text>
-        <view class="paw-rating">
-          <image 
-            wx:for="{{shop.pawRating}}"
-            wx:for-index="pawIndex"
-            wx:key="pawIndex"
-            class="paw-icon {{item ? 'filled' : 'empty'}}"
-            src="/assets/images/cat-paw-icon.png"
-            mode="aspectFit"
-            style="opacity: {{item ? 1 : 0.3}}; filter: {{item ? 'none' : 'grayscale(100%)'}}"
-          />
-        </view>
-        <text class="rating-text">{{shop.rating}} 分</text>
-      </view>
+    <!-- 可滚动内容区域 -->
+    <view class="scrollable-content">
 
       <!-- 基本信息 -->
       <view class="basic-info">
