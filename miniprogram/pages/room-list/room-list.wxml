@@ -1,0 +1,127 @@
+<view class="room-list-page">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">聚餐列表</text>
+    <text class="page-subtitle">按发起人分组查看</text>
+  </view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-tabs">
+    <view class="tab-item {{currentFilter === 'all' ? 'active' : ''}}" bindtap="switchFilter" data-filter="all">
+      <text>全部</text>
+    </view>
+    <view class="tab-item {{currentFilter === 'active' ? 'active' : ''}}" bindtap="switchFilter" data-filter="active">
+      <text>进行中</text>
+    </view>
+    <view class="tab-item {{currentFilter === 'locked' ? 'active' : ''}}" bindtap="switchFilter" data-filter="locked">
+      <text>已结束</text>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:elif="{{!loading && creatorGroups.length === 0}}">
+    <image class="empty-icon" src="/assets/images/sleeping-cat-icon.png" mode="aspectFit" />
+    <text class="empty-text">暂无聚餐房间</text>
+    <text class="empty-subtext">快去创建一个吧！</text>
+  </view>
+
+  <!-- 发起人卡片列表 -->
+  <view class="creator-list" wx:else>
+    <view 
+      class="creator-card {{cardColors[index % cardColors.length]}}" 
+      wx:for="{{creatorGroups}}" 
+      wx:for-index="index"
+      wx:key="creatorId"
+    >
+      <!-- 发起人信息头部 -->
+      <view class="creator-header">
+        <view class="creator-info">
+          <image 
+            class="creator-avatar" 
+            src="{{item.creatorAvatar || '/assets/images/cat-avatar-icon.png'}}" 
+            mode="aspectFit"
+          />
+          <view class="creator-meta">
+            <text class="creator-name">{{item.creatorName}}</text>
+            <text class="room-count">{{item.rooms.length}}个聚餐</text>
+          </view>
+        </view>
+        <view class="expand-btn {{item.expanded ? 'expanded' : ''}}" bindtap="toggleExpand" data-index="{{index}}">
+          <text>{{item.expanded ? '收起' : '展开'}}</text>
+        </view>
+      </view>
+
+      <!-- 聚餐房间列表 -->
+      <view class="room-items {{item.expanded ? 'expanded' : 'collapsed'}}">
+        <view 
+          class="room-item" 
+          wx:for="{{item.rooms}}" 
+          wx:for-item="room"
+          wx:key="roomId"
+          bindtap="goToRoom"
+          data-roomid="{{room.roomId}}"
+        >
+          <!-- 房间海报 -->
+          <view class="room-poster">
+            <image 
+              src="{{room.finalPoster || (room.candidatePosters[0] && room.candidatePosters[0].imageUrl) || '/assets/images/taiyaki-icon.png'}}" 
+              mode="aspectFill"
+            />
+            <view class="status-badge {{room.status}}">
+              {{room.status === 'voting' ? '进行中' : '已结束'}}
+            </view>
+          </view>
+
+          <!-- 房间信息 -->
+          <view class="room-info">
+            <text class="room-title">{{room.title}}</text>
+            <view class="room-meta">
+              <text class="meta-item" wx:if="{{room.activityDate}}">
+                <text class="meta-icon">📅</text>
+                {{room.activityDate}}
+              </text>
+              <text class="meta-item" wx:if="{{room.activityTime}}">
+                <text class="meta-icon">🕐</text>
+                {{room.activityTime}}
+              </text>
+              <text class="meta-item" wx:if="{{room.location}}">
+                <text class="meta-icon">📍</text>
+                {{room.location}}
+              </text>
+            </view>
+            <view class="room-footer">
+              <text class="room-id">房间号: {{room.roomId}}</text>
+              <text class="arrow">→</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 折叠时显示前3个房间预览 -->
+      <view class="room-preview" wx:if="{{!item.expanded && item.rooms.length > 0}}">
+        <view class="preview-list">
+          <image 
+            wx:for="{{item.rooms.slice(0, 3)}}" 
+            wx:for-item="previewRoom"
+            wx:key="roomId"
+            class="preview-thumb {{index > 0 ? 'overlap' : ''}}"
+            src="{{previewRoom.candidatePosters[0] && previewRoom.candidatePosters[0].imageUrl || '/assets/images/taiyaki-icon.png'}}"
+            mode="aspectFill"
+          />
+          <view class="more-badge" wx:if="{{item.rooms.length > 3}}">
+            <text>+{{item.rooms.length - 3}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部渐变遮罩 -->
+    <view class="bottom-fade-mask" wx:if="{{creatorGroups.length > 0}}"></view>
+  </view>
+</view>

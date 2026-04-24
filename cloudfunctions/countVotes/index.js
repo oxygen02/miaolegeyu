@@ -7,7 +7,7 @@ exports.main = async (event) => {
   
   try {
     // 获取所有已投票的参与者
-    const { data: participants } = await db.collection('participants')
+    const { data: participants } = await db.collection('room_participants')
       .where({ roomId, status: 'voted' })
       .get();
     
@@ -59,9 +59,12 @@ exports.main = async (event) => {
         vetoes: stat.vetoes 
       }));
     
-    // 获取房间信息
-    const roomResult = await db.collection('rooms').doc(roomId).get();
-    const room = roomResult.data;
+    // 获取房间信息（通过roomId字段查询）
+    const roomResult = await db.collection('rooms')
+      .where({ roomId })
+      .limit(1)
+      .get();
+    const room = roomResult.data && roomResult.data[0];
     
     return {
       code: 0,
@@ -71,7 +74,7 @@ exports.main = async (event) => {
         vetoedPosters,
         hardTabooStats,
         softTabooStats,
-        candidatePosters: room.candidatePosters || []
+        candidatePosters: room ? (room.candidatePosters || []) : []
       },
       msg: '统计成功'
     };

@@ -68,18 +68,28 @@
       <image class="logo-image" src="/assets/images/cat-fish-logo.png" mode="aspectFit" />
     </view>
 
-    <!-- 人均消费 + 地点 -->
-    <view class="form-row">
-      <view class="form-item required flex-1">
-        <text class="form-label">人均消费</text>
-        <view class="price-input-wrapper">
-          <text class="price-symbol">¥</text>
-          <input class="price-input" placeholder="价格" type="digit" value="{{avgPrice}}" bindinput="onPriceInput" />
-        </view>
+    <!-- 人均消费 -->
+    <view class="form-item required">
+      <text class="form-label">人均消费</text>
+      <view class="price-input-wrapper">
+        <text class="price-symbol">¥</text>
+        <input class="price-input" placeholder="价格" type="digit" value="{{avgPrice}}" bindinput="onPriceInput" />
       </view>
-      <view class="form-item required flex-2">
-        <text class="form-label">地点</text>
-        <input class="form-input" placeholder="请输入地址" value="{{location}}" bindinput="onLocationInput" />
+    </view>
+
+    <!-- 地点 - 支持文字输入和地图选择 -->
+    <view class="form-item required location-group">
+      <text class="form-label">地点</text>
+      <view class="location-content">
+        <input 
+          class="form-input location-input" 
+          placeholder="输入地址或点击地图图标" 
+          value="{{location}}"
+          bindinput="onLocationInput"
+        />
+        <view class="location-map-btn" bindtap="chooseLocation">
+          <image class="location-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+        </view>
       </view>
     </view>
 

@@ -7,14 +7,16 @@ Page({
     stats: {
       favorites: 0,
       myShops: 0,
-      myAppointments: 0
+      myAppointments: 0,
+      myRooms: 0
     },
     // 列表数据
     favorites: [],
     myShops: [],
     myAppointments: [],
+    myRooms: [],
     // 当前显示的列表类型
-    currentList: '', // 'favorites', 'myShops', 'myAppointments'
+    currentList: '', // 'favorites', 'myShops', 'myAppointments', 'myRooms'
     loading: false
   },
 
@@ -50,11 +52,17 @@ Page({
         name: 'getMyAppointments'
       });
 
+      // 获取我发起的聚餐数量
+      const roomsRes = await wx.cloud.callFunction({
+        name: 'getMyRooms'
+      });
+
       this.setData({
         stats: {
           favorites: favoritesRes.result.count || 0,
           myShops: shopsRes.result.count || 0,
-          myAppointments: appointmentsRes.result.count || 0
+          myAppointments: appointmentsRes.result.count || 0,
+          myRooms: roomsRes.result.code === 0 ? roomsRes.result.data.length : 0
         }
       });
     } catch (err) {
@@ -126,6 +134,25 @@ Page({
     }
   },
 
+  // 显示我发起的聚餐
+  async showMyRooms() {
+    this.setData({ currentList: 'myRooms', loading: true });
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getMyRooms'
+      });
+      if (result.code === 0) {
+        this.setData({ 
+          myRooms: result.data,
+          loading: false
+        });
+      }
+    } catch (err) {
+      console.error('获取我发起的聚餐失败:', err);
+      this.setData({ loading: false });
+    }
+  },
+
   // 关闭列表
   closeList() {
     this.setData({ currentList: '' });
@@ -145,6 +172,16 @@ Page({
     if (shopid) {
       wx.navigateTo({
         url: `/pages/shop-detail/shop-detail?id=${shopid}`
+      });
+    }
+  },
+
+  // 跳转到聚餐房间详情
+  goToRoomDetail(e) {
+    const { roomid } = e.currentTarget.dataset;
+    if (roomid) {
+      wx.navigateTo({
+        url: `/pages/control/control?roomId=${roomid}`
       });
     }
   },

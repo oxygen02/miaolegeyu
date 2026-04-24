@@ -173,10 +173,59 @@
   font-size: 32rpx;
   color: #333;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .info-value.price {
   color: #FF6B6B;
+}
+
+/* 地点导航 */
+.location-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.location-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.location-text {
+  flex: 1;
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.nav-btn {
+  width: 96rpx;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 159, 67, 0.1);
+  border-radius: 16rpx;
+  flex-shrink: 0;
+}
+
+.nav-btn:active {
+  background: rgba(255, 159, 67, 0.2);
+}
+
+.nav-icon {
+  width: 64rpx;
+  height: 64rpx;
 }
 
 /* 各个区块 */
@@ -191,12 +240,21 @@
 /* 基本信息 */
 .basic-info {
   display: flex;
-  gap: 40rpx;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24rpx;
   margin-bottom: 32rpx;
   background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
   border-radius: 16rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+}
+
+.info-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .section-title {
@@ -546,20 +604,30 @@
   color: #666;
 }
 
+/* 发起约饭按钮 - 粗边框风格 */
 .create-btn {
-  width: 100%;
-  height: 80rpx;
-  line-height: 80rpx;
-  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
+  display: block;
+  width: fit-content;
+  height: auto;
+  line-height: 1;
+  background: #FF9F43;
   color: #fff;
   font-size: 30rpx;
-  font-weight: 700;
-  border-radius: 40rpx;
-  border: none;
+  font-weight: 600;
+  border-radius: 36rpx;
+  border: 4rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
+  padding: 20rpx 48rpx;
+  margin: 0 auto;
 }
 
 .create-btn::after {
   border: none;
+}
+
+.create-btn:active {
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+  transform: translateY(2rpx);
 }
 
 /* 历史组团 */
@@ -687,16 +755,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40rpx;
+  padding: 32rpx;
 }
 
 .modal-content {
   background: #fff;
   border-radius: 24rpx;
   width: 100%;
-  max-height: 80vh;
+  max-width: 640rpx;
+  max-height: 85vh;
   overflow: hidden;
   animation: modalSlideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes modalSlideUp {
@@ -731,8 +802,10 @@
 }
 
 .modal-body {
-  padding: 32rpx;
-  max-height: 60vh;
+  padding: 24rpx 28rpx;
+  max-height: 65vh;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .form-item {
@@ -780,31 +853,48 @@
 .datetime-inputs {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8rpx;
+  justify-content: flex-start;
+  gap: 4rpx;
   background: #f5f5f5;
-  padding: 16rpx;
+  padding: 12rpx 16rpx;
   border-radius: 12rpx;
+  flex-wrap: nowrap;
+  overflow-x: auto;
 }
 
 .datetime-input {
-  width: 80rpx;
-  height: 60rpx;
+  min-width: 60rpx;
+  max-width: 80rpx;
+  height: 56rpx;
   background: #fff;
   border-radius: 8rpx;
   text-align: center;
-  font-size: 32rpx;
+  font-size: 28rpx;
   color: #333;
-  padding: 0;
+  padding: 0 4rpx;
+  flex-shrink: 0;
+}
+
+.datetime-input.year {
+  min-width: 70rpx;
+  max-width: 90rpx;
+}
+
+.datetime-input.date {
+  min-width: 70rpx;
+  max-width: 90rpx;
 }
 
 .datetime-input.time {
-  width: 60rpx;
+  min-width: 60rpx;
+  max-width: 80rpx;
 }
 
 .datetime-separator {
-  font-size: 28rpx;
+  font-size: 24rpx;
   color: #666;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .picker-value {
@@ -829,12 +919,13 @@
 /* 付费模式选择器 */
 .payment-selector {
   display: flex;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .payment-option {
   flex: 1;
-  padding: 24rpx;
+  min-width: 0;
+  padding: 20rpx 16rpx;
   background: #f5f5f5;
   border-radius: 16rpx;
   border: 4rpx solid transparent;
@@ -848,11 +939,14 @@
 }
 
 .option-title {
-  font-size: 32rpx;
-  font-weight: 700;
+  font-size: 28rpx;
+  font-weight: 600;
   color: #333;
   display: block;
   margin-bottom: 8rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .payment-option.selected .option-title {
@@ -860,9 +954,12 @@
 }
 
 .option-desc {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
   display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .payment-option.selected .option-desc {

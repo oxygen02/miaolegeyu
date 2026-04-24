@@ -14,7 +14,10 @@ Page({
     timeRange: [
       ['今天', '明天', '后天'],
       ['11:00', '12:00', '13:00', '14:00', '17:00', '18:00', '19:00', '20:00', '21:00']
-    ]
+    ],
+    // mode-b 相关数据
+    cuisineStats: [],
+    selectedCuisine: null
   },
 
   onLoad(options) {
@@ -51,21 +54,24 @@ Page({
       
       const room = roomRes.result.data;
       
-      // 获取投票统计
-      const statsRes = await wx.cloud.callFunction({
-        name: 'countVotes',
-        data: { roomId: this.data.roomId }
-      });
+      console.log('Room data:', room);
       
-      if (statsRes.result.code !== 0) {
-        throw new Error(statsRes.result.msg);
+      // 检查房间数据是否完整
+      if (!room || !room.roomId) {
+        throw new Error('房间数据不完整');
       }
       
-      const voteStats = statsRes.result.data;
+      // 根据 mode 处理不同的数据
+      if (room.mode === 'b') {
+        // mode-b: 获取口味偏好统计
+        await this.loadModeBData(room);
+      } else {
+        // mode-a: 获取投票统计
+        await this.loadModeAData(room);
+      }
       
       this.setData({
         room,
-        voteStats,
         participants: room.participants || [],
         isCreator: room.isCreator,
         loading: false
@@ -77,16 +83,62 @@ Page({
     }
   },
 
+  // mode-a: 加载海报投票数据
+  async loadModeAData(room) {
+    const statsRes = await wx.cloud.callFunction({
+      name: 'countVotes',
+      data: { roomId: this.data.roomId }
+    });
+    
+    if (statsRes.result.code !== 0) {
+      throw new Error(statsRes.result.msg);
+    }
+    
+    this.setData({
+      voteStats: statsRes.result.data
+    });
+  },
+
+  // mode-b: 加载口味偏好统计
+  async loadModeBData(room) {
+    // 统计口味偏好
+    const participants = room.participants || [];
+    const cuisineCount = {};
+    
+    participants.forEach(p => {
+      if (p.cuisinePreferences && Array.isArray(p.cuisinePreferences)) {
+        p.cuisinePreferences.forEach(cuisine => {
+          cuisineCount[cuisine] = (cuisineCount[cuisine] || 0) + 1;
+        });
+      }
+    });
+    
+    // 转换为数组并排序
+    const cuisineStats = Object.entries(cuisineCount)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+    
+    this.setData({ cuisineStats });
+  },
+
   // 分享房间
   onShareAppMessage() {
+    const { room } = this.data;
+    if (room.mode === 'b') {
+      return {
+        title: `【${room.title}】快来选择你的口味偏好！`,
+        path: `/pages/vote/vote?roomId=${this.data.roomId}`,
+        imageUrl: '/assets/images/share-default.png'
+      };
+    }
     return {
-      title: `【${this.data.room.title}】来投票决定吃什么！`,
+      title: `【${room.title}】来投票决定吃什么！`,
       path: `/pages/vote/vote?roomId=${this.data.roomId}`,
-      imageUrl: this.data.room.candidatePosters?.[0]?.imageUrl || ''
+      imageUrl: room.candidatePosters?.[0]?.imageUrl || ''
     };
   },
 
-  // 选择最终海报
+  // 选择最终海报 (mode-a)
   selectFinalPoster(e) {
     const { index } = e.currentTarget.dataset;
     const selectedPosterVotes = this.calcPosterVotes(index);
@@ -94,6 +146,12 @@ Page({
       selectedPosterIndex: index,
       selectedPosterVotes: selectedPosterVotes
     });
+  },
+
+  // 选择口味 (mode-b)
+  selectCuisine(e) {
+    const { name } = e.currentTarget.dataset;
+    this.setData({ selectedCuisine: name });
   },
 
   // 计算海报票数
@@ -121,7 +179,7 @@ Page({
     this.setData({ finalAddress: e.detail.value });
   },
 
-  // 显示锁定确认
+  // 显示锁定确认 (mode-a)
   showLockModal() {
     const { selectedPosterIndex, voteStats } = this.data;
     let newIndex = selectedPosterIndex;
@@ -140,6 +198,22 @@ Page({
     });
   },
 
+  // 显示锁定确认 (mode-b)
+  showLockModalB() {
+    const { selectedCuisine, cuisineStats } = this.data;
+    let selected = selectedCuisine;
+    
+    if (!selected && cuisineStats.length > 0) {
+      // 自动选择票数最高的
+      selected = cuisineStats[0].name;
+    }
+    
+    this.setData({ 
+      selectedCuisine: selected,
+      showLockConfirm: true 
+    });
+  },
+
   // 关闭锁定确认
   closeLockModal() {
     this.setData({ showLockConfirm: false });
@@ -147,24 +221,40 @@ Page({
 
   // 锁定房间
   async lockRoom() {
-    const { roomId, selectedPosterIndex, finalTime, finalAddress } = this.data;
+    const { roomId, selectedPosterIndex, selectedCuisine, finalTime, finalAddress, room } = this.data;
     
-    if (selectedPosterIndex === -1) {
-      wx.showToast({ title: '请选择最终海报', icon: 'none' });
-      return;
+    if (room.mode === 'a') {
+      // mode-a: 需要选择海报
+      if (selectedPosterIndex === -1) {
+        wx.showToast({ title: '请选择最终海报', icon: 'none' });
+        return;
+      }
+    } else {
+      // mode-b: 需要选择口味
+      if (!selectedCuisine) {
+        wx.showToast({ title: '请选择最终口味', icon: 'none' });
+        return;
+      }
     }
     
     try {
       wx.showLoading({ title: '锁定中' });
       
+      const lockData = {
+        roomId,
+        finalTime,
+        finalAddress
+      };
+      
+      if (room.mode === 'a') {
+        lockData.finalPosterIndex = selectedPosterIndex;
+      } else {
+        lockData.finalCuisine = selectedCuisine;
+      }
+      
       const { result } = await wx.cloud.callFunction({
         name: 'lockRoom',
-        data: {
-          roomId,
-          finalPosterIndex: selectedPosterIndex,
-          finalTime,
-          finalAddress
-        }
+        data: lockData
       });
       
       if (result.code !== 0) {
@@ -212,6 +302,26 @@ Page({
       success: () => {
         wx.showToast({ title: '已复制房间号', icon: 'success' });
       }
+    });
+  },
+
+  // 编辑房间信息
+  editRoom() {
+    const { room } = this.data;
+    
+    // 检查是否已截止
+    if (room.voteDeadline) {
+      const deadline = new Date(room.voteDeadline);
+      const now = new Date();
+      if (deadline < now) {
+        wx.showToast({ title: '投票已截止，无法编辑', icon: 'none' });
+        return;
+      }
+    }
+    
+    // 跳转到编辑页面
+    wx.navigateTo({
+      url: `/pages/create-mode-${room.mode}/create-mode-${room.mode}?edit=true&roomId=${room.roomId}`
     });
   }
 });

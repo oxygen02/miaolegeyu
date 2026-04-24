@@ -37,6 +37,8 @@ Page({
     isShopOwner: false,
     // 约饭相关
     appointment: null,
+    isJoining: false,
+    appointmentLoaded: false,
     countdownTimer: null,
     isInitiator: false,
     historyAppointments: [],
@@ -54,26 +56,12 @@ Page({
     minutes,
     // 约饭时间选择
     appointmentYear: '2026',
-    appointmentYearIndex: 0,
-    appointmentMonth: '',
-    appointmentMonthIndex: 0,
-    appointmentDay: '',
-    appointmentDayIndex: 0,
-    appointmentHour: '',
-    appointmentHourIndex: 0,
-    appointmentMinute: '',
-    appointmentMinuteIndex: 0,
+    appointmentDate: '',
+    appointmentTime: '',
     // 截止时间选择
     deadlineYear: '2026',
-    deadlineYearIndex: 0,
-    deadlineMonth: '',
-    deadlineMonthIndex: 0,
-    deadlineDay: '',
-    deadlineDayIndex: 0,
-    deadlineHour: '',
-    deadlineHourIndex: 0,
-    deadlineMinute: '',
-    deadlineMinuteIndex: 0,
+    deadlineDate: '',
+    deadlineTime: '',
     // 约束条件
     requirementOptions: [
       { id: 'noAlcohol', name: '不喝酒', selected: false },
@@ -102,25 +90,23 @@ Page({
     showOwnerActions: false
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const { id, openAppointment } = options;
     if (id) {
       this.initTimePicker();
-      this.loadShopDetail(id);
-      this.loadAppointment(id);
-      this.loadHistoryAppointments(id);
+      // 先加载店铺详情，确保页面基本数据加载完成
+      await this.loadShopDetail(id);
+      // 然后并行加载约饭相关数据
+      await Promise.all([
+        this.loadAppointment(id),
+        this.loadHistoryAppointments(id)
+      ]);
       
       // 如果传入openAppointment参数，自动打开约饭弹窗
       if (openAppointment === '1') {
-        // 等待店铺数据加载完成后再打开弹窗
-        const checkShopLoaded = setInterval(() => {
-          if (this.data.shop) {
-            clearInterval(checkShopLoaded);
-            this.onCreateAppointment();
-          }
-        }, 100);
-        // 5秒后停止检查
-        setTimeout(() => clearInterval(checkShopLoaded), 5000);
+        if (this.data.shop) {
+          this.onCreateAppointment();
+        }
       }
     } else {
       wx.showToast({ title: '店铺ID不存在', icon: 'none' });
@@ -134,38 +120,30 @@ Page({
     }
   },
 
-  // 初始化时间选择器 - 设置为当前时间
+  // 初始化时间选择器 - 设置为空，让用户自行输入
   initTimePicker() {
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1;
-    const currentDay = now.getDate();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    
     this.setData({
-      // 约饭时间默认当前时间
+      // 约饭时间默认空
       appointmentYear: '2026',
-      appointmentYearIndex: 0,
-      appointmentMonth: (currentMonth < 10 ? '0' : '') + currentMonth,
-      appointmentMonthIndex: currentMonth - 1,
-      appointmentDay: (currentDay < 10 ? '0' : '') + currentDay,
-      appointmentDayIndex: currentDay - 1,
-      appointmentHour: (currentHour < 10 ? '0' : '') + currentHour,
-      appointmentHourIndex: currentHour,
-      appointmentMinute: (currentMinute < 10 ? '0' : '') + currentMinute,
-      appointmentMinuteIndex: currentMinute,
-      // 截止时间默认当前时间
+      appointmentDate: '',
+      appointmentTime: '',
+      // 截止时间默认空
       deadlineYear: '2026',
-      deadlineYearIndex: 0,
-      deadlineMonth: (currentMonth < 10 ? '0' : '') + currentMonth,
-      deadlineMonthIndex: currentMonth - 1,
-      deadlineDay: (currentDay < 10 ? '0' : '') + currentDay,
-      deadlineDayIndex: currentDay - 1,
-      deadlineHour: (currentHour < 10 ? '0' : '') + currentHour,
-      deadlineHourIndex: currentHour,
-      deadlineMinute: (currentMinute < 10 ? '0' : '') + currentMinute,
-      deadlineMinuteIndex: currentMinute
+      deadlineDate: '',
+      deadlineTime: ''
     });
+  },
+
+  // 格式化日期，支持3位数字自动补零（如423 -> 0423）
+  formatDate(value) {
+    if (!value) return '';
+    // 只保留数字
+    value = value.replace(/\D/g, '');
+    // 3位数字时，首位补零
+    if (value.length === 3) {
+      value = '0' + value;
+    }
+    return value;
   },
 
   async loadShopDetail(id) {
@@ -263,6 +241,43 @@ Page({
   // 返回上一页
   goBack() {
     wx.navigateBack();
+  },
+
+  // 打开位置导航
+  openLocation(e) {
+    const { address, name } = e.currentTarget.dataset;
+
+    if (!address) {
+      wx.showToast({ title: '暂无地址信息', icon: 'none' });
+      return;
+    }
+
+    // 打开地图选择导航
+    wx.showActionSheet({
+      itemList: ['使用腾讯地图导航', '复制地址'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          // 使用腾讯地图
+          wx.openLocation({
+            name: name || '目的地',
+            address: address,
+            latitude: 0,
+            longitude: 0,
+            fail: () => {
+              wx.showToast({ title: '无法打开地图', icon: 'none' });
+            }
+          });
+        } else if (res.tapIndex === 1) {
+          // 复制地址
+          wx.setClipboardData({
+            data: address,
+            success: () => {
+              wx.showToast({ title: '地址已复制', icon: 'success' });
+            }
+          });
+        }
+      }
+    });
   },
 
   // 显示发起者操作菜单
@@ -386,7 +401,7 @@ Page({
         data: { shopId }
       });
 
-      if (result.success && result.appointments.length > 0) {
+      if (result.success && result.appointments && result.appointments.length > 0) {
         const appointment = result.appointments[0];
         const isInitiator = appointment.initiatorOpenId === result.openid;
         
@@ -398,13 +413,28 @@ Page({
             countdownText: this.formatCountdown(appointment.remainingTime),
             isFull: appointment.maxParticipants > 0 && appointment.participants.length >= appointment.maxParticipants
           },
-          isInitiator
+          isInitiator,
+          appointmentLoaded: true
         });
 
         this.startCountdown(appointment);
+      } else {
+        // 如果没有活动，确保 appointment 为 null
+        this.setData({
+          appointment: null,
+          isInitiator: false,
+          appointmentLoaded: true
+        });
       }
     } catch (err) {
       console.error('加载约饭报名失败:', err);
+      // 出错时设置加载完成标志，显示发起约饭按钮
+      this.setData({
+        appointment: null,
+        isInitiator: false,
+        appointmentLoaded: true
+      });
+      wx.showToast({ title: '加载活动失败，请下拉刷新', icon: 'none' });
     }
   },
 
@@ -530,89 +560,61 @@ Page({
   onAppointmentYearInput(e) {
     let value = e.detail.value;
     if (value.length > 4) value = value.slice(0, 4);
-    this.setData({ appointmentYear: value }, this.updateAppointmentTime);
+    this.setData({ appointmentYear: value });
   },
-  onAppointmentMonthInput(e) {
-    let value = e.detail.value;
-    if (value.length > 2) value = value.slice(0, 2);
-    if (parseInt(value) > 12) value = '12';
-    this.setData({ appointmentMonth: value }, this.updateAppointmentTime);
+  onAppointmentDateInput(e) {
+    let value = this.formatDate(e.detail.value);
+    if (value.length > 4) value = value.substring(0, 4);
+    this.setData({ appointmentDate: value });
   },
-  onAppointmentDayInput(e) {
+  onAppointmentTimeInput(e) {
     let value = e.detail.value;
-    if (value.length > 2) value = value.slice(0, 2);
-    if (parseInt(value) > 31) value = '31';
-    this.setData({ appointmentDay: value }, this.updateAppointmentTime);
+    // 只保留数字
+    value = value.replace(/\D/g, '');
+    if (value.length > 4) value = value.substring(0, 4);
+    this.setData({ appointmentTime: value });
   },
-  onAppointmentHourInput(e) {
+
+  // 约饭时间输入完成 - 2位数字自动补全为整点
+  onAppointmentTimeBlur(e) {
     let value = e.detail.value;
-    if (value.length > 2) value = value.slice(0, 2);
-    if (parseInt(value) > 23) value = '23';
-    this.setData({ appointmentHour: value }, this.updateAppointmentTime);
-  },
-  onAppointmentMinuteInput(e) {
-    let value = e.detail.value;
-    if (value.length > 2) value = value.slice(0, 2);
-    if (parseInt(value) > 59) value = '59';
-    this.setData({ appointmentMinute: value }, this.updateAppointmentTime);
+    // 只保留数字
+    value = value.replace(/\D/g, '');
+    // 如果输入2位数字，自动补全为整点（如18 -> 1800）
+    if (value.length === 2) {
+      value = value + '00';
+      this.setData({ appointmentTime: value });
+    }
   },
 
   // 截止时间输入
   onDeadlineYearInput(e) {
     let value = e.detail.value;
     if (value.length > 4) value = value.slice(0, 4);
-    this.setData({ deadlineYear: value }, this.updateDeadlineTime);
+    this.setData({ deadlineYear: value });
   },
-  onDeadlineMonthInput(e) {
-    let value = e.detail.value;
-    if (value.length > 2) value = value.slice(0, 2);
-    if (parseInt(value) > 12) value = '12';
-    this.setData({ deadlineMonth: value }, this.updateDeadlineTime);
+  onDeadlineDateInput(e) {
+    let value = this.formatDate(e.detail.value);
+    if (value.length > 4) value = value.substring(0, 4);
+    this.setData({ deadlineDate: value });
   },
-  onDeadlineDayInput(e) {
+  onDeadlineTimeInput(e) {
     let value = e.detail.value;
-    if (value.length > 2) value = value.slice(0, 2);
-    if (parseInt(value) > 31) value = '31';
-    this.setData({ deadlineDay: value }, this.updateDeadlineTime);
-  },
-  onDeadlineHourInput(e) {
-    let value = e.detail.value;
-    if (value.length > 2) value = value.slice(0, 2);
-    if (parseInt(value) > 23) value = '23';
-    this.setData({ deadlineHour: value }, this.updateDeadlineTime);
-  },
-  onDeadlineMinuteInput(e) {
-    let value = e.detail.value;
-    if (value.length > 2) value = value.slice(0, 2);
-    if (parseInt(value) > 59) value = '59';
-    this.setData({ deadlineMinute: value }, this.updateDeadlineTime);
+    // 只保留数字
+    value = value.replace(/\D/g, '');
+    if (value.length > 4) value = value.substring(0, 4);
+    this.setData({ deadlineTime: value });
   },
 
-  // 更新约饭时间
-  updateAppointmentTime() {
-    const { appointmentYear, appointmentMonth, appointmentDay, appointmentHour, appointmentMinute } = this.data;
-    if (appointmentYear && appointmentMonth && appointmentDay && appointmentHour !== '' && appointmentMinute !== '') {
-      const month = appointmentMonth.padStart(2, '0');
-      const day = appointmentDay.padStart(2, '0');
-      const hour = appointmentHour.toString().padStart(2, '0');
-      const minute = appointmentMinute.toString().padStart(2, '0');
-      this.setData({
-        appointmentTime: `${appointmentYear}-${month}-${day}T${hour}:${minute}:00`
-      });
-    }
-  },
-
-  // 更新截止时间
-  updateDeadlineTime() {
-    const { deadlineYear, deadlineMonth, deadlineDay, deadlineHour, deadlineMinute } = this.data;
-    if (deadlineYear && deadlineMonth && deadlineDay && deadlineHour !== '' && deadlineMinute !== '') {
-      const month = deadlineMonth.padStart(2, '0');
-      const day = deadlineDay.padStart(2, '0');
-      const hour = deadlineHour.toString().padStart(2, '0');
-      const minute = deadlineMinute.toString().padStart(2, '0');
-      this.setData({
-        deadlineTime: `${deadlineYear}-${month}-${day}T${hour}:${minute}:00`
-      });
+  // 截止时间输入完成 - 2位数字自动补全为整点
+  onDeadlineTimeBlur(e) {
+    let value = e.detail.value;
+    // 只保留数字
+    value = value.replace(/\D/g, '');
+    // 如果输入2位数字，自动补全为整点（如18 -> 1800）
+    if (value.length === 2) {
+      value = value + '00';
+      this.setData({ deadlineTime: value });
     }
   },
 
@@ -732,14 +734,36 @@ Page({
   },
 
   async submitAppointment() {
-    const { shop, appointmentTime, deadlineTime, appointmentNote, maxParticipants, requirementOptions, customRequirement, paymentMode } = this.data;
+    const { shop, appointmentYear, appointmentDate, appointmentTime, deadlineYear, deadlineDate, deadlineTime, appointmentNote, maxParticipants, requirementOptions, customRequirement, paymentMode } = this.data;
 
-    if (!appointmentTime || !deadlineTime) {
-      wx.showToast({ title: '请填写完整时间', icon: 'none' });
+    // 验证并格式化日期时间
+    if (!appointmentYear || !appointmentDate || !appointmentTime) {
+      wx.showToast({ title: '请填写完整约饭时间', icon: 'none' });
+      return;
+    }
+    if (!deadlineYear || !deadlineDate || !deadlineTime) {
+      wx.showToast({ title: '请填写完整截止时间', icon: 'none' });
       return;
     }
 
-    if (new Date(deadlineTime) >= new Date(appointmentTime)) {
+    // 格式化日期（支持3位自动补零）
+    const formattedAppointmentDate = appointmentDate.length === 3 ? '0' + appointmentDate : appointmentDate;
+    const formattedDeadlineDate = deadlineDate.length === 3 ? '0' + deadlineDate : deadlineDate;
+
+    // 构建完整时间字符串
+    const appointmentMonth = formattedAppointmentDate.substring(0, 2);
+    const appointmentDay = formattedAppointmentDate.substring(2, 4);
+    const appointmentHour = appointmentTime.substring(0, 2);
+    const appointmentMinute = appointmentTime.substring(2, 4);
+    const fullAppointmentTime = `${appointmentYear}-${appointmentMonth}-${appointmentDay}T${appointmentHour}:${appointmentMinute}:00`;
+
+    const deadlineMonth = formattedDeadlineDate.substring(0, 2);
+    const deadlineDay = formattedDeadlineDate.substring(2, 4);
+    const deadlineHour = deadlineTime.substring(0, 2);
+    const deadlineMinute = deadlineTime.substring(2, 4);
+    const fullDeadlineTime = `${deadlineYear}-${deadlineMonth}-${deadlineDay}T${deadlineHour}:${deadlineMinute}:00`;
+
+    if (new Date(fullDeadlineTime) >= new Date(fullAppointmentTime)) {
       wx.showToast({ title: '截止时间必须在约饭时间之前', icon: 'none' });
       return;
     }
@@ -755,8 +779,8 @@ Page({
         name: 'createDiningAppointment',
         data: {
           shopId: shop._id,
-          appointmentTime,
-          deadline: deadlineTime,
+          appointmentTime: fullAppointmentTime,
+          deadline: fullDeadlineTime,
           note: appointmentNote,
           maxParticipants: parseInt(maxParticipants) || 0,
           requirements,
@@ -781,11 +805,13 @@ Page({
   },
 
   async onJoinAppointment() {
-    const { appointment } = this.data;
+    const { appointment, isJoining } = this.data;
+    if (isJoining) return; // 防止重复点击
     if (appointment.isJoined) return;
     if (appointment.remainingTime <= 0) return;
     if (appointment.isFull) return;
 
+    this.setData({ isJoining: true });
     wx.showLoading({ title: '处理中...' });
     try {
       const { result } = await wx.cloud.callFunction({
@@ -795,7 +821,10 @@ Page({
 
       if (result.success) {
         wx.showToast({ title: '参加成功', icon: 'success' });
-        this.loadAppointment(this.data.shop._id);
+        // 延迟加载，避免频繁请求
+        setTimeout(() => {
+          this.loadAppointment(this.data.shop._id);
+        }, 500);
       } else {
         wx.showToast({ title: result.error || '参加失败', icon: 'none' });
       }
@@ -803,6 +832,7 @@ Page({
       wx.showToast({ title: '参加失败', icon: 'none' });
     } finally {
       wx.hideLoading();
+      this.setData({ isJoining: false });
     }
   },
 

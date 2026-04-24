@@ -1,0 +1,9 @@
+{
+  "name": "getRoomsByCreator",
+  "version": "1.0.0",
+  "description": "按发起人分组获取房间列表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

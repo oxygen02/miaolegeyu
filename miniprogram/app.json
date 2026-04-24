@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/loading/loading",
     "pages/index/index",
+    "pages/loading/loading",
     "pages/create/create",
     "pages/create-mode-a/create-mode-a",
     "pages/create-mode-b/create-mode-b",
@@ -15,7 +15,8 @@
     "pages/food-discovery/food-discovery",
     "pages/shop-detail/shop-detail",
     "pages/upload-shop/upload-shop",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/room-list/room-list"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -32,6 +33,5 @@
       { "pagePath": "pages/profile/profile", "text": "我的" }
     ]
   },
-  "cloud": true,
   "sitemapLocation": "sitemap.json"
 }

@@ -1,7 +1,7 @@
-<view class="page group-page anim-page-enter">
+<view class="page group-page">
   <!-- 头部 -->
   <view class="group-header">
-    <view class="cat-hint anim-breathe">
+    <view class="cat-hint">
       <image class="cat-img" src="/assets/images/juze_avatar.png" mode="aspectFit" />
       <view class="speech-bubble">
         <text class="bubble-text">拼个单</text>
@@ -11,51 +11,66 @@
   </view>
 
   <!-- 表单卡片 -->
-  <view class="form-card card anim-slide-up">
-    <view class="form-group">
-      <text class="form-label">拼单标题</text>
-      <input class="form-input" placeholder="如：下午茶拼单" value="{{title}}" bindinput="onTitleInput" />
-    </view>
-
-    <view class="form-group">
-      <text class="form-label">店铺名称</text>
-      <input class="form-input" placeholder="如：喜茶" value="{{shopName}}" bindinput="onShopInput" />
-    </view>
-
-    <view class="form-group">
-      <text class="form-label">起送金额</text>
-      <view class="amount-input-wrapper">
-        <text class="currency">¥</text>
-        <input class="form-input amount-input" type="digit" placeholder="30" value="{{minAmount}}" bindinput="onAmountInput" />
+  <view class="form-card card">
+    <view class="form-row">
+      <view class="form-group half">
+        <text class="form-label">拼单标题</text>
+        <input class="form-input" placeholder="如：下午茶" value="{{title}}" bindinput="onTitleInput" />
+      </view>
+      <view class="form-group half">
+        <text class="form-label">起送金额</text>
+        <view class="amount-input-wrapper">
+          <text class="currency">¥</text>
+          <input class="form-input amount-input" type="digit" placeholder="30" value="{{minAmount}}" bindinput="onAmountInput" />
+        </view>
       </view>
     </view>
 
-    <view class="form-group">
-      <text class="form-label">截止时间</text>
-      <picker mode="multiSelector" range="{{timeRange}}" value="{{timeIndex}}" bindchange="onTimeChange">
-        <view class="time-picker">
-          <text class="picker-value {{deadlineText ? 'has-value' : ''}}">{{deadlineText || '请选择截止时间'}}</text>
+    <view class="form-row">
+      <view class="form-group half">
+        <text class="form-label">截止时间</text>
+        <view class="time-picker" bindtap="showTimePicker">
+          <text class="picker-value {{deadlineText ? 'has-value' : ''}}">{{deadlineText || '请选择'}}</text>
           <view class="picker-arrow"></view>
         </view>
-      </picker>
+      </view>
+      <view class="form-group half">
+        <text class="form-label">外卖平台</text>
+        <view class="platform-list">
+          <view class="platform-item {{selectedPlatform === 'meituan' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="meituan">
+            <image class="platform-icon" src="/assets/images/icons/meituan.svg" mode="aspectFit" />
+          </view>
+          <view class="platform-item {{selectedPlatform === 'taobao' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="taobao">
+            <image class="platform-icon" src="/assets/images/icons/taobao.svg" mode="aspectFit" />
+          </view>
+          <view class="platform-item {{selectedPlatform === 'jd' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="jd">
+            <image class="platform-icon" src="/assets/images/icons/jd.svg" mode="aspectFit" />
+          </view>
+        </view>
+      </view>
     </view>
-  </view>
 
-  <!-- 平台选择 -->
-  <view class="platform-section card anim-slide-up" style="animation-delay:0.08s">
-    <text class="section-label">外卖平台</text>
-    <view class="platform-list">
-      <view class="platform-item {{selectedPlatform === 'meituan' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="meituan">
-        <view class="platform-icon meituan-icon"></view>
-        <text class="platform-name">美团</text>
+    <!-- 店铺图片上传 -->
+    <view class="form-group">
+      <text class="form-label">店铺图片</text>
+      <view class="shop-image-section">
+        <view class="shop-image-upload" wx:if="{{!shopImage}}" bindtap="chooseShopImage">
+          <view class="upload-icon">+</view>
+          <text class="upload-text">上传店铺图片</text>
+        </view>
+        <view class="shop-image-preview" wx:else>
+          <image class="shop-image" src="{{shopImage}}" mode="aspectFill" bindtap="previewShopImage" />
+          <view class="delete-btn" bindtap="deleteShopImage">×</view>
+        </view>
       </view>
-      <view class="platform-item {{selectedPlatform === 'eleme' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="eleme">
-        <view class="platform-icon eleme-icon"></view>
-        <text class="platform-name">饿了么</text>
-      </view>
-      <view class="platform-item {{selectedPlatform === 'jd' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="jd">
-        <view class="platform-icon jd-icon"></view>
-        <text class="platform-name">京东</text>
+    </view>
+
+    <!-- 店铺地址链接 -->
+    <view class="form-group">
+      <text class="form-label">店铺链接</text>
+      <view class="link-input-wrapper">
+        <input class="form-input link-input" placeholder="粘贴店铺分享链接" value="{{shopLink}}" bindinput="onShopLinkInput" />
+        <view class="paste-btn" bindtap="pasteShopLink">粘贴</view>
       </view>
     </view>
   </view>
@@ -65,5 +80,27 @@
     <button class="btn btn-primary submit-btn {{canSubmit() ? '' : 'btn-disabled'}}" bindtap="createGroupOrder">
       发起拼单
     </button>
+  </view>
+
+  <!-- 自定义时间选择器弹窗 -->
+  <view class="time-picker-popup" wx:if="{{showTimePickerPopup}}">
+    <view class="popup-mask" bindtap="closeTimePicker"></view>
+    <view class="popup-content">
+      <view class="popup-header">
+        <text class="popup-cancel" bindtap="closeTimePicker">取消</text>
+        <text class="popup-title">选择截止时间</text>
+        <text class="popup-confirm" bindtap="confirmTimePicker">确定</text>
+      </view>
+      <view class="picker-view-wrapper">
+        <picker-view class="picker-view" value="{{tempTimeIndex}}" bindchange="onPickerViewChange">
+          <picker-view-column>
+            <view wx:for="{{timeRange[0]}}" wx:key="*this" class="picker-item">{{item}}</view>
+          </picker-view-column>
+          <picker-view-column>
+            <view wx:for="{{timeRange[1]}}" wx:key="*this" class="picker-item">{{item}}</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+    </view>
   </view>
 </view>

@@ -1,4 +1,5 @@
 const app = getApp();
+const { cuisineCategories } = require('../../data/cuisineCategories.js');
 
 Page({
   data: {
@@ -6,40 +7,35 @@ Page({
     posters: [],
     currentIndex: 0,
     cardAreaHeight: 500,
-    
-    // 滑动状态
-    touchStartX: 0,
-    touchStartY: 0,
-    currentTranslateX: 0,
-    isSwiping: false,
-    
-    // 撤销功能
+    mode: 'a',
     showUndo: false,
-    undoCountdown: 3,
     lastAction: '',
     lastPosterName: '',
-    undoTimer: null,
-    
-    // 禁忌选择
     tabooExpanded: false,
     selectedHardTaboos: [],
     selectedSoftTaboos: [],
     hardTaboos: [
       { name: 'spicy', label: '辣', selected: false },
-      { name: 'seafood', label: '海鲜', selected: false },
-      { name: 'mutton', label: '羊肉', selected: false },
       { name: 'beef', label: '牛肉', selected: false },
-      { name: 'pork', label: '猪肉', selected: false },
-      { name: 'alcohol', label: '酒', selected: false }
+      { name: 'mutton', label: '羊肉', selected: false },
+      { name: 'seafood', label: '海鲜', selected: false },
+      { name: 'fish', label: '鱼虾', selected: false },
+      { name: 'organ', label: '内脏', selected: false },
+      { name: 'intestine', label: '肥肠', selected: false },
+      { name: 'cold', label: '生冷', selected: false },
+      { name: 'sashimi', label: '刺身', selected: false },
+      { name: 'coriander', label: '香菜', selected: false },
+      { name: 'scallion', label: '葱', selected: false },
+      { name: 'garlic', label: '蒜', selected: false },
+      { name: 'celery', label: '芹菜', selected: false }
     ],
-    softTaboos: [
-      { name: 'oily', label: '油腻', selected: false },
-      { name: 'sweet', label: '过甜', selected: false },
-      { name: 'noisy', label: '吵闹', selected: false },
-      { name: 'far', label: '太远', selected: false }
-    ],
-    
-    // 时间/请假
+    categoryCards: [],
+    categoryCurrentIndex: 0,
+    selectedCategoryIds: [],
+    subCategoryCards: [],
+    subCategoryCurrentIndex: 0,
+    selectedSubCategories: {},
+    currentStep: 'category',
     timeType: 'departure',
     selectedTime: '',
     leaveReason: '',
@@ -47,24 +43,114 @@ Page({
       ['今天', '明天', '后天'],
       ['11:00', '12:00', '13:00', '14:00', '17:00', '18:00', '19:00', '20:00', '21:00']
     ],
-    
-    // 投票数据
     likedIndices: [],
     vetoedIndices: [],
-    canSubmit: false
+    canSubmit: false,
+    showGuide: false
   },
 
   onLoad(options) {
-    const { roomId } = options;
+    const { roomId, mock, mode: mockMode } = options;
     this.setData({ roomId });
-    this.loadRoomData(roomId);
     this.initCardArea();
+
+    if (mock === 'true' || mock === true || mock === '1') {
+      const mode = mockMode || 'a';
+      console.log('进入模拟模式，mode:', mode);
+      this.loadMockData(mode);
+    } else {
+      console.log('正常加载房间数据，mock:', mock);
+      this.loadRoomData(roomId);
+    }
+  },
+
+  loadMockData(mode = 'a') {
+    console.log('loadMockData 被调用，mode:', mode);
+
+    // 模拟房间ID
+    const mockRoomId = 'mock-room-' + Date.now();
+    this.setData({ roomId: mockRoomId });
+
+    if (mode === 'b') {
+      const categoryCards = cuisineCategories.map((cat, index) => ({
+        ...cat,
+        index,
+        status: '',
+        isVetoed: false
+      }));
+
+      const mockRoom = {
+        _id: mockRoomId,
+        title: '模拟聚餐投票 - 选偏好',
+        mode: 'b',
+        status: 'voting'
+      };
+
+      console.log('设置模式B数据，categoryCards数量:', categoryCards.length);
+      this.setData({
+        room: mockRoom,
+        mode: 'b',
+        categoryCards,
+        currentStep: 'category',
+        selectedCategoryIds: [],
+        selectedSubCategories: {},
+        posters: [],
+        currentIndex: 0
+      });
+    } else {
+      const mockPosters = [
+        {
+          index: 0,
+          imageUrl: '/assets/images/wotiaohaole1.png',
+          platformSource: 'meituan',
+          shopName: '海底捞火锅',
+          status: '',
+          isVetoed: false
+        },
+        {
+          index: 1,
+          imageUrl: '/assets/images/nimenlaiding2.png',
+          platformSource: 'dianping',
+          shopName: '西贝莜面村',
+          status: '',
+          isVetoed: false
+        },
+        {
+          index: 2,
+          imageUrl: '/assets/images/wotiaohaole1.png',
+          platformSource: 'meituan',
+          shopName: '太二酸菜鱼',
+          status: '',
+          isVetoed: false
+        },
+        {
+          index: 3,
+          imageUrl: '/assets/images/nimenlaiding2.png',
+          platformSource: 'dianping',
+          shopName: '点都德',
+          status: '',
+          isVetoed: false
+        }
+      ];
+
+      const mockRoom = {
+        _id: mockRoomId,
+        title: '模拟聚餐投票 - 选饭店',
+        mode: 'a',
+        status: 'voting'
+      };
+
+      console.log('设置模式A数据，posters数量:', mockPosters.length);
+      this.setData({
+        room: mockRoom,
+        posters: mockPosters,
+        mode: 'a',
+        currentIndex: 0
+      });
+    }
   },
 
   onUnload() {
-    if (this.data.undoTimer) {
-      clearInterval(this.data.undoTimer);
-    }
   },
 
   initCardArea() {
@@ -80,28 +166,51 @@ Page({
         name: 'getRoom',
         data: { roomId }
       });
-      
+
       if (result.code !== 0) {
         throw new Error(result.msg);
       }
 
       const room = result.data;
-      const posters = room.candidatePosters.map((p, index) => ({
-        ...p,
-        index,
-        status: '',
-        animClass: '',
-        style: '',
-        showScratch: false,
-        showPaw: false,
-        isVetoed: false
-      }));
+      console.log('房间数据:', room);
+      console.log('海报数据:', room.candidatePosters);
 
-      this.setData({
-        room,
-        posters
-      });
-      
+      const mode = room.mode || 'a';
+
+      if (mode === 'b') {
+        const categoryCards = cuisineCategories.map((cat, index) => ({
+          ...cat,
+          index,
+          status: '',
+          isVetoed: false
+        }));
+
+        this.setData({
+          room,
+          mode: 'b',
+          categoryCards,
+          currentStep: 'category',
+          selectedCategoryIds: [],
+          selectedSubCategories: {},
+          posters: []
+        });
+      } else {
+        const candidatePosters = room.candidatePosters || [];
+
+        const posters = candidatePosters.map((p, index) => ({
+          ...p,
+          index,
+          status: '',
+          isVetoed: false
+        }));
+
+        this.setData({
+          room,
+          mode: 'a',
+          posters
+        });
+      }
+
       wx.hideLoading();
     } catch (err) {
       wx.hideLoading();
@@ -109,185 +218,39 @@ Page({
     }
   },
 
-  // 触摸开始
-  onTouchStart(e) {
-    const { index } = e.currentTarget.dataset;
-    if (index !== this.data.currentIndex) return;
-    
-    const touch = e.touches[0];
-    this.setData({
-      touchStartX: touch.clientX,
-      touchStartY: touch.clientY,
-      isSwiping: true
-    });
-  },
 
-  // 触摸移动
-  onTouchMove(e) {
-    if (!this.data.isSwiping) return;
-    
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - this.data.touchStartX;
-    const deltaY = touch.clientY - this.data.touchStartY;
-    
-    // 主要水平滑动才响应
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      const rotate = deltaX * 0.05;
-      const style = `transform: translateX(${deltaX}px) rotate(${rotate}deg)`;
-      
-      const posters = this.data.posters;
-      const currentPoster = posters[this.data.currentIndex];
-      
-      this.setData({
-        [`posters[${this.data.currentIndex}].style`]: style,
-        [`posters[${this.data.currentIndex}].showScratch`]: deltaX < -30,
-        [`posters[${this.data.currentIndex}].showPaw`]: deltaX > 30
-      });
-    }
-  },
 
-  // 触摸结束
-  onTouchEnd(e) {
-    if (!this.data.isSwiping) return;
-    
-    const sysInfo = wx.getSystemInfoSync();
-    const threshold = sysInfo.windowWidth * 0.3;
-    
-    const posters = this.data.posters;
-    const currentPoster = posters[this.data.currentIndex];
-    
-    // 从style中解析当前位移
-    const style = currentPoster.style || '';
-    const match = style.match(/translateX\(([-\d.]+)px\)/);
-    const currentX = match ? parseFloat(match[1]) : 0;
-    
-    if (Math.abs(currentX) > threshold) {
-      // 触发切换
-      if (currentX > 0) {
-        this.swipeRight();
-      } else {
-        this.swipeLeft();
-      }
-    } else {
-      // 复位
-      this.setData({
-        [`posters[${this.data.currentIndex}].style`]: 'transform: translateX(0) rotate(0)',
-        [`posters[${this.data.currentIndex}].showScratch`]: false,
-        [`posters[${this.data.currentIndex}].showPaw`]: false
-      });
-    }
-    
-    this.setData({ isSwiping: false });
-  },
-
-  // 左滑 - 排除/否决
-  swipeLeft() {
-    const { currentIndex, posters, selectedHardTaboos } = this.data;
-    const poster = posters[currentIndex];
-    
-    // 检查是否有硬性禁忌
-    if (selectedHardTaboos.length > 0) {
-      // 有硬性禁忌，标记为否决
-      this.setData({
-        [`posters[${currentIndex}].style`]: 'transform: translateX(-150%) rotate(-20deg)',
-        [`posters[${currentIndex}].isVetoed`]: true
-      });
-      
-      const vetoedIndices = [...this.data.vetoedIndices, currentIndex];
-      this.setData({ vetoedIndices });
-    } else {
-      // 普通排除
-      this.setData({
-        [`posters[${currentIndex}].style`]: 'transform: translateX(-150%) rotate(-20deg)'
-      });
-    }
-    
-    this.showUndoBar('left', `海报${currentIndex + 1}`);
-    this.nextCard();
-  },
-
-  // 右滑 - 选择
-  swipeRight() {
-    const { currentIndex, posters } = this.data;
-    
-    this.setData({
-      [`posters[${currentIndex}].style`]: 'transform: translateX(150%) rotate(20deg)'
-    });
-    
-    const likedIndices = [...this.data.likedIndices, currentIndex];
-    this.setData({ 
-      likedIndices,
-      canSubmit: likedIndices.length > 0 || this.data.vetoedIndices.length > 0
-    });
-    
-    this.showUndoBar('right', `海报${currentIndex + 1}`);
-    this.nextCard();
-  },
-
-  // 下一张卡片
-  nextCard() {
-    const nextIndex = this.data.currentIndex + 1;
-    this.setData({ currentIndex: nextIndex });
-  },
-
-  // 显示撤销条
   showUndoBar(action, posterName) {
-    if (this.data.undoTimer) {
-      clearInterval(this.data.undoTimer);
-    }
-    
     this.setData({
       showUndo: true,
       lastAction: action,
-      lastPosterName: posterName,
-      undoCountdown: 3
+      lastPosterName: posterName
     });
-    
-    const timer = setInterval(() => {
-      const countdown = this.data.undoCountdown - 1;
-      if (countdown <= 0) {
-        clearInterval(timer);
-        this.setData({ showUndo: false });
-      } else {
-        this.setData({ undoCountdown: countdown });
-      }
-    }, 1000);
-    
-    this.setData({ undoTimer: timer });
   },
 
-  // 撤销操作
   undoLast() {
-    if (this.data.undoTimer) {
-      clearInterval(this.data.undoTimer);
-    }
-    
-    const { currentIndex, lastAction, likedIndices, vetoedIndices } = this.data;
+    const { currentIndex, likedIndices, vetoedIndices } = this.data;
     const prevIndex = currentIndex - 1;
-    
+
     if (prevIndex < 0) return;
-    
-    // 恢复卡片
-    this.setData({
-      [`posters[${prevIndex}].style`]: 'transform: translateX(0) rotate(0)',
-      [`posters[${prevIndex}].showScratch`]: false,
-      [`posters[${prevIndex}].showPaw`]: false,
+
+    // 判断上一个卡片是喜欢还是不喜欢
+    const wasLiked = likedIndices.includes(prevIndex);
+    const wasVetoed = vetoedIndices.includes(prevIndex);
+
+    const updateData = {
       [`posters[${prevIndex}].isVetoed`]: false,
-      currentIndex: prevIndex,
-      showUndo: false
-    });
-    
-    // 恢复投票数据
-    if (lastAction === 'right') {
-      this.setData({
-        likedIndices: likedIndices.filter(i => i !== prevIndex)
-      });
-    } else if (lastAction === 'left') {
-      this.setData({
-        vetoedIndices: vetoedIndices.filter(i => i !== prevIndex)
-      });
+      currentIndex: prevIndex
+    };
+
+    if (wasLiked) {
+      updateData.likedIndices = likedIndices.filter(i => i !== prevIndex);
     }
-    
+    if (wasVetoed) {
+      updateData.vetoedIndices = vetoedIndices.filter(i => i !== prevIndex);
+    }
+
+    this.setData(updateData);
     this.updateCanSubmit();
   },
 
@@ -296,7 +259,35 @@ Page({
     this.setData({ canSubmit });
   },
 
-  // 预览海报
+  // WXS 回调：卡片滑动完成
+  onCardSwiped(event) {
+    const { index, direction } = event;
+    const currentIndex = parseInt(index);
+    
+    if (direction === 'left') {
+      // 左滑 - 不喜欢
+      const { selectedHardTaboos } = this.data;
+      const updateData = {
+        currentIndex: currentIndex + 1
+      };
+      if (selectedHardTaboos.length > 0) {
+        updateData.vetoedIndices = [...this.data.vetoedIndices, currentIndex];
+        updateData[`posters[${currentIndex}].isVetoed`] = true;
+      }
+      this.setData(updateData);
+      this.showUndoBar('left', `海报${currentIndex + 1}`);
+    } else {
+      // 右滑 - 喜欢
+      const likedIndices = [...this.data.likedIndices, currentIndex];
+      this.setData({
+        likedIndices,
+        canSubmit: likedIndices.length > 0 || this.data.vetoedIndices.length > 0,
+        currentIndex: currentIndex + 1
+      });
+      this.showUndoBar('right', `海报${currentIndex + 1}`);
+    }
+  },
+
   previewPoster(e) {
     const { url } = e.currentTarget.dataset;
     wx.previewImage({
@@ -305,12 +296,10 @@ Page({
     });
   },
 
-  // 切换禁忌展开
   toggleTaboo() {
     this.setData({ tabooExpanded: !this.data.tabooExpanded });
   },
 
-  // 切换硬性禁忌
   toggleHardTaboo(e) {
     const { name } = e.currentTarget.dataset;
     const hardTaboos = this.data.hardTaboos.map(item => {
@@ -319,12 +308,11 @@ Page({
       }
       return item;
     });
-    
+
     const selectedHardTaboos = hardTaboos.filter(i => i.selected).map(i => i.name);
     this.setData({ hardTaboos, selectedHardTaboos });
   },
 
-  // 切换软性偏好
   toggleSoftTaboo(e) {
     const { name } = e.currentTarget.dataset;
     const softTaboos = this.data.softTaboos.map(item => {
@@ -333,32 +321,21 @@ Page({
       }
       return item;
     });
-    
+
     const selectedSoftTaboos = softTaboos.filter(i => i.selected).map(i => i.name);
     this.setData({ softTaboos, selectedSoftTaboos });
   },
 
-  // 设置时间类型
-  setTimeType(e) {
+  switchTimeType(e) {
     const { type } = e.currentTarget.dataset;
     this.setData({ timeType: type });
   },
 
-  // 时间选择变化
-  onTimeChange(e) {
-    const [dayIdx, timeIdx] = e.detail.value;
-    const days = this.data.timeRange[0];
-    const times = this.data.timeRange[1];
-    this.setData({ selectedTime: `${days[dayIdx]} ${times[timeIdx]}` });
-  },
-
-  // 请假输入
-  onLeaveInput(e) {
+  onLeaveReasonInput(e) {
     this.setData({ leaveReason: e.detail.value });
   },
 
-  // 弃权
-  onWaive() {
+  waiveVote() {
     wx.showModal({
       title: '确认弃权',
       content: '确定要放弃本次投票吗？',
@@ -367,6 +344,7 @@ Page({
           this.submitVote({
             posterIndices: [],
             vetoIndices: [],
+            cuisinePreferences: [],
             status: 'waived'
           });
         }
@@ -374,35 +352,43 @@ Page({
     });
   },
 
-  // 提交投票
-  onSubmit() {
-    if (!this.data.canSubmit) {
-      wx.showToast({ title: '请先滑动选择', icon: 'none' });
+  submitVote() {
+    const { mode, likedIndices, vetoedIndices, selectedHardTaboos, selectedSoftTaboos, selectedTime, timeType, leaveReason } = this.data;
+
+    let voteData;
+
+    if (mode === 'b') {
+      wx.showToast({ title: '模式B投票开发中', icon: 'none' });
       return;
+    } else {
+      if (likedIndices.length === 0 && vetoedIndices.length === 0) {
+        wx.showToast({ title: '请先滑动选择海报', icon: 'none' });
+        return;
+      }
+
+      voteData = {
+        posterIndices: likedIndices,
+        vetoIndices: vetoedIndices,
+        hardTaboos: selectedHardTaboos,
+        softTaboos: selectedSoftTaboos,
+        timeInfo: selectedTime ? {
+          type: timeType,
+          datetime: selectedTime
+        } : null,
+        leaveInfo: timeType === 'leave' ? {
+          reason: leaveReason
+        } : null,
+        status: 'voted'
+      };
     }
 
-    const voteData = {
-      posterIndices: this.data.likedIndices,
-      vetoIndices: this.data.vetoedIndices,
-      hardTaboos: this.data.selectedHardTaboos,
-      softTaboos: this.data.selectedSoftTaboos,
-      timeInfo: this.data.selectedTime ? {
-        type: this.data.timeType,
-        datetime: this.data.selectedTime
-      } : null,
-      leaveInfo: this.data.timeType === 'leave' ? {
-        reason: this.data.leaveReason
-      } : null,
-      status: 'voted'
-    };
-
-    this.submitVote(voteData);
+    this.doSubmitVote(voteData);
   },
 
-  async submitVote(voteData) {
+  async doSubmitVote(voteData) {
     try {
       wx.showLoading({ title: '提交中' });
-      
+
       const { result } = await wx.cloud.callFunction({
         name: 'submitVote',
         data: {
@@ -411,21 +397,73 @@ Page({
         }
       });
 
-      if (result.success) {
+      if (result.success || result.code === 0) {
         wx.hideLoading();
         wx.showToast({ title: '投票成功', icon: 'success' });
-        
+
         setTimeout(() => {
           wx.redirectTo({
             url: `/pages/result/result?roomId=${this.data.roomId}`
           });
         }, 1500);
       } else {
-        throw new Error(result.error);
+        throw new Error(result.error || result.msg);
       }
     } catch (err) {
       wx.hideLoading();
       wx.showToast({ title: err.message || '提交失败', icon: 'none' });
+    }
+  },
+
+  onTimeChange(e) {
+    const { selectedTime } = e.detail;
+    this.setData({ selectedTime });
+  },
+
+  checkFirstTimeUser() {
+  },
+
+  showGuide() {
+    this.setData({ showGuide: true });
+  },
+
+  closeGuide() {
+    this.setData({ showGuide: false });
+  },
+
+  preventBubble() {
+  },
+
+  // WXS 回调：卡片滑动完成
+  onCardSwiped(event) {
+    const { index, direction } = event;
+    const currentIndex = parseInt(index);
+    
+    if (direction === 'left') {
+      // 左滑 - 不喜欢
+      const { selectedHardTaboos } = this.data;
+      if (selectedHardTaboos.length > 0) {
+        const vetoedIndices = [...this.data.vetoedIndices, currentIndex];
+        this.setData({
+          [`posters[${currentIndex}].isVetoed`]: true,
+          vetoedIndices,
+          currentIndex: currentIndex + 1
+        });
+      } else {
+        this.setData({
+          currentIndex: currentIndex + 1
+        });
+      }
+      this.showUndoBar('left', `海报${currentIndex + 1}`);
+    } else {
+      // 右滑 - 喜欢
+      const likedIndices = [...this.data.likedIndices, currentIndex];
+      this.setData({
+        likedIndices,
+        canSubmit: likedIndices.length > 0 || this.data.vetoedIndices.length > 0,
+        currentIndex: currentIndex + 1
+      });
+      this.showUndoBar('right', `海报${currentIndex + 1}`);
     }
   }
 });

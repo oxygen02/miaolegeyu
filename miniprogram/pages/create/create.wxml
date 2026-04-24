@@ -2,9 +2,6 @@
   <!-- 顶部渐变区域 -->
   <view class="header-section">
     <view class="header-content">
-      <view class="back-btn" bindtap="goBack">
-        <text class="back-icon">←</text>
-      </view>
       <text class="page-title">发起聚餐</text>
       <text class="page-subtitle">选择一种方式开始</text>
     </view>
@@ -27,15 +24,16 @@
     <view class="mode-card crayon-card anim-fade-in-up delay-100" bindtap="goModeA">
       <view class="card-bg icon-a"></view>
       <view class="mode-icon">
-        <text class="icon-emoji">🍽️</text>
+        <image class="mode-icon-image" src="/assets/images/wotiaohaole1.png" mode="aspectFit" />
       </view>
       <view class="mode-content">
         <text class="mode-title">我挑好了</text>
-        <text class="mode-desc">已看好2-6家店，大家直接投票选</text>
+        <view class="mode-desc">
+          <text class="mode-desc-line">已看好2-6家店，</text>
+          <text class="mode-desc-line">大家直接投票选</text>
+        </view>
       </view>
-      <view class="mode-arrow">
-        <text>→</text>
-      </view>
+      <view class="mode-arrow"></view>
       <view class="crayon-border"></view>
     </view>
 
@@ -43,45 +41,34 @@
     <view class="mode-card crayon-card anim-fade-in-up delay-200" bindtap="goModeB">
       <view class="card-bg icon-b"></view>
       <view class="mode-icon">
-        <text class="icon-emoji">🤔</text>
+        <image class="mode-icon-image" src="/assets/images/nimenlaiding2.png" mode="aspectFit" />
       </view>
       <view class="mode-content">
         <text class="mode-title">你们来定</text>
-        <text class="mode-desc">不确定去哪，大家先选口味偏好</text>
+        <view class="mode-desc">
+          <text class="mode-desc-line">不确定去哪，</text>
+          <text class="mode-desc-line">大家先选口味偏好</text>
+        </view>
       </view>
-      <view class="mode-arrow">
-        <text>→</text>
-      </view>
+      <view class="mode-arrow"></view>
       <view class="crayon-border"></view>
     </view>
 
-    <!-- 拼单 -->
-    <view class="mode-card crayon-card anim-fade-in-up delay-300" bindtap="goGroup">
-      <view class="card-bg icon-group"></view>
-      <view class="mode-icon">
-        <text class="icon-emoji">🛒</text>
-      </view>
-      <view class="mode-content">
-        <text class="mode-title">拼个单</text>
-        <text class="mode-desc">美团/京东外卖，一起凑单免运费</text>
-      </view>
-      <view class="mode-arrow">
-        <text>→</text>
-      </view>
-      <view class="crayon-border"></view>
-    </view>
   </view>
 
-  <!-- 底部提示 - 玻璃拟态 -->
-  <view class="footer-tips glass-tips anim-fade-in-up delay-400">
-    <view class="tips-icon">🔒</view>
-    <text class="tips-text">所有投票匿名，只有发起人可见结果</text>
+  <!-- 模拟投票场景 -->
+  <view class="preview-section">
+    <view class="preview-title">模拟投票场景</view>
+    <view class="preview-buttons">
+      <button class="btn-preview btn-mode-a" bindtap="previewVoteModeA">模式A：选饭店</button>
+      <button class="btn-preview btn-mode-b" bindtap="previewVoteModeB">模式B：选偏好</button>
+    </view>
   </view>
 
   <!-- 底部装饰 -->
   <view class="bottom-decoration">
-    <view class="fish fish1">🐟</view>
-    <view class="fish fish2">🐠</view>
-    <view class="fish fish3">🐡</view>
+    <image class="paw-print paw1" src="/assets/images/singleclaw.png" mode="aspectFit" />
+    <image class="paw-print paw2" src="/assets/images/singleclaw.png" mode="aspectFit" />
+    <image class="paw-print paw3" src="/assets/images/singleclaw.png" mode="aspectFit" />
   </view>
 </view>

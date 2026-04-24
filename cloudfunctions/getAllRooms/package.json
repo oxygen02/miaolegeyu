@@ -1,0 +1,9 @@
+{
+  "name": "getAllRooms",
+  "version": "1.0.0",
+  "description": "获取所有进行中的房间",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

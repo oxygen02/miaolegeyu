@@ -4,7 +4,7 @@ const db = cloud.database();
 const _ = db.command;
 
 exports.main = async (event, context) => {
-  const { shopId } = event;
+  const { shopId, limit = 5 } = event;
   const { OPENID } = cloud.getWXContext();
 
   try {
@@ -20,6 +20,7 @@ exports.main = async (event, context) => {
 
     const result = await query
       .orderBy('createTime', 'desc')
+      .limit(limit)
       .get();
 
     // 获取所有店铺ID

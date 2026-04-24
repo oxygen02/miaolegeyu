@@ -1,20 +1,20 @@
 /* pages/create-mode-a/create-mode-a.wxss */
-.create-a-container {
+.container {
   min-height: 100vh;
   background: #F5F0E8;
-  padding-bottom: 140rpx;
+  padding: 24rpx 32rpx 40rpx;
 }
 
 .header {
-  padding: 40rpx 32rpx;
+  margin-bottom: 20rpx;
 }
 
 .title {
   display: block;
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 600;
   color: #3D3D3D;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
 }
 
 .subtitle {
@@ -24,8 +24,7 @@
 
 /* 海报上传区 */
 .poster-section {
-  padding: 0 32rpx;
-  margin-bottom: 32rpx;
+  margin-bottom: 24rpx;
 }
 
 .poster-grid {
@@ -37,7 +36,7 @@
 .poster-item {
   position: relative;
   aspect-ratio: 3/4;
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   overflow: hidden;
   background: #FFFDF7;
   border: 2rpx solid rgba(212, 101, 42, 0.2);
@@ -48,20 +47,6 @@
   height: 100%;
   object-fit: cover;
 }
-
-.poster-platform {
-  position: absolute;
-  top: 8rpx;
-  right: 8rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 12rpx;
-  font-size: 20rpx;
-  color: #fff;
-  font-weight: 500;
-}
-
-.poster-platform.meituan { background: #FFC300; color: #333; }
-.poster-platform.dianping { background: #FF6633; }
 
 .poster-actions {
   position: absolute;
@@ -77,17 +62,16 @@
 .action-btn {
   font-size: 22rpx;
   color: #fff;
-  padding: 4rpx 12rpx;
+  padding: 4rpx 10rpx;
 }
 
 .action-btn.delete {
   color: #FF6B6B;
 }
 
-/* 添加按钮 */
 .add-poster {
   aspect-ratio: 3/4;
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   border: 2rpx dashed #D4652A;
   display: flex;
   flex-direction: column;
@@ -114,8 +98,193 @@
   margin-top: 4rpx;
 }
 
-/* 平台弹窗 */
-.platform-popup {
+/* 表单 */
+.form {
+  margin-bottom: 32rpx;
+}
+
+.form-item {
+  background: #FFFDF7;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 96rpx;
+}
+
+.label {
+  font-size: 30rpx;
+  color: #3D3D3D;
+  flex-shrink: 0;
+  margin-right: 20rpx;
+  min-width: 120rpx;
+}
+
+/* 地点选择项 */
+.location-item {
+  padding: 20rpx 24rpx;
+}
+
+.location-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16rpx;
+}
+
+.location-input {
+  flex: 1;
+  text-align: left;
+  font-size: 28rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  min-width: 200rpx;
+}
+
+.location-map-btn {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F5F0E8;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+}
+
+.location-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+/* 人数输入框样式 */
+.people-input {
+  width: 100rpx;
+  text-align: right;
+  font-size: 30rpx;
+}
+
+.input {
+  flex: 1;
+  font-size: 30rpx;
+  color: #3D3D3D;
+  text-align: right;
+  height: 56rpx;
+  line-height: 56rpx;
+}
+
+.input.small {
+  flex: 0 0 100rpx;
+  text-align: center;
+  background: #F5F0E8;
+  border-radius: 8rpx;
+  padding: 8rpx 12rpx;
+  font-size: 28rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+}
+
+.combined-inputs {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.separator {
+  font-size: 28rpx;
+  color: #8A8A8A;
+}
+
+.separator.gap {
+  margin: 0 16rpx;
+}
+
+/* 日期行 - 活动和截止在同一行 */
+.dates-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 8rpx;
+  padding: 20rpx 8rpx;
+}
+
+.date-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.section-label {
+  font-size: 28rpx;
+  color: #3D3D3D;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.date-inputs .input.small {
+  flex: 1;
+  min-width: 140rpx;
+  max-width: 160rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: 22rpx;
+  padding: 8rpx 2rpx;
+  text-align: center;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.divider {
+  width: 1rpx;
+  background: #E0E0E0;
+  margin: 8rpx 4rpx;
+  flex-shrink: 0;
+}
+
+.value {
+  font-size: 30rpx;
+  color: #8A8A8A;
+  text-align: right;
+  flex: 1;
+}
+
+/* 按钮 - 粗边框风格 */
+.btn-create {
+  display: block;
+  width: fit-content;
+  height: auto;
+  line-height: 1;
+  background: #FF9F43;
+  color: #fff;
+  border-radius: 36rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  margin: 32rpx auto 0;
+  border: 4rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
+  padding: 20rpx 48rpx;
+}
+
+.btn-create.disabled {
+  background: #CCC;
+  color: #888;
+  border-color: #999;
+  box-shadow: 4rpx 4rpx 0 #999;
+}
+
+/* 弹窗 */
+.popup {
   position: fixed;
   top: 0;
   left: 0;
@@ -142,7 +311,6 @@
   border-radius: 24rpx 24rpx 0 0;
   padding: 40rpx 32rpx;
   width: 100%;
-  animation: slideUp 0.3s ease-out;
 }
 
 .popup-title {
@@ -172,22 +340,6 @@
   color: #3D3D3D;
 }
 
-.platform-opt.active {
-  border-color: #D4652A;
-  background: rgba(212, 101, 42, 0.1);
-  color: #D4652A;
-}
-
-.platform-opt.meituan.active {
-  border-color: #FFC300;
-  background: rgba(255, 195, 0, 0.1);
-}
-
-.platform-opt.dianping.active {
-  border-color: #FF6633;
-  background: rgba(255, 102, 51, 0.1);
-}
-
 .btn-confirm {
   width: 100%;
   height: 88rpx;
@@ -197,73 +349,4 @@
   border-radius: 44rpx;
   font-size: 32rpx;
   font-weight: 500;
-}
-
-/* 设置区 */
-.settings-section {
-  padding: 0 32rpx;
-}
-
-.setting-item {
-  background: #FFFDF7;
-  border-radius: 16rpx;
-  padding: 24rpx 32rpx;
-  margin-bottom: 16rpx;
-  display: flex;
-  align-items: center;
-}
-
-.setting-label {
-  font-size: 30rpx;
-  color: #3D3D3D;
-  width: 200rpx;
-  flex-shrink: 0;
-}
-
-.setting-input {
-  flex: 1;
-  font-size: 30rpx;
-  color: #3D3D3D;
-  text-align: right;
-}
-
-.picker-value {
-  flex: 1;
-  font-size: 30rpx;
-  color: #8A8A8A;
-  text-align: right;
-}
-
-.switch-item {
-  justify-content: space-between;
-}
-
-/* 底部 */
-.bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 24rpx 32rpx 40rpx;
-  background: #F5F0E8;
-  border-top: 2rpx solid rgba(0, 0, 0, 0.05);
-}
-
-.btn-create {
-  width: 100%;
-  height: 96rpx;
-  line-height: 96rpx;
-  background: var(--primary);
-  color: #fff;
-  border-radius: var(--radius-button);
-  font-size: 34rpx;
-  font-weight: 500;
-  box-shadow: var(--shadow-button);
-  transition: all 0.15s;
-}
-
-.btn-create.disabled {
-  background: #CCC;
-  color: #888;
-  box-shadow: none;
 }

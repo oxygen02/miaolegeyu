@@ -12,52 +12,108 @@
 
   <!-- 表单卡片 -->
   <view class="form-card card anim-slide-up">
-    <view class="form-group">
-      <text class="form-label">聚餐标题</text>
-      <input class="form-input" placeholder="如：周五部门聚餐" value="{{title}}" bindinput="onTitleInput" />
-    </view>
-
-    <view class="form-group">
-      <text class="form-label">聚餐地点</text>
-      <view class="location-picker" bindtap="onChooseLocation">
-        <text class="picker-value {{location.name ? 'has-value' : ''}}">{{location.name || '选择地点'}}</text>
-        <view class="picker-arrow"></view>
+    <!-- 聚餐标题和聚餐地点范围 - 同一行 -->
+    <view class="form-group combined-fields">
+      <view class="field-section">
+        <text class="section-label">聚餐标题</text>
+        <input class="input field-input" placeholder="如：周五部门聚餐" value="{{title}}" bindinput="onTitleInput" />
+      </view>
+      <view class="divider"></view>
+      <view class="field-section location-section">
+        <text class="section-label">聚餐地点范围</text>
+        <view class="location-content-compact">
+          <input 
+            class="input field-input location-input-compact" 
+            placeholder="如：朝阳区" 
+            value="{{locationText}}"
+            bindinput="onLocationInput"
+          />
+          <view class="location-map-btn-compact" bindtap="onChooseLocation">
+            <image class="location-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+          </view>
+        </view>
       </view>
     </view>
 
-    <view class="form-group">
-      <text class="form-label">投票截止时间</text>
-      <picker mode="multiSelector" range="{{timeRange}}" value="{{timeIndex}}" bindchange="onTimeChange">
-        <view class="time-picker">
-          <text class="picker-value {{deadlineText ? 'has-value' : ''}}">{{deadlineText || '请选择截止时间'}}</text>
-          <view class="picker-arrow"></view>
+    <!-- 聚餐时间和投票截止时间 - 同一行，月日|时分结构 -->
+    <view class="form-group combined-dates">
+      <view class="date-section">
+        <text class="section-label">聚餐时间</text>
+        <view class="date-inputs">
+          <input class="input small" type="text" maxlength="6" placeholder="月日" bindinput="onDinnerDateInput" bindblur="onDinnerDateBlur" value="{{dinnerDate}}"/>
+          <text class="separator">|</text>
+          <input class="input small" type="text" maxlength="6" placeholder="时分" bindinput="onDinnerTimeInput" bindblur="onDinnerTimeBlur" value="{{dinnerTime}}"/>
         </view>
-      </picker>
+      </view>
+      <view class="divider"></view>
+      <view class="date-section">
+        <text class="section-label">投票截止时间</text>
+        <view class="date-inputs">
+          <input class="input small" type="text" maxlength="6" placeholder="月日" bindinput="onDeadlineDateInput" bindblur="onDeadlineDateBlur" value="{{deadlineDate}}"/>
+          <text class="separator">|</text>
+          <input class="input small" type="text" maxlength="6" placeholder="时分" bindinput="onDeadlineTimeInput" bindblur="onDeadlineTimeBlur" value="{{deadlineTime}}"/>
+        </view>
+      </view>
+    </view>
+
+    <!-- 付费方式和匿名投票 - 同一行 -->
+    <view class="form-group combined-settings">
+      <view class="setting-section">
+        <text class="section-label">付费方式</text>
+        <view class="payment-options-compact">
+          <view 
+            class="payment-option {{paymentMode === 'AA' ? 'selected' : ''}}" 
+            data-mode="AA"
+            bindtap="onPaymentModeChange"
+          >
+            <text class="option-text">AA平摊</text>
+          </view>
+          <view 
+            class="payment-option {{paymentMode === 'treat' ? 'selected' : ''}}" 
+            data-mode="treat"
+            bindtap="onPaymentModeChange"
+          >
+            <text class="option-text">喵大佬请客</text>
+          </view>
+        </view>
+      </view>
+      <view class="divider"></view>
+      <view class="setting-section switch-section">
+        <text class="section-label">匿名投票</text>
+        <view class="switch-wrapper">
+          <switch checked="{{isAnonymous}}" bindchange="onAnonymousChange" color="#D4652A" />
+          <text class="switch-hint-compact">{{isAnonymous ? '已开启' : '已关闭'}}</text>
+        </view>
+      </view>
     </view>
   </view>
 
-  <!-- 流程说明 -->
-  <view class="flow-section anim-slide-up" style="animation-delay:0.1s">
-    <text class="flow-title">流程说明</text>
-    <view class="flow-list">
-      <view class="flow-item">
-        <view class="flow-num">1</view>
-        <text class="flow-text">成员先选择口味偏好</text>
+  <!-- 决策说明：合并结果生效规则和流程说明 -->
+  <view class="decision-section anim-slide-up" style="animation-delay:0.1s">
+    <text class="decision-title">决策说明</text>
+    <view class="decision-list">
+      <view class="decision-item">
+        <view class="decision-dot"></view>
+        <text class="decision-text">成员先选择口味偏好</text>
       </view>
-      <view class="flow-item">
-        <view class="flow-num">2</view>
-        <text class="flow-text">你根据统计结果选店</text>
+      <view class="decision-item">
+        <view class="decision-dot"></view>
+        <text class="decision-text">你根据统计结果选店</text>
       </view>
-      <view class="flow-item">
-        <view class="flow-num">3</view>
-        <text class="flow-text">推送结果给所有人</text>
+      <view class="decision-item">
+        <view class="decision-dot"></view>
+        <text class="decision-text">票数最高自动敲定，如平票发起人有最终确认权</text>
+      </view>
+      <view class="decision-item">
+        <view class="decision-dot"></view>
+        <text class="decision-text">推送结果给所有人</text>
       </view>
     </view>
   </view>
 
   <!-- 底部按钮 -->
   <view class="bottom-panel safe-bottom">
-    <button class="btn btn-primary submit-btn {{canSubmit() ? '' : 'btn-disabled'}}" bindtap="createRoom">
+    <button class="btn btn-primary submit-btn {{canSubmit ? '' : 'btn-disabled'}}" bindtap="createRoom">
       生成房间
     </button>
   </view>

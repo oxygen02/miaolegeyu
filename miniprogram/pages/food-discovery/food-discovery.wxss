@@ -3,7 +3,6 @@
   min-height: 100vh;
   background: linear-gradient(180deg, #FFF5E9 0%, #FFECD2 100%);
   padding-bottom: 40rpx;
-  /* 不再需要为固定头部预留空间，因为内容从固定区域后开始 */
 }
 
 /* 顶部固定区域 - 使用 sticky 定位 */
@@ -18,17 +17,12 @@
 
 /* 顶部标题区 */
 .header-section {
-  padding: 60rpx 32rpx 40rpx;
+  padding: 40rpx 32rpx 24rpx;
 }
 
-/* 第一条店铺包装器 */
-.first-shop-wrapper {
-  padding: 20rpx;
-  background: linear-gradient(180deg, #FFF5E9 0%, #FFECD2 100%);
-}
-
-.first-shop {
-  margin-bottom: 0 !important;
+/* 店铺列表顶部间距 */
+.shop-list {
+  padding-top: 0;
 }
 
 .page-title {
@@ -87,20 +81,42 @@
   z-index: 1;
 }
 
+/* 店铺卡片 - 功能卡片风格 */
 .shop-item {
-  border-radius: 16rpx;
-  margin-bottom: 16rpx;
-  padding: 16rpx;
+  border-radius: 24rpx;
+  border-top: 4rpx solid #3D3D3D;
+  border-left: 4rpx solid #3D3D3D;
+  border-bottom: 8rpx solid #3D3D3D;
+  border-right: 8rpx solid #3D3D3D;
+  box-shadow:
+    4rpx 6rpx 0 rgba(61, 61, 61, 0.15),
+    8rpx 12rpx 20rpx rgba(61, 61, 61, 0.1);
+  margin-bottom: 24rpx;
+  padding: 20rpx;
   display: flex;
   gap: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08);
-  transition: all 0.2s;
   min-height: 200rpx;
   position: relative;
+  transition: all 0.15s ease;
 }
 
 .shop-item:active {
-  transform: scale(0.98);
+  transform: translateY(4rpx);
+  box-shadow:
+    2rpx 3rpx 0 rgba(61, 61, 61, 0.15),
+    4rpx 6rpx 10rpx rgba(61, 61, 61, 0.1);
+}
+
+/* 底部渐变遮罩 - 让底部区域卡片视觉上变浅 */
+.bottom-fade-mask {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 300rpx;
+  background: linear-gradient(to top, rgba(255, 250, 245, 0.95) 0%, rgba(255, 250, 245, 0.7) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 10;
 }
 
 /* 右上角：付费模式 */
@@ -196,12 +212,33 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 240rpx;
+  flex: 1;
+}
+
+.address-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.nav-btn {
+  width: 96rpx;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 159, 67, 0.1);
+  border-radius: 16rpx;
+  flex-shrink: 0;
+}
+
+.nav-btn:active {
+  background: rgba(255, 159, 67, 0.2);
 }
 
 .nav-icon {
-  font-size: 22rpx;
-  color: #FF9F43;
+  width: 64rpx;
+  height: 64rpx;
 }
 
 .shop-rating {
@@ -429,9 +466,8 @@
   box-shadow: none;
 }
 
-/* 右侧：发起约饭按钮（加宽） */
+/* 右侧：发起约饭按钮 - 粗边框风格 */
 .shop-right-empty {
-  width: 200rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -439,18 +475,25 @@
 }
 
 .create-btn-wide {
-  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
-  padding: 20rpx 40rpx;
-  border-radius: 28rpx;
-  box-shadow: 0 4rpx 16rpx rgba(255,159,67,0.4);
-  width: 100%;
+  display: block;
+  width: fit-content;
+  background: #FF9F43;
+  padding: 16rpx 32rpx;
+  border-radius: 32rpx;
+  border: 4rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
   text-align: center;
 }
 
 .create-btn-wide .btn-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
+}
+
+.create-btn-wide:active {
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+  transform: translateY(2rpx);
 }
 
 /* 加载状态 */
@@ -496,26 +539,28 @@
 .floating-recommend-bar {
   position: fixed;
   bottom: 40rpx;
-  left: 120rpx;
-  right: 120rpx;
-  height: 88rpx;
-  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
-  border-radius: 44rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: fit-content;
+  height: auto;
+  background: #FF9F43;
+  border-radius: 36rpx;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 16rpx;
-  box-shadow: 0 8rpx 24rpx rgba(255, 159, 67, 0.4);
+  border: 4rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
   z-index: 100;
-  padding: 0 40rpx;
+  padding: 20rpx 48rpx;
   box-sizing: border-box;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .floating-recommend-bar:active {
-  box-shadow: none;
-  transform: scale(0.96);
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+  transform: translateX(-50%) translateY(2rpx);
 }
 
 .floating-recommend-icon-wrapper {

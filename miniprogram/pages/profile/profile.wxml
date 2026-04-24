@@ -1,157 +1,163 @@
-<view class="page profile-page anim-page-enter">
-  <!-- 用户信息卡片 -->
-  <view class="user-card card anim-slide-up">
-    <view class="avatar-wrapper">
-      <image class="user-avatar" src="/assets/images/juze_avatar.png" mode="aspectFill" />
-      <view class="avatar-badge"></view>
+<view class="profile-page">
+  <!-- 用户信息 -->
+  <view class="user-header">
+    <view class="user-avatar">
+      <image src="/assets/images/cat-avatar-icon.png" mode="aspectFit"/>
     </view>
-    <text class="user-name">喵了个鱼用户</text>
-    <text class="user-id">ID: 888888</text>
-  </view>
-
-  <!-- 统计卡片 -->
-  <view class="stats-card card anim-slide-up" style="animation-delay:0.05s">
-    <view class="stat-item" bindtap="showFavorites">
-      <text class="stat-num">{{stats.favorites}}</text>
-      <text class="stat-label">我的收藏</text>
-    </view>
-    <view class="stat-divider"></view>
-    <view class="stat-item" bindtap="showMyShops">
-      <text class="stat-num">{{stats.myShops}}</text>
-      <text class="stat-label">我的店铺</text>
-    </view>
-    <view class="stat-divider"></view>
-    <view class="stat-item" bindtap="showMyAppointments">
-      <text class="stat-num">{{stats.myAppointments}}</text>
-      <text class="stat-label">我的活动</text>
+    <view class="user-info">
+      <text class="user-name">{{userInfo.name}}</text>
+      <text class="user-id">ID: {{userInfo.id}}</text>
     </view>
   </view>
 
-  <!-- 菜单列表 -->
-  <view class="menu-card card anim-slide-up" style="animation-delay:0.1s">
+  <!-- 数据统计 -->
+  <view class="stats-section">
+    <view class="stats-grid">
+      <view class="stat-item" bindtap="showMyRooms">
+        <text class="stat-num">{{stats.myRooms}}</text>
+        <text class="stat-label">我发起的</text>
+      </view>
+      <view class="stat-item" bindtap="showMyShops">
+        <text class="stat-num">{{stats.myShops}}</text>
+        <text class="stat-label">我的店铺</text>
+      </view>
+      <view class="stat-item" bindtap="showMyAppointments">
+        <text class="stat-num">{{stats.myAppointments}}</text>
+        <text class="stat-label">我的活动</text>
+      </view>
+      <view class="stat-item" bindtap="showFavorites">
+        <text class="stat-num">{{stats.favorites}}</text>
+        <text class="stat-label">我的收藏</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-section">
     <view class="menu-item" bindtap="goToHistory">
-      <view class="menu-icon history-icon"></view>
-      <text class="menu-label">历史记录</text>
-      <view class="menu-arrow"></view>
+      <view class="menu-icon">📜</view>
+      <text class="menu-text">历史记录</text>
+      <text class="menu-arrow">›</text>
     </view>
-    <view class="menu-divider"></view>
     <view class="menu-item" bindtap="goToSettings">
-      <view class="menu-icon settings-icon"></view>
-      <text class="menu-label">设置</text>
-      <view class="menu-arrow"></view>
+      <view class="menu-icon">⚙️</view>
+      <text class="menu-text">设置</text>
+      <text class="menu-arrow">›</text>
     </view>
-    <view class="menu-divider"></view>
     <view class="menu-item" bindtap="goToAbout">
-      <view class="menu-icon about-icon"></view>
-      <text class="menu-label">关于</text>
-      <view class="menu-arrow"></view>
+      <view class="menu-icon">ℹ️</view>
+      <text class="menu-text">关于</text>
+      <text class="menu-arrow">›</text>
     </view>
-  </view>
-
-  <!-- 底部装饰 -->
-  <view class="bottom-decoration">
-    <view class="fish-decoration"></view>
-    <text class="version">喵了个鱼 v1.0.0</text>
   </view>
 
   <!-- 列表弹窗 -->
   <view class="list-modal" wx:if="{{currentList}}" bindtap="closeList">
-    <view class="list-content" catchtap="preventBubble">
-      <!-- 我的收藏列表 -->
-      <block wx:if="{{currentList === 'favorites'}}">
-        <view class="list-header">
-          <text class="list-title">我的收藏</text>
-          <text class="list-close" bindtap="closeList">×</text>
-        </view>
-        <scroll-view class="list-body" scroll-y="true">
-          <view class="empty-state" wx:if="{{favorites.length === 0}}">
-            <text class="empty-text">暂无收藏</text>
-          </view>
-          <view class="favorite-list" wx:else>
-            <view class="favorite-item" wx:for="{{favorites}}" wx:key="_id">
-              <block wx:if="{{item.type === 'shop' && item.shop}}">
-                <view class="favorite-info" bindtap="goToShopDetail" data-id="{{item.shop._id}}">
-                  <image class="favorite-image" src="{{item.shop.images[0] || '/assets/images/default-shop.png'}}" mode="aspectFill" />
-                  <view class="favorite-detail">
-                    <text class="favorite-name">{{item.shop.name}}</text>
-                    <text class="favorite-type">店铺</text>
-                  </view>
-                </view>
-                <view class="favorite-actions">
-                  <text class="cancel-favorite" bindtap="cancelFavorite" data-id="{{item.targetId}}" data-type="{{item.type}}">取消收藏</text>
-                </view>
-              </block>
-              <block wx:if="{{item.type === 'appointment' && item.appointment}}">
-                <view class="favorite-info" bindtap="goToAppointmentDetail" data-shopid="{{item.appointment.shopId}}">
-                  <view class="favorite-detail">
-                    <text class="favorite-name">{{item.appointment.shopName || '约饭活动'}}</text>
-                    <text class="favorite-time">{{item.appointment.appointmentTimeStr}}</text>
-                    <text class="favorite-type">活动</text>
-                  </view>
-                </view>
-                <view class="favorite-actions">
-                  <text class="cancel-favorite" bindtap="cancelFavorite" data-id="{{item.targetId}}" data-type="{{item.type}}">取消收藏</text>
-                </view>
-              </block>
+    <view class="modal-content" catchtap="preventBubble">
+      <!-- 标题栏 -->
+      <view class="modal-header">
+        <text class="modal-title">
+          {{currentList === 'favorites' ? '我的收藏' : 
+            currentList === 'myShops' ? '我的店铺' : 
+            currentList === 'myAppointments' ? '我的活动' : 
+            currentList === 'myRooms' ? '我发起的聚餐' : ''}}
+        </text>
+        <view class="close-btn" bindtap="closeList">×</view>
+      </view>
+
+      <!-- 加载状态 -->
+      <view class="loading-state" wx:if="{{loading}}">
+        <view class="loading-spinner"></view>
+        <text>加载中...</text>
+      </view>
+
+      <!-- 我发起的聚餐列表 -->
+      <scroll-view class="list-content" scroll-y wx:elif="{{currentList === 'myRooms'}}">
+        <view class="room-list">
+          <view class="room-card" wx:for="{{myRooms}}" wx:key="roomId" bindtap="goToRoomDetail" data-roomid="{{item.roomId}}">
+            <view class="room-poster">
+              <image src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || '/assets/images/taiyaki-icon.png'}}" mode="aspectFill"/>
+              <view class="room-status {{item.status}}">{{item.status === 'voting' ? '进行中' : '已结束'}}</view>
+            </view>
+            <view class="room-info">
+              <text class="room-title">{{item.title}}</text>
+              <view class="room-meta">
+                <text class="meta-item" wx:if="{{item.activityDate}}">📅 {{item.activityDate}}</text>
+                <text class="meta-item" wx:if="{{item.activityTime}}">🕐 {{item.activityTime}}</text>
+                <text class="meta-item" wx:if="{{item.location}}">📍 {{item.location}}</text>
+              </view>
+              <view class="room-footer">
+                <text class="room-id">房间号: {{item.roomId}}</text>
+                <text class="participant-count">{{item.participantCount}}人参与</text>
+              </view>
             </view>
           </view>
-        </scroll-view>
-      </block>
+        </view>
+        <view class="empty-tip" wx:if="{{myRooms.length === 0}}">
+          <text>还没有发起过聚餐</text>
+        </view>
+      </scroll-view>
 
       <!-- 我的店铺列表 -->
-      <block wx:if="{{currentList === 'myShops'}}">
-        <view class="list-header">
-          <text class="list-title">我的店铺</text>
-          <text class="list-close" bindtap="closeList">×</text>
-        </view>
-        <scroll-view class="list-body" scroll-y="true">
-          <view class="empty-state" wx:if="{{myShops.length === 0}}">
-            <text class="empty-text">暂无店铺推荐</text>
-          </view>
-          <view class="shop-list" wx:else>
-            <view class="shop-item" wx:for="{{myShops}}" wx:key="_id">
-              <view class="shop-info" bindtap="goToShopDetail" data-id="{{item._id}}">
-                <image class="shop-image" src="{{item.images[0] || '/assets/images/default-shop.png'}}" mode="aspectFill" />
-                <view class="shop-detail">
-                  <text class="shop-name">{{item.name}}</text>
-                  <text class="shop-address">{{item.address}}</text>
-                </view>
-              </view>
-              <view class="shop-actions">
-                <text class="delete-btn" bindtap="deleteShop" data-id="{{item._id}}">删除</text>
-              </view>
+      <scroll-view class="list-content" scroll-y wx:elif="{{currentList === 'myShops'}}">
+        <view class="shop-list">
+          <view class="shop-card" wx:for="{{myShops}}" wx:key="_id">
+            <image class="shop-image" src="{{item.images[0] || '/assets/images/taiyaki-icon.png'}}" mode="aspectFill" bindtap="goToShopDetail" data-id="{{item._id}}"/>
+            <view class="shop-info">
+              <text class="shop-name">{{item.name}}</text>
+              <text class="shop-location">{{item.location}}</text>
+            </view>
+            <view class="shop-actions">
+              <text class="action-btn delete" bindtap="deleteShop" data-id="{{item._id}}">删除</text>
             </view>
           </view>
-        </scroll-view>
-      </block>
+        </view>
+        <view class="empty-tip" wx:if="{{myShops.length === 0}}">
+          <text>还没有推荐过店铺</text>
+        </view>
+      </scroll-view>
 
       <!-- 我的活动列表 -->
-      <block wx:if="{{currentList === 'myAppointments'}}">
-        <view class="list-header">
-          <text class="list-title">我的活动</text>
-          <text class="list-close" bindtap="closeList">×</text>
-        </view>
-        <scroll-view class="list-body" scroll-y="true">
-          <view class="empty-state" wx:if="{{myAppointments.length === 0}}">
-            <text class="empty-text">暂无发起的活动</text>
-          </view>
-          <view class="appointment-list" wx:else>
-            <view class="appointment-item" wx:for="{{myAppointments}}" wx:key="_id">
-              <view class="appointment-info" bindtap="goToAppointmentDetail" data-shopid="{{item.shopId}}">
-                <text class="appointment-shop">{{item.shopName || '未知店铺'}}</text>
-                <text class="appointment-time">约饭时间：{{item.appointmentTimeStr}}</text>
-                <view class="appointment-meta">
-                  <text class="participant-count">喵×{{item.participantCount}}</text>
-                  <text class="payment-mode {{item.paymentMode === 'AA' ? 'aa' : 'treat'}}">{{item.paymentMode === 'AA' ? 'AA' : '喵大佬买单'}}</text>
-                </view>
-              </view>
-              <view class="appointment-actions">
-                <text class="delete-btn" bindtap="deleteAppointment" data-id="{{item._id}}">删除</text>
-              </view>
+      <scroll-view class="list-content" scroll-y wx:elif="{{currentList === 'myAppointments'}}">
+        <view class="appointment-list">
+          <view class="appointment-card" wx:for="{{myAppointments}}" wx:key="_id">
+            <view class="appointment-header">
+              <text class="shop-name">{{item.shopName}}</text>
+              <text class="appointment-time">{{item.appointmentTimeStr}}</text>
+            </view>
+            <view class="appointment-info">
+              <text class="participant-count">{{item.participantCount}}人参加</text>
+              <text class="deadline">截止: {{item.deadlineStr}}</text>
+            </view>
+            <view class="appointment-actions">
+              <text class="action-btn view" bindtap="goToAppointmentDetail" data-shopid="{{item.shopId}}">查看</text>
+              <text class="action-btn delete" bindtap="deleteAppointment" data-id="{{item._id}}">删除</text>
             </view>
           </view>
-        </scroll-view>
-      </block>
+        </view>
+        <view class="empty-tip" wx:if="{{myAppointments.length === 0}}">
+          <text>还没有发起过活动</text>
+        </view>
+      </scroll-view>
+
+      <!-- 我的收藏列表 -->
+      <scroll-view class="list-content" scroll-y wx:elif="{{currentList === 'favorites'}}">
+        <view class="favorite-list">
+          <view class="favorite-card" wx:for="{{favorites}}" wx:key="_id">
+            <image class="favorite-image" src="{{item.imageUrl || '/assets/images/taiyaki-icon.png'}}" mode="aspectFill"/>
+            <view class="favorite-info">
+              <text class="favorite-name">{{item.name}}</text>
+              <text class="favorite-type">{{item.type === 'shop' ? '店铺' : '活动'}}</text>
+            </view>
+            <view class="favorite-actions">
+              <text class="action-btn cancel" bindtap="cancelFavorite" data-id="{{item.targetId}}" data-type="{{item.type}}">取消收藏</text>
+            </view>
+          </view>
+        </view>
+        <view class="empty-tip" wx:if="{{favorites.length === 0}}">
+          <text>还没有收藏</text>
+        </view>
+      </scroll-view>
     </view>
   </view>
 </view>

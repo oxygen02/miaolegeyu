@@ -1,36 +1,26 @@
 <view class="index-page">
-  <!-- 中间区域 - 标题、头像、栅栏背景 -->
+  <!-- Hero 区域 -->
   <view class="hero-section">
-    <!-- 条纹背景 -->
     <view class="stripe-background"></view>
-    
-    <!-- 内容区域 -->
     <view class="hero-content">
-      <!-- 左侧标题 -->
       <view class="title-area">
         <text class="app-title">喵了个鱼</text>
         <text class="app-subtitle">今天吃什么？让橘仔来决定</text>
       </view>
-      
-      <!-- 右侧头像 -->
       <view class="cat-container">
         <view class="cat-glow"></view>
         <view class="cat-ring"></view>
         <image class="cat-avatar" src="/assets/images/juze_avatar.png" mode="aspectFill" />
       </view>
     </view>
-    
-    <!-- 底部栅栏锯齿 -->
     <view class="fence-decoration"></view>
   </view>
 
-  <!-- Banner轮播 - 约饭活动 + 广告位 -->
-  <view class="middle-section">
+  <!-- Banner轮播 -->
+  <view class="middle-section" wx:if="{{appointmentBanners.length > 0 || pageReady}}">
     <swiper class="banner-swiper" indicator-dots autoplay circular interval="4000" duration="600">
-      <!-- 约饭活动轮播 - 三行均衡布局 -->
       <swiper-item wx:for="{{appointmentBanners}}" wx:key="_id">
         <view class="banner-card appointment-banner" bindtap="onBannerTap" data-appointment-id="{{item._id}}">
-          <!-- 左侧：喵不喵艺术字 + 大图标 -->
           <view class="banner-left-brand">
             <view class="brand-vertical">
               <view class="brand-title-art">
@@ -41,10 +31,7 @@
               <image class="brand-icon-large" src="/assets/images/cat-avatar-icon.png" mode="aspectFill" />
             </view>
           </view>
-
-          <!-- 中间：三行内容自适应 - 右对齐 -->
           <view class="banner-middle-content">
-            <!-- 第一行：发起人头像 + 昵称 + 店名 -->
             <view class="content-row">
               <view class="info-tag tag-nickname">
                 <text class="info-label">发起人</text>
@@ -54,8 +41,6 @@
                 <text class="info-value">{{item.shopName || '约饭活动'}}</text>
               </view>
             </view>
-
-            <!-- 第二行：类别 + 约饭开始时间 -->
             <view class="content-row">
               <view class="info-tag tag-cuisine">
                 <text class="info-value">{{item.cuisineName || '美食'}}</text>
@@ -65,8 +50,6 @@
                 <text class="info-value">{{item.appointmentTimeStr}}</text>
               </view>
             </view>
-
-            <!-- 第三行：倒计时 + 地址 -->
             <view class="content-row">
               <view class="info-tag tag-countdown">
                 <text class="info-label">倒计时</text>
@@ -77,10 +60,8 @@
               </view>
             </view>
           </view>
-
-          <!-- 右侧：猫爪 + 报名 -->
           <view class="banner-right-action">
-            <image class="action-paw" src="/assets/images/cat-paw-single.png" mode="aspectFit" />
+            <image class="action-paw" src="/assets/images/singleclaw.png" mode="aspectFit" />
             <view class="action-btn {{item.isJoined ? 'joined' : ''}}" catchtap="onJoinTap" data-appointment-id="{{item._id}}">
               <text class="action-text">{{item.isJoined ? '已喵' : '报名'}}</text>
               <image wx:if="{{item.isJoined}}" class="paw-stamp" src="/assets/images/gaizhang.png" mode="aspectFit" />
@@ -88,7 +69,6 @@
           </view>
         </view>
       </swiper-item>
-      <!-- 广告位轮播 -->
       <swiper-item>
         <view class="banner-card ad-banner" bindtap="onBannerTap" data-type="ad">
           <image class="ad-image" src="/assets/images/lunbozhanwei.png" mode="aspectFit" />
@@ -97,15 +77,10 @@
     </swiper>
   </view>
 
-  <!-- 底部四个功能卡片 - 蜡笔像素风 -->
-  <view class="feature-section">
+  <!-- 功能卡片 -->
+  <view class="feature-section" wx:if="{{pageReady}}">
     <view class="feature-grid">
-      <view class="feature-card crayon-card {{touchIndex === 0 ? 'touch-active' : ''}}"
-            bindtap="goCreate"
-            bindtouchstart="onTouchStart"
-            bindtouchend="onTouchEnd"
-            bindtouchmove="onTouchMove"
-            data-index="0">
+      <view class="feature-card" bindtap="goCreate" data-index="0">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #FFF5E9;">
             <image class="feature-icon-image" src="/assets/images/faqijucan.png" mode="aspectFit" />
@@ -116,13 +91,7 @@
           </view>
         </view>
       </view>
-
-      <view class="feature-card crayon-card {{touchIndex === 1 ? 'touch-active' : ''}}"
-            bindtap="goJoin"
-            bindtouchstart="onTouchStart"
-            bindtouchend="onTouchEnd"
-            bindtouchmove="onTouchMove"
-            data-index="1">
+      <view class="feature-card" bindtap="goJoin" data-index="1">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #E8F8F5;">
             <image class="feature-icon-image" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
@@ -133,11 +102,7 @@
           </view>
         </view>
       </view>
-
-      <view class="feature-card crayon-card"
-            bindtap="goFishTank"
-            hover-class="feature-card-hover"
-            hover-stay-time="100">
+      <view class="feature-card" bindtap="goFishTank">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #E8F4FD;">
             <image class="feature-icon-image large-icon" src="/assets/images/yutangpindan.png" mode="aspectFit" />
@@ -148,11 +113,7 @@
           </view>
         </view>
       </view>
-
-      <view class="feature-card crayon-card"
-            bindtap="goFoodDiscovery"
-            hover-class="feature-card-hover"
-            hover-stay-time="100">
+      <view class="feature-card" bindtap="goFoodDiscovery">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #FFF5E9;">
             <image class="feature-icon-image" src="/assets/images/love-cat-icon.png" mode="aspectFit" />
@@ -167,36 +128,61 @@
   </view>
 
   <!-- 游动的小鱼区域 -->
-  <view class="fish-tank">
-    <view class="fish fish-1 {{scaredFish === '1' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" bindtouchstart="onFishTouch" data-fish="1">
+  <view class="fish-tank" wx:if="{{pageReady}}">
+    <view class="fish fish-1 {{scaredFish === '1' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" catchtap="onFishTap" data-fish="1">
       <view class="fish-body"></view>
       <view class="fish-tail"></view>
       <view class="fish-fin"></view>
       <view class="fish-eye"></view>
     </view>
-    <view class="fish fish-2 {{scaredFish === '2' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" bindtouchstart="onFishTouch" data-fish="2">
+    <view class="fish fish-2 {{scaredFish === '2' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" catchtap="onFishTap" data-fish="2">
       <view class="fish-body"></view>
       <view class="fish-tail"></view>
       <view class="fish-fin"></view>
       <view class="fish-eye"></view>
     </view>
-    <view class="fish fish-3 {{scaredFish === '3' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" bindtouchstart="onFishTouch" data-fish="3">
+    <view class="fish fish-3 {{scaredFish === '3' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" catchtap="onFishTap" data-fish="3">
       <view class="fish-body"></view>
       <view class="fish-tail"></view>
       <view class="fish-fin"></view>
       <view class="fish-eye"></view>
     </view>
-    <view class="fish fish-4 {{scaredFish === '4' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" bindtouchstart="onFishTouch" data-fish="4">
+    <view class="fish fish-4 {{scaredFish === '4' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" catchtap="onFishTap" data-fish="4">
       <view class="fish-body"></view>
       <view class="fish-tail"></view>
       <view class="fish-fin"></view>
       <view class="fish-eye"></view>
     </view>
-    <view class="fish fish-5 {{scaredFish === '5' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" bindtouchstart="onFishTouch" data-fish="5">
+    <view class="fish fish-5 {{scaredFish === '5' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" catchtap="onFishTap" data-fish="5">
       <view class="fish-body"></view>
       <view class="fish-tail"></view>
       <view class="fish-fin"></view>
       <view class="fish-eye"></view>
+    </view>
+  </view>
+
+  <!-- 底部导航栏 -->
+  <view class="custom-tab-bar">
+    <view class="tab-bar-border"></view>
+    <view class="tab-bar-container">
+      <view class="tab-bar-item active" data-index="0" bindtap="switchTab">
+        <view class="icon-wrapper">
+          <image class="tab-icon" src="/assets/images/paw-home-icon.png" mode="aspectFit" />
+        </view>
+        <text class="tab-text">首页</text>
+      </view>
+      <view class="tab-bar-item" data-index="1" catchtap="switchTab">
+        <view class="icon-wrapper">
+          <image class="tab-icon fish-icon" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+        </view>
+        <text class="tab-text">喵不喵</text>
+      </view>
+      <view class="tab-bar-item" data-index="2" bindtap="switchTab">
+        <view class="icon-wrapper">
+          <image class="tab-icon" src="/assets/images/fish-icon.png" mode="aspectFit" />
+        </view>
+        <text class="tab-text">我的</text>
+      </view>
     </view>
   </view>
 </view>

@@ -1,98 +1,230 @@
+<wxs src="./swipe.wxs" module="swipe" />
+
 <view class="vote-page">
   <!-- 顶部渐变区域 -->
   <view class="header-section">
-    <text class="room-title">{{room.title || '投票中'}}</text>
-    <text class="progress-text">{{currentIndex + 1}} / {{posters.length}}</text>
+    <view class="header-content">
+      <text class="room-title">{{room.title || '投票中'}}</text>
+      <text class="progress-text" wx:if="{{mode === 'a'}}">{{currentIndex >= posters.length ? posters.length : currentIndex + 1}} / {{posters.length}}</text>
+      <block wx:if="{{mode === 'b'}}">
+        <text class="progress-text" wx:if="{{currentStep === 'category'}}">选大类 {{categoryCurrentIndex + 1}} / {{categoryCards.length}} (已选{{selectedCategoryIds.length}}/3)</text>
+        <text class="progress-text" wx:if="{{currentStep === 'subcategory'}}">{{currentCategoryName}} {{subCategoryCurrentIndex + 1}} / {{subCategoryCards.length}}</text>
+      </block>
+    </view>
+    <image class="header-tail" src="/assets/images/maoweiba.png" mode="aspectFit" />
   </view>
 
-  <!-- 波浪分割线 -->
-  <view class="wave-divider"></view>
+  <!-- ========== Mode A: 海报投票 ========== -->
+  <block wx:if="{{mode === 'a'}}">
+    <!-- 滑动区域 -->
+    <view class="card-area" style="height: {{cardAreaHeight}}px;">
+      <block wx:for="{{posters}}" wx:key="index">
+        <view
+          class="poster-card {{item.status}} {{index < currentIndex ? 'swiped' : ''}} {{index === currentIndex ? 'active' : ''}}"
+          style="z-index: {{posters.length - index + 20}};"
+          data-index="{{index}}"
+          bindtouchstart="{{swipe.touchStart}}"
+          bindtouchmove="{{swipe.touchMove}}"
+          bindtouchend="{{swipe.touchEnd}}"
+        >
+          <!-- 蜡笔边框 -->
+          <view class="crayon-edge"></view>
 
-  <!-- 滑动区域 -->
-  <view class="card-area" style="height: {{cardAreaHeight}}px;">
-    <block wx:for="{{posters}}" wx:key="index">
-      <view 
-        class="poster-card {{item.status}} {{item.animClass}}" 
-        style="{{item.style}}; z-index: {{posters.length - index}};"
-        wx:if="{{index >= currentIndex}}"
-        bindtouchstart="onTouchStart"
-        bindtouchmove="onTouchMove"
-        bindtouchend="onTouchEnd"
-        data-index="{{index}}"
-      >
-        <!-- 蜡笔边框 -->
-        <view class="crayon-edge"></view>
-        
-        <!-- 海报图片 -->
-        <image 
-          class="poster-image" 
-          src="{{item.imageUrl}}" 
-          mode="aspectFill"
-          bindtap="previewPoster"
-          data-url="{{item.imageUrl}}"
-        />
+          <!-- 海报图片 -->
+          <image 
+            class="poster-image" 
+            src="{{item.imageUrl}}" 
+            mode="aspectFill"
+            catchtap="previewPoster"
+            data-url="{{item.imageUrl}}"
+          />
 
-        <!-- 平台角标 -->
-        <view class="platform-badge {{item.platformSource}}">
-          <text>{{item.platformSource === 'meituan' ? '美团' : item.platformSource === 'dianping' ? '点评' : '京东'}}</text>
+          <!-- 平台角标 -->
+          <view class="platform-badge {{item.platformSource}}">
+            <text>{{item.platformSource === 'meituan' ? '美团' : item.platformSource === 'dianping' ? '点评' : '京东'}}</text>
+          </view>
+
+          <!-- 左滑抓痕动画层 -->
+          <view class="scratch-layer" style="display: none;">
+            <view class="scratch-line s1"></view>
+            <view class="scratch-line s2"></view>
+            <view class="scratch-line s3"></view>
+          </view>
+
+          <!-- 右滑掌印动画层 -->
+          <view class="paw-layer" style="display: none;">
+            <view class="paw-print"></view>
+          </view>
+
+          <!-- 否决印章 -->
+          <view class="veto-stamp" wx:if="{{item.isVetoed}}">
+            <text class="stamp-text">禁</text>
+            <text class="stamp-sub">有人不吃这个</text>
+          </view>
         </view>
+      </block>
 
-        <!-- 左滑抓痕动画层 -->
-        <view class="scratch-layer" wx:if="{{item.showScratch}}">
-          <view class="scratch-line s1"></view>
-          <view class="scratch-line s2"></view>
-          <view class="scratch-line s3"></view>
+      <!-- 空状态（全部滑完） -->
+      <view class="empty-state" wx:if="{{currentIndex >= posters.length}}">
+        <image class="empty-cat-image" src="/assets/images/wink-cat-icon.png" mode="aspectFit" />
+        <text class="empty-text">都筛完了，去提交吧</text>
+      </view>
+    </view>
+
+  </block>
+
+  <!-- ========== Mode B: 两级餐饮分类选择 ========== -->
+  <block wx:if="{{mode === 'b'}}">
+    <!-- 第一级：大类选择 -->
+    <block wx:if="{{currentStep === 'category'}}">
+      <view class="card-area" style="height: {{cardAreaHeight}}px;">
+        <block wx:for="{{categoryCards}}" wx:key="index">
+          <view 
+            class="cuisine-card {{item.status}} {{item.animClass}}" 
+            style="{{item.style}}; z-index: {{categoryCards.length - index}}; background: {{item.color}};"
+            wx:if="{{index >= categoryCurrentIndex}}"
+            bindtouchstart="onCategoryTouchStart"
+            bindtouchmove="onCategoryTouchMove"
+            bindtouchend="onCategoryTouchEnd"
+            data-index="{{index}}"
+          >
+            <!-- 蜡笔边框 -->
+            <view class="crayon-edge"></view>
+            
+            <!-- 分类图标 -->
+            <view class="cuisine-icon">{{item.icon}}</view>
+            
+            <!-- 分类名称 -->
+            <text class="cuisine-card-name">{{item.name}}</text>
+            
+            <!-- 细类预览 -->
+            <view class="sub-preview">
+              <text wx:for="{{item.subCategories}}" wx:key="*this" wx:for-item="sub" class="sub-tag">{{sub.name}}</text>
+            </view>
+
+            <!-- 左滑抓痕动画层（不喜欢） -->
+            <view class="scratch-layer" wx:if="{{item.showScratch}}">
+              <view class="scratch-line s1"></view>
+              <view class="scratch-line s2"></view>
+              <view class="scratch-line s3"></view>
+              <text class="swipe-label left">不喜欢</text>
+            </view>
+
+            <!-- 右滑掌印动画层（选这个） -->
+            <view class="paw-layer" wx:if="{{item.showPaw}}">
+              <view class="paw-print"></view>
+              <text class="swipe-label right">选这个</text>
+            </view>
+          </view>
+        </block>
+
+        <!-- 空状态（全部滑完） -->
+        <view class="empty-state" wx:if="{{categoryCurrentIndex >= categoryCards.length}}">
+          <view class="empty-cat-icon cat-surprised"></view>
+          <text class="empty-text">大类选完了</text>
+          <button class="btn-next-step" wx:if="{{selectedCategoryIds.length > 0}}" bindtap="goToSubCategory">去选具体菜品</button>
         </view>
+      </view>
 
-        <!-- 右滑掌印动画层 -->
-        <view class="paw-layer" wx:if="{{item.showPaw}}">
-          <view class="paw-print"></view>
-        </view>
-
-        <!-- 否决印章 -->
-        <view class="veto-stamp" wx:if="{{item.isVetoed}}">
-          <text class="stamp-text">禁</text>
-          <text class="stamp-sub">有人不吃这个</text>
+      <!-- 已选大类展示 -->
+      <view class="selected-categories" wx:if="{{selectedCategoryIds.length > 0}}">
+        <text class="selected-label">已选大类：</text>
+        <view class="selected-tags">
+          <view class="selected-tag" wx:for="{{selectedCategoryIds}}" wx:key="*this">{{item.name}}</view>
         </view>
       </view>
     </block>
 
-    <!-- 空状态（全部滑完） -->
-    <view class="empty-state" wx:if="{{currentIndex >= posters.length}}">
-      <view class="empty-cat-icon cat-surprised"></view>
-      <text class="empty-text">都筛完了，去提交吧</text>
+    <!-- 第二级：细类选择 -->
+    <block wx:if="{{currentStep === 'subcategory'}}">
+      <view class="card-area" style="height: {{cardAreaHeight}}px;">
+        <block wx:for="{{subCategoryCards}}" wx:key="index">
+          <view 
+            class="sub-category-card {{item.status}} {{item.animClass}}" 
+            style="{{item.style}}; z-index: {{subCategoryCards.length - index}};"
+            wx:if="{{index >= subCategoryCurrentIndex}}"
+            bindtouchstart="onSubCategoryTouchStart"
+            bindtouchmove="onSubCategoryTouchMove"
+            bindtouchend="onSubCategoryTouchEnd"
+            data-index="{{index}}"
+          >
+            <!-- 蜡笔边框 -->
+            <view class="crayon-edge"></view>
+            
+            <!-- 细类图片 -->
+            <image class="sub-category-image" src="{{item.image}}" mode="aspectFill"/>
+            
+            <!-- 细类名称 -->
+            <text class="sub-category-name">{{item.name}}</text>
+
+            <!-- 左滑抓痕动画层（不喜欢） -->
+            <view class="scratch-layer" wx:if="{{item.showScratch}}">
+              <view class="scratch-line s1"></view>
+              <view class="scratch-line s2"></view>
+              <view class="scratch-line s3"></view>
+              <text class="swipe-label left">不喜欢</text>
+            </view>
+
+            <!-- 右滑掌印动画层（想吃） -->
+            <view class="paw-layer" wx:if="{{item.showPaw}}">
+              <view class="paw-print"></view>
+              <text class="swipe-label right">想吃</text>
+            </view>
+          </view>
+        </block>
+
+        <!-- 空状态（当前大类细类选完） -->
+        <view class="empty-state" wx:if="{{subCategoryCurrentIndex >= subCategoryCards.length}}">
+          <view class="empty-cat-icon cat-surprised"></view>
+          <text class="empty-text">这个类别选完了</text>
+          <button class="btn-next-step" wx:if="{{hasMoreCategories}}" bindtap="nextCategory">下一个类别</button>
+          <button class="btn-next-step" wx:else bindtap="finishSubCategory">完成选择</button>
+        </view>
+      </view>
+
+      <!-- 返回大类选择按钮 -->
+      <view class="back-section">
+        <button class="btn-back" bindtap="backToCategory">返回重选大类</button>
+      </view>
+    </block>
+  </block>
+
+  <!-- 操作提示弹窗 -->
+  <view class="guide-overlay" wx:if="{{showGuide}}" bindtap="closeGuide">
+    <view class="guide-content" catchtap="preventBubble">
+      <view class="guide-title">💡 操作提示</view>
+      <view class="guide-tips">
+        <view class="guide-tip">
+          <view class="guide-icon left">👈</view>
+          <text class="guide-text">左滑表示不喜欢/不想去</text>
+        </view>
+        <view class="guide-tip">
+          <view class="guide-icon right">👉</view>
+          <text class="guide-text">右滑表示想吃/可接受</text>
+        </view>
+      </view>
+      <button class="btn-guide-close" bindtap="closeGuide">知道了</button>
     </view>
   </view>
 
-  <!-- 滑动提示 -->
-  <view class="swipe-hint" wx:if="{{currentIndex < posters.length}}">
-    <text class="hint-left">排除</text>
-    <text class="hint-right">选择</text>
-  </view>
-
-  <!-- 撤销条 -->
-  <view class="undo-bar" wx:if="{{showUndo}}" bindtap="undoLast">
-    <text class="undo-text">已{{lastAction === 'left' ? '排除' : '选择'}} {{lastPosterName}}，撤销？</text>
-    <text class="undo-count">{{undoCountdown}}s</text>
+  <!-- 撤销按钮（右上角） -->
+  <view class="undo-icon-wrapper" wx:if="{{currentIndex > 0}}" bindtap="undoLast">
+    <text class="undo-icon">↩</text>
   </view>
 
   <!-- 底部操作区 -->
   <view class="bottom-section">
     <!-- 禁忌快速选择 -->
     <view class="taboo-section">
-      <view class="taboo-header" bindtap="toggleTaboo">
-        <text class="taboo-title">
-          我的禁忌
-          <text class="taboo-arrow {{tabooExpanded ? 'expanded' : ''}}">▼</text>
-        </text>
-        <text class="taboo-count" wx:if="{{selectedHardTaboos.length > 0}}">{{selectedHardTaboos.length}}项硬性</text>
+      <view class="taboo-header">
+        <text class="taboo-title">口味有壁垒，自带小禁区</text>
+        <text class="taboo-count" wx:if="{{selectedHardTaboos.length > 0}}">{{selectedHardTaboos.length}}项</text>
       </view>
-      <view class="taboo-list" wx:if="{{tabooExpanded}}">
+      <view class="taboo-list">
         <view class="taboo-group">
-          <text class="group-label">硬性（一票否决）</text>
           <view class="tag-list">
             <view 
-              class="taboo-tag hard {{item.selected ? 'selected' : ''}}" 
+              class="taboo-tag {{item.selected ? 'selected' : ''}}" 
               wx:for="{{hardTaboos}}" 
               wx:key="name"
               bindtap="toggleHardTaboo"
@@ -100,44 +232,37 @@
             >{{item.label}}</view>
           </view>
         </view>
-        <view class="taboo-group">
-          <text class="group-label">软性（仅供参考）</text>
-          <view class="tag-list">
-            <view 
-              class="taboo-tag soft {{item.selected ? 'selected' : ''}}" 
-              wx:for="{{softTaboos}}" 
-              wx:key="name"
-              bindtap="toggleSoftTaboo"
-              data-name="{{item.name}}"
-            >{{item.label}}</view>
-          </view>
-        </view>
       </view>
     </view>
 
-    <!-- 时间/请假 -->
+    <!-- 时间选择 -->
     <view class="time-section">
-      <picker mode="multiSelector" range="{{timeRange}}" bindchange="onTimeChange" wx:if="{{timeType === 'departure' || timeType === 'arrival'}}">
-        <view class="time-picker">
-          <text class="picker-label">{{timeType === 'departure' ? '我能出发' : '我能到达'}}</text>
-          <text class="picker-value">{{selectedTime || '选择时间'}}</text>
+      <view class="time-tabs">
+        <view class="time-tab {{timeType === 'departure' ? 'active' : ''}}" bindtap="switchTimeType" data-type="departure">我能出发</view>
+        <view class="time-tab {{timeType === 'arrival' ? 'active' : ''}}" bindtap="switchTimeType" data-type="arrival">我能到达</view>
+        <view class="time-tab {{timeType === 'leave' ? 'active' : ''}}" bindtap="switchTimeType" data-type="leave">我十分想去但是</view>
+      </view>
+      
+      <block wx:if="{{timeType !== 'leave'}}">
+        <view class="time-picker-wrapper">
+          <time-picker selectedTime="{{selectedTime}}" bindchange="onTimeChange"></time-picker>
         </view>
-      </picker>
-      <view class="time-type-switch">
-        <text class="type-tag {{timeType === 'departure' ? 'active' : ''}}" bindtap="setTimeType" data-type="departure">我能出发</text>
-        <text class="type-tag {{timeType === 'arrival' ? 'active' : ''}}" bindtap="setTimeType" data-type="arrival">我能到达</text>
-        <text class="type-tag {{timeType === 'leave' ? 'active leave' : ''}}" bindtap="setTimeType" data-type="leave">我十分想去但是</text>
-      </view>
-      <!-- 请假输入 -->
-      <view class="leave-input" wx:if="{{timeType === 'leave'}}">
-        <input placeholder="说说啥事，别让发起人猜" bindinput="onLeaveInput" value="{{leaveReason}}"/>
-      </view>
+      </block>
+      
+      <block wx:if="{{timeType === 'leave'}}">
+        <input 
+          class="leave-input" 
+          placeholder="请输入请假原因" 
+          value="{{leaveReason}}"
+          bindinput="onLeaveReasonInput"
+        />
+      </block>
     </view>
 
     <!-- 提交按钮 -->
-    <view class="submit-bar">
-      <button class="btn-waive" bindtap="onWaive">弃权</button>
-      <button class="btn-submit {{canSubmit ? '' : 'disabled'}}" bindtap="onSubmit">提交</button>
+    <view class="submit-section">
+      <button class="btn-waive" bindtap="waiveVote">弃权</button>
+      <button class="btn-submit {{canSubmit ? 'active' : ''}}" bindtap="submitVote">提交</button>
     </view>
   </view>
 </view>

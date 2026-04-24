@@ -1,0 +1,49 @@
+<view class="time-picker-custom">
+  <view class="picker-trigger" bindtap="showPicker">
+    <text class="picker-value {{selectedTime ? 'has-value' : ''}}">{{selectedTime || '请选择时间'}}</text>
+    <view class="picker-arrow"></view>
+  </view>
+
+  <!-- 自定义选择器弹窗 -->
+  <view class="picker-overlay" wx:if="{{showPicker}}" bindtap="hidePicker">
+    <view class="picker-container" catchtap="preventBubble">
+      <view class="picker-header">
+        <text class="picker-cancel" bindtap="hidePicker">取消</text>
+        <text class="picker-title">选择时间</text>
+        <text class="picker-confirm" bindtap="confirmPicker">确定</text>
+      </view>
+      
+      <view class="picker-body">
+        <!-- 天数列 -->
+        <view class="picker-column">
+          <view class="column-title">日期</view>
+          <scroll-view class="column-scroll" scroll-y scroll-with-animation scroll-into-view="day-{{dayIndex}}">
+            <view 
+              wx:for="{{days}}" 
+              wx:key="index"
+              id="day-{{index}}"
+              class="column-item {{dayIndex === index ? 'active' : ''}}"
+              bindtap="selectDay"
+              data-index="{{index}}"
+            >{{item}}</view>
+          </scroll-view>
+        </view>
+        
+        <!-- 时间列 -->
+        <view class="picker-column">
+          <view class="column-title">时间</view>
+          <scroll-view class="column-scroll" scroll-y scroll-with-animation scroll-into-view="time-{{timeIndex}}">
+            <view 
+              wx:for="{{times}}" 
+              wx:key="index"
+              id="time-{{index}}"
+              class="column-item {{timeIndex === index ? 'active' : ''}}"
+              bindtap="selectTime"
+              data-index="{{index}}"
+            >{{item}}</view>
+          </scroll-view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

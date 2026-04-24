@@ -167,6 +167,36 @@ Page({
     this.checkFormValid();
   },
 
+  // 选择地图位置
+  chooseLocation() {
+    wx.chooseLocation({
+      success: (res) => {
+        let locationName = res.name || '';
+        let address = res.address || '';
+        let fullLocation = locationName;
+        if (address && !locationName.includes(address)) {
+          fullLocation = locationName ? `${locationName}（${address}）` : address;
+        }
+        if (!fullLocation) fullLocation = '未知位置';
+        this.setData({ location: fullLocation });
+        this.checkFormValid();
+      },
+      fail: (err) => {
+        if (err.errMsg && err.errMsg.includes('fail auth')) {
+          wx.showModal({
+            title: '需要授权',
+            content: '请选择位置权限以使用地图功能',
+            success: (res) => {
+              if (res.confirm) {
+                wx.openSetting();
+              }
+            }
+          });
+        }
+      }
+    });
+  },
+
   // 选择评分（点击）
   onRatingSelect(e) {
     const rating = e.currentTarget.dataset.rating;

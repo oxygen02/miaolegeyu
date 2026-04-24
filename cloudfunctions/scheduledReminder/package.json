@@ -1,0 +1,9 @@
+{
+  "name": "scheduledReminder",
+  "version": "1.0.0",
+  "description": "定时提醒云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

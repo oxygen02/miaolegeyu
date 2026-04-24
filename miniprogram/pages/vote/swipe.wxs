@@ -1,0 +1,101 @@
+// WXS 滑动处理模块
+var swipeState = {
+  startX: 0,
+  startY: 0,
+  isSwiping: false
+};
+
+// 触摸开始
+function touchStart(event, ownerInstance) {
+  var touch = event.touches[0];
+  if (!touch) return false;
+  
+  swipeState.startX = touch.clientX;
+  swipeState.startY = touch.clientY;
+  swipeState.isSwiping = true;
+  
+  var instance = event.instance;
+  if (instance) {
+    instance.setStyle({
+      transition: 'none'
+    });
+  }
+  return false;
+}
+
+// 触摸移动
+function touchMove(event, ownerInstance) {
+  if (!swipeState.isSwiping) return false;
+  
+  var touch = event.touches[0];
+  if (!touch) return false;
+  
+  var deltaX = touch.clientX - swipeState.startX;
+  var deltaY = touch.clientY - swipeState.startY;
+  
+  // 垂直滑动不处理
+  if (Math.abs(deltaX) <= Math.abs(deltaY)) return false;
+  
+  var instance = event.instance;
+  if (!instance) return false;
+  
+  var rotate = deltaX * 0.05;
+  
+  // 直接设置样式，不通过 setData
+  instance.setStyle({
+    transform: 'translateX(' + deltaX + 'px) rotate(' + rotate + 'deg)'
+  });
+  
+  return false;
+}
+
+// 触摸结束
+function touchEnd(event, ownerInstance) {
+  if (!swipeState.isSwiping) return false;
+  swipeState.isSwiping = false;
+  
+  var touch = event.changedTouches[0];
+  if (!touch) return false;
+  
+  var deltaX = touch.clientX - swipeState.startX;
+  var threshold = 100;
+  var index = event.currentTarget.dataset.index;
+  var instance = event.instance;
+  
+  if (instance) {
+    // 添加过渡效果
+    instance.setStyle({
+      transition: 'transform 0.3s ease-out'
+    });
+    
+    if (Math.abs(deltaX) > threshold) {
+      // 滑出屏幕
+      var translateX = deltaX > 0 ? '100vw' : '-100vw';
+      var rotate = deltaX > 0 ? '30deg' : '-30deg';
+      instance.setStyle({
+        transform: 'translateX(' + translateX + ') rotate(' + rotate + ')'
+      });
+    } else {
+      // 回弹到原位
+      instance.setStyle({
+        transform: 'translateX(0) rotate(0)'
+      });
+    }
+  }
+  
+  // 通知 JS 层滑动结果
+  if (Math.abs(deltaX) > threshold) {
+    ownerInstance.callMethod('onCardSwiped', {
+      index: index,
+      direction: deltaX > 0 ? 'right' : 'left'
+    });
+  }
+  
+  return false;
+}
+
+module.exports = {
+  touchStart: touchStart,
+  touchMove: touchMove,
+  touchEnd: touchEnd
+};

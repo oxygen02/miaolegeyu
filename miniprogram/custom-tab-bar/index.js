@@ -11,8 +11,10 @@ Component({
 
   lifetimes: {
     attached() {
-      // 组件挂载时，根据当前页面设置选中状态
-      this.updateSelectedFromPage();
+      // 延迟设置选中状态，避免阻塞渲染
+      setTimeout(() => {
+        this.updateSelectedFromPage();
+      }, 0);
     }
   },
 

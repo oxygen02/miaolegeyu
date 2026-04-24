@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "聚餐列表",
+  "navigationBarBackgroundColor": "#FF9F43",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#F5F0E8",
+  "enablePullDownRefresh": true
+}

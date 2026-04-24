@@ -10,22 +10,28 @@ const bgColors = [
   'linear-gradient(135deg, #F8F0FF 0%, #F0E6FF 100%)',  // 淡紫
 ];
 
-// 菜系映射
+// 菜系映射 - 20个大类（简化名称）
 const cuisineMap = {
-  'chinese': '中餐',
-  'japanese': '日韩餐',
-  'western': '西餐',
-  'bbq': '烧烤',
-  'hotpot': '火锅',
-  'meat': '烤肉',
-  'seafood': '海鲜',
-  'crayfish': '小龙虾',
-  'local': '地方特色',
-  'dessert': '甜品',
-  'tea': '奶茶',
-  'cafe': '咖啡',
-  'bar': '酒吧',
-  'snack': '大排档'
+  'chuanyu': '川渝',
+  'xianggan': '湘赣',
+  'yueshi': '粤式',
+  'jiangnan': '江南',
+  'beifang': '北方',
+  'xibei': '西北',
+  'yungui': '云贵',
+  'huazhong': '华中',
+  'huoguo': '火锅',
+  'chuanchuan': '串串',
+  'shaokao': '烧烤',
+  'longxia': '龙虾',
+  'riliao': '日料',
+  'hanliao': '韩料',
+  'dongnanya': '东南亚',
+  'xishi': '西式',
+  'haixian': '海鲜',
+  'zizhu': '自助',
+  'nongjia': '农家',
+  'sifang': '私房'
 };
 
 Page({
@@ -38,21 +44,26 @@ Page({
     selectedCuisine: 'all',
     cuisines: [
       { id: 'all', name: '全部' },
-      { id: 'chinese', name: '中餐' },
-      { id: 'japanese', name: '日韩餐' },
-      { id: 'western', name: '西餐' },
-      { id: 'bbq', name: '烧烤' },
-      { id: 'hotpot', name: '火锅' },
-      { id: 'meat', name: '烤肉' },
-      { id: 'seafood', name: '海鲜' },
-      { id: 'crayfish', name: '小龙虾' },
-      { id: 'local', name: '地方特色' },
-      { id: 'dessert', name: '甜品' },
-      { id: 'tea', name: '奶茶' },
-      { id: 'cafe', name: '咖啡' },
-      { id: 'bar', name: '酒吧' },
-      { id: 'snack', name: '大排档' },
-      { id: 'custom', name: '自定义' }
+      { id: 'chuanyu', name: '川渝' },
+      { id: 'xianggan', name: '湘赣' },
+      { id: 'yueshi', name: '粤式' },
+      { id: 'jiangnan', name: '江南' },
+      { id: 'beifang', name: '北方' },
+      { id: 'xibei', name: '西北' },
+      { id: 'yungui', name: '云贵' },
+      { id: 'huazhong', name: '华中' },
+      { id: 'huoguo', name: '火锅' },
+      { id: 'chuanchuan', name: '串串' },
+      { id: 'shaokao', name: '烧烤' },
+      { id: 'longxia', name: '龙虾' },
+      { id: 'riliao', name: '日料' },
+      { id: 'hanliao', name: '韩料' },
+      { id: 'dongnanya', name: '东南亚' },
+      { id: 'xishi', name: '西式' },
+      { id: 'haixian', name: '海鲜' },
+      { id: 'zizhu', name: '自助' },
+      { id: 'nongjia', name: '农家' },
+      { id: 'sifang', name: '私房' }
     ],
     // 图片预览
     previewVisible: false,
@@ -281,34 +292,48 @@ Page({
     const timers = {};
     appointments.forEach(app => {
       if (app.remainingTime > 0) {
+        // 使用闭包保存当前剩余时间
+        let currentRemaining = app.remainingTime;
+        
         timers[app._id] = setInterval(() => {
-          const remaining = app.remainingTime - 1000;
-          app.remainingTime = remaining;
+          currentRemaining -= 1000;
           
-          if (remaining <= 0) {
+          if (currentRemaining <= 0) {
             clearInterval(timers[app._id]);
             this.loadAppointments(); // 刷新数据
           } else {
-            // 更新倒计时显示
-            const shops = this.data.shops.map(shop => {
-              if (shop.appointment && shop.appointment._id === app._id) {
-                return {
-                  ...shop,
-                  appointment: {
-                    ...shop.appointment,
-                    countdownText: this.formatCountdown(remaining)
-                  }
-                };
-              }
-              return shop;
-            });
-            this.setData({ shops });
+            // 只更新特定的约饭数据，而不是整个shops数组
+            const newCountdownText = this.formatCountdown(currentRemaining);
+            this.updateAppointmentCountdown(app._id, newCountdownText);
           }
         }, 1000);
       }
     });
 
     this.setData({ countdownTimers: timers });
+  },
+
+  // 只更新特定约饭的倒计时，避免整个列表重新渲染
+  updateAppointmentCountdown(appointmentId, countdownText) {
+    const shops = this.data.shops;
+    let needUpdate = false;
+    
+    // 找到需要更新的店铺和约饭
+    for (let i = 0; i < shops.length; i++) {
+      const shop = shops[i];
+      if (shop.appointments && shop.appointments.length > 0) {
+        for (let j = 0; j < shop.appointments.length; j++) {
+          if (shop.appointments[j]._id === appointmentId) {
+            // 使用路径更新，避免替换整个对象
+            const key = `shops[${i}].appointments[${j}].countdownText`;
+            this.setData({ [key]: countdownText });
+            needUpdate = true;
+            break;
+          }
+        }
+        if (needUpdate) break;
+      }
+    }
   },
 
   // 格式化倒计时
@@ -345,7 +370,18 @@ Page({
   onAddressTap(e) {
     e.stopPropagation();
     const { address, name } = e.currentTarget.dataset;
+    this.openLocationAction(address, name);
+  },
 
+  // 打开位置导航
+  openLocation(e) {
+    e.stopPropagation();
+    const { address, name } = e.currentTarget.dataset;
+    this.openLocationAction(address, name);
+  },
+
+  // 打开位置导航的具体实现
+  openLocationAction(address, name) {
     if (!address) {
       wx.showToast({ title: '暂无地址信息', icon: 'none' });
       return;
@@ -411,47 +447,6 @@ Page({
     });
 
     this.setData({ shops });
-  },
-
-  // 第一条店铺的约饭活动翻页切换
-  onFirstShopSwiperChange(e) {
-    const { current } = e.detail;
-    const shops = this.data.shops.map((shop, index) => {
-      if (index === 0) {
-        return {
-          ...shop,
-          currentAppointmentIndex: current + 1
-        };
-      }
-      return shop;
-    });
-    this.setData({ shops });
-  },
-
-  // 第一条店铺的约饭活动参加
-  onFirstShopAppointmentAction(e) {
-    e.stopPropagation();
-    const { appointment } = e.currentTarget.dataset;
-    // 复用原有的参加逻辑
-    this.onAppointmentAction({
-      ...e,
-      currentTarget: {
-        dataset: { appointment }
-      }
-    });
-  },
-
-  // 第一条店铺的发起约饭
-  onFirstShopCreateAppointment(e) {
-    e.stopPropagation();
-    const { shop } = e.currentTarget.dataset;
-    // 复用原有的发起约饭逻辑
-    this.onCreateAppointmentTap({
-      ...e,
-      currentTarget: {
-        dataset: { shop }
-      }
-    });
   },
 
   // 点击整个店铺条目 - 跳转到详情

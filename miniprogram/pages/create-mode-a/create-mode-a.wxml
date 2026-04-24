@@ -1,6 +1,5 @@
 <!--pages/create-mode-a/create-mode-a.wxml-->
-<view class="create-a-container">
-  <!-- 顶部 -->
+<view class="container">
   <view class="header">
     <text class="title">我挑好了</text>
     <text class="subtitle">上传美团/大众点评海报，让大家投票</text>
@@ -9,23 +8,17 @@
   <!-- 海报上传区 -->
   <view class="poster-section">
     <view class="poster-grid">
-      <!-- 已上传海报 -->
       <view 
-        class="poster-item {{item.platformSource ? 'has-platform' : ''}}" 
+        class="poster-item" 
         wx:for="{{posters}}" 
         wx:key="index"
       >
         <image class="poster-img" src="{{item.tempFilePath || item.imageUrl}}" mode="aspectFill"/>
-        <view class="poster-platform {{item.platformSource}}" wx:if="{{item.platformSource}}">
-          {{item.platformSource === 'meituan' ? '美团' : '点评'}}
-        </view>
         <view class="poster-actions">
           <text class="action-btn" bindtap="markPlatform" data-index="{{index}}">标记平台</text>
           <text class="action-btn delete" bindtap="removePoster" data-index="{{index}}">删除</text>
         </view>
       </view>
-
-      <!-- 添加按钮 -->
       <view class="add-poster" bindtap="addPoster" wx:if="{{posters.length < 6}}">
         <text class="add-icon">+</text>
         <text class="add-text">添加海报</text>
@@ -34,60 +27,78 @@
     </view>
   </view>
 
+  <!-- 简单表单 -->
+  <view class="form">
+    <view class="form-item">
+      <text class="label">标题</text>
+      <input class="input" placeholder="如：周五部门聚餐" bindinput="onTitleInput" value="{{title}}"/>
+    </view>
+
+    <!-- 地点 - 支持文字输入和地图选择 -->
+    <view class="form-item location-item">
+      <text class="label">地点</text>
+      <view class="location-content">
+        <input 
+          class="input location-input" 
+          placeholder="输入地点或点击地图图标" 
+          bindinput="onLocationInput" 
+          value="{{location}}"
+        />
+        <view class="location-map-btn" bindtap="chooseLocation">
+          <image class="location-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+        </view>
+      </view>
+    </view>
+
+    <!-- 人数 - 单独一行 -->
+    <view class="form-item">
+      <text class="label">人数</text>
+      <input class="input people-input" type="number" placeholder="0" bindinput="onPeopleInput" value="{{peopleCount}}"/>
+    </view>
+
+    <!-- 活动日期和投票截止日期 - 同一行 -->
+    <view class="form-item combined dates-row">
+      <view class="date-section">
+        <text class="section-label">活动开始时间</text>
+        <view class="date-inputs">
+          <input class="input small" type="text" maxlength="6" placeholder="月日" bindinput="onDateInput" bindblur="onDateBlur" value="{{activityDate}}"/>
+          <text class="separator">|</text>
+          <input class="input small" type="text" maxlength="6" placeholder="时分" bindinput="onTimeInput" bindblur="onTimeBlur" value="{{activityTime}}"/>
+        </view>
+      </view>
+      <view class="divider"></view>
+      <view class="date-section">
+        <text class="section-label">报名截止时间</text>
+        <view class="date-inputs">
+          <input class="input small" type="text" maxlength="6" placeholder="月日" bindinput="onDeadlineDateInput" bindblur="onDeadlineDateBlur" value="{{deadlineDate}}"/>
+          <text class="separator">|</text>
+          <input class="input small" type="text" maxlength="6" placeholder="时分" bindinput="onDeadlineTimeInput" bindblur="onDeadlineTimeBlur" value="{{deadlineTime}}"/>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">开启时间提醒辅助</text>
+      <switch checked="{{timeAuxiliary}}" bindchange="onTimeAuxiliaryChange" color="#D4652A"/>
+    </view>
+  </view>
+
+  <button class="btn-create {{canCreate ? '' : 'disabled'}}" bindtap="createRoom">生成房间</button>
+
   <!-- 平台选择弹窗 -->
-  <view class="platform-popup" wx:if="{{showPlatformPopup}}">
+  <view class="popup" wx:if="{{showPlatformPopup}}">
     <view class="popup-mask" bindtap="closePopup"></view>
     <view class="popup-content">
       <text class="popup-title">选择平台来源</text>
       <view class="platform-options">
-        <view class="platform-opt meituan {{selectedPlatform === 'meituan' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="meituan">
+        <view class="platform-opt" bindtap="selectPlatform" data-platform="meituan">
           <text>美团</text>
         </view>
-        <view class="platform-opt dianping {{selectedPlatform === 'dianping' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="dianping">
+        <view class="platform-opt" bindtap="selectPlatform" data-platform="dianping">
           <text>大众点评</text>
         </view>
       </view>
       <button class="btn-confirm" bindtap="confirmPlatform">确定</button>
     </view>
-  </view>
-
-  <!-- 基础设置 -->
-  <view class="settings-section">
-    <view class="setting-item">
-      <text class="setting-label">标题</text>
-      <input class="setting-input" placeholder="如：周五部门聚餐" bindinput="onTitleInput" value="{{title}}"/>
-    </view>
-
-    <view class="setting-item">
-      <text class="setting-label">地点</text>
-      <input class="setting-input" placeholder="如：公司附近" bindinput="onLocationInput" value="{{location}}"/>
-    </view>
-
-    <view class="setting-item">
-      <text class="setting-label">人数</text>
-      <input class="setting-input" type="number" placeholder="预计参与人数" bindinput="onPeopleInput" value="{{peopleCount}}"/>
-    </view>
-
-    <view class="setting-item">
-      <text class="setting-label">截止时间</text>
-      <picker mode="multiSelector" range="{{timeRange}}" bindchange="onDeadlineChange">
-        <view class="picker-value">{{deadlineText || '选择截止时间'}}</view>
-      </picker>
-    </view>
-
-    <view class="setting-item switch-item">
-      <text class="setting-label">开启时间辅助</text>
-      <switch checked="{{timeAuxiliary}}" bindchange="onTimeAuxiliaryChange" color="#D4652A"/>
-    </view>
-
-    <view class="setting-item switch-item">
-      <text class="setting-label">顺便拼个单</text>
-      <switch checked="{{groupOrderOption}}" bindchange="onGroupOrderChange" color="#D4652A"/>
-    </view>
-  </view>
-
-  <!-- 底部按钮 -->
-  <view class="bottom-bar">
-    <button class="btn-create {{canCreate ? '' : 'disabled'}}" bindtap="createRoom">生成房间</button>
   </view>
 </view>

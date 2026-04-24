@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "投票"
+  "navigationBarTitleText": "投票",
+  "usingComponents": {
+    "time-picker": "/components/timePicker/timePicker"
+  }
 }

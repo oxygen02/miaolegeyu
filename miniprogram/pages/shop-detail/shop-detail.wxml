@@ -79,9 +79,14 @@
           <text class="info-label">人均消费</text>
           <text class="info-value price">¥{{shop.avgPrice}}</text>
         </view>
-        <view class="info-item">
+        <view class="info-item location-item">
           <text class="info-label">地点</text>
-          <text class="info-value">{{shop.location}}</text>
+          <view class="location-content">
+            <text class="info-value location-text">{{shop.location}}</text>
+            <view class="nav-btn" bindtap="openLocation" data-address="{{shop.location}}" data-name="{{shop.name}}">
+              <image class="nav-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+            </view>
+          </view>
         </view>
       </view>
 
@@ -108,7 +113,7 @@
       </view>
 
       <!-- 约饭报名区域 -->
-      <view class="section appointment-section" wx:if="{{appointment}}">
+      <view class="section appointment-section" wx:if="{{appointmentLoaded && appointment}}">
         <view class="appointment-header">
           <image class="appointment-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
           <text class="section-title appointment-title">喵不喵 - 约饭报名中</text>
@@ -210,7 +215,7 @@
       </view>
 
       <!-- 发起约饭按钮（没有约饭时显示） -->
-      <view class="section create-appointment-section" wx:if="{{!appointment}}">
+      <view class="section create-appointment-section" wx:if="{{appointmentLoaded && !appointment}}">
         <view class="create-appointment-hint">
           <image class="hint-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
           <text class="hint-text">想找小伙伴一起去吃？</text>
@@ -296,29 +301,23 @@
         <view class="form-item">
           <text class="form-label required">约饭时间</text>
           <view class="datetime-inputs">
-            <input class="datetime-input" type="number" maxlength="4" placeholder="2026" value="{{appointmentYear}}" bindinput="onAppointmentYearInput" />
+            <input class="datetime-input year" type="number" maxlength="4" placeholder="2026" value="{{appointmentYear}}" bindinput="onAppointmentYearInput" />
             <text class="datetime-separator">年</text>
-            <input class="datetime-input" type="number" maxlength="2" placeholder="04" value="{{appointmentMonth}}" bindinput="onAppointmentMonthInput" />
-            <text class="datetime-separator">月</text>
-            <input class="datetime-input" type="number" maxlength="2" placeholder="21" value="{{appointmentDay}}" bindinput="onAppointmentDayInput" />
-            <text class="datetime-separator">日</text>
-            <input class="datetime-input time" type="number" maxlength="2" placeholder="20" value="{{appointmentHour}}" bindinput="onAppointmentHourInput" />
-            <text class="datetime-separator">:</text>
-            <input class="datetime-input time" type="number" maxlength="2" placeholder="00" value="{{appointmentMinute}}" bindinput="onAppointmentMinuteInput" />
+            <input class="datetime-input date" type="number" maxlength="4" placeholder="0421" value="{{appointmentDate}}" bindinput="onAppointmentDateInput" />
+            <text class="datetime-separator">月日</text>
+            <input class="datetime-input time" type="number" maxlength="4" placeholder="2000" value="{{appointmentTime}}" bindinput="onAppointmentTimeInput" bindblur="onAppointmentTimeBlur" />
+            <text class="datetime-separator">时分</text>
           </view>
         </view>
         <view class="form-item">
           <text class="form-label required">报名截止</text>
           <view class="datetime-inputs">
-            <input class="datetime-input" type="number" maxlength="4" placeholder="2026" value="{{deadlineYear}}" bindinput="onDeadlineYearInput" />
+            <input class="datetime-input year" type="number" maxlength="4" placeholder="2026" value="{{deadlineYear}}" bindinput="onDeadlineYearInput" />
             <text class="datetime-separator">年</text>
-            <input class="datetime-input" type="number" maxlength="2" placeholder="04" value="{{deadlineMonth}}" bindinput="onDeadlineMonthInput" />
-            <text class="datetime-separator">月</text>
-            <input class="datetime-input" type="number" maxlength="2" placeholder="21" value="{{deadlineDay}}" bindinput="onDeadlineDayInput" />
-            <text class="datetime-separator">日</text>
-            <input class="datetime-input time" type="number" maxlength="2" placeholder="20" value="{{deadlineHour}}" bindinput="onDeadlineHourInput" />
-            <text class="datetime-separator">:</text>
-            <input class="datetime-input time" type="number" maxlength="2" placeholder="00" value="{{deadlineMinute}}" bindinput="onDeadlineMinuteInput" />
+            <input class="datetime-input date" type="number" maxlength="4" placeholder="0421" value="{{deadlineDate}}" bindinput="onDeadlineDateInput" />
+            <text class="datetime-separator">月日</text>
+            <input class="datetime-input time" type="number" maxlength="4" placeholder="2000" value="{{deadlineTime}}" bindinput="onDeadlineTimeInput" bindblur="onDeadlineTimeBlur" />
+            <text class="datetime-separator">时分</text>
           </view>
         </view>
         <view class="form-item">

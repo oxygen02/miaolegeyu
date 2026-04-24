@@ -2,65 +2,112 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
+// 生成6位房间号（2位字母+4位数字）
+function generateRoomId() {
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  let roomId = '';
+  
+  for (let i = 0; i < 2; i++) {
+    roomId += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  
+  for (let i = 0; i < 4; i++) {
+    roomId += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  }
+  
+  return roomId;
+}
+
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
   const { 
+    roomId: inputRoomId,
     title, 
     mode, 
     platform, 
     candidatePosters, 
     voteDeadline, 
     timeAuxiliary, 
-    groupOrderOption 
+    groupOrderOption,
+    activityDate,
+    activityTime,
+    location,
+    peopleCount,
+    dinnerTime,
+    cuisineOptions,
+    paymentMode,
+    isAnonymous
   } = event;
   
   try {
-    // 创建房间
+    // 使用传入的roomId，如果没有则生成
+    const roomId = inputRoomId || generateRoomId();
+    
+    // 解析时间
+    let appointmentDate = null;
+    if (dinnerTime) {
+      appointmentDate = new Date(dinnerTime);
+    }
+    
+    let deadline = voteDeadline ? new Date(voteDeadline) : new Date(Date.now() + 24 * 3600 * 1000);
+    
+    // 创建房间数据
     const roomData = {
-      title,
-      mode,
+      roomId,
+      title: title || '未命名聚餐',
+      mode: mode || 'a',
       platform: platform || '',
+      location: location || '',
+      peopleCount: peopleCount || 0,
       creatorOpenId: wxContext.OPENID,
       status: 'voting',
       candidatePosters: candidatePosters || [],
-      voteDeadline: voteDeadline ? new Date(voteDeadline) : new Date(Date.now() + 24 * 3600 * 1000),
+      voteDeadline: deadline,
+      appointmentDate: appointmentDate,
       timeAuxiliary: timeAuxiliary || false,
       groupOrderOption: groupOrderOption || false,
+      deadlineReminderSent: false,
+      activityStartReminderSent: false,
+      voteResultSent: false,
       finalPoster: null,
       createdAt: db.serverDate(),
-      lockedAt: null
+      updatedAt: db.serverDate()
     };
     
-    const { _id } = await db.collection('rooms').add({
-      data: roomData
-    });
+    // mode-b 字段
+    if (mode === 'b') {
+      roomData.cuisineOptions = cuisineOptions || [];
+      roomData.paymentMode = paymentMode || 'AA';
+      roomData.isAnonymous = isAnonymous || false;
+    }
     
-    // 创建发起人参与者记录
-    await db.collection('participants').add({
+    // 创建房间
+    await db.collection('rooms').add({ data: roomData });
+    
+    // 创建参与者记录
+    await db.collection('room_participants').add({
       data: {
-        roomId: _id,
-        uuid: wxContext.OPENID,
+        roomId,
         openid: wxContext.OPENID,
-        status: 'opened',
+        role: 'creator',
+        status: 'joined',
         vote: null,
-        hardTaboos: [],
-        softTaboos: [],
-        timeInfo: null,
-        leaveInfo: null,
-        orderItems: [],
-        createdAt: db.serverDate()
+        joinedAt: db.serverDate()
       }
     });
     
     return { 
       code: 0, 
-      data: { roomId: _id },
+      data: { roomId },
       msg: '创建成功'
     };
+    
   } catch(e) { 
+    console.error('创建失败:', e);
     return { 
       code: -1, 
-      msg: e.message 
+      msg: e.message || '创建失败'
     };
   }
 };

@@ -1,0 +1,9 @@
+{
+  "name": "saveSubscription",
+  "version": "1.0.0",
+  "description": "保存用户订阅消息状态",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
