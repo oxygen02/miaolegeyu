@@ -1,6 +1,7 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
 exports.main = async (event, context) => {
   const { id } = event;
@@ -64,13 +65,92 @@ exports.main = async (event, context) => {
       }
     }
 
+    // 获取所有去过该店铺的用户评分（从已完成的约饭活动中）
+    let additionalRecommenders = [];
+    let totalRating = shop.rating || 0;
+    let ratingCount = 1; // 默认至少有发起人的评分
+    
+    try {
+      // 查询已完成的约饭活动
+      const appointmentsResult = await db.collection('dining_appointments')
+        .where({
+          shopId: id,
+          status: 'completed'
+        })
+        .get();
+      
+      const appointments = appointmentsResult.data || [];
+      
+      // 收集所有评分和推荐人
+      for (const appointment of appointments) {
+        // 如果有评价，累加评分
+        if (appointment.rating && appointment.rating.stars) {
+          totalRating += appointment.rating.stars;
+          ratingCount++;
+        }
+        
+        // 收集发起人信息作为追加推荐人
+        if (appointment.initiatorOpenId && appointment.initiatorOpenId !== shop.recommenderOpenId) {
+          const existingIndex = additionalRecommenders.findIndex(
+            r => r.openId === appointment.initiatorOpenId
+          );
+          
+          if (existingIndex === -1) {
+            additionalRecommenders.push({
+              openId: appointment.initiatorOpenId,
+              name: appointment.initiatorName || '神秘喵友',
+              avatar: appointment.initiatorAvatar || '',
+              isAnonymous: appointment.isAnonymous || false,
+              rating: appointment.rating ? appointment.rating.stars : 0,
+              ratingComment: appointment.rating ? appointment.rating.comment : '',
+              appointmentTime: appointment.appointmentTime
+            });
+          }
+        }
+        
+        // 收集参与者中评价过的用户
+        if (appointment.participants && appointment.participants.length > 0) {
+          for (const participant of appointment.participants) {
+            // 只收集有评价的用户
+            if (participant.rating && participant.rating.stars && 
+                participant.openId !== shop.recommenderOpenId &&
+                !additionalRecommenders.find(r => r.openId === participant.openId)) {
+              additionalRecommenders.push({
+                openId: participant.openId,
+                name: participant.name || '神秘喵友',
+                avatar: participant.avatar || '',
+                isAnonymous: participant.isAnonymous || false,
+                rating: participant.rating.stars,
+                ratingComment: participant.rating.comment || '',
+                appointmentTime: appointment.appointmentTime
+              });
+            }
+          }
+        }
+      }
+      
+      // 按时间倒序排列追加推荐人
+      additionalRecommenders.sort((a, b) => 
+        new Date(b.appointmentTime) - new Date(a.appointmentTime)
+      );
+      
+    } catch (err) {
+      console.error('获取追加推荐人失败:', err);
+    }
+
+    // 计算综合评分
+    const averageRating = ratingCount > 0 ? (totalRating / ratingCount).toFixed(1) : 0;
+
     return {
       success: true,
       isOwner,
       shop: {
         ...shop,
         images,
-        createTime: timeText
+        createTime: timeText,
+        rating: parseFloat(averageRating),
+        ratingCount: ratingCount,
+        additionalRecommenders: additionalRecommenders
       }
     };
   } catch (err) {

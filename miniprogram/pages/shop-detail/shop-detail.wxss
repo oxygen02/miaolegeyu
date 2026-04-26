@@ -2,22 +2,25 @@
 .shop-detail-page {
   min-height: 100vh;
   background: linear-gradient(180deg, #FFF5E9 0%, #FFECD2 100%);
-  padding-bottom: 40rpx;
+  padding-bottom: 20rpx;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 顶部固定区域 */
 .sticky-header {
-  position: sticky;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
+  flex-shrink: 0;
   background: linear-gradient(180deg, #FFF5E9 0%, #FFECD2 100%);
 }
 
 /* 可滚动内容区域 */
 .scrollable-content {
-  padding: 0 32rpx;
+  flex: 1;
+  padding: 0 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  overflow-y: auto;
 }
 
 /* 顶部操作栏 */
@@ -70,7 +73,7 @@
 /* 图片区域 */
 .image-section {
   position: relative;
-  height: 500rpx;
+  height: 420rpx;
 }
 
 .image-swiper {
@@ -98,8 +101,8 @@
 
 /* 信息区域 */
 .info-section {
-  padding: 32rpx;
-  padding-bottom: 16rpx;
+  padding: 20rpx 24rpx;
+  padding-bottom: 12rpx;
 }
 
 .shop-header {
@@ -110,7 +113,7 @@
 }
 
 .shop-name {
-  font-size: 44rpx;
+  font-size: 40rpx;
   font-weight: 700;
   color: #333;
 }
@@ -118,9 +121,9 @@
 .cuisine-tag {
   background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
   color: #fff;
-  padding: 12rpx 24rpx;
+  padding: 10rpx 20rpx;
   border-radius: 8rpx;
-  font-size: 26rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -128,16 +131,16 @@
 .rating-section {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 32rpx;
-  padding: 24rpx;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  padding: 16rpx 20rpx;
   background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
 }
 
 .rating-label {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #666;
 }
 
@@ -147,15 +150,90 @@
 }
 
 .paw-icon {
-  width: 40rpx;
-  height: 40rpx;
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.rating-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: auto;
 }
 
 .rating-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #FF9F43;
   font-weight: 600;
-  margin-left: auto;
+}
+
+.rating-count {
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+/* 追加推荐人 */
+.additional-recommenders {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid rgba(0,0,0,0.05);
+}
+
+.recommenders-label {
+  font-size: 22rpx;
+  color: #999;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.recommenders-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.recommender-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: rgba(255,255,255,0.6);
+  padding: 8rpx 16rpx;
+  border-radius: 28rpx;
+  border: 1rpx solid rgba(0,0,0,0.05);
+}
+
+.recommender-avatar {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 2rpx solid #fff;
+}
+
+.recommender-name {
+  font-size: 22rpx;
+  color: #666;
+}
+
+.recommender-rating {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  margin-left: 8rpx;
+  background: rgba(255,159,67,0.1);
+  padding: 2rpx 8rpx;
+  border-radius: 12rpx;
+}
+
+.rating-paw-small {
+  width: 18rpx;
+  height: 18rpx;
+}
+
+.rating-score {
+  font-size: 18rpx;
+  color: #FF9F43;
+  font-weight: 600;
 }
 
 .info-item {
@@ -163,14 +241,14 @@
 }
 
 .info-label {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
   display: block;
-  margin-bottom: 8rpx;
+  margin-bottom: 4rpx;
 }
 
 .info-value {
-  font-size: 32rpx;
+  font-size: 28rpx;
   color: #333;
   font-weight: 600;
   overflow: hidden;
@@ -194,12 +272,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12rpx;
+  gap: 8rpx;
 }
 
 .location-text {
   flex: 1;
-  font-size: 32rpx;
+  font-size: 26rpx;
   color: #333;
   font-weight: 600;
   overflow: hidden;
@@ -209,13 +287,13 @@
 }
 
 .nav-btn {
-  width: 96rpx;
-  height: 96rpx;
+  width: 64rpx;
+  height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 159, 67, 0.1);
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   flex-shrink: 0;
 }
 
@@ -224,16 +302,16 @@
 }
 
 .nav-icon {
-  width: 64rpx;
-  height: 64rpx;
+  width: 40rpx;
+  height: 40rpx;
 }
 
 /* 各个区块 */
 .section {
   background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 24rpx;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
 }
 
@@ -242,11 +320,11 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24rpx;
-  margin-bottom: 32rpx;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
   background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
 }
 
@@ -258,34 +336,34 @@
 }
 
 .section-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: #333;
   display: block;
-  margin-bottom: 16rpx;
+  margin-bottom: 12rpx;
 }
 
 /* 推荐菜 */
 .dishes-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
+  gap: 8rpx;
 }
 
 .dish-tag {
   background: linear-gradient(135deg, #FFF5E9 0%, #FFE4CC 100%);
   color: #FF9F43;
-  padding: 12rpx 24rpx;
+  padding: 8rpx 16rpx;
   border-radius: 8rpx;
-  font-size: 26rpx;
+  font-size: 22rpx;
   font-weight: 500;
 }
 
 /* 推荐理由 */
 .reason-text {
-  font-size: 28rpx;
+  font-size: 24rpx;
   color: #666;
-  line-height: 1.8;
+  line-height: 1.6;
 }
 
 /* 注意要点 */
@@ -303,39 +381,38 @@
   line-height: 1.8;
 }
 
-/* 约饭报名区域 */
+/* 约饭报名区域 - 紧凑样式 */
 .appointment-section {
   background: linear-gradient(135deg, #FFF0F0 0%, #FFE8E8 100%);
   border: 2rpx solid rgba(255,107,107,0.2);
+  padding: 16rpx 20rpx;
 }
 
 .appointment-header {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin-bottom: 20rpx;
-  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
 }
 
 .appointment-icon {
-  width: 40rpx;
-  height: 40rpx;
+  width: 28rpx;
+  height: 28rpx;
 }
 
 .appointment-title {
   color: #FF6B6B;
-  font-size: 32rpx;
+  font-size: 24rpx;
   margin-bottom: 0;
   flex: 1;
 }
 
 /* 付费模式标识 */
 .payment-badge {
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
-  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 16rpx;
+  font-size: 20rpx;
   font-weight: 700;
-  margin-left: auto;
 }
 
 .payment-badge.aa {
@@ -348,33 +425,32 @@
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
   color: #fff;
   text-shadow: 1rpx 1rpx 2rpx rgba(0,0,0,0.2);
-  box-shadow: 0 2rpx 8rpx rgba(255,215,0,0.4);
 }
 
 /* 倒计时横幅 */
 .countdown-banner {
   background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
-  padding: 16rpx 24rpx;
-  border-radius: 12rpx;
-  margin-bottom: 20rpx;
+  padding: 10rpx 16rpx;
+  border-radius: 8rpx;
+  margin-bottom: 12rpx;
   text-align: center;
 }
 
 .countdown-text {
-  font-size: 32rpx;
+  font-size: 22rpx;
   color: #fff;
   font-weight: 700;
 }
 
 .appointment-info {
-  margin-bottom: 24rpx;
+  margin-bottom: 12rpx;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16rpx 0;
+  padding: 8rpx 0;
   border-bottom: 2rpx solid rgba(255,107,107,0.1);
 }
 
@@ -385,44 +461,46 @@
 .info-row .info-label {
   color: #666;
   margin-bottom: 0;
+  font-size: 20rpx;
 }
 
 .info-row .info-value {
   color: #333;
   font-weight: 500;
+  font-size: 22rpx;
 }
 
 .info-row .note {
   color: #666;
-  font-size: 28rpx;
-  max-width: 400rpx;
+  font-size: 20rpx;
+  max-width: 300rpx;
   text-align: right;
 }
 
 /* 约束条件 */
 .requirements-section {
-  margin-bottom: 24rpx;
+  margin-bottom: 12rpx;
 }
 
 .requirements-title {
-  font-size: 26rpx;
+  font-size: 20rpx;
   color: #666;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
   display: block;
 }
 
 .requirements-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
+  gap: 8rpx;
 }
 
 .requirement-tag {
   background: rgba(255,107,107,0.15);
   color: #FF6B6B;
-  padding: 8rpx 20rpx;
-  border-radius: 24rpx;
-  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  font-size: 18rpx;
 }
 
 .requirement-tag.custom {
@@ -433,20 +511,20 @@
 /* 参与者列表 - 头像重叠 */
 .participants-section {
   background: rgba(255,255,255,0.5);
-  border-radius: 12rpx;
-  padding: 20rpx;
-  margin-bottom: 20rpx;
+  border-radius: 8rpx;
+  padding: 12rpx;
+  margin-bottom: 12rpx;
 }
 
 .participants-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: 8rpx;
 }
 
 .participants-title {
-  font-size: 26rpx;
+  font-size: 20rpx;
   color: #666;
 }
 
@@ -454,18 +532,18 @@
   display: flex;
   align-items: center;
   background: rgba(255,107,107,0.15);
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 16rpx;
 }
 
 .miao-text {
-  font-size: 24rpx;
+  font-size: 18rpx;
   color: #FF6B6B;
   font-weight: 700;
 }
 
 .count {
-  font-size: 24rpx;
+  font-size: 18rpx;
   color: #FF6B6B;
   font-weight: 700;
   margin-left: 4rpx;
@@ -474,7 +552,7 @@
 .participants-avatars {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 8rpx;
 }
 
 .avatar-stack {
@@ -483,10 +561,10 @@
 }
 
 .stack-avatar {
-  width: 64rpx;
-  height: 64rpx;
+  width: 40rpx;
+  height: 40rpx;
   border-radius: 50%;
-  border: 4rpx solid #fff;
+  border: 2rpx solid #fff;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
 }
 
@@ -494,32 +572,26 @@
   border-color: #FF6B6B;
 }
 
-.stack-avatar.small {
-  width: 48rpx;
-  height: 48rpx;
-  border-width: 2rpx;
-}
-
 .participants-names {
-  font-size: 24rpx;
+  font-size: 18rpx;
   color: #666;
-  margin-top: 8rpx;
+  margin-top: 4rpx;
 }
 
 /* 参加按钮 */
 .appointment-action {
-  margin-top: 20rpx;
+  margin-top: 12rpx;
 }
 
 .join-btn {
   width: 100%;
-  height: 80rpx;
-  line-height: 80rpx;
+  height: 56rpx;
+  line-height: 56rpx;
   background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
   color: #fff;
-  font-size: 30rpx;
+  font-size: 24rpx;
   font-weight: 700;
-  border-radius: 40rpx;
+  border-radius: 28rpx;
   border: none;
 }
 
@@ -537,42 +609,42 @@
 
 /* 发起者评价 */
 .rating-section .rating-title {
-  font-size: 26rpx;
+  font-size: 20rpx;
   color: #666;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
   display: block;
 }
 
 .rating-content {
   background: rgba(255,255,255,0.5);
-  padding: 16rpx;
-  border-radius: 12rpx;
+  padding: 12rpx;
+  border-radius: 8rpx;
 }
 
 .rating-stars {
-  font-size: 32rpx;
+  font-size: 24rpx;
   color: #FF9F43;
-  margin-right: 16rpx;
+  margin-right: 12rpx;
 }
 
 .rating-comment {
-  font-size: 26rpx;
+  font-size: 20rpx;
   color: #666;
 }
 
 .rating-action {
-  margin-top: 20rpx;
+  margin-top: 12rpx;
 }
 
 .rate-btn {
   width: 100%;
-  height: 80rpx;
-  line-height: 80rpx;
+  height: 56rpx;
+  line-height: 56rpx;
   background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
   color: #fff;
-  font-size: 30rpx;
+  font-size: 24rpx;
   font-weight: 700;
-  border-radius: 40rpx;
+  border-radius: 28rpx;
   border: none;
 }
 
@@ -580,27 +652,80 @@
   border: none;
 }
 
+/* 店铺评分区域 */
+.rate-shop-section {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  text-align: center;
+  padding: 16rpx 20rpx;
+  border: 2rpx solid rgba(76, 175, 80, 0.2);
+}
+
+.rate-shop-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.rate-shop-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.rate-shop-text {
+  font-size: 24rpx;
+  color: #4CAF50;
+  font-weight: 600;
+}
+
+.rate-shop-btn {
+  display: block;
+  width: fit-content;
+  height: auto;
+  line-height: 1;
+  background: #4CAF50;
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 600;
+  border-radius: 28rpx;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 3rpx 3rpx 0 #3D3D3D;
+  padding: 12rpx 32rpx;
+  margin: 0 auto;
+}
+
+.rate-shop-btn::after {
+  border: none;
+}
+
+.rate-shop-btn:active {
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+  transform: translateY(2rpx);
+}
+
 /* 发起约饭按钮 */
 .create-appointment-section {
   background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
   text-align: center;
+  padding: 12rpx 20rpx;
 }
 
 .create-appointment-hint {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
-  margin-bottom: 20rpx;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
 }
 
 .hint-icon {
-  width: 36rpx;
-  height: 36rpx;
+  width: 28rpx;
+  height: 28rpx;
 }
 
 .hint-text {
-  font-size: 28rpx;
+  font-size: 22rpx;
   color: #666;
 }
 
@@ -612,12 +737,12 @@
   line-height: 1;
   background: #FF9F43;
   color: #fff;
-  font-size: 30rpx;
+  font-size: 24rpx;
   font-weight: 600;
-  border-radius: 36rpx;
-  border: 4rpx solid #3D3D3D;
-  box-shadow: 4rpx 4rpx 0 #3D3D3D;
-  padding: 20rpx 48rpx;
+  border-radius: 28rpx;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 3rpx 3rpx 0 #3D3D3D;
+  padding: 12rpx 32rpx;
   margin: 0 auto;
 }
 
@@ -642,9 +767,10 @@
 }
 
 .history-item {
-  background: rgba(255,255,255,0.6);
-  padding: 16rpx;
+  background: rgba(255,255,255,0.8);
+  padding: 20rpx;
   border-radius: 12rpx;
+  border: 2rpx solid rgba(0,0,0,0.05);
 }
 
 .history-header {
@@ -655,8 +781,58 @@
 }
 
 .history-time {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: #666;
+  font-weight: 500;
+}
+
+.history-rating {
+  display: flex;
+  align-items: center;
+}
+
+.paw-rating-small {
+  display: flex;
+  gap: 4rpx;
+}
+
+.paw-icon-small {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.history-initiator {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+  padding: 8rpx 0;
+  border-bottom: 1rpx solid rgba(0,0,0,0.05);
+}
+
+.initiator-avatar {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  border: 2rpx solid #fff;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.1);
+}
+
+.initiator-name {
+  font-size: 22rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.history-participants {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.participant-count-text {
+  font-size: 20rpx;
+  color: #999;
 }
 
 .history-count {
@@ -672,44 +848,26 @@
   font-size: 22rpx;
 }
 
-.history-participants {
-  margin-bottom: 12rpx;
-}
-
-.history-rating {
-  padding-top: 12rpx;
-  border-top: 2rpx solid rgba(0,0,0,0.05);
-}
-
-.history-rating .rating-stars {
-  font-size: 24rpx;
-}
-
-.history-rating .rating-text {
-  font-size: 24rpx;
-  color: #999;
-}
-
 /* 上传者信息 */
 .uploader-section {
   background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
-  margin-bottom: 24rpx;
+  margin-bottom: 12rpx;
 }
 
 .uploader-info {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 12rpx;
 }
 
 .uploader-avatar {
-  width: 80rpx;
-  height: 80rpx;
+  width: 56rpx;
+  height: 56rpx;
   border-radius: 50%;
-  border: 4rpx solid rgba(255,255,255,0.5);
+  border: 3rpx solid rgba(255,255,255,0.5);
 }
 
 .uploader-detail {
@@ -717,15 +875,15 @@
 }
 
 .uploader-name {
-  font-size: 30rpx;
+  font-size: 24rpx;
   color: #333;
   font-weight: 600;
   display: block;
-  margin-bottom: 8rpx;
+  margin-bottom: 4rpx;
 }
 
 .upload-time {
-  font-size: 24rpx;
+  font-size: 20rpx;
   color: #999;
 }
 
@@ -1026,14 +1184,85 @@
   border: none;
 }
 
-/* 编辑店铺弹窗 */
-.edit-shop-modal {
+/* 评分弹窗 */
+.rating-modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-form {
+  padding: 20rpx 0;
+}
+
+.rating-form .rating-label {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+  text-align: center;
+  display: block;
+  margin-bottom: 24rpx;
+}
+
+.star-selector {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.star-item {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.star-item:active {
+  transform: scale(1.2);
+}
+
+.star-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.rating-hint {
+  text-align: center;
+  font-size: 32rpx;
+  color: #FF9F43;
+  font-weight: 700;
+  margin-bottom: 32rpx;
+  display: block;
+}
+
+.rating-textarea {
+  width: 100%;
+  min-height: 160rpx;
+  padding: 20rpx;
+  background: #f5f5f5;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  box-sizing: border-box;
+}
+
+/* 弹窗遮罩 */
+.appointment-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
   z-index: 1000;
   display: flex;
   align-items: center;

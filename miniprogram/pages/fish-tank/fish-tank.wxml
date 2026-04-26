@@ -166,12 +166,13 @@
     <view class="bottom-fade-mask" wx:if="{{(activeTab === 'ongoing' && ongoingActivities.length > 0) || (activeTab === 'my' && myActivities.length > 0) || (activeTab === 'participated' && participatedActivities.length > 0)}}"></view>
   </scroll-view>
 
-  <!-- 发起拼单按钮 -->
-  <view class="create-btn-wrapper">
-    <button class="btn btn-primary btn-large" bindtap="showCreateOptions">
-      <text class="btn-icon">+</text>
-      <text>发起拼单</text>
-    </button>
+  <!-- 底部浮动发起按钮 -->
+  <view class="floating-create-bar" bindtap="showCreateOptions">
+    <view class="create-icon-wrapper">
+      <image class="create-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+      <image class="create-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+    </view>
+    <text class="create-text">发起拼单</text>
   </view>
 
   <!-- 创建选项弹窗 -->

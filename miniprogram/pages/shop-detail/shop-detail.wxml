@@ -65,7 +65,31 @@
               style="opacity: {{item ? 1 : 0.3}}; filter: {{item ? 'none' : 'grayscale(100%)'}}"
             />
           </view>
-          <text class="rating-text">{{shop.rating}} 分</text>
+          <view class="rating-info">
+            <text class="rating-text">{{shop.rating}} 分</text>
+            <text class="rating-count" wx:if="{{shop.ratingCount > 1}}">({{shop.ratingCount}}人评价)</text>
+          </view>
+        </view>
+
+        <!-- 追加推荐人 -->
+        <view class="additional-recommenders" wx:if="{{shop.additionalRecommenders && shop.additionalRecommenders.length > 0}}">
+          <text class="recommenders-label">追加推荐</text>
+          <view class="recommenders-list">
+            <view class="recommender-item" wx:for="{{shop.additionalRecommenders}}" wx:key="openId">
+              <block wx:if="{{!item.isAnonymous}}">
+                <image class="recommender-avatar" src="{{item.avatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+                <text class="recommender-name">{{item.name}}</text>
+              </block>
+              <block wx:else>
+                <image class="recommender-avatar" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+                <text class="recommender-name">匿名喵友</text>
+              </block>
+              <view class="recommender-rating" wx:if="{{item.rating > 0}}">
+                <image class="rating-paw-small" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+                <text class="rating-score">{{item.rating}}</text>
+              </view>
+            </view>
+          </view>
         </view>
       </view>
     </view>
@@ -110,6 +134,49 @@
       <view class="section warning-section" wx:if="{{shop.notice}}">
         <text class="section-title warning-title">注意要点</text>
         <text class="notice-text">{{shop.notice}}</text>
+      </view>
+
+      <!-- 历史组团记录 -->
+      <view class="section history-section" wx:if="{{historyAppointments.length > 0}}">
+        <text class="section-title">历史组团</text>
+        <view class="history-list">
+          <view class="history-item" wx:for="{{historyAppointments}}" wx:key="_id">
+            <view class="history-header">
+              <text class="history-time">{{item.appointmentTimeStr}}</text>
+              <view class="history-rating" wx:if="{{item.rating}}">
+                <view class="paw-rating-small">
+                  <image 
+                    wx:for="{{[1,2,3,4,5]}}" 
+                    wx:for-index="starIdx"
+                    wx:key="starIdx"
+                    class="paw-icon-small"
+                    src="/assets/images/cat-paw-icon.png"
+                    mode="aspectFit"
+                    style="opacity: {{starIdx < item.rating.stars ? 1 : 0.3}}"
+                  />
+                </view>
+              </view>
+            </view>
+            <view class="history-initiator" wx:if="{{!item.isAnonymous}}">
+              <image class="initiator-avatar" src="{{item.initiatorAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+              <text class="initiator-name">{{item.initiatorName || '神秘喵友'}}</text>
+            </view>
+            <view class="history-participants">
+              <view class="avatar-stack small">
+                <image 
+                  wx:for="{{item.participants}}" 
+                  wx:for-item="p"
+                  wx:key="openId"
+                  class="stack-avatar small"
+                  style="z-index: {{item.participants.length - index}}; margin-left: {{index > 0 ? '-16rpx' : '0'}}"
+                  src="{{p.avatar || '/assets/images/cat-avatar-icon.png'}}" 
+                  mode="aspectFit"
+                />
+              </view>
+              <text class="participant-count-text">{{item.participantCount}}人参加</text>
+            </view>
+          </view>
+        </view>
       </view>
 
       <!-- 约饭报名区域 -->
@@ -214,48 +281,6 @@
         </view>
       </view>
 
-      <!-- 发起约饭按钮（没有约饭时显示） -->
-      <view class="section create-appointment-section" wx:if="{{appointmentLoaded && !appointment}}">
-        <view class="create-appointment-hint">
-          <image class="hint-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
-          <text class="hint-text">想找小伙伴一起去吃？</text>
-        </view>
-        <button class="create-btn" bindtap="onCreateAppointment">发起约饭</button>
-      </view>
-
-      <!-- 历史组团记录 -->
-      <view class="section history-section" wx:if="{{historyAppointments.length > 0}}">
-        <text class="section-title">历史组团</text>
-        <view class="history-list">
-          <view class="history-item" wx:for="{{historyAppointments}}" wx:key="_id">
-            <view class="history-header">
-              <text class="history-time">{{item.appointmentTimeStr}}</text>
-              <view class="history-count">
-                <text class="miao-text">喵</text>
-                <text class="count">×{{item.participantCount}}</text>
-              </view>
-            </view>
-            <view class="history-participants">
-              <view class="avatar-stack small">
-                <image 
-                  wx:for="{{item.participants}}" 
-                  wx:for-item="p"
-                  wx:key="openId"
-                  class="stack-avatar small"
-                  style="z-index: {{item.participants.length - index}}; margin-left: {{index > 0 ? '-16rpx' : '0'}}"
-                  src="{{p.avatar || '/assets/images/cat-avatar-icon.png'}}" 
-                  mode="aspectFit"
-                />
-              </view>
-            </view>
-            <view class="history-rating" wx:if="{{item.rating}}">
-              <text class="rating-stars">{{item.rating.stars}}</text>
-              <text class="rating-text">{{item.rating.comment}}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-
       <!-- 上传者信息 -->
       <view class="uploader-section">
         <view class="uploader-header">
@@ -278,12 +303,76 @@
           </block>
         </view>
       </view>
+
+      <!-- 店铺评分按钮（所有去过的人都可以评分） -->
+      <view class="section rate-shop-section" wx:if="{{canRateShop}}">
+        <view class="rate-shop-header">
+          <image class="rate-shop-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+          <text class="rate-shop-text">去过这家店？来打个分吧！</text>
+        </view>
+        <button class="rate-shop-btn" bindtap="showShopRatingModal">我来评价</button>
+      </view>
+
+      <!-- 发起约饭按钮（没有约饭时显示） -->
+      <view class="section create-appointment-section" wx:if="{{appointmentLoaded && !appointment}}">
+        <view class="create-appointment-hint">
+          <image class="hint-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+          <text class="hint-text">想找小伙伴一起去吃？</text>
+        </view>
+        <button class="create-btn" bindtap="onCreateAppointment">发起约饭</button>
+      </view>
     </view>
   </block>
 
   <!-- 加载状态 -->
   <view class="loading-state" wx:if="{{loading}}">
     <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 店铺评分弹窗 -->
+  <view class="rating-modal" wx:if="{{showShopRating}}" bindtap="closeShopRatingModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">评价店铺</text>
+        <text class="modal-close" bindtap="closeShopRatingModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="rating-form">
+          <text class="rating-label">给这家店打个分</text>
+          <view class="star-selector">
+            <view 
+              wx:for="{{[1,2,3,4,5]}}" 
+              wx:key="*this"
+              class="star-item {{shopRatingStars >= item ? 'active' : ''}}"
+              data-stars="{{item}}"
+              bindtap="selectShopRating"
+            >
+              <image 
+                class="star-icon" 
+                src="/assets/images/cat-paw-icon.png" 
+                mode="aspectFit"
+                style="opacity: {{shopRatingStars >= item ? 1 : 0.3}}"
+              />
+            </view>
+          </view>
+          <text class="rating-hint" wx:if="{{shopRatingStars > 0}}">{{shopRatingStars}} 分</text>
+          <view class="form-item">
+            <text class="form-label">评价内容（选填）</text>
+            <textarea 
+              class="rating-textarea" 
+              placeholder="说说你的用餐体验..."
+              value="{{shopRatingComment}}"
+              bindinput="inputShopRatingComment"
+              maxlength="200"
+            />
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="closeShopRatingModal">取消</button>
+        <button class="btn-confirm" bindtap="submitShopRating">提交评价</button>
+      </view>
+    </view>
   </view>
 
   <!-- 发起约饭弹窗 -->

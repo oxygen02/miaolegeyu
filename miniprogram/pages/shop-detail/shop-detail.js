@@ -159,10 +159,15 @@ Page({
           ...result.shop,
           pawRating: this.generatePawRating(result.shop.rating)
         };
+        
+        // 检查用户是否可以评分（去过该店铺但未评分）
+        const canRateShop = this.checkCanRateShop(shop);
+        
         this.setData({ 
           shop, 
           loading: false,
-          isShopOwner: result.isOwner || false
+          isShopOwner: result.isOwner || false,
+          canRateShop
         });
         // 检查收藏状态
         this.checkFavoriteStatus(id, 'shop');
@@ -900,5 +905,91 @@ Page({
       title: `${shop.name} - 喵了个鱼美食推荐`,
       path: `/pages/shop-detail/shop-detail?id=${shop._id}`
     };
+  },
+
+  // 检查用户是否可以评分（去过该店铺但未评分）
+  checkCanRateShop(shop) {
+    // 如果用户没有登录，不能评分
+    if (!this.data.openId) return false;
+    
+    // 如果用户是店铺推荐人，且已经评分了，不需要再显示评分按钮
+    if (shop.recommenderOpenId === this.data.openId) return false;
+    
+    // 检查用户是否已经在追加推荐人列表中（已经评分过）
+    const hasRated = shop.additionalRecommenders && 
+      shop.additionalRecommenders.some(r => r.openId === this.data.openId);
+    
+    // 如果已经评分过，不显示评分按钮
+    if (hasRated) return false;
+    
+    // 检查用户是否参加过该店铺的约饭活动
+    // 这里简化处理，实际应该查询用户的约饭记录
+    // 暂时返回 false，需要配合实际的约饭记录查询
+    return false;
+  },
+
+  // 显示店铺评分弹窗
+  showShopRatingModal() {
+    this.setData({
+      showShopRating: true,
+      shopRatingStars: 0,
+      shopRatingComment: ''
+    });
+  },
+
+  // 选择店铺评分星级
+  selectShopRating(e) {
+    const stars = parseInt(e.currentTarget.dataset.stars);
+    this.setData({ shopRatingStars: stars });
+  },
+
+  // 输入店铺评分评论
+  inputShopRatingComment(e) {
+    this.setData({ shopRatingComment: e.detail.value });
+  },
+
+  // 关闭店铺评分弹窗
+  closeShopRatingModal() {
+    this.setData({ showShopRating: false });
+  },
+
+  // 提交店铺评分
+  async submitShopRating() {
+    const { shopRatingStars, shopRatingComment, shop } = this.data;
+    
+    if (shopRatingStars === 0) {
+      wx.showToast({ title: '请选择评分', icon: 'none' });
+      return;
+    }
+
+    try {
+      wx.showLoading({ title: '提交中...' });
+      
+      const result = await wx.cloud.callFunction({
+        name: 'rateShop',
+        data: {
+          shopId: shop._id,
+          stars: shopRatingStars,
+          comment: shopRatingComment
+        }
+      });
+
+      if (result.result.success) {
+        wx.showToast({ title: '评价成功', icon: 'success' });
+        this.setData({ 
+          showShopRating: false,
+          canRateShop: false
+        });
+        // 刷新店铺详情
+        this.loadShopDetail();
+      } else {
+        throw new Error(result.result.error || '评价失败');
+      }
+    } catch (err) {
+      console.error('评价失败:', err);
+      wx.showToast({ title: err.message || '评价失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
   }
 });
