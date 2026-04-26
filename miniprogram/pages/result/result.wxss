@@ -154,8 +154,8 @@ page {
   background: var(--color-card);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  border: 4rpx solid rgba(255, 159, 67, 0.2);
+  border: 4rpx solid #3D3D3D;
+  box-shadow: 6rpx 6rpx 0 #3D3D3D;
 }
 
 .poster-image {
@@ -168,10 +168,11 @@ page {
   right: 20rpx;
   bottom: 20rpx;
   padding: 12rpx 24rpx;
-  border-radius: 28rpx;
+  border-radius: var(--radius-full);
   font-size: 24rpx;
-  font-weight: 500;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 3rpx 3rpx 0 #3D3D3D;
 }
 
 .platform-badge.meituan {
@@ -195,8 +196,8 @@ page {
   background: var(--color-card);
   border-radius: var(--radius-md);
   padding: 24rpx;
-  box-shadow: var(--shadow-sm);
-  border: 2rpx solid var(--color-border);
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
 }
 
 .info-item {
@@ -228,7 +229,9 @@ page {
   color: var(--color-primary);
   padding: 8rpx 20rpx;
   background: rgba(255, 159, 67, 0.1);
-  border-radius: 20rpx;
+  border-radius: var(--radius-full);
+  border: 2rpx solid var(--color-primary);
+  font-weight: 600;
   transition: all 0.2s ease;
 }
 
@@ -246,8 +249,8 @@ page {
   background: var(--color-card);
   border-radius: var(--radius-lg);
   margin-bottom: 48rpx;
-  box-shadow: var(--shadow-md);
-  border: 2rpx solid var(--color-border);
+  border: 4rpx solid #3D3D3D;
+  box-shadow: 6rpx 6rpx 0 #3D3D3D;
 }
 
 /* 难过猫咪图标 */
@@ -321,36 +324,28 @@ page {
   border-radius: var(--radius-full);
   font-size: 32rpx;
   font-weight: 600;
-  border: none;
+  border: 4rpx solid #3D3D3D;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16rpx;
-  transition: all 0.2s ease;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
+  transition: all 0.15s ease;
 }
 
 .action-section button:active {
-  transform: scale(0.98);
+  transform: translate(2rpx, 2rpx);
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
 }
 
 .btn-primary {
   background: var(--gradient-primary);
   color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(255, 159, 67, 0.35);
-}
-
-.btn-primary:active {
-  box-shadow: 0 4rpx 12rpx rgba(255, 159, 67, 0.25);
 }
 
 .btn-secondary {
   background: var(--color-card);
   color: var(--color-primary);
-  border: 2rpx solid var(--color-primary);
-}
-
-.btn-secondary:active {
-  background: var(--color-bg-warm);
 }
 
 /* 按钮图标 */
@@ -441,7 +436,7 @@ page {
   padding: 32rpx;
   background: rgba(255, 159, 67, 0.05);
   border-radius: var(--radius-md);
-  border: 2rpx dashed rgba(255, 159, 67, 0.2);
+  border: 3rpx dashed var(--color-primary);
 }
 
 .share-text {
@@ -458,22 +453,22 @@ page {
   line-height: 80rpx;
   background: linear-gradient(135deg, #FF6B9D 0%, #FF8FB0 100%);
   color: #fff;
-  border-radius: 40rpx;
+  border-radius: var(--radius-full);
   font-size: 28rpx;
   font-weight: 600;
-  border: none;
+  border: 3rpx solid #3D3D3D;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12rpx;
   margin: 0 auto;
-  box-shadow: 0 6rpx 20rpx rgba(255, 107, 157, 0.3);
-  transition: all 0.2s ease;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
+  transition: all 0.15s ease;
 }
 
 .btn-share:active {
-  transform: scale(0.95);
-  box-shadow: 0 3rpx 12rpx rgba(255, 107, 157, 0.2);
+  transform: translate(2rpx, 2rpx);
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
 }
 
 /* 分享爱心图标 */
@@ -518,12 +513,16 @@ page {
   font-size: 28rpx;
   color: var(--color-text-secondary);
   padding: 16rpx 32rpx;
-  border-radius: 28rpx;
+  border-radius: var(--radius-full);
+  border: 2rpx solid var(--color-text-secondary);
+  background: var(--color-card);
+  font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .back-link:active {
   color: var(--color-primary);
+  border-color: var(--color-primary);
   background: rgba(255, 159, 67, 0.1);
 }
 

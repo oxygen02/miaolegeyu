@@ -1,15 +1,18 @@
-/* pages/control/control.wxss */
+@import "../../styles/variables.wxss";
+
+/* ==================== 控制页 - 蜡笔像素风 ==================== */
+
 page {
-  background-color: #F5F0E8;
-  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--color-bg);
+  font-family: var(--font-family);
 }
 
 .control-page {
   min-height: 100vh;
-  padding-bottom: 140rpx;
+  padding-bottom: 180rpx;
 }
 
-/* 加载状态 */
+/* ---------- 加载状态 ---------- */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -19,9 +22,9 @@ page {
 }
 
 .loading-spinner {
-  width: 60rpx;
-  height: 60rpx;
-  border: 4rpx solid #E8913A;
+  width: 80rpx;
+  height: 80rpx;
+  border: 6rpx solid var(--color-primary);
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -32,18 +35,20 @@ page {
 }
 
 .loading-text {
-  margin-top: 20rpx;
-  font-size: 28rpx;
-  color: #8A8A8A;
+  margin-top: 24rpx;
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
 }
 
-/* 顶部信息 */
+/* ---------- 顶部信息 ---------- */
 .header-section {
-  background: linear-gradient(135deg, #D4652A 0%, #E8913A 100%);
+  background: var(--gradient-primary);
   padding: 40rpx 32rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 4rpx solid #3D3D3D;
+  box-shadow: 0 4rpx 0 rgba(0,0,0,0.1);
 }
 
 .room-info {
@@ -53,23 +58,25 @@ page {
 }
 
 .room-title {
-  font-size: 40rpx;
-  font-weight: 600;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
   color: #fff;
   display: block;
+  text-shadow: 2rpx 2rpx 0 rgba(0,0,0,0.2);
 }
 
 .room-meta {
   display: flex;
-  gap: 24rpx;
+  gap: 16rpx;
 }
 
 .room-id {
-  font-size: 28rpx;
-  color: rgba(255,255,255,0.9);
-  background: rgba(0,0,0,0.15);
-  padding: 12rpx 20rpx;
-  border-radius: 8rpx;
+  font-size: var(--font-size-sm);
+  color: rgba(255,255,255,0.95);
+  background: rgba(0,0,0,0.2);
+  padding: 8rpx 16rpx;
+  border-radius: var(--radius-sm);
+  border: 2rpx solid rgba(255,255,255,0.3);
 }
 
 /* 右侧状态和信息 */
@@ -77,14 +84,16 @@ page {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 16rpx;
+  gap: 12rpx;
 }
 
 .status-badge {
-  padding: 16rpx 28rpx;
-  border-radius: 28rpx;
-  font-size: 28rpx;
-  font-weight: 500;
+  padding: 12rpx 24rpx;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 3rpx 3rpx 0 #3D3D3D;
 }
 
 .status-badge.voting {
@@ -98,20 +107,21 @@ page {
 }
 
 .status-badge.cancelled {
-  background: #C84B31;
+  background: #E74C3C;
   color: #fff;
 }
 
 .vote-count {
-  font-size: 28rpx;
+  font-size: var(--font-size-sm);
   color: #fff;
   background: rgba(255,255,255,0.25);
-  padding: 12rpx 20rpx;
-  border-radius: 8rpx;
+  padding: 8rpx 16rpx;
+  border-radius: var(--radius-sm);
+  border: 2rpx solid rgba(255,255,255,0.3);
   white-space: nowrap;
 }
 
-/* 统计区域 */
+/* ---------- 统计区域 ---------- */
 .stats-section {
   padding: 32rpx;
 }
@@ -124,17 +134,17 @@ page {
 }
 
 .section-title text:first-child {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #3D3D3D;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
 }
 
 .section-title .subtitle {
-  font-size: 26rpx;
-  color: #8A8A8A;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 }
 
-/* 海报排行 */
+/* ---------- 海报排行 ---------- */
 .poster-ranking {
   display: flex;
   flex-direction: column;
@@ -144,40 +154,49 @@ page {
 .rank-item {
   display: flex;
   align-items: center;
-  background: #FFFDF7;
-  border-radius: 16rpx;
+  background: var(--color-card);
+  border-radius: var(--radius-md);
   padding: 20rpx;
-  border: 2rpx solid transparent;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
   transition: all 0.2s;
 }
 
 .rank-item.selected {
-  border-color: #D4652A;
-  background: rgba(212, 101, 42, 0.05);
+  border-color: var(--color-primary);
+  background: rgba(255, 159, 67, 0.1);
+  box-shadow: 4rpx 4rpx 0 var(--color-primary);
 }
 
 .rank-num {
   width: 56rpx;
   height: 56rpx;
-  background: #D4652A;
+  background: var(--color-primary);
   color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
   margin-right: 20rpx;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
 }
 
-.rank-item:nth-child(2) .rank-num { background: #C0C0C0; }
-.rank-item:nth-child(3) .rank-num { background: #CD7F32; }
+.rank-item:nth-child(2) .rank-num { 
+  background: #C0C0C0; 
+}
+.rank-item:nth-child(3) .rank-num { 
+  background: #CD7F32; 
+}
 
 .rank-poster {
   width: 140rpx;
   height: 140rpx;
-  border-radius: 12rpx;
+  border-radius: var(--radius-sm);
   margin-right: 20rpx;
+  border: 3rpx solid #3D3D3D;
 }
 
 .rank-info {
@@ -188,17 +207,19 @@ page {
 }
 
 .rank-info .vote-count {
-  font-size: 40rpx;
-  font-weight: 600;
-  color: #D4652A;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
 .platform-tag {
-  font-size: 26rpx;
+  font-size: var(--font-size-sm);
   padding: 6rpx 16rpx;
-  border-radius: 8rpx;
+  border-radius: var(--radius-sm);
   display: inline-block;
   width: fit-content;
+  border: 2rpx solid #3D3D3D;
+  font-weight: 600;
 }
 
 .platform-tag.meituan {
@@ -218,7 +239,7 @@ page {
 
 /* 口味排行图标样式 */
 .cuisine-rank-icon {
-  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -227,36 +248,38 @@ page {
 .cuisine-icon-text {
   font-size: 48rpx;
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .select-icon {
   width: 56rpx;
   height: 56rpx;
-  background: #D4652A;
+  background: var(--color-primary);
   color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32rpx;
+  font-size: var(--font-size-lg);
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
 }
 
-/* 空状态 */
+/* ---------- 空状态 ---------- */
 .empty-stats {
   text-align: center;
   padding: 80rpx;
-  color: #8A8A8A;
-  font-size: 32rpx;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
 }
 
-/* 被否决的海报 */
+/* ---------- 被否决的海报 ---------- */
 .vetoed-section {
   margin-top: 40rpx;
 }
 
 .vetoed-title text {
-  color: #C84B31;
+  color: #E74C3C;
 }
 
 .vetoed-list {
@@ -269,8 +292,10 @@ page {
   position: relative;
   width: 180rpx;
   height: 180rpx;
-  border-radius: 12rpx;
+  border-radius: var(--radius-sm);
   overflow: hidden;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 3rpx 3rpx 0 #3D3D3D;
 }
 
 .vetoed-poster {
@@ -284,7 +309,7 @@ page {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(200, 75, 49, 0.7);
+  background: rgba(231, 76, 60, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -292,8 +317,8 @@ page {
 
 .vetoed-text {
   color: #fff;
-  font-size: 28rpx;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
 }
 
 /* ========== Mode B: 口味偏好样式 ========== */
@@ -317,21 +342,21 @@ page {
 }
 
 .cuisine-name {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #3D3D3D;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
 }
 
 .cuisine-info .vote-count {
-  font-size: 28rpx;
-  color: #8A8A8A;
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
 }
 
 /* 可选品类 */
 .cuisine-options-section {
   margin-top: 40rpx;
   padding-top: 32rpx;
-  border-top: 2rpx solid #F5F0E8;
+  border-top: 2rpx solid var(--color-divider);
 }
 
 .cuisine-tags {
@@ -342,10 +367,13 @@ page {
 
 .cuisine-tag {
   padding: 12rpx 24rpx;
-  background: #F5F0E8;
-  border-radius: 28rpx;
-  font-size: 28rpx;
-  color: #3D3D3D;
+  background: var(--color-bg-warm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  border: 2rpx solid #3D3D3D;
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+  font-weight: 600;
 }
 
 /* 选中的口味 */
@@ -355,23 +383,25 @@ page {
   align-items: center;
   margin-bottom: 32rpx;
   padding: 32rpx;
-  background: rgba(212, 101, 42, 0.1);
-  border-radius: 16rpx;
+  background: rgba(255, 159, 67, 0.15);
+  border-radius: var(--radius-md);
+  border: 3rpx solid var(--color-primary);
+  box-shadow: 4rpx 4rpx 0 var(--color-primary);
 }
 
 .cuisine-label {
-  font-size: 28rpx;
-  color: #8A8A8A;
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
   margin-bottom: 12rpx;
 }
 
 .cuisine-value {
-  font-size: 40rpx;
-  font-weight: 600;
-  color: #D4652A;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
-/* 参与者列表 */
+/* ---------- 参与者列表 ---------- */
 .participants-section {
   padding: 0 32rpx 32rpx;
 }
@@ -379,35 +409,39 @@ page {
 .participant-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .participant-item {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  background: #FFFDF7;
-  padding: 20rpx 28rpx;
-  border-radius: 40rpx;
+  gap: 12rpx;
+  background: var(--color-card);
+  padding: 16rpx 24rpx;
+  border-radius: var(--radius-full);
   min-width: 160rpx;
+  border: 2rpx solid #3D3D3D;
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
 }
 
 .participant-avatar {
   width: 48rpx;
   height: 48rpx;
-  background: #D4652A;
+  background: var(--color-primary);
   color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26rpx;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  border: 2rpx solid #3D3D3D;
 }
 
 .participant-status {
-  font-size: 28rpx;
-  color: #8A8A8A;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
 }
 
 .participant-status.voted {
@@ -419,34 +453,42 @@ page {
 }
 
 .participant-status.leave {
-  color: #C84B31;
+  color: #E74C3C;
 }
 
-/* 底部操作栏 */
+/* ---------- 底部操作栏 ---------- */
 .bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: #FFFDF7;
-  padding: 20rpx 32rpx 40rpx;
+  background: var(--color-card);
+  padding: 20rpx 32rpx calc(40rpx + env(safe-area-inset-bottom));
   display: flex;
-  gap: 24rpx;
-  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.05);
+  gap: 20rpx;
+  border-top: 4rpx solid #3D3D3D;
+  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.1);
 }
 
 .bottom-bar button {
   flex: 1;
-  height: 96rpx;
-  line-height: 96rpx;
-  border-radius: 48rpx;
-  font-size: 34rpx;
-  font-weight: 500;
-  border: none;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
+  transition: all 0.15s;
+}
+
+.bottom-bar button:active {
+  transform: translate(2rpx, 2rpx);
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
 }
 
 .btn-share {
-  background: #D4652A;
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -460,14 +502,14 @@ page {
   color: #fff;
 }
 
-/* 弹窗 */
+/* ---------- 弹窗 ---------- */
 .modal-mask {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -477,9 +519,11 @@ page {
 .modal-content {
   width: 80%;
   max-width: 600rpx;
-  background: #FFFDF7;
-  border-radius: 24rpx;
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  border: 4rpx solid #3D3D3D;
+  box-shadow: 8rpx 8rpx 0 #3D3D3D;
 }
 
 .modal-header {
@@ -487,18 +531,18 @@ page {
   justify-content: space-between;
   align-items: center;
   padding: 32rpx;
-  border-bottom: 2rpx solid #F5F0E8;
+  border-bottom: 3rpx solid var(--color-divider);
 }
 
 .modal-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #3D3D3D;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
 }
 
 .modal-close {
   font-size: 44rpx;
-  color: #8A8A8A;
+  color: var(--color-text-secondary);
   padding: 0 16rpx;
 }
 
@@ -507,11 +551,12 @@ page {
 }
 
 .confirm-text {
-  font-size: 30rpx;
-  color: #3D3D3D;
+  font-size: var(--font-size-md);
+  color: var(--color-text);
   display: block;
   margin-bottom: 32rpx;
   text-align: center;
+  font-weight: 600;
 }
 
 .selected-preview {
@@ -524,14 +569,16 @@ page {
 .preview-image {
   width: 220rpx;
   height: 220rpx;
-  border-radius: 16rpx;
+  border-radius: var(--radius-md);
   margin-bottom: 16rpx;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
 }
 
 .preview-votes {
-  font-size: 36rpx;
-  color: #D4652A;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  color: var(--color-primary);
+  font-weight: 700;
 }
 
 .form-item {
@@ -540,49 +587,60 @@ page {
 
 .form-label {
   display: block;
-  font-size: 30rpx;
-  color: #3D3D3D;
+  font-size: var(--font-size-md);
+  color: var(--color-text);
   margin-bottom: 12rpx;
+  font-weight: 600;
 }
 
 .picker-value {
   padding: 24rpx;
-  background: #F5F0E8;
-  border-radius: 12rpx;
-  font-size: 30rpx;
-  color: #3D3D3D;
+  background: var(--color-bg-warm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  border: 2rpx solid #3D3D3D;
 }
 
 .form-item input {
   width: 100%;
   padding: 24rpx;
-  background: #F5F0E8;
-  border-radius: 12rpx;
-  font-size: 30rpx;
+  background: var(--color-bg-warm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
   box-sizing: border-box;
+  border: 2rpx solid #3D3D3D;
 }
 
 .modal-footer {
   display: flex;
-  gap: 24rpx;
+  gap: 20rpx;
   padding: 0 32rpx 32rpx;
 }
 
 .modal-footer button {
   flex: 1;
-  height: 88rpx;
-  line-height: 88rpx;
-  border-radius: 44rpx;
-  font-size: 32rpx;
-  border: none;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
+  transition: all 0.15s;
+}
+
+.modal-footer button:active {
+  transform: translate(2rpx, 2rpx);
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
 }
 
 .btn-cancel {
-  background: #F5F0E8;
-  color: #8A8A8A;
+  background: var(--color-bg-warm);
+  color: var(--color-text-secondary);
 }
 
 .btn-confirm {
-  background: #D4652A;
+  background: var(--color-primary);
   color: #fff;
 }
