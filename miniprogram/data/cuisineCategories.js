@@ -4,9 +4,12 @@ const cuisineCategories = [
   {
     id: 'chuanyu',
     name: '川渝',
+    pinyin: 'JIAO',
     desc: '麻辣重口、江湖硬菜',
-    icon: '🌶️',
-    color: '#D32F2F',
+    icon: '椒',
+    color: '#FFE4E1',
+    darkColor: '#FF6B6B',
+    image: '/assets/images/cuisine_all/category_01_00.png',
     subCategories: [
       { name: '麻辣火锅', image: '/assets/images/cuisine_all/category_01_01.png' },
       { name: '水煮鱼', image: '/assets/images/cuisine_all/category_01_02.png' },
@@ -18,9 +21,12 @@ const cuisineCategories = [
   {
     id: 'xianggan',
     name: '湘赣',
+    pinyin: 'LA',
     desc: '鲜辣下饭、土味浓郁',
-    icon: '🌶️',
-    color: '#C62828',
+    icon: '辣',
+    color: '#FFE4E1',
+    darkColor: '#FF6B6B',
+    image: '/assets/images/cuisine_all/category_02_00.png',
     subCategories: [
       { name: '剁椒鱼头', image: '/assets/images/cuisine_all/category_02_01.png' },
       { name: '辣椒炒肉', image: '/assets/images/cuisine_all/category_02_02.png' },
@@ -32,9 +38,12 @@ const cuisineCategories = [
   {
     id: 'yueshi',
     name: '粤式',
+    pinyin: 'CHA',
     desc: '清淡鲜美、早茶烧腊',
-    icon: '🥟',
-    color: '#F57C00',
+    icon: '茶',
+    color: '#FFF8DC',
+    darkColor: '#FFA502',
+    image: '/assets/images/cuisine_all/category_03_00.png',
     subCategories: [
       { name: '虾饺', image: '/assets/images/cuisine_all/category_03_01.png' },
       { name: '烧鹅', image: '/assets/images/cuisine_all/category_03_02.png' },
@@ -46,9 +55,12 @@ const cuisineCategories = [
   {
     id: 'jiangnan',
     name: '江南',
+    pinyin: 'TIAN',
     desc: '鲜甜适口、口味温和',
-    icon: '🍜',
-    color: '#388E3C',
+    icon: '甜',
+    color: '#FFF8DC',
+    darkColor: '#FFA502',
+    image: '/assets/images/cuisine_all/category_04_00.png',
     subCategories: [
       { name: '红烧肉', image: '/assets/images/cuisine_all/category_04_01.png' },
       { name: '糖醋排骨', image: '/assets/images/cuisine_all/category_04_02.png' },
@@ -60,9 +72,12 @@ const cuisineCategories = [
   {
     id: 'beifang',
     name: '北方',
+    pinyin: 'BEI',
     desc: '量大实惠、硬菜丰富',
-    icon: '🥟',
-    color: '#5D4037',
+    icon: '北',
+    color: '#FFF8DC',
+    darkColor: '#FFA502',
+    image: '/assets/images/cuisine_all/category_05_00.png',
     subCategories: [
       { name: '北京烤鸭', image: '/assets/images/cuisine_all/category_05_01.png' },
       { name: '锅包肉', image: '/assets/images/cuisine_all/category_05_02.png' },
@@ -75,9 +90,12 @@ const cuisineCategories = [
   {
     id: 'xibei',
     name: '西北',
+    pinyin: 'MIAN',
     desc: '浓郁牛羊肉、西北硬核风味',
-    icon: '🍜',
-    color: '#795548',
+    icon: '面',
+    color: '#F5F5DC',
+    darkColor: '#C4A35A',
+    image: '/assets/images/cuisine_all/category_06_00.png',
     subCategories: [
       { name: '羊肉泡馍', image: '/assets/images/cuisine_all/category_06_01.png' },
       { name: '肉夹馍', image: '/assets/images/cuisine_all/category_06_02.png' },
@@ -89,9 +107,12 @@ const cuisineCategories = [
   {
     id: 'yungui',
     name: '云贵',
+    pinyin: 'JUN',
     desc: '酸辣山野风味，特色小众聚餐',
-    icon: '🍄',
-    color: '#7B1FA2',
+    icon: '菌',
+    color: '#F0FFF0',
+    darkColor: '#2ED573',
+    image: '/assets/images/cuisine_all/category_07_00.png',
     subCategories: [
       { name: '过桥米线', image: '/assets/images/cuisine_all/category_07_01.png' },
       { name: '汽锅鸡', image: '/assets/images/cuisine_all/category_07_02.png' },
@@ -103,9 +124,12 @@ const cuisineCategories = [
   {
     id: 'huazhong',
     name: '华中',
+    pinyin: 'OU',
     desc: '中部地域特色',
-    icon: '🍲',
-    color: '#455A64',
+    icon: '藕',
+    color: '#F0FFFF',
+    darkColor: '#1DD1A1',
+    image: '/assets/images/cuisine_all/category_08_00.png',
     subCategories: [
       { name: '热干面', image: '/assets/images/cuisine_all/category_08_01.png' },
       { name: '鸭脖', image: '/assets/images/cuisine_all/category_08_02.png' },
@@ -117,25 +141,31 @@ const cuisineCategories = [
   {
     id: 'huoguo',
     name: '火锅',
+    pinyin: 'GUO',
     desc: '聚餐天花板，多人围坐',
-    icon: '🍲',
-    color: '#D32F2F',
+    icon: '锅',
+    color: '#FFE4E1',
+    darkColor: '#FF6B6B',
+    image: '/assets/images/cuisine_all/category_09_00.png',
     subCategories: [
       { name: '重庆火锅', image: '/assets/images/cuisine_all/category_09_01.png' },
       { name: '老北京涮肉', image: '/assets/images/cuisine_all/category_09_02.png' },
       { name: '花胶鸡', image: '/assets/images/cuisine_all/category_09_03.png' },
-      { name: '猪肚鸡', image: '/assets/images/cuisine_all/category_09_04.png' },
+      { name: '猪肚鸡', image: '/assets/images/cuisine_all/category_09_07.png' },
       { name: '椰子鸡', image: '/assets/images/cuisine_all/category_09_05.png' },
       { name: '潮汕牛肉锅', image: '/assets/images/cuisine_all/category_09_06.png' },
-      { name: '羊蝎子', image: '/assets/images/cuisine_all/category_09_07.png' }
+      { name: '羊蝎子', image: '/assets/images/cuisine_all/category_09_04.png' }
     ]
   },
   {
     id: 'chuanchuan',
     name: '串串',
+    pinyin: 'CHUAN',
     desc: '灵活选菜、性价比高',
-    icon: '🍢',
-    color: '#E64A19',
+    icon: '串',
+    color: '#FFE4E1',
+    darkColor: '#FF6B6B',
+    image: '/assets/images/cuisine_all/category_10_00.png',
     subCategories: [
       { name: '成都串串', image: '/assets/images/cuisine_all/category_10_01.png' },
       { name: '麻辣烫', image: '/assets/images/cuisine_all/category_10_02.png' },
@@ -146,10 +176,13 @@ const cuisineCategories = [
   },
   {
     id: 'shaokao',
-    name: '烧烤',
+    name: '烧烤烤肉',
+    pinyin: 'KAO',
     desc: '夜宵、聚会、聊天刚需',
-    icon: '🍖',
-    color: '#FF5722',
+    icon: '烤',
+    color: '#FFF8DC',
+    darkColor: '#FFA502',
+    image: '/assets/images/cuisine_all/category_11_00.png',
     subCategories: [
       { name: '东北烧烤', image: '/assets/images/cuisine_all/category_11_01.png' },
       { name: '韩式烤肉', image: '/assets/images/cuisine_all/category_11_02.png' },
@@ -161,10 +194,13 @@ const cuisineCategories = [
   },
   {
     id: 'longxia',
-    name: '龙虾',
+    name: '小龙虾',
+    pinyin: 'XIA',
     desc: '夏夜聚会、重口下酒',
-    icon: '🦞',
-    color: '#BF360C',
+    icon: '虾',
+    color: '#FFE4E1',
+    darkColor: '#FF6B6B',
+    image: '/assets/images/cuisine_all/category_12_00.png',
     subCategories: [
       { name: '麻辣小龙虾', image: '/assets/images/cuisine_all/category_12_01.png' },
       { name: '蒜蓉小龙虾', image: '/assets/images/cuisine_all/category_12_02.png' },
@@ -176,9 +212,12 @@ const cuisineCategories = [
   {
     id: 'riliao',
     name: '日料',
+    pinyin: 'YI',
     desc: '精致清淡、轻奢约会',
-    icon: '🍣',
-    color: '#FBC02D',
+    icon: '鮨',
+    color: '#F0F8FF',
+    darkColor: '#54A0FF',
+    image: '/assets/images/cuisine_all/category_13_00.png',
     subCategories: [
       { name: '寿司', image: '/assets/images/cuisine_all/category_13_01.png' },
       { name: '刺身', image: '/assets/images/cuisine_all/category_13_02.png' },
@@ -190,9 +229,12 @@ const cuisineCategories = [
   {
     id: 'hanliao',
     name: '韩料',
+    pinyin: 'BAN',
     desc: '甜辣口味，年轻群体热门',
-    icon: '🥘',
-    color: '#E91E63',
+    icon: '拌',
+    color: '#FFF0F5',
+    darkColor: '#FF9FF3',
+    image: '/assets/images/cuisine_all/category_14_00.png',
     subCategories: [
       { name: '石锅拌饭', image: '/assets/images/cuisine_all/category_14_01.png' },
       { name: '部队锅', image: '/assets/images/cuisine_all/category_14_02.png' },
@@ -204,9 +246,12 @@ const cuisineCategories = [
   {
     id: 'dongnanya',
     name: '东南亚',
+    pinyin: 'YE',
     desc: '酸甜辛香，口味独特',
-    icon: '🍜',
-    color: '#FF9800',
+    icon: '椰',
+    color: '#F5FFFA',
+    darkColor: '#48DBFB',
+    image: '/assets/images/cuisine_all/category_15_00.png',
     subCategories: [
       { name: '泰国菜', image: '/assets/images/cuisine_all/category_15_01.png' },
       { name: '越南粉', image: '/assets/images/cuisine_all/category_15_02.png' },
@@ -218,9 +263,12 @@ const cuisineCategories = [
   {
     id: 'xishi',
     name: '西式',
+    pinyin: 'CAN',
     desc: '商务、约会、正式聚餐',
-    icon: '🍽️',
-    color: '#1976D2',
+    icon: '餐',
+    color: '#F0F8FF',
+    darkColor: '#54A0FF',
+    image: '/assets/images/cuisine_all/category_16_00.png',
     subCategories: [
       { name: '牛排', image: '/assets/images/cuisine_all/category_16_01.png' },
       { name: '意大利面', image: '/assets/images/cuisine_all/category_16_02.png' },
@@ -232,9 +280,12 @@ const cuisineCategories = [
   {
     id: 'haixian',
     name: '海鲜',
+    pinyin: 'XIAN',
     desc: '鲜货大餐，宴请首选',
-    icon: '🦐',
-    color: '#00BCD4',
+    icon: '鲜',
+    color: '#F0FFFF',
+    darkColor: '#1DD1A1',
+    image: '/assets/images/cuisine_all/category_17_00.png',
     subCategories: [
       { name: '海鲜大咖', image: '/assets/images/cuisine_all/category_17_01.png' },
       { name: '蒸汽海鲜', image: '/assets/images/cuisine_all/category_17_02.png' },
@@ -246,9 +297,12 @@ const cuisineCategories = [
   {
     id: 'zizhu',
     name: '自助',
+    pinyin: 'CHANG',
     desc: '不限量畅吃',
-    icon: '🍽️',
-    color: '#7C4DFF',
+    icon: '畅',
+    color: '#FFF8DC',
+    darkColor: '#FFA502',
+    image: '/assets/images/cuisine_all/category_18_00.png',
     subCategories: [
       { name: '日料自助', image: '/assets/images/cuisine_all/category_18_01.png' },
       { name: '烤肉自助', image: '/assets/images/cuisine_all/category_18_02.png' },
@@ -260,9 +314,12 @@ const cuisineCategories = [
   {
     id: 'nongjia',
     name: '农家',
+    pinyin: 'TU',
     desc: '乡土家常菜',
-    icon: '🥬',
-    color: '#558B2F',
+    icon: '土',
+    color: '#F5F5DC',
+    darkColor: '#C4A35A',
+    image: '/assets/images/cuisine_all/category_19_00.png',
     subCategories: [
       { name: '土鸡汤', image: '/assets/images/cuisine_all/category_19_01.png' },
       { name: '农家小炒', image: '/assets/images/cuisine_all/category_19_02.png' },
@@ -274,9 +331,12 @@ const cuisineCategories = [
   {
     id: 'sifang',
     name: '私房',
+    pinyin: 'SI',
     desc: '小众高级、创意菜品',
-    icon: '🍲',
-    color: '#8E24AA',
+    icon: '私',
+    color: '#FFF0F5',
+    darkColor: '#FF9FF3',
+    image: '/assets/images/cuisine_all/category_20_00.png',
     subCategories: [
       { name: '创意菜', image: '/assets/images/cuisine_all/category_20_01.png' },
       { name: '分子料理', image: '/assets/images/cuisine_all/category_20_02.png' },

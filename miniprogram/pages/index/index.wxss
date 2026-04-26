@@ -56,15 +56,14 @@
 
 .app-title {
   display: block;
-  font-size: 56rpx;
+  font-size: 72.8rpx;
   font-weight: 700;
   color: #fff;
-  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  /* 投影阴影效果 */
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  /* 黑色投影 */
   text-shadow:
-    /* 右下方向投影阴影 */
-    6rpx 10rpx 0 rgba(61, 61, 61, 0.4),
-    8rpx 14rpx 8rpx rgba(61, 61, 61, 0.25);
+    4rpx 6rpx 0 rgba(0, 0, 0, 0.8),
+    6rpx 10rpx 4rpx rgba(0, 0, 0, 0.4);
   letter-spacing: 8rpx;
   margin-bottom: 16rpx;
   line-height: 1.2;

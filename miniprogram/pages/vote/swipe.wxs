@@ -1,101 +1,79 @@
-// WXS 滑动处理模块
-var swipeState = {
-  startX: 0,
-  startY: 0,
-  isSwiping: false
-};
-
-// 触摸开始
-function touchStart(event, ownerInstance) {
-  var touch = event.touches[0];
-  if (!touch) return false;
-  
-  swipeState.startX = touch.clientX;
-  swipeState.startY = touch.clientY;
-  swipeState.isSwiping = true;
-  
-  var instance = event.instance;
-  if (instance) {
-    instance.setStyle({
-      transition: 'none'
-    });
-  }
-  return false;
-}
-
-// 触摸移动
-function touchMove(event, ownerInstance) {
-  if (!swipeState.isSwiping) return false;
-  
-  var touch = event.touches[0];
-  if (!touch) return false;
-  
-  var deltaX = touch.clientX - swipeState.startX;
-  var deltaY = touch.clientY - swipeState.startY;
-  
-  // 垂直滑动不处理
-  if (Math.abs(deltaX) <= Math.abs(deltaY)) return false;
-  
-  var instance = event.instance;
-  if (!instance) return false;
-  
-  var rotate = deltaX * 0.05;
-  
-  // 直接设置样式，不通过 setData
-  instance.setStyle({
-    transform: 'translateX(' + deltaX + 'px) rotate(' + rotate + 'deg)'
-  });
-  
-  return false;
-}
-
-// 触摸结束
-function touchEnd(event, ownerInstance) {
-  if (!swipeState.isSwiping) return false;
-  swipeState.isSwiping = false;
-  
-  var touch = event.changedTouches[0];
-  if (!touch) return false;
-  
-  var deltaX = touch.clientX - swipeState.startX;
-  var threshold = 100;
-  var index = event.currentTarget.dataset.index;
-  var instance = event.instance;
-  
-  if (instance) {
-    // 添加过渡效果
-    instance.setStyle({
-      transition: 'transform 0.3s ease-out'
-    });
-    
-    if (Math.abs(deltaX) > threshold) {
-      // 滑出屏幕
-      var translateX = deltaX > 0 ? '100vw' : '-100vw';
-      var rotate = deltaX > 0 ? '30deg' : '-30deg';
-      instance.setStyle({
-        transform: 'translateX(' + translateX + ') rotate(' + rotate + ')'
-      });
-    } else {
-      // 回弹到原位
-      instance.setStyle({
-        transform: 'translateX(0) rotate(0)'
-      });
-    }
-  }
-  
-  // 通知 JS 层滑动结果
-  if (Math.abs(deltaX) > threshold) {
-    ownerInstance.callMethod('onCardSwiped', {
-      index: index,
-      direction: deltaX > 0 ? 'right' : 'left'
-    });
-  }
-  
-  return false;
-}
+// pages/vote/swipe.wxs
+var startX = 0;
+var screenW = 375;
+var startY = 0;
 
 module.exports = {
-  touchStart: touchStart,
-  touchMove: touchMove,
-  touchEnd: touchEnd
+  // 初始化屏幕宽度（从页面传入）
+  init: function(sW) {
+    screenW = sW;
+  },
+
+  touchstart: function(event, ownerInstance) {
+    var touch = event.changedTouches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    return false;
+  },
+
+  touchmove: function(event, ownerInstance) {
+    var touch = event.changedTouches[0];
+    var dx = touch.clientX - startX;
+    var dy = touch.clientY - startY;
+
+    // 忽略纵向为主的手势（防止页面滚动冲突）
+    if (Math.abs(dy) > Math.abs(dx) * 0.8) return false;
+
+    var rotate = dx * 0.08;
+    var ratio = Math.min(Math.abs(dx) / (screenW * 0.45), 1);
+    var nextScale = 0.92 + ratio * 0.08;
+
+    // 直接操作 DOM，不经过 setData
+    var card = ownerInstance.selectComponent('.card-front');
+    var nextCard = ownerInstance.selectComponent('.card-behind');
+
+    card.setStyle({
+      transform: 'translateX(' + dx + 'px) rotate(' + rotate + 'deg)'
+    });
+
+    if (nextCard) {
+      nextCard.setStyle({
+        transform: 'scale(' + nextScale + ')'
+      });
+    }
+
+    return false;
+  },
+
+  touchend: function(event, ownerInstance) {
+    var touch = event.changedTouches[0];
+    var dx = touch.clientX - startX;
+    var threshold = screenW * 0.25;
+
+    if (dx > threshold) {
+      ownerInstance.callMethod('wxsSwipeOut', { direction: 1, dx: dx });
+    } else if (dx < -threshold) {
+      ownerInstance.callMethod('wxsSwipeOut', { direction: -1, dx: dx });
+    } else {
+      // 回弹
+      var card = ownerInstance.selectComponent('.card-front');
+      var nextCard = ownerInstance.selectComponent('.card-behind');
+
+      card.setStyle({
+        transform: 'translateX(0px) rotate(0deg)',
+        transition: 'transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1)'
+      });
+      if (nextCard) nextCard.setStyle({
+        transform: 'scale(0.92)',
+        transition: 'transform 0.35s ease'
+      });
+
+      // 0.35s 后清除 transition
+      setTimeout(function() {
+        card.setStyle({ transition: '' });
+      }, 350);
+    }
+
+    return false;
+  }
 };

@@ -1,0 +1,93 @@
+// WXS 滑动处理模块 - 直接操作DOM，不经过setData
+var startX = 0;
+var startY = 0;
+var isSwiping = false;
+
+module.exports = {
+  touchstart: function(event, ownerInstance) {
+    var touch = event.touches[0];
+    if (!touch) return false;
+    
+    startX = touch.pageX;
+    startY = touch.pageY;
+    isSwiping = true;
+    
+    var instance = event.instance;
+    if (instance) {
+      instance.setStyle({
+        transition: 'none'
+      });
+    }
+    return false;
+  },
+  
+  touchmove: function(event, ownerInstance) {
+    if (!isSwiping) return false;
+    
+    var touch = event.touches[0];
+    if (!touch) return false;
+    
+    var dx = touch.pageX - startX;
+    var dy = touch.pageY - startY;
+    
+    // 垂直滑动不处理
+    if (Math.abs(dx) <= Math.abs(dy)) return false;
+    
+    var instance = event.instance;
+    if (!instance) return false;
+    
+    var rotate = dx * 0.05;
+    
+    // 直接操作DOM，不经过setData
+    instance.setStyle({
+      transform: 'translateX(' + dx + 'px) rotate(' + rotate + 'deg)'
+    });
+    
+    return false;
+  },
+  
+  touchend: function(event, ownerInstance) {
+    if (!isSwiping) return false;
+    isSwiping = false;
+    
+    var touch = event.changedTouches[0];
+    if (!touch) return false;
+    
+    var dx = touch.pageX - startX;
+    var threshold = 100;
+    var index = event.currentTarget.dataset.index;
+    var instance = event.instance;
+    
+    if (instance) {
+      instance.setStyle({
+        transition: 'transform 0.3s ease-out'
+      });
+      
+      if (Math.abs(dx) > threshold) {
+        // 滑出屏幕
+        var translateX = dx > 0 ? '100vw' : '-100vw';
+        var rotate = dx > 0 ? '30deg' : '-30deg';
+        instance.setStyle({
+          transform: 'translateX(' + translateX + ') rotate(' + rotate + ')'
+        });
+      } else {
+        // 回弹到原位
+        instance.setStyle({
+          transform: 'translateX(0) rotate(0)'
+        });
+      }
+    }
+    
+    // 通知 JS 层滑动结果
+    if (Math.abs(dx) > threshold) {
+      var direction = dx > 0 ? 'right' : 'left';
+      var methodName = event.currentTarget.dataset.callback || 'onCardSwiped';
+      ownerInstance.callMethod(methodName, {
+        index: index,
+        direction: direction
+      });
+    }
+    
+    return false;
+  }
+};
