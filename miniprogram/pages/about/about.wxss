@@ -1,0 +1,144 @@
+.about-page {
+  min-height: 100vh;
+  background: #F5F0E8;
+}
+
+/* 顶部导航 */
+.nav-header {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: #fff;
+  border-bottom: 2rpx solid #E0E0E0;
+}
+
+.back-btn {
+  font-size: 48rpx;
+  color: #333;
+  padding: 0 20rpx;
+}
+
+.nav-title {
+  flex: 1;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+  margin-right: 88rpx;
+}
+
+/* 应用信息 */
+.app-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 40rpx;
+  background: #fff;
+}
+
+.app-logo {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 20rpx;
+}
+
+.app-name {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.app-version {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 20rpx;
+}
+
+.app-desc {
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 功能特色 */
+.features-section {
+  background: #fff;
+  margin-top: 20rpx;
+  padding: 30rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 30rpx;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 30rpx;
+}
+
+.feature-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-right: 20rpx;
+}
+
+.feature-content {
+  flex: 1;
+}
+
+.feature-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.feature-desc {
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 联系我们 */
+.contact-section {
+  background: #fff;
+  margin-top: 20rpx;
+  padding: 30rpx;
+}
+
+.contact-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid #F5F5F5;
+}
+
+.contact-item:last-child {
+  border-bottom: none;
+}
+
+.contact-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.contact-value {
+  font-size: 28rpx;
+  color: #FF9F43;
+}
+
+/* 版权信息 */
+.footer {
+  padding: 40rpx;
+  text-align: center;
+}
+
+.copyright {
+  font-size: 24rpx;
+  color: #999;
+}

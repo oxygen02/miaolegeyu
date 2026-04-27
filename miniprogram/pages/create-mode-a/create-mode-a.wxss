@@ -1,8 +1,17 @@
 /* pages/create-mode-a/create-mode-a.wxss */
+page {
+  height: 100vh;
+  overflow: hidden;
+}
+
 .container {
-  min-height: 100vh;
+  height: 100vh;
   background: #F5F0E8;
-  padding: 24rpx 32rpx 40rpx;
+  padding: 16rpx 24rpx 32rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .header {
@@ -100,14 +109,16 @@
 
 /* 表单 */
 .form {
-  margin-bottom: 32rpx;
+  margin-bottom: 16rpx;
+  flex: 1;
+  overflow: hidden;
 }
 
 .form-item {
   background: #FFFDF7;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: 12rpx;
+  padding: 12rpx 16rpx;
+  margin-bottom: 8rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -119,7 +130,9 @@
   color: #3D3D3D;
   flex-shrink: 0;
   margin-right: 20rpx;
-  min-width: 120rpx;
+  width: 120rpx;
+  text-align: left;
+  display: inline-block;
 }
 
 /* 地点选择项 */
@@ -198,6 +211,75 @@
   color: #8A8A8A;
 }
 
+/* 地点和人数 - 同一行 */
+.location-people-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 6rpx;
+  padding: 8rpx 6rpx;
+}
+
+.location-people-row .field-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.location-people-row .section-label {
+  font-size: 26rpx;
+  color: #3D3D3D;
+  font-weight: 500;
+}
+
+.location-people-row .divider {
+  width: 2rpx;
+  background: rgba(61, 61, 61, 0.1);
+  margin: 0 8rpx;
+}
+
+.location-content-compact {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.location-input-compact {
+  flex: 1;
+  font-size: 24rpx;
+  height: 36rpx;
+  background: #F5F0E8;
+  border-radius: 6rpx;
+  padding: 0 10rpx;
+}
+
+.location-map-btn-compact {
+  width: 36rpx;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F5F0E8;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+}
+
+.location-map-btn-compact .location-icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.people-input-compact {
+  width: 100%;
+  font-size: 24rpx;
+  height: 36rpx;
+  background: #F5F0E8;
+  border-radius: 6rpx;
+  padding: 0 10rpx;
+  text-align: left !important;
+}
+
 .separator.gap {
   margin: 0 16rpx;
 }
@@ -270,10 +352,11 @@
   border-radius: 36rpx;
   font-size: 30rpx;
   font-weight: 600;
-  margin: 32rpx auto 0;
+  margin: 0 auto 24rpx;
   border: 4rpx solid #3D3D3D;
   box-shadow: 4rpx 4rpx 0 #3D3D3D;
   padding: 20rpx 48rpx;
+  flex-shrink: 0;
 }
 
 .btn-create.disabled {

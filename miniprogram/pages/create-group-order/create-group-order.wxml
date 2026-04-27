@@ -1,83 +1,113 @@
 <view class="page group-page">
-  <!-- 头部 -->
+  <!-- 头部橘红色区域 -->
   <view class="group-header">
-    <view class="cat-hint">
-      <image class="cat-img" src="/assets/images/juze_avatar.png" mode="aspectFit" />
-      <view class="speech-bubble">
-        <text class="bubble-text">拼个单</text>
+    <view class="header-bg">
+      <view class="header-left-content">
+        <view class="cat-hint">
+          <view class="cat-img-wrapper">
+            <image class="cat-img" src="/assets/images/juze_avatar.png" mode="aspectFit" />
+          </view>
+          <view class="speech-bubble">
+            <text class="bubble-text">拼个单</text>
+          </view>
+        </view>
+        <text class="header-sub">外卖凑单，一起免运费</text>
       </view>
+      <image class="header-tail" src="/assets/images/maoweiba.png" mode="aspectFit" />
     </view>
-    <text class="header-sub">外卖凑单，一起免运费</text>
   </view>
 
-  <!-- 表单卡片 -->
-  <view class="form-card card">
-    <view class="form-row">
-      <view class="form-group half">
-        <text class="form-label">拼单标题</text>
-        <input class="form-input" placeholder="如：下午茶" value="{{title}}" bindinput="onTitleInput" />
-      </view>
-      <view class="form-group half">
-        <text class="form-label">起送金额</text>
-        <view class="amount-input-wrapper">
-          <text class="currency">¥</text>
-          <input class="form-input amount-input" type="digit" placeholder="30" value="{{minAmount}}" bindinput="onAmountInput" />
-        </view>
-      </view>
-    </view>
+  <!-- 规则提示 -->
+  <view class="rule-hint">
+    <text class="rule-text">填写任意一个选项（标题、图片、时间、平台）即可发起拼单</text>
+  </view>
 
-    <view class="form-row">
-      <view class="form-group half">
-        <text class="form-label">截止时间</text>
-        <view class="time-picker" bindtap="showTimePicker">
-          <text class="picker-value {{deadlineText ? 'has-value' : ''}}">{{deadlineText || '请选择'}}</text>
-          <view class="picker-arrow"></view>
-        </view>
-      </view>
-      <view class="form-group half">
-        <text class="form-label">外卖平台</text>
-        <view class="platform-list">
-          <view class="platform-item {{selectedPlatform === 'meituan' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="meituan">
-            <image class="platform-icon" src="/assets/images/icons/meituan.svg" mode="aspectFit" />
-          </view>
-          <view class="platform-item {{selectedPlatform === 'taobao' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="taobao">
-            <image class="platform-icon" src="/assets/images/icons/taobao.svg" mode="aspectFit" />
-          </view>
-          <view class="platform-item {{selectedPlatform === 'jd' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="jd">
-            <image class="platform-icon" src="/assets/images/icons/jd.svg" mode="aspectFit" />
-          </view>
-        </view>
-      </view>
+  <!-- 选项卡 -->
+  <view class="options-tabs">
+    <view 
+      class="option-tab {{currentOptionIndex === index ? 'active' : ''}}"
+      wx:for="{{shopOptions}}"
+      wx:key="index"
+      bindtap="switchOption"
+      data-index="{{index}}"
+    >
+      <text class="option-tab-text">选项{{index + 1}}</text>
+      <view class="option-delete" wx:if="{{shopOptions.length > 1}}" catchtap="deleteOption" data-index="{{index}}">×</view>
     </view>
-
-    <!-- 店铺图片上传 -->
-    <view class="form-group">
-      <text class="form-label">店铺图片</text>
-      <view class="shop-image-section">
-        <view class="shop-image-upload" wx:if="{{!shopImage}}" bindtap="chooseShopImage">
-          <view class="upload-icon">+</view>
-          <text class="upload-text">上传店铺图片</text>
-        </view>
-        <view class="shop-image-preview" wx:else>
-          <image class="shop-image" src="{{shopImage}}" mode="aspectFill" bindtap="previewShopImage" />
-          <view class="delete-btn" bindtap="deleteShopImage">×</view>
-        </view>
-      </view>
+    <view class="option-add" wx:if="{{shopOptions.length < 3}}" bindtap="addOption">
+      <text class="option-add-text">+ 添加选项</text>
     </view>
+  </view>
 
-    <!-- 店铺地址链接 -->
-    <view class="form-group">
-      <text class="form-label">店铺链接</text>
-      <view class="link-input-wrapper">
-        <input class="form-input link-input" placeholder="粘贴店铺分享链接" value="{{shopLink}}" bindinput="onShopLinkInput" />
-        <view class="paste-btn" bindtap="pasteShopLink">粘贴</view>
+  <!-- 所有选项卡片垂直排列 -->
+  <view class="form-cards-container">
+    <view class="form-card card" wx:for="{{shopOptions}}" wx:key="index">
+      <!-- 选项标题行：包含选项编号和拼单标题 -->
+      <view class="card-header-row">
+        <text class="card-option-title">选项 {{index + 1}}</text>
+        <input class="card-title-input" placeholder="请输入拼单标题，如：下午茶" value="{{item.title}}" bindinput="onTitleInput" data-index="{{index}}" />
+      </view>
+      
+      <!-- 左右分栏布局：左侧图片 + 右侧内容 -->
+      <view class="card-main-layout">
+        <!-- 左侧：店铺图片 -->
+        <view class="card-left-section">
+          <view class="shop-image-section">
+            <view class="shop-image-upload" wx:if="{{!item.shopImage}}" bindtap="chooseShopImage" data-index="{{index}}">
+              <view class="upload-icon">+</view>
+              <text class="upload-text">上传图片</text>
+            </view>
+            <view class="shop-image-preview" wx:else>
+              <image class="shop-image" src="{{item.shopImage}}" mode="aspectFill" bindtap="previewShopImage" data-index="{{index}}" />
+              <view class="delete-btn" bindtap="deleteShopImage" data-index="{{index}}">×</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 右侧：输入内容（不含标题） -->
+        <view class="card-right-section">
+          <!-- 截止时间和外卖平台同一行 -->
+          <view class="right-row">
+            <view class="right-item time-item">
+              <text class="form-label">截止时间</text>
+              <view class="time-picker" bindtap="showTimePicker" data-index="{{index}}">
+                <text class="picker-value {{item.deadlineText ? 'has-value' : ''}}">{{item.deadlineText || '请选择'}}</text>
+                <view class="picker-arrow"></view>
+              </view>
+            </view>
+
+            <view class="right-item platform-item-row">
+              <text class="form-label">外卖平台</text>
+              <view class="platform-list">
+                <view class="platform-item {{item.selectedPlatform === 'meituan' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="meituan" data-index="{{index}}">
+                  <image class="platform-icon" src="/assets/images/icons/meituan.svg" mode="aspectFit" />
+                </view>
+                <view class="platform-item {{item.selectedPlatform === 'taobao' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="taobao" data-index="{{index}}">
+                  <image class="platform-icon" src="/assets/images/icons/taobao.svg" mode="aspectFit" />
+                </view>
+                <view class="platform-item {{item.selectedPlatform === 'jd' ? 'active' : ''}}" bindtap="selectPlatform" data-platform="jd" data-index="{{index}}">
+                  <image class="platform-icon" src="/assets/images/icons/jd.svg" mode="aspectFit" />
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 店铺链接 -->
+          <view class="right-item">
+            <text class="form-label">店铺链接</text>
+            <view class="link-input-wrapper">
+              <input class="form-input link-input" placeholder="粘贴店铺分享链接" value="{{item.shopLink}}" bindinput="onShopLinkInput" data-index="{{index}}" />
+              <view class="paste-btn" bindtap="pasteShopLink" data-index="{{index}}">粘贴</view>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
   </view>
 
   <!-- 底部按钮 -->
   <view class="bottom-panel safe-bottom">
-    <button class="btn btn-primary submit-btn {{canSubmit() ? '' : 'btn-disabled'}}" bindtap="createGroupOrder">
+    <button class="btn btn-primary submit-btn {{canSubmitFlag ? '' : 'btn-disabled'}}" bindtap="createGroupOrder">
       发起拼单
     </button>
   </view>

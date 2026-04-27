@@ -1,13 +1,14 @@
 <view class="fish-tank-page">
-  <!-- 页面标题 -->
-  <view class="page-header">
+  <!-- 顶部橘红色区域 -->
+  <view class="header-section">
     <view class="header-content">
-      <image class="header-avatar" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
-      <view class="header-text">
-        <text class="header-title">喵不喵</text>
-        <text class="header-subtitle">拼美食 · 拼奶茶 · 拼生活</text>
+      <view class="header-avatar-wrapper">
+        <image class="header-avatar" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
       </view>
+      <text class="header-title">喵不喵</text>
+      <text class="header-subtitle">拼美食 · 拼奶茶 · 拼生活</text>
     </view>
+    <image class="header-tail" src="/assets/images/maoweiba.png" mode="aspectFit" />
   </view>
 
   <!-- 视图模式切换 -->
@@ -15,11 +16,14 @@
     <view class="mode-item {{viewMode === 'all' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="all">
       <text>全部</text>
     </view>
-    <view class="mode-item {{viewMode === 'group' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="group">
-      <text>拼单</text>
-    </view>
     <view class="mode-item {{viewMode === 'dining' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="dining">
       <text>聚餐</text>
+    </view>
+    <view class="mode-item {{viewMode === 'meal' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="meal">
+      <text>约饭</text>
+    </view>
+    <view class="mode-item {{viewMode === 'group' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="group">
+      <text>拼单</text>
     </view>
   </view>
 
@@ -39,29 +43,6 @@
     </view>
   </view>
 
-  <!-- 外卖平台入口 -->
-  <view class="platform-section card">
-    <text class="section-title">外卖平台</text>
-    <view class="platform-grid">
-      <view class="platform-item" bindtap="goToPlatform" data-type="lunch">
-        <view class="platform-icon lunch">🍱</view>
-        <text class="platform-name">午餐</text>
-      </view>
-      <view class="platform-item" bindtap="goToPlatform" data-type="dinner">
-        <view class="platform-icon dinner">🍜</view>
-        <text class="platform-name">晚餐</text>
-      </view>
-      <view class="platform-item" bindtap="goToPlatform" data-type="milktea">
-        <view class="platform-icon milktea">🧋</view>
-        <text class="platform-name">奶茶</text>
-      </view>
-      <view class="platform-item" bindtap="goToFoodDiscovery">
-        <view class="platform-icon discover">🔍</view>
-        <text class="platform-name">发现美食</text>
-      </view>
-    </view>
-  </view>
-
   <!-- 活动列表 -->
   <scroll-view class="activity-list" scroll-y="true" enhanced="true" show-scrollbar="false">
     <!-- 正在进行的活动 -->
@@ -71,17 +52,34 @@
           <text class="delete-text">{{item.isCreator ? '删除' : '退出'}}</text>
         </view>
         <view class="activity-card card anim-slide-up {{item.swiping ? 'swiping' : ''}}" style="transform: translateX({{item.translateX || 0}}px)" bindtouchstart="onSwipeTouchStart" bindtouchmove="onSwipeTouchMove" bindtouchend="onSwipeTouchEnd" data-index="{{index}}" data-type="ongoing">
-          <view class="activity-main" bindtap="goToActivityDetail" data-id="{{item.id}}">
-            <image class="activity-image" src="{{item.image}}" mode="aspectFill" />
+          <view class="activity-main">
+            <image class="activity-image" src="{{item.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.image}}" />
             <view class="activity-info">
               <view class="activity-header-row">
                 <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
+                <view class="creator-info">
+                  <image class="creator-avatar" src="{{item.creatorAvatarUrl}}" mode="aspectFill" />
+                  <text class="creator-name">{{item.creatorNickName}}</text>
+                </view>
               </view>
               <text class="activity-title">{{item.title}}</text>
-              <text class="activity-shop">{{item.shopName}}</text>
+              <text class="activity-shop">{{item.shopNameStr || item.shopName}}</text>
               <view class="activity-meta">
-                <text class="activity-time">{{item.time}}</text>
-                <text class="activity-participants">{{item.participantCount}}人参与</text>
+                <text class="activity-time">截止: {{item.time}}</text>
+              </view>
+              <!-- 参与用户头像 -->
+              <view class="participant-avatars" wx:if="{{item.participantAvatars.length > 0}}">
+                <view class="avatar-list">
+                  <image 
+                    wx:for="{{item.participantAvatars}}" 
+                    wx:key="index"
+                    class="participant-avatar {{index > 0 ? 'avatar-overlap' : ''}}" 
+                    src="{{item.avatarUrl}}" 
+                    mode="aspectFill"
+                    style="z-index: {{item.participantAvatars.length - index}};"
+                  />
+                </view>
+                <text class="participant-count">{{item.participantCount}}人参与</text>
               </view>
             </view>
             <view class="activity-right" catchtap="onRightAreaTap">
@@ -90,7 +88,7 @@
                 <text class="stats-text">已凑 ¥{{item.currentAmount}}/¥{{item.targetAmount}}</text>
               </view>
               <view class="spacer" wx:else></view>
-              <button class="btn btn-primary btn-small" catchtap="goToActivityDetail" data-id="{{item.id}}">立即参加</button>
+              <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}">立即参加</button>
             </view>
           </view>
         </view>

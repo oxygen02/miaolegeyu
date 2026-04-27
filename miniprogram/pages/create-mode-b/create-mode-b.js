@@ -410,6 +410,15 @@ Page({
       return;
     }
 
+    // 验证截止时间不能早于当前时间
+    if (this.data.deadline) {
+      const now = new Date();
+      if (this.data.deadline <= now) {
+        wx.showToast({ title: '截止时间不能早于当前时间', icon: 'none' });
+        return;
+      }
+    }
+
     wx.showLoading({ title: this.data.isEditMode ? '保存中...' : '创建中...' });
 
     try {

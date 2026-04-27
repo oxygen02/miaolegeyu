@@ -51,6 +51,16 @@ Page({
   },
 
   onLoad(options) {
+    // 立即设置导航栏颜色，防止闪烁
+    wx.setNavigationBarColor({
+      frontColor: '#000000',
+      backgroundColor: '#F5F0E8',
+      animation: {
+        duration: 0,
+        timingFunc: 'linear'
+      }
+    });
+
     const { roomId, mock, mode: mockMode } = options;
     this.setData({ roomId });
 
@@ -75,6 +85,30 @@ Page({
         this.loadRoomData(roomId);
       }
     }
+  },
+
+  onShow() {
+    // 页面显示时再次设置导航栏颜色
+    wx.setNavigationBarColor({
+      frontColor: '#000000',
+      backgroundColor: '#F5F0E8',
+      animation: {
+        duration: 0,
+        timingFunc: 'linear'
+      }
+    });
+  },
+
+  onReady() {
+    // 页面准备好时再次设置导航栏颜色
+    wx.setNavigationBarColor({
+      frontColor: '#000000',
+      backgroundColor: '#F5F0E8',
+      animation: {
+        duration: 0,
+        timingFunc: 'linear'
+      }
+    });
   },
 
   // 保存投票状态到本地
@@ -120,6 +154,12 @@ Page({
   restoreVoteState(roomId) {
     if (!roomId) return false;
 
+    // 暂时禁用自动恢复功能，每次进入都重新开始
+    // 这样可以避免显示"已筛选完毕"的状态
+    console.log('禁用自动恢复，重新开始投票');
+    return false;
+
+    /* 以下是原来的恢复逻辑，暂时注释掉
     const savedState = wx.getStorageSync(`vote_state_${roomId}`);
     if (!savedState) {
       console.log('没有找到保存的投票状态');
@@ -173,6 +213,7 @@ Page({
     });
 
     return true;
+    */
   },
 
   // 清除投票状态
@@ -325,6 +366,11 @@ Page({
         });
       } else {
         const candidatePosters = room.candidatePosters || [];
+        console.log('从房间获取的candidatePosters:', candidatePosters);
+        console.log('candidatePosters长度:', candidatePosters.length);
+        if (candidatePosters.length > 0) {
+          console.log('第一张海报数据:', candidatePosters[0]);
+        }
 
         const posters = candidatePosters.map((p, index) => ({
           ...p,
@@ -334,6 +380,8 @@ Page({
           isLiked: false,
           isFav: false
         }));
+
+        console.log('处理后的posters:', posters);
 
         this.setData({
           room,

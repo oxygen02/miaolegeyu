@@ -87,7 +87,9 @@ Page({
     editShopReason: '',
     editShopTips: '',
     // 发起者操作菜单
-    showOwnerActions: false
+    showOwnerActions: false,
+    // 匿名发起选项
+    isAnonymousInitiator: false
   },
 
   async onLoad(options) {
@@ -139,8 +141,8 @@ Page({
     if (!value) return '';
     // 只保留数字
     value = value.replace(/\D/g, '');
-    // 3位数字时，首位补零
-    if (value.length === 3) {
+    // 3位数字时，首位补零（仅在输入时，不是删除时）
+    if (value.length === 3 && !value.startsWith('0')) {
       value = '0' + value;
     }
     return value;
@@ -160,14 +162,105 @@ Page({
           pawRating: this.generatePawRating(result.shop.rating)
         };
         
+        // platformUrl 从数据库获取，确保有默认值
+        shop.platformUrl = shop.platformUrl || '';
+        
+        // 模拟数据：添加追加推荐人
+        shop.additionalRecommenders = [
+          {
+            openId: 'user1',
+            name: '吃货小王',
+            avatar: '/assets/images/cat-avatar-icon.png',
+            isAnonymous: false,
+            rating: 5,
+            ratingComment: '味道很棒，推荐！',
+            appointmentTime: '2026-04-20'
+          },
+          {
+            openId: 'user2',
+            name: '美食家小李',
+            avatar: '/assets/images/cat-avatar-icon.png',
+            isAnonymous: false,
+            rating: 4,
+            ratingComment: '环境不错',
+            appointmentTime: '2026-04-15'
+          },
+          {
+            openId: 'user3',
+            name: '',
+            avatar: '',
+            isAnonymous: true,
+            rating: 5,
+            ratingComment: '',
+            appointmentTime: '2026-04-10'
+          }
+        ];
+        
+        // 模拟数据：更新评分和评分人数
+        shop.rating = 4.5;
+        shop.ratingCount = 4; // 包含发起人在内的总评分人数
+        
+        // 模拟数据：历史组团记录
+        const historyAppointments = [
+          {
+            _id: 'apt1',
+            appointmentTimeStr: '2026年4月20日',
+            initiatorOpenId: 'user1',
+            initiatorName: '吃货小王',
+            initiatorAvatar: '/assets/images/cat-avatar-icon.png',
+            isAnonymous: false,
+            participantCount: 4,
+            participants: [
+              { openId: 'user1', name: '吃货小王', avatar: '/assets/images/cat-avatar-icon.png' },
+              { openId: 'user4', name: '张三', avatar: '/assets/images/cat-avatar-icon.png' },
+              { openId: 'user5', name: '李四', avatar: '/assets/images/cat-avatar-icon.png' },
+              { openId: 'user6', name: '王五', avatar: '/assets/images/cat-avatar-icon.png' }
+            ],
+            rating: { stars: 5, comment: '味道很棒，推荐！' }
+          },
+          {
+            _id: 'apt2',
+            appointmentTimeStr: '2026年4月15日',
+            initiatorOpenId: 'user2',
+            initiatorName: '美食家小李',
+            initiatorAvatar: '/assets/images/cat-avatar-icon.png',
+            isAnonymous: false,
+            participantCount: 3,
+            participants: [
+              { openId: 'user2', name: '美食家小李', avatar: '/assets/images/cat-avatar-icon.png' },
+              { openId: 'user7', name: '赵六', avatar: '/assets/images/cat-avatar-icon.png' },
+              { openId: 'user8', name: '钱七', avatar: '/assets/images/cat-avatar-icon.png' }
+            ],
+            rating: { stars: 4, comment: '环境不错' }
+          },
+          {
+            _id: 'apt3',
+            appointmentTimeStr: '2026年4月10日',
+            initiatorOpenId: 'user3',
+            initiatorName: '',
+            initiatorAvatar: '',
+            isAnonymous: true,
+            participantCount: 5,
+            participants: [
+              { openId: 'user3', name: '', avatar: '' },
+              { openId: 'user9', name: '用户9', avatar: '/assets/images/cat-avatar-icon.png' },
+              { openId: 'user10', name: '用户10', avatar: '/assets/images/cat-avatar-icon.png' },
+              { openId: 'user11', name: '用户11', avatar: '/assets/images/cat-avatar-icon.png' },
+              { openId: 'user12', name: '用户12', avatar: '/assets/images/cat-avatar-icon.png' }
+            ],
+            rating: { stars: 5, comment: '' }
+          }
+        ];
+        
         // 检查用户是否可以评分（去过该店铺但未评分）
-        const canRateShop = this.checkCanRateShop(shop);
+        const canRateShop = true; // 模拟显示评分按钮
         
         this.setData({ 
           shop, 
           loading: false,
           isShopOwner: result.isOwner || false,
-          canRateShop
+          canRateShop,
+          historyAppointments
         });
         // 检查收藏状态
         this.checkFavoriteStatus(id, 'shop');
@@ -496,7 +589,24 @@ Page({
   },
 
   formatDateTime(dateStr) {
-    const date = new Date(dateStr);
+    // 处理 ISO 格式时间字符串，确保正确解析本地时间
+    let date;
+    if (typeof dateStr === 'string' && dateStr.includes('T')) {
+      // 将 ISO 格式转换为本地时间
+      const parts = dateStr.split('T');
+      const dateParts = parts[0].split('-');
+      const timeParts = parts[1] ? parts[1].split(':') : ['00', '00', '00'];
+      date = new Date(
+        parseInt(dateParts[0]),
+        parseInt(dateParts[1]) - 1,
+        parseInt(dateParts[2]),
+        parseInt(timeParts[0]),
+        parseInt(timeParts[1]),
+        parseInt(timeParts[2]) || 0
+      );
+    } else {
+      date = new Date(dateStr);
+    }
     const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
     const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
     const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
@@ -531,6 +641,15 @@ Page({
 
   onImageTap(e) {
     const { url } = e.currentTarget.dataset;
+    const { shop } = this.data;
+    
+    // 如果有平台链接，直接跳转到平台详情
+    if (shop.platformUrl) {
+      this.openPlatformLink();
+      return;
+    }
+    
+    // 否则预览图片
     wx.previewImage({ current: url, urls: this.data.shop.images });
   },
 
@@ -546,12 +665,20 @@ Page({
       customRequirement: '',
       showCustomRequirement: false,
       paymentMode: 'AA', // 默认AA制
+      isAnonymousInitiator: false, // 默认不匿名
       requirementOptions: [
         { id: 'noAlcohol', name: '不喝酒', selected: false },
         { id: 'noSmoking', name: '不吸烟', selected: false },
         { id: 'quiet', name: '安静环境', selected: false },
         { id: 'custom', name: '自定义', selected: false }
       ]
+    });
+  },
+
+  // 切换匿名发起选项
+  toggleAnonymous() {
+    this.setData({
+      isAnonymousInitiator: !this.data.isAnonymousInitiator
     });
   },
 
@@ -568,7 +695,14 @@ Page({
     this.setData({ appointmentYear: value });
   },
   onAppointmentDateInput(e) {
-    let value = this.formatDate(e.detail.value);
+    let value = e.detail.value;
+    // 只保留数字
+    value = value.replace(/\D/g, '');
+    // 3位数字时自动补零（如428 -> 0428）
+    if (value.length === 3) {
+      value = '0' + value;
+    }
+    // 限制4位
     if (value.length > 4) value = value.substring(0, 4);
     this.setData({ appointmentDate: value });
   },
@@ -599,7 +733,14 @@ Page({
     this.setData({ deadlineYear: value });
   },
   onDeadlineDateInput(e) {
-    let value = this.formatDate(e.detail.value);
+    let value = e.detail.value;
+    // 只保留数字
+    value = value.replace(/\D/g, '');
+    // 3位数字时自动补零（如428 -> 0428）
+    if (value.length === 3) {
+      value = '0' + value;
+    }
+    // 限制4位
     if (value.length > 4) value = value.substring(0, 4);
     this.setData({ deadlineDate: value });
   },
@@ -739,7 +880,7 @@ Page({
   },
 
   async submitAppointment() {
-    const { shop, appointmentYear, appointmentDate, appointmentTime, deadlineYear, deadlineDate, deadlineTime, appointmentNote, maxParticipants, requirementOptions, customRequirement, paymentMode } = this.data;
+    const { shop, appointmentYear, appointmentDate, appointmentTime, deadlineYear, deadlineDate, deadlineTime, appointmentNote, maxParticipants, requirementOptions, customRequirement, paymentMode, isAnonymousInitiator } = this.data;
 
     // 验证并格式化日期时间
     if (!appointmentYear || !appointmentDate || !appointmentTime) {
@@ -768,6 +909,13 @@ Page({
     const deadlineMinute = deadlineTime.substring(2, 4);
     const fullDeadlineTime = `${deadlineYear}-${deadlineMonth}-${deadlineDay}T${deadlineHour}:${deadlineMinute}:00`;
 
+    // 验证截止时间不能早于当前时间
+    const now = new Date();
+    if (new Date(fullDeadlineTime) <= now) {
+      wx.showToast({ title: '截止时间不能早于当前时间', icon: 'none' });
+      return;
+    }
+
     if (new Date(fullDeadlineTime) >= new Date(fullAppointmentTime)) {
       wx.showToast({ title: '截止时间必须在约饭时间之前', icon: 'none' });
       return;
@@ -790,7 +938,8 @@ Page({
           maxParticipants: parseInt(maxParticipants) || 0,
           requirements,
           customRequirement,
-          paymentMode
+          paymentMode,
+          isAnonymous: isAnonymousInitiator
         }
       });
 
@@ -905,6 +1054,82 @@ Page({
       title: `${shop.name} - 喵了个鱼美食推荐`,
       path: `/pages/shop-detail/shop-detail?id=${shop._id}`
     };
+  },
+
+  // 打开平台链接
+  openPlatformLink() {
+    const { shop } = this.data;
+    if (!shop.platformUrl) {
+      wx.showToast({ title: '暂无平台链接', icon: 'none' });
+      return;
+    }
+
+    // 判断链接类型
+    const url = shop.platformUrl;
+    
+    // 如果是美团小程序链接，尝试跳转
+    if (url.includes('meituan')) {
+      // 美团小程序 scheme
+      wx.navigateToMiniProgram({
+        appId: 'wxde8ac0a21135c07d', // 美团外卖小程序 appid
+        path: url.replace('https://', ''),
+        success: () => {
+          console.log('跳转美团小程序成功');
+        },
+        fail: (err) => {
+          console.error('跳转美团小程序失败:', err);
+          // 失败时复制链接
+          this.copyAndOpenLink(url, '美团');
+        }
+      });
+    } else if (url.includes('dianping')) {
+      // 大众点评小程序 scheme
+      wx.navigateToMiniProgram({
+        appId: 'wx734c1ad7b3562129', // 大众点评小程序 appid
+        path: url.replace('https://', ''),
+        success: () => {
+          console.log('跳转大众点评小程序成功');
+        },
+        fail: (err) => {
+          console.error('跳转大众点评小程序失败:', err);
+          this.copyAndOpenLink(url, '大众点评');
+        }
+      });
+    } else if (url.includes('jd')) {
+      // 京东小程序 scheme
+      wx.navigateToMiniProgram({
+        appId: 'wx91d27dbf599dff74', // 京东小程序 appid
+        path: url.replace('https://', ''),
+        success: () => {
+          console.log('跳转京东小程序成功');
+        },
+        fail: (err) => {
+          console.error('跳转京东小程序失败:', err);
+          this.copyAndOpenLink(url, '京东');
+        }
+      });
+    } else {
+      // 其他链接，复制到剪贴板
+      this.copyAndOpenLink(url, '店铺');
+    }
+  },
+
+  // 复制链接并提示用户
+  copyAndOpenLink(url, platformName) {
+    wx.setClipboardData({
+      data: url,
+      success: () => {
+        wx.showModal({
+          title: '链接已复制',
+          content: `${platformName}链接已复制到剪贴板。由于平台限制，请手动打开${platformName}App或浏览器查看。`,
+          showCancel: false,
+          confirmText: '知道了'
+        });
+      },
+      fail: () => {
+        wx.showToast({ title: '复制失败', icon: 'none' });
+      }
+    });
   },
 
   // 检查用户是否可以评分（去过该店铺但未评分）

@@ -56,7 +56,7 @@
                 <text class="info-value red-text">{{item.countdownText}}</text>
               </view>
               <view class="info-tag tag-address">
-                <text class="info-value">{{item.shopLocation || item.location || '地址待定'}}</text>
+                <text class="info-value">{{item.location || '地址待定'}}</text>
               </view>
             </view>
           </view>

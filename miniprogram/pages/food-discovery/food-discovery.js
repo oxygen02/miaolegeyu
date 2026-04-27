@@ -368,14 +368,18 @@ Page({
 
   // 点击地址导航
   onAddressTap(e) {
-    e.stopPropagation();
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
     const { address, name } = e.currentTarget.dataset;
     this.openLocationAction(address, name);
   },
 
   // 打开位置导航
   openLocation(e) {
-    e.stopPropagation();
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
     const { address, name } = e.currentTarget.dataset;
     this.openLocationAction(address, name);
   },

@@ -1,0 +1,54 @@
+<view class="settings-page">
+  <!-- 顶部导航 -->
+  <view class="nav-header">
+    <view class="back-btn" bindtap="goBack">‹</view>
+    <text class="nav-title">设置</text>
+  </view>
+
+  <!-- 用户信息区域 -->
+  <view class="user-section">
+    <view class="user-avatar" bindtap="changeAvatar">
+      <image src="{{userInfo.avatarUrl || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFill"/>
+      <view class="avatar-edit">更换头像</view>
+    </view>
+    <view class="user-info">
+      <text class="user-name" bindtap="editNickName">{{userInfo.nickName || '未登录'}}</text>
+      <text class="user-id" wx:if="{{userInfo.isLogin}}">ID: {{userInfo.userId}}</text>
+    </view>
+  </view>
+
+  <!-- 设置选项 -->
+  <view class="settings-section">
+    <view class="section-title">通用设置</view>
+    
+    <view class="setting-item">
+      <text class="setting-label">消息通知</text>
+      <switch checked="{{settings.notification}}" bindchange="toggleNotification" color="#FF9F43"/>
+    </view>
+
+    <view class="setting-item">
+      <text class="setting-label">声音提示</text>
+      <switch checked="{{settings.sound}}" bindchange="toggleSound" color="#FF9F43"/>
+    </view>
+
+    <view class="setting-item">
+      <text class="setting-label">自动更新</text>
+      <switch checked="{{settings.autoUpdate}}" bindchange="toggleAutoUpdate" color="#FF9F43"/>
+    </view>
+  </view>
+
+  <!-- 其他选项 -->
+  <view class="settings-section">
+    <view class="section-title">其他</view>
+    
+    <view class="setting-item" bindtap="clearCache">
+      <text class="setting-label">清除缓存</text>
+      <text class="setting-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 退出登录按钮 -->
+  <view class="logout-section" wx:if="{{userInfo.isLogin}}">
+    <button class="logout-btn" bindtap="logout">退出登录</button>
+  </view>
+</view>

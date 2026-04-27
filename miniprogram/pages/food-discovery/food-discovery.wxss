@@ -18,6 +18,19 @@
 /* 顶部标题区 */
 .header-section {
   padding: 40rpx 32rpx 24rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 猫尾巴 - 歪歪的在右下角 */
+.header-tail {
+  width: 100rpx;
+  height: 100rpx;
+  position: absolute;
+  right: -10rpx;
+  bottom: -20rpx;
+  z-index: 2;
+  transform: rotate(-15deg);
 }
 
 /* 店铺列表顶部间距 */

@@ -35,14 +35,15 @@ exports.main = async (event) => {
     // 获取所有房间ID
     const roomIds = rooms.map(room => room.roomId);
     
-    // 批量获取参与者数量
+    // 批量获取参与者数量和头像
     let participantCounts = {};
+    let participantAvatars = {};
     try {
       const { data: participants } = await db.collection('room_participants')
         .where({
           roomId: _.in(roomIds)
         })
-        .field({ roomId: true })
+        .field({ roomId: true, openid: true })
         .get();
       
       // 统计每个房间的参与者数量
@@ -51,6 +52,35 @@ exports.main = async (event) => {
       });
     } catch (err) {
       console.error('获取参与者数量失败:', err);
+    }
+    
+    // 对于拼单模式，获取拼单参与者头像
+    try {
+      const { data: groupParticipants } = await db.collection('group_order_participants')
+        .where({
+          roomId: _.in(roomIds)
+        })
+        .get();
+      
+      // 按房间分组获取参与者openid
+      const roomParticipantOpenIds = {};
+      groupParticipants.forEach(p => {
+        if (!roomParticipantOpenIds[p.roomId]) {
+          roomParticipantOpenIds[p.roomId] = [];
+        }
+        roomParticipantOpenIds[p.roomId].push(p.openid);
+      });
+      
+      // 获取用户头像信息（简化处理，使用默认头像或从其他集合获取）
+      for (const roomId of Object.keys(roomParticipantOpenIds)) {
+        participantAvatars[roomId] = roomParticipantOpenIds[roomId].map((openid, index) => ({
+          openid,
+          avatarUrl: '/assets/images/cat-avatar-icon.png', // 默认头像
+          index
+        }));
+      }
+    } catch (err) {
+      console.error('获取拼单参与者头像失败:', err);
     }
 
     // 组装返回数据
@@ -72,7 +102,11 @@ exports.main = async (event) => {
       voteDeadline: room.voteDeadline,
       finalPoster: room.finalPoster,
       candidatePosters: room.candidatePosters || [],
-      participantCount: participantCounts[room.roomId] || 0
+      participantCount: participantCounts[room.roomId] || 0,
+      creatorNickName: room.creatorNickName || '',
+      creatorAvatarUrl: room.creatorAvatarUrl || '',
+      // 拼单参与者头像
+      participantAvatars: participantAvatars[room.roomId] || []
     }));
 
     return {

@@ -441,10 +441,10 @@
 
 /* 底部按钮 - 粗边框风格 */
 .bottom-panel {
-  padding-top: 16rpx;
   display: flex;
   justify-content: center;
   flex-shrink: 0;
+  margin-bottom: 24rpx;
 }
 
 .submit-btn {
@@ -460,8 +460,7 @@
   border: 4rpx solid #3D3D3D !important;
   box-shadow: 4rpx 4rpx 0 #3D3D3D !important;
   padding: 20rpx 48rpx !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+  margin: 0 auto !important;
 }
 
 .submit-btn.btn-disabled {

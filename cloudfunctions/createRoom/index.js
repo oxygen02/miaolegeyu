@@ -2,20 +2,12 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
-// 生成6位房间号（2位字母+4位数字）
+// 生成6位数字房间号
 function generateRoomId() {
-  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const numbers = '0123456789';
   let roomId = '';
-  
-  for (let i = 0; i < 2; i++) {
-    roomId += letters.charAt(Math.floor(Math.random() * letters.length));
+  for (let i = 0; i < 6; i++) {
+    roomId += Math.floor(Math.random() * 10);
   }
-  
-  for (let i = 0; i < 4; i++) {
-    roomId += numbers.charAt(Math.floor(Math.random() * numbers.length));
-  }
-  
   return roomId;
 }
 
@@ -37,7 +29,11 @@ exports.main = async (event) => {
     dinnerTime,
     cuisineOptions,
     paymentMode,
-    isAnonymous
+    isAnonymous,
+    creatorNickName,
+    creatorAvatarUrl,
+    options,
+    optionCount
   } = event;
   
   try {
@@ -61,6 +57,8 @@ exports.main = async (event) => {
       location: location || '',
       peopleCount: peopleCount || 0,
       creatorOpenId: wxContext.OPENID,
+      creatorNickName: creatorNickName || '',
+      creatorAvatarUrl: creatorAvatarUrl || '',
       status: 'voting',
       candidatePosters: candidatePosters || [],
       voteDeadline: deadline,
@@ -80,6 +78,23 @@ exports.main = async (event) => {
       roomData.cuisineOptions = cuisineOptions || [];
       roomData.paymentMode = paymentMode || 'AA';
       roomData.isAnonymous = isAnonymous || false;
+    }
+    
+    // 拼单模式字段
+    if (mode === 'group') {
+      roomData.options = options || [];
+      roomData.optionCount = optionCount || 0;
+      // 使用第一个选项的标题作为房间标题
+      if (options && options.length > 0 && options[0].title) {
+        roomData.title = options[0].title;
+        roomData.shopName = options[0].title;
+      }
+      if (options && options.length > 0 && options[0].shopImage) {
+        roomData.shopImage = options[0].shopImage;
+      }
+      if (options && options.length > 0 && options[0].platform) {
+        roomData.platform = options[0].platform;
+      }
     }
     
     // 创建房间

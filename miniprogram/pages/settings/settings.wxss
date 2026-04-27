@@ -1,0 +1,137 @@
+.settings-page {
+  min-height: 100vh;
+  background: #F5F0E8;
+}
+
+/* 顶部导航 */
+.nav-header {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: #fff;
+  border-bottom: 2rpx solid #E0E0E0;
+}
+
+.back-btn {
+  font-size: 48rpx;
+  color: #333;
+  padding: 0 20rpx;
+}
+
+.nav-title {
+  flex: 1;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+  margin-right: 88rpx;
+}
+
+/* 用户信息区域 */
+.user-section {
+  display: flex;
+  align-items: center;
+  padding: 40rpx;
+  background: #fff;
+  margin-bottom: 20rpx;
+}
+
+.user-avatar {
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4rpx solid #FF9F43;
+}
+
+.user-avatar image {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-edit {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 20rpx;
+  text-align: center;
+  padding: 4rpx 0;
+}
+
+.user-info {
+  margin-left: 30rpx;
+  flex: 1;
+}
+
+.user-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.user-id {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 设置区域 */
+.settings-section {
+  background: #fff;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  padding: 20rpx 30rpx;
+  font-size: 28rpx;
+  color: #999;
+  background: #F5F0E8;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx;
+  border-bottom: 2rpx solid #F5F5F5;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-size: 30rpx;
+  color: #333;
+}
+
+.setting-arrow {
+  font-size: 36rpx;
+  color: #999;
+}
+
+/* 退出登录 */
+.logout-section {
+  padding: 40rpx;
+}
+
+.logout-btn {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #FF6B6B;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  border: none;
+}
+
+.logout-btn::after {
+  border: none;
+}

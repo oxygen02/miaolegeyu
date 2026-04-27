@@ -1,0 +1,78 @@
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 拼单内容 -->
+  <view wx:else class="content">
+    <!-- 标题区域 -->
+    <view class="header-section">
+      <text class="title">{{room.title || '拼单活动'}}</text>
+      <text class="subtitle" wx:if="{{room.shopName && room.shopName !== room.title}}">{{room.shopName}}</text>
+      <view class="participants-count">
+        <text class="count-num">{{totalParticipants}}</text>
+        <text class="count-text">人参与</text>
+      </view>
+    </view>
+
+    <!-- 拼单选项列表 -->
+    <view class="options-section">
+      <text class="section-title">选择拼单选项</text>
+      <view class="options-list">
+        <view
+          class="option-card {{selectedOptionIndex === index ? 'selected' : ''}} {{mySelectedOption === index ? 'joined' : ''}}"
+          wx:for="{{options}}"
+          wx:key="index"
+          bindtap="selectOption"
+          data-index="{{index}}"
+        >
+          <view class="option-image-wrap" wx:if="{{item.shopImage}}">
+            <image class="option-image" src="{{item.shopImage}}" mode="aspectFill" />
+          </view>
+          <view class="option-info">
+            <view class="option-header">
+              <text class="option-title">{{item.title || '选项' + (index + 1)}}</text>
+              <view class="option-badge" wx:if="{{mySelectedOption === index}}">已选</view>
+            </view>
+            <text class="option-platform" wx:if="{{item.platform}}">平台: {{item.platform}}</text>
+            <text class="option-deadline" wx:if="{{item.deadlineText}}">截止时间: {{item.deadlineText}}</text>
+            <view class="option-stats">
+              <text class="stats-text">{{optionStats[index].count}}人选择</text>
+              <view class="progress-bar" wx:if="{{totalParticipants > 0}}">
+                <view class="progress-fill" style="width: {{optionStats[index].count / totalParticipants * 100}}%"></view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 参与按钮 -->
+    <view class="action-section">
+      <button
+        class="btn btn-primary {{joining ? 'btn-loading' : ''}}"
+        bindtap="joinGroupOrder"
+        disabled="{{joining || selectedOptionIndex < 0}}"
+        wx:if="{{!hasJoined}}"
+      >
+        <text wx:if="{{!joining}}">参与拼单</text>
+        <text wx:else>处理中...</text>
+      </button>
+      <button
+        class="btn btn-success"
+        bindtap="joinGroupOrder"
+        disabled="{{joining || selectedOptionIndex === mySelectedOption}}"
+        wx:else
+      >
+        <text wx:if="{{selectedOptionIndex !== mySelectedOption}}">更新选择</text>
+        <text wx:else>已参与</text>
+      </button>
+    </view>
+
+    <!-- 提示信息 -->
+    <view class="tips-section" wx:if="{{!hasJoined}}">
+      <text class="tips-text">选择一个选项后点击"参与拼单"按钮加入</text>
+    </view>
+  </view>
+</view>

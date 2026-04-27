@@ -67,7 +67,7 @@
 /* ---------- 全屏swiper ---------- */
 .full-swiper {
   flex: 1;
-  height: calc(100vh - 520rpx);
+  height: calc(100vh - 680rpx);
   width: 100%;
 }
 
@@ -670,7 +670,7 @@
 /* 细类swiper展示 */
 .subcategory-swiper {
   flex: 1;
-  height: calc(100vh - 480rpx);
+  height: calc(100vh - 640rpx);
   width: 100%;
 }
 

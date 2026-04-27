@@ -34,26 +34,27 @@
       <input class="input" placeholder="如：周五部门聚餐" bindinput="onTitleInput" value="{{title}}"/>
     </view>
 
-    <!-- 地点 - 支持文字输入和地图选择 -->
-    <view class="form-item location-item">
-      <text class="label">地点</text>
-      <view class="location-content">
-        <input 
-          class="input location-input" 
-          placeholder="输入地点或点击地图图标" 
-          bindinput="onLocationInput" 
-          value="{{location}}"
-        />
-        <view class="location-map-btn" bindtap="chooseLocation">
-          <image class="location-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+    <!-- 地点和人数 - 同一行 -->
+    <view class="form-item combined location-people-row">
+      <view class="field-section location-section">
+        <text class="section-label">地点</text>
+        <view class="location-content-compact">
+          <input 
+            class="input location-input-compact" 
+            placeholder="输入地点或点击地图" 
+            bindinput="onLocationInput" 
+            value="{{location}}"
+          />
+          <view class="location-map-btn-compact" bindtap="chooseLocation">
+            <image class="location-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+          </view>
         </view>
       </view>
-    </view>
-
-    <!-- 人数 - 单独一行 -->
-    <view class="form-item">
-      <text class="label">人数</text>
-      <input class="input people-input" type="number" placeholder="0" bindinput="onPeopleInput" value="{{peopleCount}}"/>
+      <view class="divider"></view>
+      <view class="field-section people-section">
+        <text class="section-label">人数</text>
+        <input class="input people-input-compact" type="number" placeholder="0" bindinput="onPeopleInput" value="{{peopleCount}}"/>
+      </view>
     </view>
 
     <!-- 活动日期和投票截止日期 - 同一行 -->

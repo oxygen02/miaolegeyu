@@ -23,24 +23,39 @@
   overflow-y: auto;
 }
 
-/* 顶部操作栏 */
-.top-actions {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+/* 图片居中操作按钮组 */
+.image-actions-center {
+  position: absolute;
+  top: 50%;
+  right: 32rpx;
+  transform: translateY(-50%);
   z-index: 100;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20rpx 32rpx;
-  padding-top: 60rpx;
-  background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 100%);
+  flex-direction: column;
+  gap: 20rpx;
 }
 
-.action-group {
+.action-btn-circle {
+  width: 80rpx;
+  height: 80rpx;
+  background: rgba(255,255,255,0.95);
+  border-radius: 50%;
   display: flex;
-  gap: 16rpx;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.15);
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+.action-btn-circle::after {
+  border: none;
+}
+
+.share-circle-btn {
+  background: rgba(255,255,255,0.95);
+  line-height: 1;
 }
 
 .action-btn {
@@ -70,10 +85,16 @@
   color: #FF6B6B;
 }
 
-/* 图片区域 */
+/* SVG图标样式 */
+.action-icon-svg {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+/* 图片区域 - 高度增加120px(240rpx) */
 .image-section {
   position: relative;
-  height: 420rpx;
+  height: 660rpx;
 }
 
 .image-swiper {
@@ -127,57 +148,111 @@
   font-weight: 600;
 }
 
-/* 推荐指数 */
-.rating-section {
+/* 推荐指数、人均消费、地点合并一行 - 重新设计 */
+.rating-info-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin-bottom: 16rpx;
-  padding: 16rpx 20rpx;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
   background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
   border-radius: 12rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  margin-bottom: 16rpx;
 }
 
-.rating-label {
-  font-size: 26rpx;
-  color: #666;
-}
-
-.paw-rating {
+.info-col {
   display: flex;
+  align-items: center;
   gap: 8rpx;
 }
 
-.paw-icon {
-  width: 36rpx;
-  height: 36rpx;
+.rating-col {
+  flex: 0 0 auto;
 }
 
-.rating-info {
+.paw-rating-inline {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  margin-left: auto;
+  gap: 2rpx;
+  flex-shrink: 0;
 }
 
-.rating-text {
-  font-size: 26rpx;
+.paw-icon-small {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.rating-score-text {
+  font-size: 24rpx;
   color: #FF9F43;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.rating-count {
-  font-size: 20rpx;
+.price-col {
+  flex: 0 0 auto;
+  padding: 0 24rpx;
+  margin: 0 16rpx;
+  border-left: 1rpx solid rgba(0,0,0,0.08);
+  border-right: 1rpx solid rgba(0,0,0,0.08);
+}
+
+.price-value {
+  font-size: 32rpx;
+  color: #FF6B6B;
+  font-weight: 700;
+}
+
+.location-col {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+.location-content-inline {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.location-name {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200rpx;
+}
+
+.nav-btn-inline {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 159, 67, 0.15);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nav-icon-inline {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.info-label-small {
+  font-size: 22rpx;
   color: #999;
-  margin-top: 4rpx;
+  flex-shrink: 0;
 }
 
 /* 追加推荐人 */
 .additional-recommenders {
-  margin-top: 16rpx;
-  padding-top: 16rpx;
-  border-top: 1rpx solid rgba(0,0,0,0.05);
+  background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
 }
 
 .recommenders-label {
@@ -189,49 +264,58 @@
 
 .recommenders-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
+  flex-wrap: nowrap;
+  gap: 12rpx;
+  justify-content: space-between;
 }
 
 .recommender-item {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 6rpx;
   background: rgba(255,255,255,0.6);
-  padding: 8rpx 16rpx;
-  border-radius: 28rpx;
+  padding: 6rpx 10rpx;
+  border-radius: 24rpx;
   border: 1rpx solid rgba(0,0,0,0.05);
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
 }
 
 .recommender-avatar {
-  width: 36rpx;
-  height: 36rpx;
+  width: 32rpx;
+  height: 32rpx;
   border-radius: 50%;
   border: 2rpx solid #fff;
+  flex-shrink: 0;
 }
 
 .recommender-name {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80rpx;
 }
 
 .recommender-rating {
   display: flex;
   align-items: center;
-  gap: 4rpx;
-  margin-left: 8rpx;
+  gap: 2rpx;
   background: rgba(255,159,67,0.1);
-  padding: 2rpx 8rpx;
-  border-radius: 12rpx;
+  padding: 2rpx 6rpx;
+  border-radius: 10rpx;
+  flex-shrink: 0;
 }
 
 .rating-paw-small {
-  width: 18rpx;
-  height: 18rpx;
+  width: 16rpx;
+  height: 16rpx;
 }
 
 .rating-score {
-  font-size: 18rpx;
+  font-size: 16rpx;
   color: #FF9F43;
   font-weight: 600;
 }
@@ -260,52 +344,6 @@
   color: #FF6B6B;
 }
 
-/* 地点导航 */
-.location-item {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.location-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8rpx;
-}
-
-.location-text {
-  flex: 1;
-  font-size: 26rpx;
-  color: #333;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.nav-btn {
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 159, 67, 0.1);
-  border-radius: 12rpx;
-  flex-shrink: 0;
-}
-
-.nav-btn:active {
-  background: rgba(255, 159, 67, 0.2);
-}
-
-.nav-icon {
-  width: 40rpx;
-  height: 40rpx;
-}
-
 /* 各个区块 */
 .section {
   background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
@@ -315,26 +353,7 @@
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
 }
 
-/* 基本信息 */
-.basic-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16rpx;
-  margin-bottom: 12rpx;
-  background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
-  border-radius: 12rpx;
-  padding: 16rpx 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
-}
-
-.info-item {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
+/* 各个区块 */
 .section-title {
   font-size: 26rpx;
   font-weight: 600;
@@ -359,11 +378,100 @@
   font-weight: 500;
 }
 
-/* 推荐理由 */
-.reason-text {
+/* 推荐理由、推荐人和评价按钮合并区域 */
+.reason-uploader-section {
+  padding: 20rpx 24rpx;
+}
+
+.reason-uploader-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.reason-uploader-row .info-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8rpx;
+}
+
+.reason-col {
+  flex: 0 0 auto;
+}
+
+.reason-col .reason-text {
   font-size: 24rpx;
   color: #666;
   line-height: 1.6;
+}
+
+.uploader-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 0 24rpx;
+  margin: 0 16rpx;
+  border-left: 1rpx solid rgba(0,0,0,0.08);
+  border-right: 1rpx solid rgba(0,0,0,0.08);
+}
+
+.uploader-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.uploader-avatar-small {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid #fff;
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
+}
+
+.uploader-name-small {
+  font-size: 22rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 评价按钮部分 - 与推荐理由、推荐人并行 */
+.rate-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+/* 弱化风格的评价按钮 - 与发起约饭按钮风格一致 */
+.rate-shop-btn-inline {
+  display: block;
+  width: fit-content;
+  height: auto;
+  line-height: 1;
+  background: #4CAF50;
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 600;
+  border-radius: 28rpx;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 3rpx 3rpx 0 #3D3D3D;
+  padding: 10rpx 24rpx;
+  margin: 8rpx auto 0;
+}
+
+.rate-shop-btn-inline::after {
+  border: none;
+}
+
+.rate-shop-btn-inline:active {
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+  transform: translateY(2rpx);
 }
 
 /* 注意要点 */
@@ -652,57 +760,7 @@
   border: none;
 }
 
-/* 店铺评分区域 */
-.rate-shop-section {
-  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
-  text-align: center;
-  padding: 16rpx 20rpx;
-  border: 2rpx solid rgba(76, 175, 80, 0.2);
-}
 
-.rate-shop-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8rpx;
-  margin-bottom: 12rpx;
-}
-
-.rate-shop-icon {
-  width: 32rpx;
-  height: 32rpx;
-}
-
-.rate-shop-text {
-  font-size: 24rpx;
-  color: #4CAF50;
-  font-weight: 600;
-}
-
-.rate-shop-btn {
-  display: block;
-  width: fit-content;
-  height: auto;
-  line-height: 1;
-  background: #4CAF50;
-  color: #fff;
-  font-size: 24rpx;
-  font-weight: 600;
-  border-radius: 28rpx;
-  border: 3rpx solid #3D3D3D;
-  box-shadow: 3rpx 3rpx 0 #3D3D3D;
-  padding: 12rpx 32rpx;
-  margin: 0 auto;
-}
-
-.rate-shop-btn::after {
-  border: none;
-}
-
-.rate-shop-btn:active {
-  box-shadow: 2rpx 2rpx 0 #3D3D3D;
-  transform: translateY(2rpx);
-}
 
 /* 发起约饭按钮 */
 .create-appointment-section {
@@ -729,7 +787,7 @@
   color: #666;
 }
 
-/* 发起约饭按钮 - 粗边框风格 */
+/* 发起约饭按钮 - 粗边框风格，与其他页面底部按钮一致 */
 .create-btn {
   display: block;
   width: fit-content;
@@ -737,12 +795,12 @@
   line-height: 1;
   background: #FF9F43;
   color: #fff;
-  font-size: 24rpx;
+  font-size: 32rpx;
   font-weight: 600;
-  border-radius: 28rpx;
-  border: 3rpx solid #3D3D3D;
-  box-shadow: 3rpx 3rpx 0 #3D3D3D;
-  padding: 12rpx 32rpx;
+  border-radius: 40rpx;
+  border: 4rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
+  padding: 24rpx 48rpx;
   margin: 0 auto;
 }
 
@@ -753,6 +811,25 @@
 .create-btn:active {
   box-shadow: 2rpx 2rpx 0 #3D3D3D;
   transform: translateY(2rpx);
+}
+
+/* 提示文字也相应放大 */
+.create-appointment-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.hint-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.hint-text {
+  font-size: 26rpx;
+  color: #666;
 }
 
 /* 历史组团 */
@@ -921,7 +998,7 @@
   border-radius: 24rpx;
   width: 100%;
   max-width: 640rpx;
-  max-height: 85vh;
+  max-height: 92vh;
   overflow: hidden;
   animation: modalSlideUp 0.3s ease;
   display: flex;
@@ -961,7 +1038,7 @@
 
 .modal-body {
   padding: 24rpx 28rpx;
-  max-height: 65vh;
+  max-height: 70vh;
   overflow-y: auto;
   box-sizing: border-box;
 }
@@ -1124,6 +1201,54 @@
   color: #FFB347;
 }
 
+/* 匿名发起选项 */
+.anonymous-item {
+  margin-bottom: 24rpx;
+}
+
+.anonymous-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f5f5f5;
+  padding: 20rpx 24rpx;
+  border-radius: 12rpx;
+}
+
+.anonymous-hint {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.toggle-switch {
+  width: 88rpx;
+  height: 48rpx;
+  background: #ccc;
+  border-radius: 24rpx;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.toggle-switch.active {
+  background: #FF9F43;
+}
+
+.toggle-circle {
+  width: 40rpx;
+  height: 40rpx;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 4rpx;
+  left: 4rpx;
+  transition: all 0.3s;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.2);
+}
+
+.toggle-switch.active .toggle-circle {
+  left: 44rpx;
+}
+
 /* 约束条件选择器 */
 .requirements-selector {
   display: flex;
@@ -1182,6 +1307,32 @@
 
 .submit-btn::after {
   border: none;
+}
+
+/* 弹窗中的发起约饭按钮 - 与店铺页样式一致 */
+.modal-footer .create-btn {
+  display: block;
+  width: fit-content;
+  height: auto;
+  line-height: 1;
+  background: #FF9F43;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 40rpx;
+  border: 4rpx solid #3D3D3D;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D;
+  padding: 24rpx 48rpx;
+  margin: 0 auto;
+}
+
+.modal-footer .create-btn::after {
+  border: none;
+}
+
+.modal-footer .create-btn:active {
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+  transform: translateY(2rpx);
 }
 
 /* 评分弹窗 */

@@ -229,7 +229,8 @@ Page({
   onBannerTap(e) {
     const { type, appointmentId } = e.currentTarget.dataset;
     if (appointmentId) {
-      wx.navigateTo({ url: `/pages/appointment-detail/appointment-detail?id=${appointmentId}` });
+      // 跳转到投票页面
+      wx.navigateTo({ url: `/pages/vote/vote?roomId=${appointmentId}` });
       return;
     }
     switch(type) {

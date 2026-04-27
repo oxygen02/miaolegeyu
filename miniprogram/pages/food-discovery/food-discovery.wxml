@@ -8,6 +8,7 @@
         <text class="page-title">发现美食</text>
         <text class="page-subtitle">探索喵星人推荐的美味</text>
       </view>
+      <image class="header-tail" src="/assets/images/maoweiba.png" mode="aspectFit" />
     </view>
 
     <!-- 菜系筛选 -->

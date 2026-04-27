@@ -3,24 +3,6 @@
   <block wx:if="{{!loading && shop}}">
     <!-- 顶部固定区域 -->
     <view class="sticky-header">
-      <!-- 顶部操作栏 -->
-      <view class="top-actions">
-        <view class="action-btn back-btn" bindtap="goBack">
-          <text class="action-icon">←</text>
-        </view>
-        <view class="action-group">
-          <view class="action-btn favorite-btn" bindtap="toggleFavorite">
-            <text class="action-icon {{isFavorited ? 'favorited' : ''}}">{{isFavorited ? '★' : '☆'}}</text>
-          </view>
-          <button class="action-btn share-btn" open-type="share">
-            <text class="action-icon">↗</text>
-          </button>
-          <view class="action-btn more-btn" wx:if="{{isShopOwner}}" bindtap="showOwnerActions">
-            <text class="action-icon">⋯</text>
-          </view>
-        </view>
-      </view>
-
       <!-- 图片轮播 -->
       <view class="image-section">
         <swiper 
@@ -39,6 +21,23 @@
             />
           </swiper-item>
         </swiper>
+        
+        <!-- 图片居中操作按钮组 -->
+        <view class="image-actions-center">
+          <view class="action-btn-circle" wx:if="{{shop.platformUrl}}" bindtap="openPlatformLink">
+            <image class="action-icon-svg" src="/assets/images/shop-icon.svg" mode="aspectFit" />
+          </view>
+          <view class="action-btn-circle" bindtap="toggleFavorite">
+            <text class="action-icon {{isFavorited ? 'favorited' : ''}}">{{isFavorited ? '★' : '☆'}}</text>
+          </view>
+          <button class="action-btn-circle share-circle-btn" open-type="share">
+            <image class="action-icon-svg" src="/assets/images/share-icon.svg" mode="aspectFit" />
+          </button>
+          <view class="action-btn-circle" wx:if="{{isShopOwner}}" bindtap="showOwnerActions">
+            <text class="action-icon">⋯</text>
+          </view>
+        </view>
+        
         <view class="image-counter" wx:if="{{shop.images.length > 1}}">
           <text class="counter-text">{{currentImageIndex + 1}} / {{shop.images.length}}</text>
         </view>
@@ -51,64 +50,60 @@
           <view class="cuisine-tag">{{shop.cuisineName}}</view>
         </view>
 
-        <!-- 推荐指数 -->
-        <view class="rating-section">
-          <text class="rating-label">推荐指数</text>
-          <view class="paw-rating">
-            <image 
-              wx:for="{{shop.pawRating}}"
-              wx:for-index="pawIndex"
-              wx:key="pawIndex"
-              class="paw-icon {{item ? 'filled' : 'empty'}}"
-              src="/assets/images/cat-paw-icon.png"
-              mode="aspectFit"
-              style="opacity: {{item ? 1 : 0.3}}; filter: {{item ? 'none' : 'grayscale(100%)'}}"
-            />
+        <!-- 推荐指数、人均消费、地点合并一行 -->
+        <view class="rating-info-row">
+          <view class="info-col rating-col">
+            <text class="info-label-small">推荐指数</text>
+            <view class="paw-rating-inline">
+              <image 
+                wx:for="{{shop.pawRating}}"
+                wx:for-index="pawIndex"
+                wx:key="pawIndex"
+                class="paw-icon-small {{item ? 'filled' : 'empty'}}"
+                src="/assets/images/cat-paw-icon.png"
+                mode="aspectFit"
+                style="opacity: {{item ? 1 : 0.3}}; filter: {{item ? 'none' : 'grayscale(100%)'}}"
+              />
+            </view>
+            <text class="rating-score-text">{{shop.rating}}分</text>
           </view>
-          <view class="rating-info">
-            <text class="rating-text">{{shop.rating}} 分</text>
-            <text class="rating-count" wx:if="{{shop.ratingCount > 1}}">({{shop.ratingCount}}人评价)</text>
+          <view class="info-col price-col">
+            <text class="info-label-small">人均</text>
+            <text class="price-value">¥{{shop.avgPrice}}</text>
           </view>
-        </view>
-
-        <!-- 追加推荐人 -->
-        <view class="additional-recommenders" wx:if="{{shop.additionalRecommenders && shop.additionalRecommenders.length > 0}}">
-          <text class="recommenders-label">追加推荐</text>
-          <view class="recommenders-list">
-            <view class="recommender-item" wx:for="{{shop.additionalRecommenders}}" wx:key="openId">
-              <block wx:if="{{!item.isAnonymous}}">
-                <image class="recommender-avatar" src="{{item.avatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
-                <text class="recommender-name">{{item.name}}</text>
-              </block>
-              <block wx:else>
-                <image class="recommender-avatar" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
-                <text class="recommender-name">匿名喵友</text>
-              </block>
-              <view class="recommender-rating" wx:if="{{item.rating > 0}}">
-                <image class="rating-paw-small" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
-                <text class="rating-score">{{item.rating}}</text>
+          <view class="info-col location-col">
+            <text class="info-label-small">地点</text>
+            <view class="location-content-inline">
+              <text class="location-name">{{shop.location}}</text>
+              <view class="nav-btn-inline" bindtap="openLocation" data-address="{{shop.location}}" data-name="{{shop.name}}">
+                <image class="nav-icon-inline" src="/assets/images/location-icon.svg" mode="aspectFit"/>
               </view>
             </view>
           </view>
         </view>
+
       </view>
     </view>
 
     <!-- 可滚动内容区域 -->
     <view class="scrollable-content">
 
-      <!-- 基本信息 -->
-      <view class="basic-info">
-        <view class="info-item">
-          <text class="info-label">人均消费</text>
-          <text class="info-value price">¥{{shop.avgPrice}}</text>
-        </view>
-        <view class="info-item location-item">
-          <text class="info-label">地点</text>
-          <view class="location-content">
-            <text class="info-value location-text">{{shop.location}}</text>
-            <view class="nav-btn" bindtap="openLocation" data-address="{{shop.location}}" data-name="{{shop.name}}">
-              <image class="nav-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+      <!-- 追加推荐人 -->
+      <view class="additional-recommenders" wx:if="{{shop.additionalRecommenders && shop.additionalRecommenders.length > 0}}">
+        <text class="recommenders-label">追加推荐</text>
+        <view class="recommenders-list">
+          <view class="recommender-item" wx:for="{{shop.additionalRecommenders}}" wx:key="openId">
+            <block wx:if="{{!item.isAnonymous}}">
+              <image class="recommender-avatar" src="{{item.avatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+              <text class="recommender-name">{{item.name}}</text>
+            </block>
+            <block wx:else>
+              <image class="recommender-avatar" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+              <text class="recommender-name">匿名喵友</text>
+            </block>
+            <view class="recommender-rating" wx:if="{{item.rating > 0}}">
+              <image class="rating-paw-small" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+              <text class="rating-score">{{item.rating}}</text>
             </view>
           </view>
         </view>
@@ -124,10 +119,32 @@
         </view>
       </view>
 
-      <!-- 推荐理由 -->
-      <view class="section" wx:if="{{shop.reason}}">
-        <text class="section-title">推荐理由</text>
-        <text class="reason-text">{{shop.reason}}</text>
+      <!-- 推荐理由、推荐人和评价按钮（合并一行） -->
+      <view class="section reason-uploader-section" wx:if="{{shop.reason}}">
+        <view class="reason-uploader-row">
+          <view class="info-col reason-col">
+            <text class="info-label-small">推荐理由</text>
+            <text class="reason-text">{{shop.reason}}</text>
+          </view>
+          <view class="info-col uploader-col">
+            <text class="info-label-small">推荐人</text>
+            <view class="uploader-inline">
+              <block wx:if="{{shop.isAnonymous}}">
+                <image class="uploader-avatar-small" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+                <text class="uploader-name-small">匿名喵友</text>
+              </block>
+              <block wx:else>
+                <image class="uploader-avatar-small" src="{{shop.uploaderAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+                <text class="uploader-name-small">{{shop.uploaderName || '神秘喵友'}}</text>
+              </block>
+            </view>
+          </view>
+          <!-- 店铺评分按钮（所有去过的人都可以评分） -->
+          <view class="info-col rate-col" wx:if="{{canRateShop}}">
+            <text class="info-label-small">去过评分</text>
+            <button class="rate-shop-btn-inline" bindtap="showShopRatingModal">我来评价</button>
+          </view>
+        </view>
       </view>
 
       <!-- 注意要点 -->
@@ -281,37 +298,7 @@
         </view>
       </view>
 
-      <!-- 上传者信息 -->
-      <view class="uploader-section">
-        <view class="uploader-header">
-          <text class="section-title">推荐人</text>
-        </view>
-        <view class="uploader-info">
-          <block wx:if="{{shop.isAnonymous}}">
-            <image class="uploader-avatar" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
-            <view class="uploader-detail">
-              <text class="uploader-name">匿名喵友</text>
-              <text class="upload-time">{{shop.createTime}}</text>
-            </view>
-          </block>
-          <block wx:else>
-            <image class="uploader-avatar" src="{{shop.uploaderAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
-            <view class="uploader-detail">
-              <text class="uploader-name">{{shop.uploaderName || '神秘喵友'}}</text>
-              <text class="upload-time">{{shop.createTime}}</text>
-            </view>
-          </block>
-        </view>
-      </view>
 
-      <!-- 店铺评分按钮（所有去过的人都可以评分） -->
-      <view class="section rate-shop-section" wx:if="{{canRateShop}}">
-        <view class="rate-shop-header">
-          <image class="rate-shop-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
-          <text class="rate-shop-text">去过这家店？来打个分吧！</text>
-        </view>
-        <button class="rate-shop-btn" bindtap="showShopRatingModal">我来评价</button>
-      </view>
 
       <!-- 发起约饭按钮（没有约饭时显示） -->
       <view class="section create-appointment-section" wx:if="{{appointmentLoaded && !appointment}}">
@@ -382,7 +369,7 @@
         <text class="modal-title">发起约饭</text>
         <text class="modal-close" bindtap="closeAppointmentModal">×</text>
       </view>
-      <scroll-view class="modal-body" scroll-y="true">
+      <view class="modal-body">
         <view class="form-item">
           <text class="form-label">店铺</text>
           <text class="form-value">{{shop.name}}</text>
@@ -457,9 +444,19 @@
           <text class="form-label">备注</text>
           <textarea class="form-textarea" placeholder="写点什么吸引小伙伴吧..." value="{{appointmentNote}}" bindinput="onNoteInput" maxlength="100" />
         </view>
-      </scroll-view>
+        <!-- 匿名发起选项 -->
+        <view class="form-item anonymous-item">
+          <text class="form-label">匿名发起</text>
+          <view class="anonymous-toggle" bindtap="toggleAnonymous">
+            <text class="anonymous-hint">开启后其他用户看不到发起人信息</text>
+            <view class="toggle-switch {{isAnonymousInitiator ? 'active' : ''}}">
+              <view class="toggle-circle"></view>
+            </view>
+          </view>
+        </view>
+      </view>
       <view class="modal-footer">
-        <button class="submit-btn" bindtap="submitAppointment">发起约饭</button>
+        <button class="submit-btn create-btn" bindtap="submitAppointment">发起约饭</button>
       </view>
     </view>
   </view>

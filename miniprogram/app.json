@@ -6,6 +6,7 @@
     "pages/create-mode-a/create-mode-a",
     "pages/create-mode-b/create-mode-b",
     "pages/create-group-order/create-group-order",
+    "pages/group-detail/group-detail",
     "pages/vote/vote",
     "pages/filter/filter",
     "pages/control/control",
@@ -16,7 +17,11 @@
     "pages/shop-detail/shop-detail",
     "pages/upload-shop/upload-shop",
     "pages/profile/profile",
-    "pages/room-list/room-list"
+    "pages/room-list/room-list",
+    "pages/avatar-select/avatar-select",
+    "pages/settings/settings",
+    "pages/history/history",
+    "pages/about/about"
   ],
   "window": {
     "backgroundTextStyle": "light",

@@ -1,12 +1,14 @@
 <view class="profile-page">
   <!-- 用户信息 -->
-  <view class="user-header">
+  <view class="user-header" bindtap="wxLogin">
     <view class="user-avatar">
-      <image src="/assets/images/cat-avatar-icon.png" mode="aspectFit"/>
+      <image src="{{userInfo.avatarUrl || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit"/>
+      <view class="avatar-edit" wx:if="{{userInfo.isLogin}}">更换头像</view>
+      <view class="avatar-edit" wx:else>点击登录</view>
     </view>
     <view class="user-info">
-      <text class="user-name">{{userInfo.name}}</text>
-      <text class="user-id">ID: {{userInfo.id}}</text>
+      <text class="user-name">{{userInfo.nickName || '点击登录'}}</text>
+      <text class="user-id" wx:if="{{userInfo.isLogin}}">ID: {{userInfo.userId}}</text>
     </view>
   </view>
 
@@ -35,17 +37,17 @@
   <!-- 功能菜单 -->
   <view class="menu-section">
     <view class="menu-item" bindtap="goToHistory">
-      <view class="menu-icon">📜</view>
+      <image class="menu-icon-image" src="/assets/images/history.png" mode="aspectFit"/>
       <text class="menu-text">历史记录</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="goToSettings">
-      <view class="menu-icon">⚙️</view>
+      <image class="menu-icon-image" src="/assets/images/setting.png" mode="aspectFit"/>
       <text class="menu-text">设置</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="goToAbout">
-      <view class="menu-icon">ℹ️</view>
+      <image class="menu-icon-image" src="/assets/images/about.png" mode="aspectFit"/>
       <text class="menu-text">关于</text>
       <text class="menu-arrow">›</text>
     </view>

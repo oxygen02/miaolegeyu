@@ -11,7 +11,8 @@ exports.main = async (event, context) => {
     maxParticipants,
     requirements = [],
     customRequirement,
-    paymentMode = 'AA'
+    paymentMode = 'AA',
+    isAnonymous = false
   } = event;
   const { OPENID } = cloud.getWXContext();
   
@@ -44,9 +45,10 @@ exports.main = async (event, context) => {
         requirements: requirements || [],
         customRequirement: customRequirement || '',
         paymentMode: paymentMode || 'AA',
+        isAnonymous: isAnonymous || false,
         participants: [{
           openId: OPENID,
-          name: '神秘喵友',
+          name: isAnonymous ? '匿名喵友' : '神秘喵友',
           avatar: '',
           joinTime: new Date()
         }],

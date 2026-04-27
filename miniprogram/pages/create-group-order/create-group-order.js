@@ -1,109 +1,404 @@
 const { generateRoomId } = require('../../utils/uuid.js');
+
+// 创建默认选项
+const createDefaultOption = () => ({
+  title: '',
+  selectedPlatform: '', // 默认不选中任何平台
+  deadlineText: '',
+  shopImage: '', // 单张图片
+  shopLink: ''
+});
+
 Page({
   data: {
-    title: '',
-    minAmount: '',
-    selectedPlatform: 'meituan',
-    deadlineText: '',
+    // 多选项数据 - 默认两个选项
+    shopOptions: [createDefaultOption(), createDefaultOption()],
+    currentOptionIndex: 0,
+    // 是否可以提交
+    canSubmitFlag: false,
+
+    // 时间选择器
     timeRange: [['今天','明天','后天'], ['10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00']],
     timeIndex: [0, 2],
     tempTimeIndex: [0, 2],
     showTimePickerPopup: false,
-    shopImage: '',
-    shopLink: ''
+    editingOptionIndex: 0
   },
-  onLoad() { this.updateDeadlineText(); },
-  onTitleInput(e) { this.setData({ title: e.detail.value }); },
-  onAmountInput(e) { this.setData({ minAmount: e.detail.value }); },
-  onShopLinkInput(e) { this.setData({ shopLink: e.detail.value }); },
-  showTimePicker() {
+
+  onLoad() {
+    // 初始化两个选项的默认时间
+    this.updateDeadlineText(0);
+    this.updateDeadlineText(1);
+    // 初始化提交状态
+    this.checkSubmitStatus();
+  },
+
+  // 切换选项
+  switchOption(e) {
+    const index = e.currentTarget.dataset.index;
+    this.setData({ currentOptionIndex: index });
+  },
+
+  // 添加选项
+  addOption() {
+    const { shopOptions } = this.data;
+    if (shopOptions.length >= 3) {
+      wx.showToast({ title: '最多添加3个选项', icon: 'none' });
+      return;
+    }
+    const newOptions = [...shopOptions, createDefaultOption()];
     this.setData({
-      showTimePickerPopup: true,
-      tempTimeIndex: this.data.timeIndex
+      shopOptions: newOptions,
+      currentOptionIndex: newOptions.length - 1
+    }, () => {
+      this.checkSubmitStatus();
     });
   },
+
+  // 删除选项
+  deleteOption(e) {
+    const index = e.currentTarget.dataset.index;
+    const { shopOptions, currentOptionIndex } = this.data;
+    
+    if (shopOptions.length <= 1) {
+      wx.showToast({ title: '至少保留一个选项', icon: 'none' });
+      return;
+    }
+
+    wx.showModal({
+      title: '确认删除',
+      content: `确定删除选项${index + 1}吗？`,
+      success: (res) => {
+        if (res.confirm) {
+          const newOptions = shopOptions.filter((_, i) => i !== index);
+          let newIndex = currentOptionIndex;
+          if (currentOptionIndex >= newOptions.length) {
+            newIndex = newOptions.length - 1;
+          }
+          this.setData({
+            shopOptions: newOptions,
+            currentOptionIndex: newIndex
+          }, () => {
+            this.checkSubmitStatus();
+          });
+        }
+      }
+    });
+  },
+
+  // 输入处理
+  onTitleInput(e) {
+    const index = e.currentTarget.dataset.index;
+    const value = e.detail.value;
+    this.updateOptionField(index, 'title', value);
+  },
+
+  onAmountInput(e) {
+    const index = e.currentTarget.dataset.index;
+    const value = e.detail.value;
+    this.updateOptionField(index, 'minAmount', value);
+  },
+
+  onShopLinkInput(e) {
+    const index = e.currentTarget.dataset.index;
+    const value = e.detail.value;
+    this.updateOptionField(index, 'shopLink', value);
+    
+    // 自动识别平台
+    const platform = this.detectPlatform(value);
+    if (platform) {
+      this.updateOptionField(index, 'selectedPlatform', platform);
+    }
+  },
+
+  // 更新选项字段
+  updateOptionField(index, field, value) {
+    const { shopOptions } = this.data;
+    const newOptions = [...shopOptions];
+    newOptions[index] = { ...newOptions[index], [field]: value };
+    this.setData({ shopOptions: newOptions }, () => {
+      // 数据更新后检查提交状态
+      this.checkSubmitStatus();
+    });
+  },
+
+  // 检查提交状态
+  checkSubmitStatus() {
+    const canSubmitResult = this.canSubmit();
+    this.setData({ canSubmitFlag: canSubmitResult });
+  },
+
+  // 显示时间选择器
+  showTimePicker(e) {
+    const index = e.currentTarget.dataset.index;
+    this.setData({
+      showTimePickerPopup: true,
+      tempTimeIndex: this.data.timeIndex,
+      editingOptionIndex: index
+    });
+  },
+
   closeTimePicker() {
     this.setData({ showTimePickerPopup: false });
   },
+
   confirmTimePicker() {
+    const { editingOptionIndex, tempTimeIndex, timeRange } = this.data;
+    
+    // 验证时间不能早于当前时间
+    const selectedDay = timeRange[0][tempTimeIndex[0]];
+    const selectedTime = timeRange[1][tempTimeIndex[1]];
+    
+    if (!this.isValidDeadline(selectedDay, selectedTime)) {
+      wx.showToast({ 
+        title: '截止时间不能早于当前时间', 
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+    
     this.setData({
-      timeIndex: this.data.tempTimeIndex,
+      timeIndex: tempTimeIndex,
       showTimePickerPopup: false
-    }, () => this.updateDeadlineText());
+    }, () => {
+      this.updateDeadlineText(editingOptionIndex);
+      // 时间更新后检查提交状态
+      this.checkSubmitStatus();
+    });
   },
+
+  // 验证截止时间是否有效（不能早于当前时间）
+  isValidDeadline(day, time) {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // 解析选择的时间
+    const [hourStr, minuteStr] = time.split(':');
+    const selectedHour = parseInt(hourStr);
+    const selectedMinute = parseInt(minuteStr);
+    
+    // 解析选择的日期
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfterTomorrow = new Date(today);
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+    
+    let selectedDate;
+    if (day === '今天') {
+      selectedDate = today;
+    } else if (day === '明天') {
+      selectedDate = tomorrow;
+    } else if (day === '后天') {
+      selectedDate = dayAfterTomorrow;
+    } else {
+      return false;
+    }
+    
+    // 如果选择今天，需要比较时间
+    if (day === '今天') {
+      if (selectedHour < currentHour) {
+        return false;
+      }
+      if (selectedHour === currentHour && selectedMinute <= currentMinute) {
+        return false;
+      }
+    }
+    
+    return true;
+  },
+
   onPickerViewChange(e) {
     this.setData({ tempTimeIndex: e.detail.value });
   },
-  selectPlatform(e) { this.setData({ selectedPlatform: e.currentTarget.dataset.platform }); },
-  updateDeadlineText() {
+
+  // 选择平台（点击已选中的平台则取消选中）
+  selectPlatform(e) {
+    const index = e.currentTarget.dataset.index;
+    const platform = e.currentTarget.dataset.platform;
+    const { shopOptions } = this.data;
+    const currentPlatform = shopOptions[index].selectedPlatform;
+    
+    // 如果点击的是已选中的平台，则取消选中
+    if (currentPlatform === platform) {
+      this.updateOptionField(index, 'selectedPlatform', '');
+    } else {
+      this.updateOptionField(index, 'selectedPlatform', platform);
+    }
+  },
+
+  // 更新时间文本
+  updateDeadlineText(optionIndex) {
     const [d, t] = this.data.timeIndex;
     const day = this.data.timeRange[0][d];
     const time = this.data.timeRange[1][t];
-    this.setData({ deadlineText: `${day} ${time}` });
+    const deadlineText = `${day} ${time}`;
+    this.updateOptionField(optionIndex, 'deadlineText', deadlineText);
   },
+
   // 选择店铺图片
-  chooseShopImage() {
+  chooseShopImage(e) {
+    const index = e.currentTarget.dataset.index;
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       success: (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        this.setData({ shopImage: tempFilePath });
+        this.updateOptionField(index, 'shopImage', tempFilePath);
       }
     });
   },
+
   // 预览店铺图片
-  previewShopImage() {
+  previewShopImage(e) {
+    const index = e.currentTarget.dataset.index;
+    const { shopOptions } = this.data;
     wx.previewImage({
-      urls: [this.data.shopImage]
+      urls: [shopOptions[index].shopImage]
     });
   },
+
   // 删除店铺图片
-  deleteShopImage() {
-    this.setData({ shopImage: '' });
+  deleteShopImage(e) {
+    const index = e.currentTarget.dataset.index;
+    this.updateOptionField(index, 'shopImage', '');
   },
+
   // 粘贴店铺链接
-  async pasteShopLink() {
+  async pasteShopLink(e) {
+    const index = e.currentTarget.dataset.index;
     try {
       const res = await wx.getClipboardData();
-      this.setData({ shopLink: res.data });
+      const link = res.data;
+      this.updateOptionField(index, 'shopLink', link);
+      
+      // 自动识别平台
+      const platform = this.detectPlatform(link);
+      if (platform) {
+        this.updateOptionField(index, 'selectedPlatform', platform);
+      }
+      
       wx.showToast({ title: '已粘贴', icon: 'success' });
     } catch (err) {
       wx.showToast({ title: '粘贴失败', icon: 'none' });
     }
   },
-  canSubmit() { return this.data.title && this.data.minAmount; },
+
+  // 根据链接自动识别平台
+  detectPlatform(link) {
+    if (!link) return null;
+    const lowerLink = link.toLowerCase();
+    if (lowerLink.includes('meituan') || lowerLink.includes('dianping')) {
+      return 'meituan';
+    } else if (lowerLink.includes('taobao') || lowerLink.includes('ele.me')) {
+      return 'taobao';
+    } else if (lowerLink.includes('jd') || lowerLink.includes('jddj')) {
+      return 'jd';
+    }
+    return null;
+  },
+
+  // 检查是否可以提交 - 至少有一个选项填写了标题、图片、时间和平台
+  canSubmit() {
+    const { shopOptions } = this.data;
+    // 至少有一个选项填写了标题、图片、时间和平台
+    return shopOptions.some(option => 
+      option.title && option.title.trim() !== '' &&
+      option.shopImage && option.shopImage.trim() !== '' &&
+      option.deadlineText && option.deadlineText.trim() !== '' &&
+      option.selectedPlatform && option.selectedPlatform.trim() !== ''
+    );
+  },
+
+  // 创建拼单
   async createGroupOrder() {
-    if (!this.canSubmit()) { wx.showToast({ title: '请填写完整信息', icon: 'none' }); return; }
-    wx.showLoading({ title: '创建中...' });
+    console.log('点击发起拼单按钮');
+    console.log('canSubmitFlag:', this.data.canSubmitFlag);
+    console.log('shopOptions:', this.data.shopOptions);
+    
+    if (!this.canSubmit()) {
+      console.log('canSubmit返回false，无法提交');
+      wx.showToast({ title: '请至少完成一个选项（标题、图片、时间、平台）', icon: 'none' });
+      return;
+    }
+
+    wx.showLoading({ title: '创建中...', mask: true });
+
     try {
       const roomId = generateRoomId();
-      const data = {
-        roomId,
-        mode: 'group',
-        title: this.data.title,
-        minAmount: this.data.minAmount,
-        platform: this.data.selectedPlatform,
-        shopLink: this.data.shopLink
-      };
-      // 如果有店铺图片，先上传
-      if (this.data.shopImage) {
-        const uploadRes = await wx.cloud.uploadFile({
-          cloudPath: `shop-images/${roomId}-${Date.now()}.jpg`,
-          filePath: this.data.shopImage
-        });
-        data.shopImage = uploadRes.fileID;
-      }
+      const { shopOptions } = this.data;
+
+      // 只处理完整填写的选项（与canSubmit逻辑一致）
+      const validOptions = shopOptions.filter(option => 
+        option.title && option.title.trim() !== '' &&
+        option.shopImage && option.shopImage.trim() !== '' &&
+        option.deadlineText && option.deadlineText.trim() !== '' &&
+        option.selectedPlatform && option.selectedPlatform.trim() !== ''
+      );
+      
+      console.log('有效选项数量:', validOptions.length);
+      console.log('有效选项:', validOptions);
+
+      // 处理选项的图片上传
+      const optionsWithImages = await Promise.all(
+        validOptions.map(async (option, idx) => {
+          const data = {
+            title: option.title,
+            platform: option.selectedPlatform,
+            shopLink: option.shopLink,
+            deadlineText: option.deadlineText
+          };
+
+          // 如果有店铺图片（临时文件路径），上传到云存储
+          if (option.shopImage && (option.shopImage.startsWith('wxfile://') || option.shopImage.startsWith('http'))) {
+            try {
+              const uploadRes = await wx.cloud.uploadFile({
+                cloudPath: `shop-images/${roomId}-${idx}-${Date.now()}.jpg`,
+                filePath: option.shopImage
+              });
+              data.shopImage = uploadRes.fileID;
+            } catch (uploadErr) {
+              console.error('图片上传失败:', uploadErr);
+            }
+          }
+
+          return data;
+        })
+      );
+
+      // 创建拼单房间
       await wx.cloud.callFunction({
         name: 'createRoom',
-        data
+        data: {
+          roomId,
+          mode: 'group',
+          options: optionsWithImages,
+          optionCount: optionsWithImages.length
+        }
       });
+
       wx.hideLoading();
-      wx.redirectTo({ url: `/pages/fish-tank/fish-tank?roomId=${roomId}` });
-    } catch (err) { 
-      wx.hideLoading(); 
-      wx.showToast({ title: '创建失败', icon: 'none' });
+      
+      wx.showToast({
+        title: '发起拼单成功',
+        icon: 'success',
+        duration: 2000
+      });
+
+      // 跳转到拼单详情页
+      setTimeout(() => {
+        wx.redirectTo({
+          url: `/pages/group-detail/group-detail?roomId=${roomId}`
+        });
+      }, 1500);
+
+    } catch (err) {
+      console.error('创建拼单失败:', err);
+      wx.hideLoading();
+      wx.showToast({ title: '创建失败: ' + (err.message || '未知错误'), icon: 'none' });
     }
   }
 });

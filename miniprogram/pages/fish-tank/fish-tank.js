@@ -19,6 +19,17 @@ Page({
 
   onLoad(options) {
     console.log('喵不喵页面加载', options);
+    
+    // 设置导航栏颜色
+    wx.setNavigationBarColor({
+      frontColor: '#000000',
+      backgroundColor: '#F5F0E8',
+      animation: {
+        duration: 0,
+        timingFunc: 'linear'
+      }
+    });
+    
     // 如果传入 tab=group，则显示拼单列表
     if (options.tab === 'group') {
       this.setData({ viewMode: 'group' });
@@ -58,6 +69,12 @@ Page({
 
   // 加载正在进行的活动（所有进行中的）
   async loadOngoingRooms() {
+    // 如果是约饭模式，调用不同的云函数
+    if (this.data.viewMode === 'meal') {
+      await this.loadDiningAppointments();
+      return;
+    }
+
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'getAllRooms',
@@ -70,22 +87,58 @@ Page({
       if (result.success && result.rooms) {
         const rooms = result.rooms.map(room => {
           const isGroup = room.mode === 'group';
+          // 确保 shopName 是字符串
+          let shopName = isGroup ? (room.shopName || '外卖拼单') : (room.location || '地点待定');
+          if (typeof shopName === 'object') {
+            shopName = shopName.name || shopName.title || JSON.stringify(shopName);
+          }
+          // 格式化时间
+          let timeStr = room.voteDeadline || room.activityTime || room.deadline || '时间待定';
+          if (timeStr && timeStr !== '时间待定') {
+            try {
+              const date = new Date(timeStr);
+              if (!isNaN(date.getTime())) {
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                timeStr = `${month}月${day}日 ${hours}:${minutes}`;
+              }
+            } catch (e) {
+              console.error('时间格式化失败:', e);
+            }
+          }
+          // 拼单显示平台信息
+          let displayShopName = shopName;
+          if (isGroup && room.platform) {
+            const platformMap = {
+              'meituan': '美团',
+              'eleme': '饿了么',
+              'taobao': '淘宝',
+              'jd': '京东'
+            };
+            displayShopName = platformMap[room.platform] || room.platform;
+          }
           return {
             id: room.roomId,
             type: isGroup ? 'group' : 'dining',
             typeName: isGroup ? '拼单' : '聚餐',
             title: room.title,
-            shopName: isGroup ? (room.shopName || '外卖拼单') : (room.location || '地点待定'),
-            time: room.activityTime || room.deadline || '时间待定',
+            shopName: displayShopName,
+            time: timeStr,
             participantCount: room.participantCount || 0,
-            image: room.shopImage || room.candidatePosters?.[0]?.imageUrl || '/assets/images/taiyaki-icon.png',
+            image: room.shopImage || (room.candidatePosters && room.candidatePosters[0] && room.candidatePosters[0].imageUrl) || '/assets/images/taiyaki-icon.png',
             status: room.status,
             statusName: room.status === 'voting' ? '进行中' : '已结束',
             roomId: room.roomId,
             platform: room.platform,
             minAmount: room.minAmount,
             currentAmount: room.currentAmount || 0,
-            isCreator: false
+            isCreator: false,
+            creatorNickName: room.creatorNickName || '未知用户',
+            creatorAvatarUrl: room.creatorAvatarUrl || '/assets/images/cat-avatar-icon.png',
+            // 拼单参与者头像
+            participantAvatars: room.participantAvatars || []
           };
         });
 
@@ -108,6 +161,55 @@ Page({
     }
   },
 
+  // 加载约饭活动
+  async loadDiningAppointments() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getDiningAppointments',
+        data: { limit: 20 }
+      });
+
+      if (result.success && result.appointments) {
+        const appointments = result.appointments.map(apt => ({
+          id: apt.roomId,
+          type: 'meal',
+          typeName: '约饭',
+          title: apt.title,
+          shopName: apt.shopName,
+          time: apt.activityTime || '时间待定',
+          participantCount: apt.participantCount || 0,
+          image: '/assets/images/taiyaki-icon.png',
+          status: 'voting',
+          statusName: '进行中',
+          roomId: apt.roomId,
+          platform: '',
+          minAmount: 0,
+          currentAmount: 0,
+          isCreator: false,
+          creatorNickName: apt.creatorNickName || '神秘喵友',
+          creatorAvatarUrl: apt.creatorAvatarUrl || '/assets/images/cat-avatar-icon.png',
+          isAppointment: true
+        }));
+
+        this.setData({
+          ongoingActivities: appointments,
+          ongoingCount: appointments.length
+        });
+      } else {
+        this.setData({
+          ongoingActivities: [],
+          ongoingCount: 0
+        });
+      }
+    } catch (err) {
+      console.error('加载约饭活动失败:', err);
+      this.setData({
+        ongoingActivities: [],
+        ongoingCount: 0
+      });
+    }
+  },
+
   // 加载我发起的活动
   async loadMyRooms() {
     try {
@@ -121,12 +223,17 @@ Page({
       if (result.code === 0 && result.data) {
         const rooms = result.data.map(room => {
           const isGroup = room.mode === 'group';
+          // 确保 shopName 是字符串
+          let shopName = isGroup ? (room.shopName || '外卖拼单') : (room.location || '地点待定');
+          if (typeof shopName === 'object') {
+            shopName = shopName.name || shopName.title || JSON.stringify(shopName);
+          }
           return {
             id: room.roomId,
             type: isGroup ? 'group' : 'dining',
             typeName: isGroup ? '拼单' : '聚餐',
             title: room.title,
-            shopName: isGroup ? (room.shopName || '外卖拼单') : (room.location || '地点待定'),
+            shopName: shopName,
             time: room.activityTime || room.deadline || '时间待定',
             participantCount: room.participantCount || 0,
             image: room.shopImage || room.candidatePosters?.[0]?.imageUrl || '/assets/images/taiyaki-icon.png',
@@ -136,7 +243,9 @@ Page({
             platform: room.platform,
             minAmount: room.minAmount,
             currentAmount: room.currentAmount || 0,
-            isCreator: true
+            isCreator: true,
+            creatorNickName: room.creatorNickName || '未知用户',
+            creatorAvatarUrl: room.creatorAvatarUrl || '/assets/images/cat-avatar-icon.png'
           };
         });
 
@@ -173,12 +282,17 @@ Page({
       if (result.success && result.rooms) {
         const rooms = result.rooms.map(room => {
           const isGroup = room.mode === 'group';
+          // 确保 shopName 是字符串
+          let shopName = isGroup ? (room.shopName || '外卖拼单') : (room.location || '地点待定');
+          if (typeof shopName === 'object') {
+            shopName = shopName.name || shopName.title || JSON.stringify(shopName);
+          }
           return {
             id: room.roomId,
             type: isGroup ? 'group' : 'dining',
             typeName: isGroup ? '拼单' : '聚餐',
             title: room.title,
-            shopName: isGroup ? (room.shopName || '外卖拼单') : (room.location || '地点待定'),
+            shopName: shopName,
             time: room.activityTime || room.deadline || '时间待定',
             participantCount: room.participantCount || 0,
             image: room.shopImage || room.candidatePosters?.[0]?.imageUrl || '/assets/images/taiyaki-icon.png',
@@ -245,6 +359,77 @@ Page({
     // 阻止事件冒泡到 activity-main
   },
 
+  // 预览图片
+  previewImage(e) {
+    const src = e.currentTarget.dataset.src;
+    wx.previewImage({
+      urls: [src],
+      current: src
+    });
+  },
+
+  // 参与活动（拼单）
+  async joinActivity(e) {
+    const roomId = e.currentTarget.dataset.id;
+    const type = e.currentTarget.dataset.type;
+    
+    if (type === 'group') {
+      // 拼单活动 - 显示确认弹窗
+      wx.showModal({
+        title: '确认参与',
+        content: '确定要参与这个拼单吗？',
+        success: (res) => {
+          if (res.confirm) {
+            // 直接参与，不跳转
+            this.doJoinGroupOrder(roomId);
+          }
+        }
+      });
+    } else {
+      // 聚餐活动 - 跳转到投票页
+      wx.navigateTo({
+        url: `/pages/vote/vote?roomId=${roomId}`
+      });
+    }
+  },
+
+  // 执行参与拼单
+  async doJoinGroupOrder(roomId) {
+    wx.showLoading({ title: '处理中...' });
+    
+    try {
+      // 默认选择第一个选项
+      const { result } = await wx.cloud.callFunction({
+        name: 'joinGroupOrder',
+        data: {
+          roomId,
+          selectedOptionIndex: 0
+        }
+      });
+
+      if (result.code !== 0) {
+        throw new Error(result.msg);
+      }
+
+      wx.showToast({
+        title: '参与成功',
+        icon: 'success'
+      });
+
+      // 刷新列表
+      this.loadData();
+
+    } catch (err) {
+      console.error('参与失败:', err);
+      wx.showToast({
+        title: err.message || '参与失败',
+        icon: 'none'
+      });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
   // 创建拼单
   createGroupOrder(e) {
     const type = e.currentTarget.dataset.type;
@@ -281,7 +466,7 @@ Page({
     if (activity?.type === 'group') {
       // 拼单活动 - 跳转到拼单详情页
       wx.navigateTo({
-        url: `/pages/group-order-detail/group-order-detail?roomId=${roomId}`,
+        url: `/pages/group-detail/group-detail?roomId=${roomId}`,
         fail: (err) => {
           console.error('跳转失败:', err);
           wx.showToast({ title: '页面跳转失败', icon: 'none' });

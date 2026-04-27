@@ -10,6 +10,7 @@ Page({
     location: '',
     reason: '',
     notice: '',
+    platformUrl: '',
     rating: 3,
     ratingText: '推荐',
     isAnonymous: false,
@@ -253,6 +254,11 @@ Page({
     this.setData({ notice: e.detail.value });
   },
 
+  // 输入平台链接
+  onPlatformUrlInput(e) {
+    this.setData({ platformUrl: e.detail.value });
+  },
+
   // 匿名开关
   onAnonymousChange(e) {
     this.setData({ isAnonymous: e.detail.value });
@@ -335,6 +341,7 @@ Page({
         location: this.data.location.trim(),
         reason: this.data.reason.trim(),
         tips: this.data.notice.trim(),
+        platformUrl: this.data.platformUrl.trim(),
         rating: this.data.rating,
         images: imageFileIDs,
         isAnonymous: this.data.isAnonymous,

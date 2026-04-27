@@ -28,8 +28,38 @@ exports.main = async (event) => {
     }
     
     const room = roomResult.data[0];
-    console.log('房间原始数据:', room);
+    console.log('房间原始数据:', JSON.stringify(room));
     console.log('海报数据:', room.candidatePosters);
+    console.log('海报数量:', room.candidatePosters ? room.candidatePosters.length : 0);
+    
+    // 如果是拼单模式，获取拼单参与数据
+    let groupOrderParticipants = [];
+    let optionStats = [];
+    let hasJoinedGroupOrder = false;
+    let mySelectedOption = -1;
+    
+    if (room.mode === 'group') {
+      try {
+        const { data: participants } = await db.collection('group_order_participants')
+          .where({ roomId })
+          .get();
+        groupOrderParticipants = participants || [];
+        
+        // 统计各选项的选择人数
+        const options = room.options || [];
+        optionStats = options.map((opt, idx) => {
+          const count = groupOrderParticipants.filter(p => p.selectedOptionIndex === idx).length;
+          return { index: idx, count };
+        });
+        
+        // 检查当前用户是否已参与
+        const myParticipation = groupOrderParticipants.find(p => p.openid === wxContext.OPENID);
+        hasJoinedGroupOrder = !!myParticipation;
+        mySelectedOption = myParticipation ? myParticipation.selectedOptionIndex : -1;
+      } catch (err) {
+        console.error('获取拼单参与者失败:', err);
+      }
+    }
     
     // 获取参与者列表（只获取必要字段）
     let participants = [];
@@ -69,7 +99,16 @@ exports.main = async (event) => {
         votedCount,
         totalCount,
         hasVoted,
-        isCreator: room.creatorOpenId === wxContext.OPENID
+        isCreator: room.creatorOpenId === wxContext.OPENID,
+        // 拼单相关数据
+        groupOrderParticipants: groupOrderParticipants.map(p => ({
+          selectedOptionIndex: p.selectedOptionIndex,
+          joinedAt: p.joinedAt
+        })),
+        optionStats,
+        hasJoinedGroupOrder,
+        mySelectedOption,
+        currentUserOpenId: wxContext.OPENID
       },
       msg: '获取成功'
     };

@@ -413,6 +413,12 @@ Page({
       const currentYear = new Date().getFullYear();
       const parsed = new Date(currentYear, month, day, hour, minute);
       if (!isNaN(parsed.getTime())) {
+        // 验证截止时间不能早于当前时间
+        const now = new Date();
+        if (parsed <= now) {
+          wx.showToast({ title: '截止时间不能早于当前时间', icon: 'none' });
+          return;
+        }
         voteDeadline = parsed;
       }
     }
@@ -443,16 +449,24 @@ Page({
       if (hasNewPosters) {
         // 只上传新添加的图片
         uploadedPosters = await Promise.all(
-          posters.map(async (p) => {
+          posters.map(async (p, idx) => {
             if (!p.tempFilePath) return p;
-            const { fileID } = await wx.cloud.uploadFile({
-              cloudPath: `posters/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`,
-              filePath: p.tempFilePath
-            });
-            return { imageUrl: fileID, platformSource: p.platformSource };
+            try {
+              const { fileID } = await wx.cloud.uploadFile({
+                cloudPath: `posters/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`,
+                filePath: p.tempFilePath
+              });
+              console.log(`海报${idx + 1}上传成功:`, fileID);
+              return { imageUrl: fileID, platformSource: p.platformSource || '' };
+            } catch (uploadErr) {
+              console.error(`海报${idx + 1}上传失败:`, uploadErr);
+              throw new Error(`第${idx + 1}张海报上传失败，请重试`);
+            }
           })
         );
       }
+      
+      console.log('准备创建房间，海报数据:', uploadedPosters);
 
       let result;
       
@@ -473,6 +487,9 @@ Page({
           }
         });
       } else {
+        // 获取用户信息
+        const userInfo = wx.getStorageSync('userInfo') || {};
+        
         // 创建模式
         result = await wx.cloud.callFunction({
           name: 'createRoom',
@@ -485,7 +502,9 @@ Page({
             mode: 'pick_for_them',
             candidatePosters: uploadedPosters,
             voteDeadline: voteDeadline.toISOString(),
-            timeAuxiliary
+            timeAuxiliary,
+            creatorNickName: userInfo.nickName || '',
+            creatorAvatarUrl: userInfo.avatarUrl || ''
           }
         });
       }

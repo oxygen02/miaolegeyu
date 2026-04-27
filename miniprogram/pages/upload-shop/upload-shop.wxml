@@ -105,6 +105,13 @@
       <input class="form-input" placeholder="如：需预约、停车难等" value="{{notice}}" bindinput="onNoticeInput" />
     </view>
 
+    <!-- 平台链接 -->
+    <view class="form-item">
+      <text class="form-label">平台链接（选填）</text>
+      <input class="form-input" placeholder="美团/大众点评/京东等店铺链接" value="{{platformUrl}}" bindinput="onPlatformUrlInput" />
+      <text class="input-hint">添加链接后，其他用户可直接跳转到平台查看店铺详情</text>
+    </view>
+
     <!-- 匿名选项 -->
     <view class="form-item anonymous-item">
       <view class="anonymous-wrapper">
