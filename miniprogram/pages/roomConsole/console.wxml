@@ -1,0 +1,215 @@
+<view class="page-container">
+  <view class="banner">
+    <view class="banner-inner">
+      <image class="banner-cat" src="/assets/cat-banner.png" mode="aspectFit" />
+      <view class="banner-text">
+        <text class="banner-title">发起人控制台</text>
+        <text class="banner-sub">掌握全局 · 一锤定音</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card main-card">
+    <view class="room-header">
+      <view class="room-info">
+        <text class="room-name">{{roomTitle}}</text>
+        <text class="room-addr">{{roomAddress}} · {{roomTime}}</text>
+      </view>
+      <view class="status-tag {{roomStatus}}">
+        <view class="dot"></view>
+        <text>{{statusText}}</text>
+      </view>
+    </view>
+
+    <view class="stats">
+      <view class="stat-box">
+        <text class="num">{{participants.length}}</text>
+        <text class="label">参与人数</text>
+      </view>
+      <view class="stat-line"></view>
+      <view class="stat-box">
+        <text class="num green">{{votedCount}}</text>
+        <text class="label">已投票</text>
+      </view>
+      <view class="stat-line"></view>
+      <view class="stat-box">
+        <text class="num">{{unvotedCount}}</text>
+        <text class="label">待投票</text>
+      </view>
+      <view class="stat-line"></view>
+      <view class="stat-box">
+        <text class="num time">{{countdown}}</text>
+        <text class="label">剩余时间</text>
+      </view>
+    </view>
+
+    <view class="anon-row" bindtap="toggleAnonymous">
+      <view class="anon-icon {{isAnonymous ? 'active' : ''}}">
+        <image src="/assets/icon-mask.png" mode="aspectFit" />
+      </view>
+      <view class="anon-text">
+        <text class="anon-title">匿名投票</text>
+        <text class="anon-desc">{{isAnonymous ? '开启中：所有人互不可见投票身份' : '关闭中：投票身份对全员可见'}}</text>
+      </view>
+      <switch checked="{{isAnonymous}}" color="#FF9F43" />
+    </view>
+
+    <view class="code-row">
+      <view class="code-box" bindtap="copyRoomCode">
+        <text class="code-label">房间号</text>
+        <text class="code-val">{{roomCode}}</text>
+        <image src="/assets/icon-copy.png" mode="aspectFit" />
+      </view>
+      <view class="share-btn" bindtap="shareRoom">
+        <image src="/assets/icon-share-w.png" mode="aspectFit" />
+        <text>邀请</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{roomStatus === 'voting'}}">
+    <view class="sec-title">
+      <image src="/assets/icon-chart.png" mode="aspectFit" />
+      <text>实时投票进度</text>
+    </view>
+    <view class="progress-box">
+      <view class="progress-bg">
+        <view class="progress-bar" style="width: {{progressPercent}}%"></view>
+      </view>
+      <view class="progress-text">
+        <text>{{votedCount}}/{{participants.length}}</text>
+        <text class="pct">{{progressPercent}}%</text>
+      </view>
+    </view>
+    <view class="anon-hint" wx:if="{{isAnonymous}}">
+      <image src="/assets/icon-mask.png" mode="aspectFit" />
+      <text>匿名模式下仅展示票数聚合，不公开个人选择</text>
+    </view>
+    <view class="top3" wx:if="{{topOptions.length > 0}}">
+      <text class="sub-title">当前热门</text>
+      <view class="opt-item" wx:for="{{topOptions}}" wx:key="id">
+        <image class="opt-img" src="{{item.image}}" mode="aspectFill" />
+        <view class="opt-info">
+          <text class="opt-name">{{item.name}}</text>
+          <view class="opt-bar-box">
+            <view class="opt-bar-bg">
+              <view class="opt-bar" style="width: {{item.percent}}%"></view>
+            </view>
+            <text class="opt-count">{{item.count}}票</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="sec-title">
+      <image src="/assets/icon-members.png" mode="aspectFit" />
+      <text>参与情况</text>
+      <text class="badge">{{participants.length}}人</text>
+    </view>
+    <view class="member-list">
+      <view class="member {{item.isVoted ? 'voted' : ''}}" 
+            wx:for="{{participants}}" 
+            wx:key="id"
+            bindtap="handleMemberTap"
+            data-index="{{index}}">
+        <view class="avatar-box">
+          <image class="avatar {{isAnonymous && item.isVoted ? 'blur' : ''}}" 
+                 src="{{isAnonymous && item.isVoted ? '/assets/cat-anonymous.png' : item.avatarUrl}}" 
+                 mode="aspectFill" />
+          <view class="mark {{item.isVoted ? 'done' : 'wait'}}">
+            <text>{{item.isVoted ? '✓' : '···'}}</text>
+          </view>
+        </view>
+        <view class="mem-info">
+          <view class="mem-name-row">
+            <text class="mem-name">{{isAnonymous && item.isVoted ? item.anonName : item.nickName}}</text>
+            <text class="host-label" wx:if="{{item.isHost}}">房主</text>
+          </view>
+          <text class="mem-status {{item.isVoted ? 'done' : ''}}">
+            {{item.isVoted ? '已完成投票' : '等待投票中 · 可催一下'}}
+          </text>
+        </view>
+        <view class="mem-btn">
+          <view class="tag-btn view" wx:if="{{!isAnonymous && item.isVoted}}">查看</view>
+          <view class="tag-btn done" wx:if="{{isAnonymous && item.isVoted}}">已完成</view>
+          <view class="tag-btn remind" wx:if="{{!item.isVoted}}" catchtap="remindMember" data-id="{{item.id}}">催一下</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card tip-card" wx:if="{{roomStatus === 'voting'}}">
+    <view class="sec-title">
+      <image src="/assets/icon-bulb.png" mode="aspectFit" />
+      <text>决策说明</text>
+    </view>
+    <view class="tip-list">
+      <view class="tip">
+        <view class="tip-dot"></view>
+        <text>所有人投票结束后，发起人可点击「锁定结果」</text>
+      </view>
+      <view class="tip">
+        <view class="tip-dot"></view>
+        <text>平票时，发起人拥有最终拍板权</text>
+      </view>
+      <view class="tip">
+        <view class="tip-dot"></view>
+        <text>锁定后所有人将收到最终聚餐地点通知</text>
+      </view>
+      <view class="tip" wx:if="{{isAnonymous}}">
+        <view class="tip-dot purple"></view>
+        <text>当前为匿名模式：投票身份互不可见，仅房主可查看汇总</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card result-card" wx:if="{{roomStatus === 'locked'}}">
+    <view class="result-head">
+      <image src="/assets/icon-trophy.png" mode="aspectFit" />
+      <text>已锁定最终结果</text>
+    </view>
+    <view class="winner">
+      <image class="win-img" src="{{winner.image}}" mode="aspectFill" />
+      <view class="win-info">
+        <text class="win-name">{{winner.name}}</text>
+        <text class="win-addr">{{winner.address}}</text>
+        <view class="win-tags">
+          <text class="win-tag">{{winner.category}}</text>
+          <text class="win-tag red">人均¥{{winner.price}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="win-vote">
+      <view class="win-vote-text">
+        <text>{{winner.voteCount}}票当选</text>
+        <text class="win-pct">{{winner.votePercent}}%支持率</text>
+      </view>
+      <view class="win-bar-bg">
+        <view class="win-bar" style="width: {{winner.votePercent}}%"></view>
+      </view>
+    </view>
+    <view class="win-anon" wx:if="{{isAnonymous}}">
+      <image src="/assets/icon-shield.png" mode="aspectFit" />
+      <text>本次投票为匿名模式，个人选择记录已加密</text>
+    </view>
+  </view>
+
+  <view class="spacer"></view>
+</view>
+
+<view class="bottom-bar">
+  <view class="b-btn gray" bindtap="editRoom">
+    <image src="/assets/icon-edit.png" mode="aspectFit" />
+    <text>编辑活动</text>
+  </view>
+  <view class="b-btn orange {{roomStatus === 'locked' ? 'disabled' : ''}}" bindtap="lockResult">
+    <image src="/assets/icon-lock.png" mode="aspectFit" />
+    <text>{{roomStatus === 'locked' ? '已锁定' : '锁定结果'}}</text>
+  </view>
+  <view class="b-btn green" bindtap="shareToFriends">
+    <image src="/assets/icon-share-w.png" mode="aspectFit" />
+    <text>邀请好友</text>
+  </view>
+</view>

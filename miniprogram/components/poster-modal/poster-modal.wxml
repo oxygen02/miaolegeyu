@@ -1,0 +1,41 @@
+<view class="poster-modal {{visible ? 'show' : ''}}" bindtap="onClose">
+  <view class="modal-mask"></view>
+  <view class="modal-content" catchtap="onContentTap">
+    <!-- 关闭按钮 -->
+    <view class="close-btn" catchtap="onClose">
+      <text class="close-text">关闭</text>
+    </view>
+    
+    <!-- 标题 -->
+    <view class="modal-header">
+      <text class="title">{{title}}</text>
+      <text class="subtitle">保存图片分享到朋友圈</text>
+    </view>
+    
+    <!-- 海报画布 -->
+    <view class="canvas-wrapper">
+      <canvas 
+        type="2d" 
+        id="posterCanvas" 
+        class="poster-canvas"
+        style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+      ></canvas>
+      
+      <!-- 加载状态 -->
+      <view class="loading-mask" wx:if="{{isLoading}}">
+        <view class="loading-spinner"></view>
+        <text>生成海报中...</text>
+      </view>
+    </view>
+    
+    <!-- 操作按钮 -->
+    <view class="modal-actions">
+      <button class="action-btn primary" bindtap="onSave">
+        <text>保存到相册</text>
+      </button>
+      <button class="action-btn secondary" open-type="share" bindtap="onShare">
+        <text>分享给好友</text>
+      </button>
+    </view>
+  </view>
+</view>

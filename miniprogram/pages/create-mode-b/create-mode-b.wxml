@@ -1,14 +1,20 @@
 <view class="page modeb-page anim-page-enter">
-  <!-- 头部：橘仔提示 -->
-  <view class="modeb-header">
-    <view class="cat-hint anim-breathe">
-      <image class="cat-img" src="/assets/images/juze_avatar.png" mode="aspectFit" />
-      <view class="speech-bubble">
-        <text class="bubble-text">你们来定</text>
+  <!-- 顶部橘色背景区域 -->
+  <view class="modeb-header-bg">
+    <!-- 头部：橘仔提示 -->
+    <view class="modeb-header">
+      <view class="cat-hint anim-breathe">
+        <image class="cat-img" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFit" />
+        <view class="speech-bubble">
+          <text class="bubble-text">你们来定</text>
+        </view>
       </view>
+      <text class="header-sub">让大家先选口味，你再决定</text>
     </view>
-    <text class="header-sub">让大家先选口味，你再决定</text>
   </view>
+
+  <!-- 页面内容区域 -->
+  <view class="modeb-content">
 
   <!-- 表单卡片 -->
   <view class="form-card card anim-slide-up">
@@ -29,7 +35,7 @@
             bindinput="onLocationInput"
           />
           <view class="location-map-btn-compact" bindtap="onChooseLocation">
-            <image class="location-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+            <image class="location-icon" src="{{imagePaths.icons.location}}" mode="aspectFit"/>
           </view>
         </view>
       </view>
@@ -56,35 +62,60 @@
       </view>
     </view>
 
-    <!-- 付费方式和匿名投票 - 同一行 -->
-    <view class="form-group combined-settings">
-      <view class="setting-section">
-        <text class="section-label">付费方式</text>
-        <view class="payment-options-compact">
-          <view 
-            class="payment-option {{paymentMode === 'AA' ? 'selected' : ''}}" 
-            data-mode="AA"
-            bindtap="onPaymentModeChange"
-          >
-            <text class="option-text">AA平摊</text>
-          </view>
-          <view 
-            class="payment-option {{paymentMode === 'treat' ? 'selected' : ''}}" 
-            data-mode="treat"
-            bindtap="onPaymentModeChange"
-          >
-            <text class="option-text">喵大佬请客</text>
-          </view>
+    <!-- 打开付款码 - 单独一行 -->
+    <view class="form-group">
+      <text class="section-label">打开付款码的姿势</text>
+      <view class="payment-options-compact">
+        <view class="payment-option {{paymentMode === 'AA' ? 'selected' : ''}}" data-mode="AA" bindtap="onPaymentModeChange">
+          <text class="option-text">AA平摊</text>
+        </view>
+        <view class="payment-option {{paymentMode === 'treat' ? 'selected' : ''}}" data-mode="treat" bindtap="onPaymentModeChange">
+          <text class="option-text">喵大佬请客</text>
         </view>
       </view>
-      <view class="divider"></view>
-      <view class="setting-section switch-section">
-        <text class="section-label">匿名投票</text>
-        <view class="switch-wrapper">
+    </view>
+
+    <!-- 匿名投票、房间密码、餐厅推荐 - 同一行对齐 -->
+    <view class="form-group switch-row-combined">
+      <view class="switch-item">
+        <text class="switch-label">匿名投票</text>
+        <view class="switch-control">
           <switch checked="{{isAnonymous}}" bindchange="onAnonymousChange" color="#D4652A" />
-          <text class="switch-hint-compact">{{isAnonymous ? '已开启' : '已关闭'}}</text>
+          <text class="switch-status">{{isAnonymous ? '已开启' : '已关闭'}}</text>
         </view>
       </view>
+      <view class="switch-divider"></view>
+      <view class="switch-item">
+        <text class="switch-label">房间密码</text>
+        <view class="switch-control">
+          <switch checked="{{needPassword}}" bindchange="onPasswordSwitchChange" color="#D4652A" />
+          <text class="switch-status">{{needPassword ? '已开启' : '已关闭'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 餐厅推荐开关 -->
+    <view class="form-group recommend-switch-section">
+      <view class="recommend-switch-header">
+        <view class="recommend-switch-title">
+          <text class="section-label">投票后推荐餐厅</text>
+          <text class="recommend-switch-hint">根据口味偏好和位置自动推荐</text>
+        </view>
+        <switch checked="{{enableRestaurantRecommend}}" bindchange="onRecommendSwitchChange" color="#D4652A" />
+      </view>
+    </view>
+
+    <!-- 房间密码输入框 -->
+    <view class="form-group password-input-section" wx:if="{{needPassword}}">
+      <input 
+        class="input password-input" 
+        type="text" 
+        maxlength="6"
+        placeholder="请输入4-6位密码" 
+        value="{{roomPassword}}"
+        bindinput="onPasswordInput"
+      />
+      <text class="password-hint">加入房间时需要输入此密码</text>
     </view>
   </view>
 
@@ -109,6 +140,8 @@
         <text class="decision-text">推送结果给所有人</text>
       </view>
     </view>
+  </view>
+
   </view>
 
   <!-- 底部按钮 -->

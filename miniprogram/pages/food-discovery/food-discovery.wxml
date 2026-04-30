@@ -8,7 +8,7 @@
         <text class="page-title">发现美食</text>
         <text class="page-subtitle">探索喵星人推荐的美味</text>
       </view>
-      <image class="header-tail" src="/assets/images/maoweiba.png" mode="aspectFit" />
+      <image class="header-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit" />
     </view>
 
     <!-- 菜系筛选 -->
@@ -47,7 +47,7 @@
       <view class="shop-left-section">
         <!-- 店铺图片 -->
         <view class="shop-thumb" data-index="{{shopIndex}}" catchtap="onThumbTap">
-          <image class="thumb-image" src="{{item.images && item.images[0] ? item.images[0] : '/assets/images/taiyaki-icon.png'}}" mode="aspectFill" />
+          <image class="thumb-image" src="{{item.images && item.images[0] ? item.images[0] : imagePaths.banners.taiyakiIcon}}" mode="aspectFill" />
           <view class="image-count" wx:if="{{item.images && item.images.length > 1}}">{{item.images.length}}</view>
         </view>
 
@@ -60,12 +60,9 @@
 
           <view class="info-row address-row">
             <text class="shop-address">{{item.location}}</text>
-            <view class="nav-btn" bindtap="openLocation" data-address="{{item.location}}" data-name="{{item.name}}">
-              <image class="nav-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
-            </view>
           </view>
 
-          <view class="info-row">
+          <view class="info-row compact-row">
             <view class="shop-rating">
               <view class="paw-rating">
                 <image
@@ -73,7 +70,7 @@
                   wx:for-index="pawIndex"
                   wx:key="pawIndex"
                   class="paw-icon {{item ? 'filled' : 'empty'}}"
-                  src="/assets/images/cat-paw-icon.png"
+                  src="{{imagePaths.misc.catPawIcon}}"
                   mode="aspectFit"
                   style="opacity: {{item ? 1 : 0.3}}; filter: {{item ? 'none' : 'grayscale(100%)'}}"
                 />
@@ -81,10 +78,13 @@
               <text class="rating-score">{{item.rating}}分</text>
             </view>
             <text class="shop-price">¥{{item.avgPrice}}/人</text>
+            <view class="nav-btn-small" bindtap="openLocation" data-address="{{item.location}}" data-name="{{item.name}}">
+              <image class="nav-icon-small" src="{{imagePaths.icons.location}}" mode="aspectFit"/>
+            </view>
           </view>
 
-          <view class="info-row uploader-row">
-            <image class="uploader-avatar" src="{{item.isAnonymous ? '/assets/images/cat-avatar-icon.png' : (item.uploaderAvatar || '/assets/images/cat-avatar-icon.png')}}" mode="aspectFit" />
+          <view class="info-row uploader-row compact">
+            <image class="uploader-avatar" src="{{item.isAnonymous ? imagePaths.decorations.catAvatarIcon : (item.uploaderAvatar || imagePaths.decorations.catAvatarIcon)}}" mode="aspectFit" />
             <text class="uploader-name">{{item.isAnonymous ? '匿名喵友' : (item.uploaderName || '神秘喵友')}}</text>
           </view>
         </view>
@@ -121,7 +121,7 @@
             <view class="appointment-card">
               <!-- 发起人 -->
               <view class="app-row initiator-row">
-                <image class="initiator-avatar" src="{{app.initiatorAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+                <image class="initiator-avatar" src="{{app.initiatorAvatar || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
                 <text class="initiator-name">{{app.initiatorName || '神秘喵友'}}</text>
               </view>
 
@@ -167,7 +167,7 @@
 
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{!loading && shops.length === 0}}">
-      <image class="empty-icon" src="/assets/images/sleeping-cat-icon.png" mode="aspectFit" />
+      <image class="empty-icon" src="{{imagePaths.decorations.sleepingCatIcon}}" mode="aspectFit" />
       <text class="empty-text">还没有店铺推荐</text>
       <text class="empty-subtext">快来成为第一个推荐者吧！</text>
     </view>
@@ -179,7 +179,7 @@
   <!-- 底部浮动推荐按钮 -->
   <view class="floating-recommend-bar" bindtap="onUploadTap">
     <view class="floating-recommend-icon-wrapper">
-      <image class="floating-recommend-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+      <image class="floating-recommend-icon" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
     </view>
     <text class="floating-recommend-text">推荐好吃好喝哒</text>
   </view>

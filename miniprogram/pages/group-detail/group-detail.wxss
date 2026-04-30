@@ -179,31 +179,40 @@
 
 /* 操作区域 */
 .action-section {
-  margin-top: 40rpx;
+  padding: 32rpx 0;
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 .btn {
-  width: 100%;
-  height: 88rpx;
-  line-height: 88rpx;
-  border-radius: 44rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  border: 4rpx solid #3D3D3D;
-  box-shadow: 4rpx 4rpx 0 #3D3D3D;
+  display: block !important;
+  width: fit-content !important;
+  height: auto !important;
+  line-height: 1 !important;
+  border-radius: 36rpx !important;
+  font-size: 28rpx !important;
+  font-weight: 600 !important;
+  border: 4rpx solid #3D3D3D !important;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D !important;
   text-align: center;
+  padding: 20rpx 56rpx !important;
+  margin: 0 auto !important;
+}
+
+.btn::after {
+  display: none !important;
 }
 
 .btn-primary {
-  background: #FF9F43;
-  color: #fff;
+  background: #FF9F43 !important;
+  color: #fff !important;
 }
 
 .btn-primary[disabled] {
-  background: #CCC;
-  color: #888;
-  border-color: #999;
-  box-shadow: 4rpx 4rpx 0 #999;
+  background: #CCC !important;
+  color: #888 !important;
+  border-color: #999 !important;
+  box-shadow: 4rpx 4rpx 0 #999 !important;
 }
 
 .btn-success {

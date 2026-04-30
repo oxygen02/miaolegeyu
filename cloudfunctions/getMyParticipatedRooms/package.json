@@ -1,0 +1,9 @@
+{
+  "name": "getMyParticipatedRooms",
+  "version": "1.0.0",
+  "description": "获取我参与的所有房间",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

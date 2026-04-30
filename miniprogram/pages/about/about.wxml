@@ -7,7 +7,7 @@
 
   <!-- 应用信息 -->
   <view class="app-info">
-    <image class="app-logo" src="/assets/images/juze_avatar.png" mode="aspectFit"/>
+    <image class="app-logo" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFit"/>
     <text class="app-name">{{appName}}</text>
     <text class="app-version">版本 {{version}}</text>
     <text class="app-desc">{{description}}</text>
@@ -35,13 +35,13 @@
       <text class="contact-value">{{contact.email}}</text>
     </view>
     <view class="contact-item">
-      <text class="contact-label">微信公众号</text>
+      <text class="contact-label">微信号</text>
       <text class="contact-value">{{contact.wechat}}</text>
     </view>
   </view>
 
   <!-- 版权信息 -->
   <view class="footer">
-    <text class="copyright">© 2024 喵了个鱼 版权所有</text>
+    <text class="copyright">© 2026 喵了个鱼 版权所有</text>
   </view>
 </view>

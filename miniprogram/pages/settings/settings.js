@@ -1,5 +1,9 @@
+const { imagePaths } = require('../../config/imageConfig');
+const audioManager = require('../../utils/audioManager');
+
 Page({
   data: {
+    imagePaths: imagePaths,
     userInfo: {
       nickName: '',
       avatarUrl: '',
@@ -33,8 +37,18 @@ Page({
   // 加载设置
   loadSettings() {
     const settings = wx.getStorageSync('appSettings');
+    const audioSettings = audioManager.getSettings();
     if (settings) {
-      this.setData({ settings });
+      this.setData({
+        settings: {
+          ...settings,
+          sound: audioSettings.enabled
+        }
+      });
+    } else {
+      this.setData({
+        'settings.sound': audioSettings.enabled
+      });
     }
   },
 
@@ -53,10 +67,18 @@ Page({
 
   // 切换声音设置
   toggleSound(e) {
+    const enabled = e.detail.value;
     this.setData({
-      'settings.sound': e.detail.value
+      'settings.sound': enabled
     });
+    // 同步到音频管理器
+    audioManager.setEnabled(enabled);
     this.saveSettings();
+
+    // 如果开启音效，播放一个示例音效
+    if (enabled) {
+      audioManager.playKittenMeow();
+    }
   },
 
   // 切换自动更新

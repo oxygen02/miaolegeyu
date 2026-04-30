@@ -1,9 +1,22 @@
 <view class="container">
+  <!-- 登录模式：昵称输入区 -->
+  <view class="nickname-section" wx:if="{{isLoginMode}}">
+    <view class="section-title">设置昵称</view>
+    <input
+      class="nickname-input"
+      placeholder="请输入您的昵称"
+      value="{{nickName}}"
+      bindinput="onNickNameInput"
+      maxlength="20"
+    />
+    <view class="section-subtitle">选择头像</view>
+  </view>
+
   <!-- 搜索栏 -->
-  <view class="search-bar">
-    <input 
-      class="search-input" 
-      placeholder="搜索头像..." 
+  <view class="search-bar" wx:if="{{!isLoginMode}}">
+    <input
+      class="search-input"
+      placeholder="搜索头像..."
       value="{{keyword}}"
       bindinput="onSearchInput"
       confirm-type="search"
@@ -13,9 +26,9 @@
   </view>
 
   <!-- 头像网格 -->
-  <scroll-view 
-    class="avatar-grid" 
-    scroll-y="true" 
+  <scroll-view
+    class="avatar-grid {{isLoginMode ? 'login-mode' : ''}}"
+    scroll-y="true"
     enhanced="true"
     show-scrollbar="false"
     bindscrolltolower="loadMore"

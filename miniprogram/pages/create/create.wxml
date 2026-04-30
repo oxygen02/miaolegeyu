@@ -24,7 +24,7 @@
     <view class="mode-card crayon-card anim-fade-in-up delay-100" bindtap="goModeA">
       <view class="card-bg icon-a"></view>
       <view class="mode-icon">
-        <image class="mode-icon-image" src="/assets/images/wotiaohaole1.png" mode="aspectFit" />
+        <image class="mode-icon-image" src="{{imagePaths.banners.wotiaohaole1}}" mode="aspectFit" />
       </view>
       <view class="mode-content">
         <text class="mode-title">我挑好了</text>
@@ -33,7 +33,7 @@
           <text class="mode-desc-line">大家直接投票选</text>
         </view>
       </view>
-      <view class="mode-arrow"></view>
+      <image class="mode-arrow" src="{{imagePaths.icons.daohang}}" mode="aspectFit"/>
       <view class="crayon-border"></view>
     </view>
 
@@ -41,7 +41,7 @@
     <view class="mode-card crayon-card anim-fade-in-up delay-200" bindtap="goModeB">
       <view class="card-bg icon-b"></view>
       <view class="mode-icon">
-        <image class="mode-icon-image" src="/assets/images/nimenlaiding2.png" mode="aspectFit" />
+        <image class="mode-icon-image" src="{{imagePaths.banners.nimenlaiding2}}" mode="aspectFit" />
       </view>
       <view class="mode-content">
         <text class="mode-title">你们来定</text>
@@ -50,7 +50,7 @@
           <text class="mode-desc-line">大家先选口味偏好</text>
         </view>
       </view>
-      <view class="mode-arrow"></view>
+      <image class="mode-arrow" src="{{imagePaths.icons.daohang}}" mode="aspectFit"/>
       <view class="crayon-border"></view>
     </view>
 
@@ -67,8 +67,8 @@
 
   <!-- 底部装饰 -->
   <view class="bottom-decoration">
-    <image class="paw-print paw1" src="/assets/images/singleclaw.png" mode="aspectFit" />
-    <image class="paw-print paw2" src="/assets/images/singleclaw.png" mode="aspectFit" />
-    <image class="paw-print paw3" src="/assets/images/singleclaw.png" mode="aspectFit" />
+    <image class="paw-print paw1" src="{{imagePaths.misc.singleclaw}}" mode="aspectFit" />
+    <image class="paw-print paw2" src="{{imagePaths.misc.singleclaw}}" mode="aspectFit" />
+    <image class="paw-print paw3" src="{{imagePaths.misc.singleclaw}}" mode="aspectFit" />
   </view>
 </view>

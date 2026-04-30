@@ -1,4 +1,5 @@
 const { generateRoomId } = require('../../utils/uuid.js');
+const { imagePaths } = require('../../config/imageConfig');
 
 // 创建默认选项
 const createDefaultOption = () => ({
@@ -11,6 +12,7 @@ const createDefaultOption = () => ({
 
 Page({
   data: {
+    imagePaths: imagePaths,
     // 多选项数据 - 默认两个选项
     shopOptions: [createDefaultOption(), createDefaultOption()],
     currentOptionIndex: 0,
@@ -248,6 +250,21 @@ Page({
       success: (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
         this.updateOptionField(index, 'shopImage', tempFilePath);
+      },
+      fail: (err) => {
+        if (err.errMsg && (err.errMsg.includes('fail auth') || err.errMsg.includes('cancel'))) {
+          wx.showModal({
+            title: '需要授权',
+            content: '开启相册/相机权限后，可上传商品图片展示给好友',
+            confirmText: '去开启',
+            cancelText: '暂不需要',
+            success: (res) => {
+              if (res.confirm) {
+                wx.openSetting();
+              }
+            }
+          });
+        }
       }
     });
   },

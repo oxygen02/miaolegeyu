@@ -1,7 +1,7 @@
 .group-page {
-  height: 100vh;
-  background: var(--bg);
-  padding: 0 0 32rpx;
+  min-height: 100vh;
+  background: #F5F0E8;
+  padding: 0 0 calc(32rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -192,7 +192,6 @@
   flex-direction: column;
   gap: 16rpx;
   padding: 0 20rpx;
-  margin-bottom: 16rpx;
 }
 
 /* 表单卡片 - 交替背景色 - 立体边框效果 */
@@ -474,10 +473,10 @@
 
 /* 底部按钮 */
 .bottom-panel {
-  display: flex;
-  justify-content: center;
+  padding: 32rpx 0;
   flex-shrink: 0;
-  margin-bottom: 24rpx;
+  margin-top: auto;
+  margin-bottom: 0;
 }
 
 .submit-btn {
@@ -488,11 +487,11 @@
   border-radius: 36rpx !important;
   background: #FF9F43 !important;
   color: #fff !important;
-  font-size: 30rpx !important;
+  font-size: 28rpx !important;
   font-weight: 600 !important;
   border: 4rpx solid #3D3D3D !important;
   box-shadow: 4rpx 4rpx 0 #3D3D3D !important;
-  padding: 20rpx 48rpx !important;
+  padding: 20rpx 56rpx !important;
   margin: 0 auto !important;
 }
 
@@ -501,6 +500,10 @@
   color: #888 !important;
   border-color: #999 !important;
   box-shadow: 4rpx 4rpx 0 #999 !important;
+}
+
+.submit-btn::after {
+  display: none !important;
 }
 
 /* 自定义时间选择器弹窗 */

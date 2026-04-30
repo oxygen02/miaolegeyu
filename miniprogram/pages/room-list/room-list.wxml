@@ -2,7 +2,7 @@
   <!-- 页面标题和房间号输入合并 -->
   <view class="page-header">
     <view class="header-left">
-      <text class="page-title">聚餐列表</text>
+      <text class="page-title">参与投票</text>
       <text class="page-subtitle">点击卡片参与投票</text>
     </view>
     <view class="header-right">
@@ -22,7 +22,7 @@
         </view>
       </view>
     </view>
-    <image class="header-tail" src="/assets/images/maoweiba.png" mode="aspectFit" />
+    <image class="header-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit" />
   </view>
 
   <!-- 筛选标签 -->
@@ -30,11 +30,11 @@
     <view class="tab-item {{currentFilter === 'all' ? 'active' : ''}}" bindtap="switchFilter" data-filter="all">
       <text>全部</text>
     </view>
-    <view class="tab-item {{currentFilter === 'active' ? 'active' : ''}}" bindtap="switchFilter" data-filter="active">
-      <text>进行中</text>
+    <view class="tab-item {{currentFilter === 'created' ? 'active' : ''}}" bindtap="switchFilter" data-filter="created">
+      <text>我创建的</text>
     </view>
-    <view class="tab-item {{currentFilter === 'locked' ? 'active' : ''}}" bindtap="switchFilter" data-filter="locked">
-      <text>已结束</text>
+    <view class="tab-item {{currentFilter === 'participated' ? 'active' : ''}}" bindtap="switchFilter" data-filter="participated">
+      <text>我参与的</text>
     </view>
   </view>
 
@@ -46,59 +46,97 @@
 
   <!-- 空状态 -->
   <view class="empty-state" wx:elif="{{!loading && allRooms.length === 0}}">
-    <image class="empty-icon" src="/assets/images/sleeping-cat-icon.png" mode="aspectFit" />
+    <image class="empty-icon" src="{{imagePaths.decorations.sleepingCatIcon}}" mode="aspectFit" />
     <text class="empty-text">暂无聚餐活动</text>
     <text class="empty-subtext">输入房间号或等待邀请</text>
   </view>
 
-  <!-- 活动列表 - 横条样式 -->
-  <view class="room-list" wx:else>
+  <!-- 活动列表 - 新卡片样式 -->
+  <view class="room-list-container" wx:else>
     <view 
-      class="room-item {{cardColors[index % cardColors.length]}}" 
+      class="room-card" 
       wx:for="{{allRooms}}" 
       wx:for-index="index"
       wx:key="roomId"
       bindtap="goToRoom"
       data-roomid="{{item.roomId}}"
     >
-      <!-- 左侧海报 -->
-      <view class="item-poster">
+      <!-- 左侧图片区域 -->
+      <view class="card-image-wrap">
         <image 
-          src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || '/assets/images/taiyaki-icon.png'}}" 
+          class="card-image" 
+          src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || '/assets/cat-default.png'}}" 
           mode="aspectFill"
         />
-      </view>
-
-      <!-- 中间信息 -->
-      <view class="item-info">
-        <view class="info-header">
-          <text class="item-title">{{item.title}}</text>
-          <view class="status-badge {{item.status}}">
-            {{item.status === 'voting' ? '进行中' : '已结束'}}
-          </view>
-        </view>
-        
-        <view class="info-detail">
-          <view class="detail-row" wx:if="{{item.activityDate}}">
-            <image class="detail-icon" src="/assets/images/calendar-icon.svg" mode="aspectFit" />
-            <text class="detail-text">{{item.activityDate}} {{item.activityTime}}</text>
-          </view>
-          <view class="detail-row" wx:if="{{item.location}}">
-            <image class="detail-icon" src="/assets/images/location-icon.svg" mode="aspectFit" />
-            <text class="detail-text">{{item.location}}</text>
-          </view>
-        </view>
-        
-        <view class="info-footer">
-          <image class="creator-avatar-mini" src="{{item.creatorAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
-          <text class="creator-name-mini">{{item.creatorName}}</text>
-          <text class="room-id">房间号: {{item.roomId}}</text>
+        <!-- 状态标签（毛玻璃效果） -->
+        <view class="status-tag {{item.status}}">
+          <text>{{item.status === 'voting' ? '进行中' : (item.status === 'locked' ? '已锁定' : '已结束')}}</text>
         </view>
       </view>
 
+      <!-- 右侧信息区 -->
+      <view class="card-info">
+        <!-- 第一行：标题 -->
+        <view class="info-row title-row">
+          <text class="room-title">{{item.title}}</text>
+        </view>
+
+        <!-- 第二行：日期+时间+地点 -->
+        <view class="info-row meta-row">
+          <view class="meta-item" wx:if="{{item.activityDate}}">
+            <image class="meta-icon" src="{{imagePaths.icons.calendar}}" mode="aspectFit" />
+            <text>{{item.activityDate}}</text>
+          </view>
+          <view class="meta-item" wx:if="{{item.activityTime}}">
+            <image class="meta-icon" src="{{imagePaths.icons.time}}" mode="aspectFit" />
+            <text>{{item.activityTime}}</text>
+          </view>
+          <view class="meta-item" wx:if="{{item.location}}">
+            <image class="meta-icon" src="{{imagePaths.icons.location}}" mode="aspectFit" />
+            <text>{{item.location}}</text>
+          </view>
+        </view>
+
+        <!-- 第三行：截止+房间号 -->
+        <view class="info-row deadline-row">
+          <view class="deadline-item">
+            <image class="meta-icon" src="{{imagePaths.icons.deadline}}" mode="aspectFit" />
+            <text>截止: {{item.voteDeadlineStr || '待定'}}</text>
+          </view>
+          <view class="room-code">
+            <text>{{item.roomId}}</text>
+          </view>
+        </view>
+
+        <!-- 第四行：底部锚点（右对齐） -->
+        <view class="info-row action-row">
+          <text class="participant-count">{{item.participantCount || 0}}人参与</text>
+          <text class="dot">·</text>
+          <text class="manage-btn" catchtap="onManageTap" data-roomid="{{item.roomId}}">管理</text>
+        </view>
+      </view>
     </view>
 
     <!-- 底部留白 -->
     <view class="bottom-space"></view>
+  </view>
+</view>
+
+<!-- 管理菜单弹窗 -->
+<view class="action-sheet {{showActionSheet ? 'show' : ''}}" bindtap="onCloseActionSheet">
+  <view class="action-sheet-mask"></view>
+  <view class="action-sheet-content" catchtap="onActionSheetTap">
+    <view class="action-sheet-title">房间管理</view>
+    <view class="action-list">
+      <view class="action-item" bindtap="onShare">
+        <image class="action-icon" src="/assets/icon-share-w.png" mode="aspectFit" />
+        <text>分享房间</text>
+      </view>
+      <view class="action-item delete" bindtap="onDelete">
+        <image class="action-icon" src="/assets/icon-delete.png" mode="aspectFit" />
+        <text>删除房间</text>
+      </view>
+    </view>
+    <view class="action-cancel" bindtap="onCloseActionSheet">取消</view>
   </view>
 </view>

@@ -1,8 +1,12 @@
 const app = getApp();
 const { cuisineCategories } = require('../../data/cuisineCategories.js');
+const audioManager = require('../../utils/audioManager');
+
+const { imagePaths } = require('../../config/imageConfig');
 
 Page({
   data: {
+    imagePaths: imagePaths,
     room: {},
     posters: [],
     currentIndex: 0,
@@ -23,13 +27,16 @@ Page({
       { name: 'coriander', label: '香菜', selected: false },
       { name: 'scallion', label: '葱', selected: false },
       { name: 'garlic', label: '蒜', selected: false },
-      { name: 'celery', label: '芹菜', selected: false }
+      { name: 'celery', label: '芹菜', selected: false },
+      { name: 'houttuynia', label: '折耳根', selected: false }
     ],
     categoryCards: [],
     categoryCurrentIndex: 0,
     selectedCategoryIds: [],
     subCategoryCards: [],
+    visibleSubCategoryCards: [],
     subCategoryCurrentIndex: 0,
+    subCategorySwiperCurrent: 0,
     selectedSubCategories: {},
     selectedSubCategoryNames: [],
     currentSubCategory: {},
@@ -47,7 +54,12 @@ Page({
     // swiper相关
     screenWidth: 375,
     // 滑动历史记录
-    swipeHistory: []
+    swipeHistory: [],
+    // 密码相关
+    showPasswordModal: false,
+    inputPassword: '',
+    needPassword: false,
+    isJoining: false
   },
 
   onLoad(options) {
@@ -62,6 +74,9 @@ Page({
     });
 
     const { roomId, mock, mode: mockMode } = options;
+    console.log('=== vote onLoad ===');
+    console.log('options:', options);
+    console.log('roomId:', roomId, 'mock:', mock, 'mockMode:', mockMode);
     this.setData({ roomId });
 
     // 获取屏幕宽度
@@ -81,8 +96,12 @@ Page({
       console.log('正常加载房间数据，mock:', mock);
       // 先尝试恢复本地状态
       const hasRestored = this.restoreVoteState(roomId);
+      console.log('restoreVoteState 结果:', hasRestored);
       if (!hasRestored) {
+        console.log('未恢复本地状态，调用 loadRoomData');
         this.loadRoomData(roomId);
+      } else {
+        console.log('已恢复本地状态，跳过 loadRoomData');
       }
     }
   },
@@ -261,10 +280,11 @@ Page({
         subCategoryCurrentIndex: 0
       });
     } else {
+      // 使用在线图片作为模拟数据（确保图片可以正常显示）
       const mockPosters = [
         {
           index: 0,
-          imageUrl: '/assets/images/wotiaohaole1.png',
+          imageUrl: 'https://picsum.photos/400/600?random=1',
           platformSource: 'meituan',
           shopName: '海底捞火锅',
           status: '',
@@ -274,7 +294,7 @@ Page({
         },
         {
           index: 1,
-          imageUrl: '/assets/images/nimenlaiding2.png',
+          imageUrl: 'https://picsum.photos/400/600?random=2',
           platformSource: 'dianping',
           shopName: '西贝莜面村',
           status: '',
@@ -284,7 +304,7 @@ Page({
         },
         {
           index: 2,
-          imageUrl: '/assets/images/wotiaohaole1.png',
+          imageUrl: 'https://picsum.photos/400/600?random=3',
           platformSource: 'meituan',
           shopName: '太二酸菜鱼',
           status: '',
@@ -294,7 +314,7 @@ Page({
         },
         {
           index: 3,
-          imageUrl: '/assets/images/nimenlaiding2.png',
+          imageUrl: 'https://picsum.photos/400/600?random=4',
           platformSource: 'dianping',
           shopName: '点都德',
           status: '',
@@ -327,23 +347,46 @@ Page({
   },
 
   async loadRoomData(roomId) {
+    console.log('=== loadRoomData 开始 === roomId:', roomId);
     try {
       wx.showLoading({ title: '加载中' });
+      console.log('调用 getRoom 云函数...');
       const { result } = await wx.cloud.callFunction({
         name: 'getRoom',
         data: { roomId }
       });
+      console.log('getRoom 返回结果:', result);
 
       if (result.code !== 0) {
+        console.error('getRoom 返回错误:', result.msg);
         throw new Error(result.msg);
       }
 
       const room = result.data;
-      console.log('房间数据:', room);
+      console.log('房间数据 room:', room);
+      console.log('房间 mode:', room.mode);
+      console.log('房间 candidatePosters:', room.candidatePosters);
+      console.log('房间 candidatePosters 长度:', room.candidatePosters ? room.candidatePosters.length : 'undefined');
+      console.log('房间 isParticipant:', room.isParticipant, 'isCreator:', room.isCreator);
+
+      // 检查是否需要密码且未加入
+      if (room.needPassword && !room.isParticipant && !room.isCreator) {
+        console.log('需要密码且未加入，显示密码弹窗');
+        this.setData({
+          showPasswordModal: true,
+          needPassword: true,
+          roomId: roomId,
+          room: room
+        });
+        wx.hideLoading();
+        return;
+      }
 
       const mode = room.mode || 'a';
+      console.log('判断 mode:', mode);
 
       if (mode === 'b') {
+        console.log('进入 mode B 分支');
         const categoryCards = cuisineCategories.map((cat, index) => ({
           ...cat,
           index,
@@ -364,7 +407,9 @@ Page({
           categoryCurrentIndex: 0,
           subCategoryCurrentIndex: 0
         });
+        console.log('mode B 数据设置完成');
       } else {
+        console.log('进入 mode A 分支');
         const candidatePosters = room.candidatePosters || [];
         console.log('从房间获取的candidatePosters:', candidatePosters);
         console.log('candidatePosters长度:', candidatePosters.length);
@@ -382,6 +427,7 @@ Page({
         }));
 
         console.log('处理后的posters:', posters);
+        console.log('准备 setData，posters长度:', posters.length);
 
         this.setData({
           room,
@@ -390,13 +436,70 @@ Page({
           currentIndex: 0,
           categoryCurrentIndex: 0,
           subCategoryCurrentIndex: 0
+        }, () => {
+          console.log('setData 完成，当前 posters:', this.data.posters);
+          console.log('当前 currentIndex:', this.data.currentIndex);
         });
       }
 
       wx.hideLoading();
+      console.log('=== loadRoomData 结束 ===');
     } catch (err) {
+      console.error('loadRoomData 出错:', err);
       wx.hideLoading();
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
+    }
+  },
+
+  // ========== 密码相关方法 ==========
+  onPasswordInput(e) {
+    this.setData({ inputPassword: e.detail.value });
+  },
+
+  async submitPassword() {
+    const { inputPassword, roomId, isJoining } = this.data;
+
+    if (inputPassword.length < 4) {
+      wx.showToast({ title: '密码至少4位', icon: 'none' });
+      return;
+    }
+
+    if (isJoining) return;
+    this.setData({ isJoining: true });
+
+    wx.showLoading({ title: '加入中...' });
+
+    try {
+      // 调用 joinRoom 云函数，传入密码
+      const { result } = await wx.cloud.callFunction({
+        name: 'joinRoom',
+        data: {
+          roomId,
+          password: inputPassword
+        }
+      });
+
+      wx.hideLoading();
+      this.setData({ isJoining: false });
+
+      if (result.code === 0) {
+        // 加入成功，关闭密码弹窗并重新加载房间数据
+        this.setData({
+          showPasswordModal: false,
+          inputPassword: ''
+        });
+        wx.showToast({ title: '加入成功', icon: 'success' });
+        // 重新加载房间数据
+        setTimeout(() => {
+          this.loadRoomData(roomId);
+        }, 1000);
+      } else {
+        wx.showToast({ title: result.msg || '密码错误', icon: 'none' });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      this.setData({ isJoining: false });
+      wx.showToast({ title: err.message || '加入失败', icon: 'none' });
     }
   },
 
@@ -404,15 +507,26 @@ Page({
   onCardChange(e) {
     const newIndex = e.detail.current;
     const oldIndex = this.data.currentIndex;
+    console.log('=== onCardChange === newIndex:', newIndex, 'oldIndex:', oldIndex);
+    console.log('当前 posters 长度:', this.data.posters.length);
 
     // 记录滑动历史
     if (newIndex > oldIndex) {
       // 上滑 - 跳过/不喜欢（只在未选择状态下）
       const { posters } = this.data;
+      console.log('上滑，posters 长度:', posters.length, 'oldIndex:', oldIndex);
+
+      if (oldIndex >= posters.length) {
+        console.log('oldIndex 超出范围，不处理');
+        this.setData({ currentIndex: newIndex });
+        return;
+      }
+
       const oldPoster = posters[oldIndex];
+      console.log('oldPoster:', oldPoster);
 
       // 如果之前没有选择过（既不喜欢也不否决），才标记为否决
-      if (!oldPoster.isLiked && !oldPoster.isVetoed) {
+      if (oldPoster && !oldPoster.isLiked && !oldPoster.isVetoed) {
         this.recordSwipeHistory(-1, oldIndex);
         const { vetoedIndices } = this.data;
         const newVetoed = [...vetoedIndices, oldIndex];
@@ -484,6 +598,13 @@ Page({
       showLoveCat: !isLiked,
       loveCatIndex: index
     });
+
+    // 播放猫咪音效
+    if (!isLiked) {
+      audioManager.playKittenMeow();
+    } else {
+      audioManager.playPawTap();
+    }
 
     wx.showToast({
       title: isLiked ? '取消选择' : '想要喵',
@@ -697,11 +818,6 @@ Page({
 
       // 保存状态
       this.saveVoteState();
-
-      wx.showToast({
-        title: '取消选择',
-        icon: 'success'
-      });
     } else {
       // 选择（最多3个）
       if (selectedCategoryIds.length >= 3) {
@@ -722,11 +838,6 @@ Page({
 
       // 保存状态
       this.saveVoteState();
-
-      wx.showToast({
-        title: '已选择',
-        icon: 'success'
-      });
     }
   },
 
@@ -860,40 +971,23 @@ Page({
 
   // ========== Mode B: 细类选择 ==========
   onSubCategoryChange(e) {
-    const newIndex = e.detail.current;
-    const oldIndex = this.data.subCategoryCurrentIndex;
-    const { subCategoryCards } = this.data;
-    const currentSubCategory = subCategoryCards[newIndex] || {};
+    const swiperCurrent = e.detail.current;
+    const { visibleSubCategoryCards } = this.data;
+    
+    // 根据 swiper 的 current 找到对应的细类
+    const currentSubCategory = visibleSubCategoryCards[swiperCurrent] || {};
 
-    if (newIndex > oldIndex) {
-      // 上滑 - 跳过（只在未选择状态下）
-      const oldSub = subCategoryCards[oldIndex];
-
-      if (!oldSub.isSelected) {
-        this.recordSwipeHistory(-1, oldIndex, 'subcategory');
-        this.setData({
-          subCategoryCurrentIndex: newIndex,
-          currentSubCategory,
-          canUndo: true
-        });
-      } else {
-        this.setData({
-          subCategoryCurrentIndex: newIndex,
-          currentSubCategory
-        });
-      }
-    } else {
-      this.setData({
-        subCategoryCurrentIndex: newIndex,
-        currentSubCategory
-      });
-    }
+    this.setData({
+      subCategorySwiperCurrent: swiperCurrent,
+      subCategoryCurrentIndex: currentSubCategory.index || 0,
+      currentSubCategory
+    });
   },
 
   // 切换当前细类的喜欢状态
   toggleCurrentSubCategoryLike() {
-    const { subCategoryCurrentIndex } = this.data;
-    this.toggleSubCategoryLikeByIndex(subCategoryCurrentIndex);
+    const { subCategorySwiperCurrent } = this.data;
+    this.toggleSubCategoryLikeByIndex(subCategorySwiperCurrent);
   },
 
   // 双击检测 - 细类
@@ -913,13 +1007,20 @@ Page({
     this.toggleSubCategoryLikeByIndex(index);
   },
 
-  toggleSubCategoryLikeByIndex(index) {
-    const { subCategoryCards, selectedSubCategories } = this.data;
-    const sub = subCategoryCards[index];
+  toggleSubCategoryLikeByIndex(visibleIndex) {
+    const { visibleSubCategoryCards, subCategoryCards, selectedSubCategories } = this.data;
+    
+    // 从可见列表中获取当前细类
+    const sub = visibleSubCategoryCards[visibleIndex];
+    if (!sub) return;
 
-    const categoryId = sub.categoryId;
+    // 确保 categoryId 是字符串
+    const categoryId = String(sub.categoryId);
     const currentSelected = selectedSubCategories[categoryId] || [];
     const isSelected = sub.isSelected;
+
+    // 创建新的 selectedSubCategories 对象副本
+    const newSelectedSubCategories = { ...selectedSubCategories };
 
     let newSelectedForCategory;
     let newSubCategoryCards;
@@ -928,13 +1029,13 @@ Page({
       // 取消选择：恢复显示该大类下的所有细类
       newSelectedForCategory = [];
       newSubCategoryCards = subCategoryCards.map(s =>
-        s.categoryId === categoryId ? { ...s, isSelected: false, isHidden: false } : s
+        String(s.categoryId) === categoryId ? { ...s, isSelected: false, isHidden: false } : s
       );
     } else {
       // 选择：只保留当前选中的，隐藏同大类的其他细类
       newSelectedForCategory = [sub.name];
       newSubCategoryCards = subCategoryCards.map(s => {
-        if (s.categoryId === categoryId) {
+        if (String(s.categoryId) === categoryId) {
           // 同大类：当前选中项显示，其他隐藏
           return { ...s, isSelected: s.index === sub.index, isHidden: s.index !== sub.index };
         }
@@ -942,41 +1043,55 @@ Page({
       });
     }
 
-    selectedSubCategories[categoryId] = newSelectedForCategory;
+    newSelectedSubCategories[categoryId] = newSelectedForCategory;
 
-    // 更新已选细类名称列表
-    const selectedSubCategoryNames = newSubCategoryCards
-      .filter(s => s.isSelected)
-      .map(s => s.name);
+    // 更新已选细类名称列表 - 从所有已选大类中收集
+    const selectedSubCategoryNames = [];
+    Object.keys(newSelectedSubCategories).forEach(catId => {
+      const selectedNames = newSelectedSubCategories[catId];
+      if (selectedNames && selectedNames.length > 0) {
+        selectedSubCategoryNames.push(...selectedNames);
+      }
+    });
+
+    console.log('选择细类:', sub.name, 'categoryId:', categoryId, '所有已选:', newSelectedSubCategories, '标签列表:', selectedSubCategoryNames);
+
+    // 更新可见列表
+    const newVisibleSubCategoryCards = newSubCategoryCards.filter(s => !s.isHidden);
+    
+    // 找到当前选中项在可见列表中的位置
+    const newSwiperCurrent = newVisibleSubCategoryCards.findIndex(s => s.index === sub.index);
 
     this.setData({
-      selectedSubCategories: { ...selectedSubCategories },
+      selectedSubCategories: newSelectedSubCategories,
       subCategoryCards: newSubCategoryCards,
+      visibleSubCategoryCards: newVisibleSubCategoryCards,
+      subCategorySwiperCurrent: newSwiperCurrent >= 0 ? newSwiperCurrent : 0,
       selectedSubCategoryNames
     });
 
     // 保存状态
     this.saveVoteState();
-
-    wx.showToast({
-      title: isSelected ? '取消想吃' : '已标记想吃',
-      icon: 'success'
-    });
   },
 
   // 细类收藏
   toggleSubCategoryFav(e) {
-    const index = e.currentTarget.dataset.index;
-    const { subCategoryCards } = this.data;
-    const sub = subCategoryCards[index];
+    const visibleIndex = e.currentTarget.dataset.index;
+    const { visibleSubCategoryCards, subCategoryCards } = this.data;
+    const sub = visibleSubCategoryCards[visibleIndex];
+    if (!sub) return;
+    
     const isFav = sub.isFav;
 
-    const newSubCategoryCards = subCategoryCards.map((s, i) =>
-      i === index ? { ...s, isFav: !isFav } : s
+    const newSubCategoryCards = subCategoryCards.map(s =>
+      s.index === sub.index ? { ...s, isFav: !isFav } : s
     );
 
+    const newVisibleSubCategoryCards = newSubCategoryCards.filter(s => !s.isHidden);
+
     this.setData({
-      subCategoryCards: newSubCategoryCards
+      subCategoryCards: newSubCategoryCards,
+      visibleSubCategoryCards: newVisibleSubCategoryCards
     });
 
     wx.showToast({
@@ -987,23 +1102,39 @@ Page({
 
   // 重置细类选择
   resetSubCategoryChoice(e) {
-    const index = e.currentTarget.dataset.index;
-    const { subCategoryCards, selectedSubCategories } = this.data;
-    const sub = subCategoryCards[index];
+    const visibleIndex = e.currentTarget.dataset.index;
+    const { visibleSubCategoryCards, subCategoryCards, selectedSubCategories } = this.data;
+    const sub = visibleSubCategoryCards[visibleIndex];
+    if (!sub) return;
 
-    const categoryId = sub.categoryId;
+    const categoryId = String(sub.categoryId);
     const currentSelected = selectedSubCategories[categoryId] || [];
-    const newSelectedForCategory = currentSelected.filter(id => id !== sub.id);
+    const newSelectedForCategory = currentSelected.filter(name => name !== sub.name);
 
-    selectedSubCategories[categoryId] = newSelectedForCategory;
+    const newSelectedSubCategories = { ...selectedSubCategories };
+    newSelectedSubCategories[categoryId] = newSelectedForCategory;
 
-    const newSubCategoryCards = subCategoryCards.map((s, i) =>
-      i === index ? { ...s, isSelected: false } : s
+    // 恢复该大类下的所有细类显示
+    const newSubCategoryCards = subCategoryCards.map(s =>
+      String(s.categoryId) === categoryId ? { ...s, isSelected: false, isHidden: false } : s
     );
 
+    const newVisibleSubCategoryCards = newSubCategoryCards.filter(s => !s.isHidden);
+
+    // 更新已选细类名称列表
+    const selectedSubCategoryNames = [];
+    Object.keys(newSelectedSubCategories).forEach(catId => {
+      const selectedNames = newSelectedSubCategories[catId];
+      if (selectedNames && selectedNames.length > 0) {
+        selectedSubCategoryNames.push(...selectedNames);
+      }
+    });
+
     this.setData({
-      selectedSubCategories: { ...selectedSubCategories },
-      subCategoryCards: newSubCategoryCards
+      selectedSubCategories: newSelectedSubCategories,
+      subCategoryCards: newSubCategoryCards,
+      visibleSubCategoryCards: newVisibleSubCategoryCards,
+      selectedSubCategoryNames
     });
 
     wx.showToast({
@@ -1013,16 +1144,15 @@ Page({
   },
 
   onSubCategorySkip(e) {
-    const index = e.currentTarget.dataset.index;
-    const { subCategoryCards } = this.data;
+    const { subCategorySwiperCurrent, visibleSubCategoryCards } = this.data;
 
-    if (index >= subCategoryCards.length - 1) {
+    if (subCategorySwiperCurrent >= visibleSubCategoryCards.length - 1) {
       wx.showToast({ title: '已经是最后一个了', icon: 'none' });
       return;
     }
 
     this.setData({
-      subCategoryCurrentIndex: index + 1
+      subCategorySwiperCurrent: subCategorySwiperCurrent + 1
     });
 
     wx.showToast({ title: '已跳过', icon: 'none' });
@@ -1211,10 +1341,9 @@ Page({
         status: 'voted'
       };
     } else {
-      if (likedIndices.length === 0 && vetoedIndices.length === 0) {
-        wx.showToast({ title: '请先浏览并选择海报', icon: 'none' });
-        return;
-      }
+      // 模式A：只要浏览过（有喜欢或否决）就可以提交，不需要浏览完所有
+      const hasInteracted = likedIndices.length > 0 || vetoedIndices.length > 0;
+      // 允许提交，即使没有选择任何选项（相当于弃权）
 
       voteData = {
         posterIndices: likedIndices,
@@ -1238,6 +1367,23 @@ Page({
     try {
       wx.showLoading({ title: '提交中' });
 
+      // 检查是否是模拟模式
+      if (this.data.roomId && this.data.roomId.startsWith('mock-room-')) {
+        // 模拟模式下，模拟提交成功
+        wx.hideLoading();
+        wx.showToast({ title: '模拟投票成功', icon: 'success' });
+
+        // 清除本地状态
+        this.clearVoteState(this.data.roomId);
+
+        setTimeout(() => {
+          wx.redirectTo({
+            url: `/pages/result/result?roomId=${this.data.roomId}&mock=true`
+          });
+        }, 1500);
+        return;
+      }
+
       const { result } = await wx.cloud.callFunction({
         name: 'submitVote',
         data: {
@@ -1248,6 +1394,8 @@ Page({
 
       if (result.success || result.code === 0) {
         wx.hideLoading();
+        // 播放成功音效
+        audioManager.playSuccess();
         wx.showToast({ title: '投票成功', icon: 'success' });
 
         // 提交成功后清除本地状态
@@ -1296,8 +1444,8 @@ Page({
         const currentSelected = selectedSubCategories[category.id] || [];
         const catIndex = categoryIndexMap[category.id];
         category.subCategories.forEach((sub, subIndex) => {
-          // 使用数据文件中定义的图片路径，如果不存在则按规则生成
-          const imagePath = sub.image || `/assets/images/cuisine_all/category_${String(catIndex + 1).padStart(2, '0')}_${String(subIndex + 1).padStart(2, '0')}.png`;
+          // 使用在线图片作为默认图片（确保图片可以正常显示）
+          const imagePath = sub.image || `https://picsum.photos/400/600?random=${catIndex * 10 + subIndex}`;
           allSubCategories.push({
             ...sub,
             index: index++,
@@ -1311,22 +1459,57 @@ Page({
       }
     });
 
+    // 初始化已选细类名称列表
+    const selectedSubCategoryNames = [];
+    Object.keys(selectedSubCategories).forEach(catId => {
+      const selectedNames = selectedSubCategories[catId];
+      if (selectedNames && selectedNames.length > 0) {
+        selectedSubCategoryNames.push(...selectedNames);
+      }
+    });
+    // 获取可见的细类列表
+    const visibleSubCategoryCards = allSubCategories.filter(s => !s.isHidden);
+
+    console.log('初始化已选细类:', selectedSubCategories, selectedSubCategoryNames);
+
     this.setData({
       currentStep: 'subcategory',
       subCategoryCards: allSubCategories,
-      subCategoryCurrentIndex: 0,
-      currentSubCategory: allSubCategories[0] || {},
+      visibleSubCategoryCards,
+      subCategoryCurrentIndex: visibleSubCategoryCards[0]?.index || 0,
+      subCategorySwiperCurrent: 0,
+      currentSubCategory: visibleSubCategoryCards[0] || {},
       currentCategoryName: '细类选择',
-      selectedCategoryIndex: 0
+      selectedCategoryIndex: 0,
+      selectedSubCategoryNames
     });
   },
 
-  // 模式B：完成细类选择
+  // 模式B：完成细类选择并直接提交
   finishSubCategory() {
-    this.setData({
-      canSubmit: true
+    // 检查是否所有大类都已选择细类
+    const { selectedCategoryIds, selectedSubCategories } = this.data;
+    const unselectedCategories = selectedCategoryIds.filter(cat => {
+      const subs = selectedSubCategories[cat.id];
+      return !subs || subs.length === 0;
     });
-    wx.showToast({ title: '选择完成，可以提交了', icon: 'success' });
+
+    if (unselectedCategories.length > 0) {
+      wx.showModal({
+        title: '提示',
+        content: `您还有 ${unselectedCategories.length} 个大类未选择细类，是否继续提交？`,
+        confirmText: '继续提交',
+        cancelText: '去补充',
+        success: (res) => {
+          if (res.confirm) {
+            this.submitVote();
+          }
+        }
+      });
+    } else {
+      // 所有大类都已选择，直接提交
+      this.submitVote();
+    }
   },
 
   // 模式B：返回大类选择
@@ -1340,10 +1523,11 @@ Page({
 
   // 模式B：细类选择 - 上一张
   onSubCategoryPrev() {
-    const { subCategoryCurrentIndex } = this.data;
-    if (subCategoryCurrentIndex > 0) {
+    const { subCategorySwiperCurrent } = this.data;
+    
+    if (subCategorySwiperCurrent > 0) {
       this.setData({
-        subCategoryCurrentIndex: subCategoryCurrentIndex - 1
+        subCategorySwiperCurrent: subCategorySwiperCurrent - 1
       });
     } else {
       wx.showToast({ title: '已经是第一张了', icon: 'none' });
@@ -1352,11 +1536,11 @@ Page({
 
   // 模式B：细类选择 - 下一张
   onSubCategoryNext() {
-    const { subCategoryCurrentIndex, subCategoryCards } = this.data;
-    const visibleCards = subCategoryCards.filter(c => !c.isHidden);
-    if (subCategoryCurrentIndex < visibleCards.length - 1) {
+    const { subCategorySwiperCurrent, visibleSubCategoryCards } = this.data;
+    
+    if (subCategorySwiperCurrent < visibleSubCategoryCards.length - 1) {
       this.setData({
-        subCategoryCurrentIndex: subCategoryCurrentIndex + 1
+        subCategorySwiperCurrent: subCategorySwiperCurrent + 1
       });
     } else {
       wx.showToast({ title: '已经是最后一张了', icon: 'none' });
@@ -1377,22 +1561,25 @@ Page({
 
   // 模式B：细类选择 - 切换收藏状态
   toggleCurrentSubCategoryFav() {
-    const { subCategoryCurrentIndex, subCategoryCards } = this.data;
-    const currentCard = subCategoryCards[subCategoryCurrentIndex];
+    const { subCategorySwiperCurrent, visibleSubCategoryCards, subCategoryCards } = this.data;
+    const currentCard = visibleSubCategoryCards[subCategorySwiperCurrent];
     if (!currentCard) return;
 
     const newIsFav = !currentCard.isFav;
     
     // 更新当前卡片的收藏状态
-    const newSubCategoryCards = subCategoryCards.map((card, index) => {
-      if (index === subCategoryCurrentIndex) {
+    const newSubCategoryCards = subCategoryCards.map(card => {
+      if (card.index === currentCard.index) {
         return { ...card, isFav: newIsFav };
       }
       return card;
     });
 
+    const newVisibleSubCategoryCards = newSubCategoryCards.filter(s => !s.isHidden);
+
     this.setData({
       subCategoryCards: newSubCategoryCards,
+      visibleSubCategoryCards: newVisibleSubCategoryCards,
       currentSubCategory: { ...currentCard, isFav: newIsFav }
     });
 

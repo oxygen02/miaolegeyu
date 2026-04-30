@@ -37,7 +37,7 @@
         <text class="form-label">推荐指数</text>
         <view class="paw-rating compact" bindtouchstart="onRatingTouchStart" bindtouchmove="onRatingTouchMove" bindtouchend="onRatingTouchEnd">
           <view wx:for="{{[1,2,3,4,5]}}" wx:key="*this" class="paw-item {{rating >= item ? 'active' : ''}}" data-rating="{{item}}" bindtap="onRatingSelect">
-            <image class="paw-image" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+            <image class="paw-image" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
           </view>
         </view>
       </view>
@@ -65,7 +65,7 @@
 
     <!-- 装饰Logo - 喵了个鱼 -->
     <view class="decoration-logo">
-      <image class="logo-image" src="/assets/images/cat-fish-logo.png" mode="aspectFit" />
+      <image class="logo-image" src="{{imagePaths.decorations.catFishLogo}}" mode="aspectFit" />
     </view>
 
     <!-- 人均消费 -->
@@ -88,7 +88,7 @@
           bindinput="onLocationInput"
         />
         <view class="location-map-btn" bindtap="chooseLocation">
-          <image class="location-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+          <image class="location-icon" src="{{imagePaths.icons.location}}" mode="aspectFit"/>
         </view>
       </view>
     </view>

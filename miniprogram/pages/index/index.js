@@ -1,3 +1,6 @@
+const { imagePaths } = require('../../config/imageConfig');
+const audioManager = require('../../utils/audioManager');
+
 Page({
   data: {
     recentRooms: [],
@@ -7,7 +10,8 @@ Page({
     appointmentBanners: [],
     countdownTimers: {},
     pageReady: false,
-    _dataLoaded: false
+    _dataLoaded: false,
+    imagePaths: imagePaths
   },
 
   touchStartX: 0,
@@ -19,14 +23,6 @@ Page({
       this.setData({ pageReady: true });
       this._loadDataAsync();
     }, 200);
-  },
-
-  onShow() {
-    // 更新 tabBar 选中状态为首页
-    this.updateTabBarSelected();
-    if (this.data._dataLoaded) {
-      this._loadDataAsync();
-    }
   },
 
   updateTabBarSelected() {
@@ -48,9 +44,26 @@ Page({
   },
 
   onUnload() {
+    this.clearAllTimers();
+  },
+
+  onHide() {
+    this.clearAllTimers();
+  },
+
+  onShow() {
+    this.updateTabBarSelected();
+    if (this.data._dataLoaded) {
+      this._loadDataAsync();
+    }
+  },
+
+  // 清理所有定时器
+  clearAllTimers() {
     Object.values(this.data.countdownTimers).forEach(timer => {
       clearInterval(timer);
     });
+    this.setData({ countdownTimers: {} });
   },
 
   async loadRecentRooms() {
@@ -63,7 +76,7 @@ Page({
         const rooms = result.rooms.map(room => ({
           ...room,
           statusText: this.getStatusText(room.status),
-          posterUrl: room.candidatePosters?.[0]?.imageUrl || '/assets/images/default-poster.png'
+          posterUrl: room.candidatePosters?.[0]?.imageUrl || imagePaths.banners.taiyakiIcon
         }));
         this.setData({ recentRooms: rooms });
       }
@@ -88,7 +101,7 @@ Page({
             appointmentTimeStr: this.formatAppointmentTime(app.appointmentTime),
             cuisineName: app.cuisineName || this.getCuisineName(app.cuisine),
             location: app.location || app.shopLocation || '地址待定',
-            shopImage: app.shopImage || app.shopImages?.[0] || '/assets/images/love-cat-icon.png'
+            shopImage: app.shopImage || app.shopImages?.[0] || imagePaths.decorations.loveCatIcon
           }));
 
         if (appointments.length > 4) {
@@ -192,16 +205,28 @@ Page({
     return map[status] || status;
   },
 
-  goCreate() { wx.navigateTo({ url: '/pages/create/create' }); },
-  goJoin() { 
+  goCreate() {
+    audioManager.playMeowShort();
+    wx.navigateTo({ url: '/pages/create/create' });
+  },
+  goJoin() {
+    audioManager.playMeowShort();
     // 跳转到房间列表页面
-    wx.navigateTo({ url: '/pages/room-list/room-list' }); 
+    wx.navigateTo({ url: '/pages/room-list/room-list' });
   },
   goFishTank() {
+    audioManager.playMeowShort();
     // 直接进入发起拼单页面
     wx.navigateTo({ url: '/pages/create-group-order/create-group-order' });
   },
-  goFoodDiscovery() { wx.navigateTo({ url: '/pages/food-discovery/food-discovery' }); },
+  goFoodDiscovery() {
+    audioManager.playMeowShort();
+    wx.navigateTo({ url: '/pages/food-discovery/food-discovery' });
+  },
+
+  goTestRecommend() {
+    wx.navigateTo({ url: '/pages/test-recommend/test-recommend' });
+  },
 
   // 底部导航切换
   switchTab(e) {
@@ -219,6 +244,7 @@ Page({
 
   enterRoom(e) {
     const { id } = e.currentTarget.dataset;
+    audioManager.playPawTap();
     wx.navigateTo({ url: `/pages/vote/vote?roomId=${id}` });
   },
 

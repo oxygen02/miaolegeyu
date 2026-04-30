@@ -3,12 +3,12 @@
   <view class="header-section">
     <view class="header-content">
       <view class="header-avatar-wrapper">
-        <image class="header-avatar" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+        <image class="header-avatar" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
       </view>
       <text class="header-title">喵不喵</text>
       <text class="header-subtitle">拼美食 · 拼奶茶 · 拼生活</text>
     </view>
-    <image class="header-tail" src="/assets/images/maoweiba.png" mode="aspectFit" />
+    <image class="header-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit" />
   </view>
 
   <!-- 视图模式切换 -->
@@ -41,55 +41,79 @@
       <text>我参与的</text>
       <text class="tab-badge" wx:if="{{participatedCount > 0}}">{{participatedCount}}</text>
     </view>
+    <!-- 编辑按钮 -->
+    <view class="edit-btn" bindtap="toggleEditMode" wx:if="{{!isEditMode}}">
+      <text>编辑</text>
+    </view>
+    <view class="edit-btn cancel" bindtap="toggleEditMode" wx:if="{{isEditMode}}">
+      <text>取消</text>
+    </view>
+  </view>
+
+  <!-- 顶部批量操作栏 -->
+  <view class="top-action-bar" wx:if="{{isEditMode}}">
+    <view class="top-select-all" bindtap="selectAll">
+      <view class="checkbox {{isAllSelected ? 'checked' : ''}}">
+        <text wx:if="{{isAllSelected}}">✓</text>
+      </view>
+      <text class="select-all-text">全选</text>
+    </view>
+    <view class="top-info">
+      <text>已选 {{selectedCount}} 项</text>
+    </view>
+    <view class="top-actions">
+      <button class="btn btn-danger btn-small {{selectedCount === 0 ? 'disabled' : ''}}" bindtap="batchDelete">{{batchDeleteText}}</button>
+    </view>
   </view>
 
   <!-- 活动列表 -->
   <scroll-view class="activity-list" scroll-y="true" enhanced="true" show-scrollbar="false">
     <!-- 正在进行的活动 -->
     <block wx:if="{{activeTab === 'ongoing'}}">
-      <view class="swipe-item" wx:for="{{ongoingActivities}}" wx:key="id" data-index="{{index}}" data-type="ongoing">
-        <view class="swipe-delete-btn" catchtap="deleteActivity" data-id="{{item.id}}" data-type="ongoing" data-iscreator="{{item.isCreator}}">
-          <text class="delete-text">{{item.isCreator ? '删除' : '退出'}}</text>
+      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}}" wx:for="{{ongoingActivities}}" wx:key="id" data-index="{{index}}" data-type="ongoing" bindtap="onCardTap" data-id="{{item.id}}">
+        <!-- 左上角复选框 -->
+        <view class="checkbox-top-left" wx:if="{{isEditMode}}" catchtap="toggleSelect" data-index="{{index}}" data-type="ongoing">
+          <view class="checkbox {{item.selected ? 'checked' : ''}}">
+            <text wx:if="{{item.selected}}">✓</text>
+          </view>
         </view>
-        <view class="activity-card card anim-slide-up {{item.swiping ? 'swiping' : ''}}" style="transform: translateX({{item.translateX || 0}}px)" bindtouchstart="onSwipeTouchStart" bindtouchmove="onSwipeTouchMove" bindtouchend="onSwipeTouchEnd" data-index="{{index}}" data-type="ongoing">
-          <view class="activity-main">
-            <image class="activity-image" src="{{item.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.image}}" />
-            <view class="activity-info">
-              <view class="activity-header-row">
-                <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
-                <view class="creator-info">
-                  <image class="creator-avatar" src="{{item.creatorAvatarUrl}}" mode="aspectFill" />
-                  <text class="creator-name">{{item.creatorNickName}}</text>
-                </view>
-              </view>
-              <text class="activity-title">{{item.title}}</text>
-              <text class="activity-shop">{{item.shopNameStr || item.shopName}}</text>
-              <view class="activity-meta">
-                <text class="activity-time">截止: {{item.time}}</text>
-              </view>
-              <!-- 参与用户头像 -->
-              <view class="participant-avatars" wx:if="{{item.participantAvatars.length > 0}}">
-                <view class="avatar-list">
-                  <image 
-                    wx:for="{{item.participantAvatars}}" 
-                    wx:key="index"
-                    class="participant-avatar {{index > 0 ? 'avatar-overlap' : ''}}" 
-                    src="{{item.avatarUrl}}" 
-                    mode="aspectFill"
-                    style="z-index: {{item.participantAvatars.length - index}};"
-                  />
-                </view>
-                <text class="participant-count">{{item.participantCount}}人参与</text>
+        <view class="activity-main">
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.image}}" />
+          <view class="activity-info">
+            <view class="activity-header-row">
+              <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
+              <view class="creator-info">
+                <image class="creator-avatar" src="{{item.creatorAvatarUrl}}" mode="aspectFill" />
+                <text class="creator-name">{{item.creatorNickName}}</text>
               </view>
             </view>
-            <view class="activity-right" catchtap="onRightAreaTap">
-              <text class="activity-status {{item.status}}">{{item.statusName}}</text>
-              <view class="activity-stats" wx:if="{{item.type === 'group'}}">
-                <text class="stats-text">已凑 ¥{{item.currentAmount}}/¥{{item.targetAmount}}</text>
-              </view>
-              <view class="spacer" wx:else></view>
-              <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}">立即参加</button>
+            <text class="activity-title">{{item.title}}</text>
+            <text class="activity-shop">{{item.shopNameStr || item.shopName}}</text>
+            <view class="activity-meta">
+              <text class="activity-time">截止: {{item.time}}</text>
             </view>
+            <!-- 参与用户头像 -->
+            <view class="participant-avatars" wx:if="{{item.participantAvatars.length > 0}}">
+              <view class="avatar-list">
+                <image 
+                  wx:for="{{item.participantAvatars}}" 
+                  wx:key="index"
+                  class="participant-avatar {{index > 0 ? 'avatar-overlap' : ''}}" 
+                  src="{{item.avatarUrl}}" 
+                  mode="aspectFill"
+                  style="z-index: {{item.participantAvatars.length - index}};"
+                />
+              </view>
+              <text class="participant-count">{{item.participantCount}}人参与</text>
+            </view>
+          </view>
+          <view class="activity-right" catchtap="onRightAreaTap">
+            <text class="activity-status {{item.status}}">{{item.statusName}}</text>
+            <view class="activity-stats" wx:if="{{item.type === 'group'}}">
+              <text class="stats-text">已凑 ¥{{item.currentAmount}}/¥{{item.targetAmount}}</text>
+            </view>
+            <view class="spacer" wx:else></view>
+            <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{!isEditMode}}">立即参加</button>
           </view>
         </view>
       </view>
@@ -97,29 +121,30 @@
 
     <!-- 我发起的活动 -->
     <block wx:if="{{activeTab === 'my'}}">
-      <view class="swipe-item" wx:for="{{myActivities}}" wx:key="id" data-index="{{index}}" data-type="my">
-        <view class="swipe-delete-btn" catchtap="deleteActivity" data-id="{{item.id}}" data-type="my" data-iscreator="true">
-          <text class="delete-text">删除</text>
+      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}}" wx:for="{{myActivities}}" wx:key="id" data-index="{{index}}" data-type="my" bindtap="onCardTap" data-id="{{item.id}}">
+        <!-- 左上角复选框 -->
+        <view class="checkbox-top-left" wx:if="{{isEditMode}}" catchtap="toggleSelect" data-index="{{index}}" data-type="my">
+          <view class="checkbox {{item.selected ? 'checked' : ''}}">
+            <text wx:if="{{item.selected}}">✓</text>
+          </view>
         </view>
-        <view class="activity-card card anim-slide-up {{item.swiping ? 'swiping' : ''}}" style="transform: translateX({{item.translateX || 0}}px)" bindtouchstart="onSwipeTouchStart" bindtouchmove="onSwipeTouchMove" bindtouchend="onSwipeTouchEnd" data-index="{{index}}" data-type="my">
-          <view class="activity-main" bindtap="goToActivityDetail" data-id="{{item.id}}">
-            <image class="activity-image" src="{{item.image}}" mode="aspectFill" />
-            <view class="activity-info">
-              <view class="activity-header-row">
-                <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
-              </view>
-              <text class="activity-title">{{item.title}}</text>
-              <text class="activity-shop">{{item.shopName}}</text>
-              <view class="activity-meta">
-                <text class="activity-time">{{item.time}}</text>
-                <text class="activity-participants">{{item.participantCount}}人参与</text>
-              </view>
+        <view class="activity-main">
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" />
+          <view class="activity-info">
+            <view class="activity-header-row">
+              <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
             </view>
-            <view class="activity-right" catchtap="onRightAreaTap">
-              <text class="activity-status {{item.status}}">{{item.statusName}}</text>
-              <view class="spacer"></view>
-              <button class="btn btn-secondary btn-small" catchtap="goToManage" data-id="{{item.id}}">管理</button>
+            <text class="activity-title">{{item.title}}</text>
+            <text class="activity-shop">{{item.shopName}}</text>
+            <view class="activity-meta">
+              <text class="activity-time">{{item.time}}</text>
+              <text class="activity-participants">{{item.participantCount}}人参与</text>
             </view>
+          </view>
+          <view class="activity-right" catchtap="onRightAreaTap">
+            <text class="activity-status {{item.status}}">{{item.statusName}}</text>
+            <view class="spacer"></view>
+            <button class="btn btn-secondary btn-small" catchtap="goToManage" data-id="{{item.id}}" wx:if="{{!isEditMode}}">管理</button>
           </view>
         </view>
       </view>
@@ -127,27 +152,28 @@
 
     <!-- 我参与的活动 -->
     <block wx:if="{{activeTab === 'participated'}}">
-      <view class="swipe-item" wx:for="{{participatedActivities}}" wx:key="id" data-index="{{index}}" data-type="participated">
-        <view class="swipe-delete-btn" catchtap="deleteActivity" data-id="{{item.id}}" data-type="participated" data-iscreator="{{item.isCreator}}">
-          <text class="delete-text">{{item.isCreator ? '删除' : '退出'}}</text>
+      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}}" wx:for="{{participatedActivities}}" wx:key="id" data-index="{{index}}" data-type="participated" bindtap="onCardTap" data-id="{{item.id}}">
+        <!-- 左上角复选框 -->
+        <view class="checkbox-top-left" wx:if="{{isEditMode}}" catchtap="toggleSelect" data-index="{{index}}" data-type="participated">
+          <view class="checkbox {{item.selected ? 'checked' : ''}}">
+            <text wx:if="{{item.selected}}">✓</text>
+          </view>
         </view>
-        <view class="activity-card card anim-slide-up {{item.swiping ? 'swiping' : ''}}" style="transform: translateX({{item.translateX || 0}}px)" bindtouchstart="onSwipeTouchStart" bindtouchmove="onSwipeTouchMove" bindtouchend="onSwipeTouchEnd" data-index="{{index}}" data-type="participated">
-          <view class="activity-main" bindtap="goToActivityDetail" data-id="{{item.id}}">
-            <image class="activity-image" src="{{item.image}}" mode="aspectFill" />
-            <view class="activity-info">
-              <view class="activity-header-row">
-                <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
-              </view>
-              <text class="activity-title">{{item.title}}</text>
-              <text class="activity-shop">{{item.shopName}}</text>
-              <view class="activity-meta">
-                <text class="activity-time">{{item.time}}</text>
-                <text class="activity-participants">{{item.participantCount}}人参与</text>
-              </view>
+        <view class="activity-main">
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" />
+          <view class="activity-info">
+            <view class="activity-header-row">
+              <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
             </view>
-            <view class="activity-right">
-              <text class="activity-status {{item.status}}">{{item.statusName}}</text>
+            <text class="activity-title">{{item.title}}</text>
+            <text class="activity-shop">{{item.shopName}}</text>
+            <view class="activity-meta">
+              <text class="activity-time">{{item.time}}</text>
+              <text class="activity-participants">{{item.participantCount}}人参与</text>
             </view>
+          </view>
+          <view class="activity-right">
+            <text class="activity-status {{item.status}}">{{item.statusName}}</text>
           </view>
         </view>
       </view>
@@ -155,20 +181,18 @@
 
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{(activeTab === 'ongoing' && ongoingActivities.length === 0) || (activeTab === 'my' && myActivities.length === 0) || (activeTab === 'participated' && participatedActivities.length === 0)}}">
-      <image class="empty-icon" src="/assets/images/sleeping-cat-icon.png" mode="aspectFit" />
+      <image class="empty-icon" src="{{imagePaths.decorations.sleepingCatIcon}}" mode="aspectFit" />
       <text class="empty-text">暂无相关活动</text>
       <text class="empty-subtext">去发现美食或发起拼单吧</text>
     </view>
 
-    <!-- 底部渐变遮罩 -->
-    <view class="bottom-fade-mask" wx:if="{{(activeTab === 'ongoing' && ongoingActivities.length > 0) || (activeTab === 'my' && myActivities.length > 0) || (activeTab === 'participated' && participatedActivities.length > 0)}}"></view>
-  </scroll-view>
+    </scroll-view>
 
-  <!-- 底部浮动发起按钮 -->
-  <view class="floating-create-bar" bindtap="showCreateOptions">
+  <!-- 底部浮动发起按钮 - 编辑模式下隐藏 -->
+  <view class="floating-create-bar" bindtap="showCreateOptions" wx:if="{{!isEditMode}}">
     <view class="create-icon-wrapper">
-      <image class="create-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
-      <image class="create-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+      <image class="create-icon" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
+      <image class="create-icon" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
     </view>
     <text class="create-text">发起拼单</text>
   </view>

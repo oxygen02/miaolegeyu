@@ -260,35 +260,12 @@
 .mode-arrow {
   width: 72rpx;
   height: 72rpx;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   margin-left: 24rpx;
   transition: all 0.3s;
-  position: relative;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-}
-
-/* 使用CSS绘制粗箭头 */
-.mode-arrow::after {
-  content: '';
-  width: 20rpx;
-  height: 20rpx;
-  border-top: 6rpx solid #3D3D3D;
-  border-right: 6rpx solid #3D3D3D;
-  transform: rotate(45deg);
-  margin-left: -4rpx;
 }
 
 .crayon-card:active .mode-arrow {
-  background: var(--color-primary);
   transform: translateX(4rpx);
-}
-
-.crayon-card:active .mode-arrow::after {
-  border-color: #fff;
 }
 
 /* ---------- 底部提示 ---------- */

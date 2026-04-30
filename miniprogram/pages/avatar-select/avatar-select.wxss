@@ -5,6 +5,38 @@
   flex-direction: column;
 }
 
+/* 昵称输入区（登录模式） */
+.nickname-section {
+  padding: 24rpx 32rpx;
+  background: #fff;
+  border-bottom: 2rpx solid #E0E0E0;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.nickname-input {
+  width: 100%;
+  height: 80rpx;
+  background: #F5F5F5;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+  border: 2rpx solid #E0E0E0;
+  box-sizing: border-box;
+  margin-bottom: 16rpx;
+}
+
+.section-subtitle {
+  font-size: 28rpx;
+  color: #666;
+  margin-top: 8rpx;
+}
+
 /* 搜索栏 */
 .search-bar {
   display: flex;
@@ -40,6 +72,10 @@
   padding: 12rpx 20rpx;
   overflow-y: auto;
   box-sizing: border-box;
+}
+
+.avatar-grid.login-mode {
+  height: calc(100vh - 480rpx);
 }
 
 .grid-content {
@@ -107,39 +143,48 @@
 
 /* 底部按钮 */
 .bottom-bar {
+  padding: 32rpx 0;
+  flex-shrink: 0;
+  margin-top: auto;
   display: flex;
   justify-content: center;
-  gap: 40rpx;
-  padding: 12rpx 24rpx 24rpx;
-  background: #fff;
-  border-top: 2rpx solid #E0E0E0;
+  gap: 32rpx;
+  background: transparent;
+  border-top: none;
 }
 
 .btn {
-  width: 240rpx;
-  height: 72rpx;
-  line-height: 72rpx;
-  border-radius: 36rpx;
-  font-size: 28rpx;
-  font-weight: 600;
+  display: block !important;
+  width: fit-content !important;
+  height: auto !important;
+  line-height: 1 !important;
+  border-radius: 36rpx !important;
+  font-size: 28rpx !important;
+  font-weight: 600 !important;
   text-align: center;
-  border: 4rpx solid #3D3D3D;
-  box-shadow: 4rpx 4rpx 0 #3D3D3D;
+  border: 4rpx solid #3D3D3D !important;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D !important;
+  padding: 20rpx 48rpx !important;
+  margin: 0 !important;
+}
+
+.btn::after {
+  display: none !important;
 }
 
 .btn-secondary {
-  background: #fff;
-  color: #3D3D3D;
+  background: #fff !important;
+  color: #3D3D3D !important;
 }
 
 .btn-primary {
-  background: #FF9F43;
-  color: #fff;
+  background: #FF9F43 !important;
+  color: #fff !important;
 }
 
 .btn-primary.disabled {
-  background: #CCC;
-  color: #888;
-  border-color: #999;
-  box-shadow: 4rpx 4rpx 0 #999;
+  background: #CCC !important;
+  color: #888 !important;
+  border-color: #999 !important;
+  box-shadow: 4rpx 4rpx 0 #999 !important;
 }

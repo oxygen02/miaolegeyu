@@ -1,75 +1,59 @@
-<!--pages/create-mode-a/create-mode-a.wxml-->
-<view class="container">
-  <view class="header">
-    <text class="title">我挑好了</text>
-    <text class="subtitle">上传美团/大众点评海报，让大家投票</text>
-  </view>
-
-  <!-- 海报上传区 -->
-  <view class="poster-section">
-    <view class="poster-grid">
-      <view 
-        class="poster-item" 
-        wx:for="{{posters}}" 
-        wx:key="index"
-      >
-        <image class="poster-img" src="{{item.tempFilePath || item.imageUrl}}" mode="aspectFill"/>
-        <view class="poster-actions">
-          <text class="action-btn" bindtap="markPlatform" data-index="{{index}}">标记平台</text>
-          <text class="action-btn delete" bindtap="removePoster" data-index="{{index}}">删除</text>
+<view class="page modea-page anim-page-enter">
+  <!-- 顶部橘色背景区域 -->
+  <view class="modea-header-bg">
+    <!-- 头部：橘仔提示 -->
+    <view class="modea-header">
+      <view class="cat-hint anim-breathe">
+        <image class="cat-img" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFit" />
+        <view class="speech-bubble">
+          <text class="bubble-text">我挑好了</text>
         </view>
       </view>
-      <view class="add-poster" bindtap="addPoster" wx:if="{{posters.length < 6}}">
-        <text class="add-icon">+</text>
-        <text class="add-text">添加海报</text>
-        <text class="add-hint">{{posters.length}}/6</text>
-      </view>
+      <text class="header-sub">上传美团/大众点评海报，让大家投票</text>
     </view>
   </view>
 
-  <!-- 简单表单 -->
-  <view class="form">
-    <view class="form-item">
-      <text class="label">标题</text>
-      <input class="input" placeholder="如：周五部门聚餐" bindinput="onTitleInput" value="{{title}}"/>
-    </view>
+  <!-- 页面内容区域 -->
+  <view class="modea-content">
 
-    <!-- 地点和人数 - 同一行 -->
-    <view class="form-item combined location-people-row">
+  <!-- 表单卡片 - 使用"你们来定"的字段布局 -->
+  <view class="form-card card anim-slide-up" style="animation-delay:0.1s">
+    <!-- 聚餐标题和聚餐地点范围 - 同一行 -->
+    <view class="form-group combined-fields">
+      <view class="field-section">
+        <text class="section-label">聚餐标题</text>
+        <input class="input field-input" placeholder="如：周五部门聚餐" value="{{title}}" bindinput="onTitleInput" />
+      </view>
+      <view class="divider"></view>
       <view class="field-section location-section">
-        <text class="section-label">地点</text>
+        <text class="section-label">聚餐地点范围</text>
         <view class="location-content-compact">
           <input 
-            class="input location-input-compact" 
-            placeholder="输入地点或点击地图" 
-            bindinput="onLocationInput" 
-            value="{{location}}"
+            class="input field-input location-input-compact" 
+            placeholder="如：朝阳区" 
+            value="{{locationText}}"
+            bindinput="onLocationInput"
           />
-          <view class="location-map-btn-compact" bindtap="chooseLocation">
-            <image class="location-icon" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+          <view class="location-map-btn-compact" bindtap="onChooseLocation">
+            <image class="location-icon" src="{{imagePaths.icons.location}}" mode="aspectFit"/>
           </view>
         </view>
       </view>
-      <view class="divider"></view>
-      <view class="field-section people-section">
-        <text class="section-label">人数</text>
-        <input class="input people-input-compact" type="number" placeholder="0" bindinput="onPeopleInput" value="{{peopleCount}}"/>
-      </view>
     </view>
 
-    <!-- 活动日期和投票截止日期 - 同一行 -->
-    <view class="form-item combined dates-row">
+    <!-- 聚餐时间和投票截止时间 - 同一行 -->
+    <view class="form-group combined-dates">
       <view class="date-section">
-        <text class="section-label">活动开始时间</text>
+        <text class="section-label">聚餐时间</text>
         <view class="date-inputs">
-          <input class="input small" type="text" maxlength="6" placeholder="月日" bindinput="onDateInput" bindblur="onDateBlur" value="{{activityDate}}"/>
+          <input class="input small" type="text" maxlength="6" placeholder="月日" bindinput="onDinnerDateInput" bindblur="onDinnerDateBlur" value="{{dinnerDate}}"/>
           <text class="separator">|</text>
-          <input class="input small" type="text" maxlength="6" placeholder="时分" bindinput="onTimeInput" bindblur="onTimeBlur" value="{{activityTime}}"/>
+          <input class="input small" type="text" maxlength="6" placeholder="时分" bindinput="onDinnerTimeInput" bindblur="onDinnerTimeBlur" value="{{dinnerTime}}"/>
         </view>
       </view>
       <view class="divider"></view>
       <view class="date-section">
-        <text class="section-label">报名截止时间</text>
+        <text class="section-label">投票截止时间</text>
         <view class="date-inputs">
           <input class="input small" type="text" maxlength="6" placeholder="月日" bindinput="onDeadlineDateInput" bindblur="onDeadlineDateBlur" value="{{deadlineDate}}"/>
           <text class="separator">|</text>
@@ -78,13 +62,78 @@
       </view>
     </view>
 
-    <view class="form-item">
-      <text class="label">开启时间提醒辅助</text>
-      <switch checked="{{timeAuxiliary}}" bindchange="onTimeAuxiliaryChange" color="#D4652A"/>
+    <!-- 打开付款码 - 单独一行 -->
+    <view class="form-group">
+      <text class="section-label">打开付款码的姿势</text>
+      <view class="payment-options-compact">
+        <view class="payment-option {{paymentMode === 'AA' ? 'selected' : ''}}" data-mode="AA" bindtap="onPaymentModeChange">
+          <text class="option-text">AA平摊</text>
+        </view>
+        <view class="payment-option {{paymentMode === 'treat' ? 'selected' : ''}}" data-mode="treat" bindtap="onPaymentModeChange">
+          <text class="option-text">喵大佬请客</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 匿名投票和房间密码 - 同一行对齐 -->
+    <view class="form-group switch-row-combined">
+      <view class="switch-item">
+        <text class="switch-label">匿名投票</text>
+        <view class="switch-control">
+          <switch checked="{{isAnonymous}}" bindchange="onAnonymousChange" color="#D4652A" />
+          <text class="switch-status">{{isAnonymous ? '已开启' : '已关闭'}}</text>
+        </view>
+      </view>
+      <view class="switch-divider"></view>
+      <view class="switch-item">
+        <text class="switch-label">房间密码</text>
+        <view class="switch-control">
+          <switch checked="{{needPassword}}" bindchange="onPasswordSwitchChange" color="#D4652A" />
+          <text class="switch-status">{{needPassword ? '已开启' : '已关闭'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 房间密码输入框 -->
+    <view class="form-group password-input-section" wx:if="{{needPassword}}">
+      <input 
+        class="input password-input" 
+        type="text" 
+        maxlength="6"
+        placeholder="请输入4-6位密码" 
+        value="{{roomPassword}}"
+        bindinput="onPasswordInput"
+      />
+      <text class="password-hint">加入房间时需要输入此密码</text>
+    </view>
+
+    <!-- 海报上传区 - 放在卡片底部 -->
+    <view class="form-group poster-section">
+      <text class="section-label">上传海报（{{posters.length}}/6）</text>
+      <view class="poster-grid">
+        <view class="poster-item" wx:for="{{posters}}" wx:key="index">
+          <image class="poster-img" src="{{item.tempFilePath || item.imageUrl}}" mode="aspectFill"/>
+          <view class="poster-actions">
+            <text class="action-btn" bindtap="markPlatform" data-index="{{index}}">标记</text>
+            <text class="action-btn delete" bindtap="removePoster" data-index="{{index}}">删除</text>
+          </view>
+        </view>
+        <view class="add-poster" bindtap="addPoster" wx:if="{{posters.length < 6}}">
+          <text class="add-icon">+</text>
+          <text class="add-text">添加</text>
+        </view>
+      </view>
     </view>
   </view>
 
-  <button class="btn-create {{canCreate ? '' : 'disabled'}}" bindtap="createRoom">生成房间</button>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-panel safe-bottom">
+    <button class="btn btn-primary submit-btn {{canSubmit ? '' : 'btn-disabled'}}" bindtap="createRoom">
+      生成房间
+    </button>
+  </view>
 
   <!-- 平台选择弹窗 -->
   <view class="popup" wx:if="{{showPlatformPopup}}">

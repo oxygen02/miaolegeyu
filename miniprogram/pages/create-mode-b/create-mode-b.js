@@ -1,8 +1,10 @@
 // pages/create-mode-b/create-mode-b.js
 const { generateRoomId } = require('../../utils/uuid.js');
+const { imagePaths } = require('../../config/imageConfig');
 
 Page({
   data: {
+    imagePaths: imagePaths,
     title: '',
     location: {},
     locationText: '',
@@ -22,6 +24,11 @@ Page({
     paymentMode: 'AA',
     // 匿名投票
     isAnonymous: false,
+    // 房间密码
+    needPassword: false,
+    roomPassword: '',
+    // 是否启用餐厅推荐
+    enableRestaurantRecommend: false,
     // 是否可以提交
     canSubmit: false
   },
@@ -163,9 +170,16 @@ Page({
         if (err.errMsg && err.errMsg.includes('cancel')) {
           return;
         }
-        wx.showToast({
-          title: '请授权位置权限',
-          icon: 'none'
+        wx.showModal({
+          title: '需要授权',
+          content: '开启位置权限后，可从地图选择聚餐地点，也可手动输入',
+          confirmText: '去开启',
+          cancelText: '手动输入',
+          success: (res) => {
+            if (res.confirm) {
+              wx.openSetting();
+            }
+          }
         });
       }
     });
@@ -396,12 +410,38 @@ Page({
     this.setData({ isAnonymous: e.detail.value });
   },
 
+  // 密码开关切换
+  onPasswordSwitchChange(e) {
+    this.setData({ 
+      needPassword: e.detail.value,
+      roomPassword: ''
+    }, () => {
+      this.checkCanSubmit();
+    });
+  },
+
+// 密码输入
+onPasswordInput(e) {
+this.setData({ roomPassword: e.detail.value }, () => {
+this.checkCanSubmit();
+});
+},
+
+// 餐厅推荐开关
+onRecommendSwitchChange(e) {
+this.setData({
+enableRestaurantRecommend: e.detail.value
+});
+},
+
   canSubmit() {
     const hasTitle = this.data.title.trim() !== '';
     const hasLocation = this.data.locationText.trim() !== '';
     const hasDinnerTime = this.data.dinnerDateRaw && this.data.dinnerTimeRaw;
     const hasDeadline = this.data.deadlineDateRaw && this.data.deadlineTimeRaw;
-    return hasTitle && hasLocation && hasDinnerTime && hasDeadline;
+    // 如果开启密码，需要输入4-6位密码
+    const passwordValid = !this.data.needPassword || (this.data.roomPassword.length >= 4 && this.data.roomPassword.length <= 6);
+    return hasTitle && hasLocation && hasDinnerTime && hasDeadline && passwordValid;
   },
 
   async createRoom() {
@@ -445,13 +485,16 @@ Page({
           name: 'createRoom',
           data: {
             roomId,
-            mode: 'b',
+            mode: 'pick_for_them',
             title: this.data.title,
             location: this.data.location,
             dinnerTime: this.data.dinnerTimeValue,
             voteDeadline: this.data.deadline,
             paymentMode: this.data.paymentMode,
-            isAnonymous: this.data.isAnonymous
+            isAnonymous: this.data.isAnonymous,
+            needPassword: this.data.needPassword,
+            roomPassword: this.data.needPassword ? this.data.roomPassword : '',
+            enableRestaurantRecommend: this.data.enableRestaurantRecommend
           }
         });
       }

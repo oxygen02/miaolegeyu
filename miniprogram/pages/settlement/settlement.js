@@ -1,13 +1,16 @@
+const { imagePaths } = require('../../config/imageConfig');
+
 Page({
   data: {
+    imagePaths: imagePaths,
     totalAmount: 268,
     peopleCount: 4,
     perPerson: 67,
     members: [
-      { id: 1, name: '我', paid: true, avatar: '/assets/images/juze_avatar.png' },
-      { id: 2, name: '张三', paid: false, avatar: '/assets/images/juze_avatar.png' },
-      { id: 3, name: '李四', paid: false, avatar: '/assets/images/juze_avatar.png' },
-      { id: 4, name: '王五', paid: true, avatar: '/assets/images/juze_avatar.png' }
+      { id: 1, name: '我', paid: true, avatar: imagePaths.icons.juzeAvatar },
+      { id: 2, name: '张三', paid: false, avatar: imagePaths.icons.juzeAvatar },
+      { id: 3, name: '李四', paid: false, avatar: imagePaths.icons.juzeAvatar },
+      { id: 4, name: '王五', paid: true, avatar: imagePaths.icons.juzeAvatar }
     ],
     paidCount: 2,
     allPaid: false

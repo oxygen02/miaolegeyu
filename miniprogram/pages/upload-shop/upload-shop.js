@@ -1,5 +1,8 @@
+const { imagePaths } = require('../../config/imageConfig');
+
 Page({
   data: {
+    imagePaths: imagePaths,
     // 表单数据
     name: '',
     cuisine: '',
@@ -84,6 +87,21 @@ Page({
           images: [...images, ...newImages]
         });
         this.checkFormValid();
+      },
+      fail: (err) => {
+        if (err.errMsg && (err.errMsg.includes('fail auth') || err.errMsg.includes('cancel'))) {
+          wx.showModal({
+            title: '需要授权',
+            content: '开启相册/相机权限后，可上传店铺图片展示给好友',
+            confirmText: '去开启',
+            cancelText: '暂不需要',
+            success: (res) => {
+              if (res.confirm) {
+                wx.openSetting();
+              }
+            }
+          });
+        }
       }
     });
   },
@@ -186,7 +204,9 @@ Page({
         if (err.errMsg && err.errMsg.includes('fail auth')) {
           wx.showModal({
             title: '需要授权',
-            content: '请选择位置权限以使用地图功能',
+            content: '开启位置权限后，可自动定位店铺地址，也可手动输入',
+            confirmText: '去开启',
+            cancelText: '手动输入',
             success: (res) => {
               if (res.confirm) {
                 wx.openSetting();

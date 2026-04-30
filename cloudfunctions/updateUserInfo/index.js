@@ -18,12 +18,15 @@ exports.main = async (event) => {
     }
     
     // 查询用户
+    console.log('查询用户, openid:', openid);
     const { data: users } = await db.collection('users')
       .where({ _openid: openid })
       .limit(1)
       .get();
+    console.log('查询结果:', users);
     
     if (!users || users.length === 0) {
+      console.log('用户不存在');
       return {
         code: -1,
         msg: '用户不存在'
@@ -46,9 +49,11 @@ exports.main = async (event) => {
     }
     
     // 更新用户信息
-    await db.collection('users').doc(userId).update({
+    console.log('更新用户:', userId, '数据:', updateData);
+    const updateResult = await db.collection('users').doc(userId).update({
       data: updateData
     });
+    console.log('更新结果:', updateResult);
     
     return {
       code: 0,

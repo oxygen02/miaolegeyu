@@ -1,85 +1,66 @@
+// pages/history/history.js
 Page({
+
+  /**
+   * 页面的初始数据
+   */
   data: {
-    historyList: [],
-    loading: false,
-    hasMore: true,
-    page: 1,
-    pageSize: 20
+
   },
 
-  onLoad() {
-    this.loadHistory();
+  /**
+   * 生命周期函数--监听页面加载
+   */
+  onLoad(options) {
+
   },
 
-  // 加载历史记录
-  async loadHistory(reset = false) {
-    if (this.data.loading) return;
+  /**
+   * 生命周期函数--监听页面初次渲染完成
+   */
+  onReady() {
 
-    const page = reset ? 1 : this.data.page;
-
-    this.setData({ loading: true });
-
-    try {
-      // 这里可以调用云函数获取历史记录
-      // 暂时使用本地存储模拟
-      const history = wx.getStorageSync('activityHistory') || [];
-
-      // 分页处理
-      const start = (page - 1) * this.data.pageSize;
-      const end = start + this.data.pageSize;
-      const pageData = history.slice(start, end);
-
-      this.setData({
-        historyList: reset ? pageData : [...this.data.historyList, ...pageData],
-        hasMore: pageData.length === this.data.pageSize,
-        page: page + 1,
-        loading: false
-      });
-    } catch (err) {
-      console.error('加载历史记录失败:', err);
-      this.setData({ loading: false });
-      wx.showToast({ title: '加载失败', icon: 'none' });
-    }
   },
 
-  // 加载更多
-  loadMore() {
-    if (this.data.hasMore && !this.data.loading) {
-      this.loadHistory();
-    }
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow() {
+
   },
 
-  // 查看详情
-  viewDetail(e) {
-    const { id, type } = e.currentTarget.dataset;
-    if (type === 'room') {
-      wx.navigateTo({ url: `/pages/control/control?roomId=${id}` });
-    } else if (type === 'shop') {
-      wx.navigateTo({ url: `/pages/shop-detail/shop-detail?id=${id}` });
-    }
+  /**
+   * 生命周期函数--监听页面隐藏
+   */
+  onHide() {
+
   },
 
-  // 清空历史
-  clearHistory() {
-    wx.showModal({
-      title: '清空历史',
-      content: '确定要清空所有历史记录吗？',
-      confirmColor: '#FF6B6B',
-      success: (res) => {
-        if (res.confirm) {
-          wx.removeStorageSync('activityHistory');
-          this.setData({
-            historyList: [],
-            hasMore: false
-          });
-          wx.showToast({ title: '已清空', icon: 'success' });
-        }
-      }
-    });
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload() {
+
   },
 
-  // 返回
-  goBack() {
-    wx.navigateBack();
+  /**
+   * 页面相关事件处理函数--监听用户下拉动作
+   */
+  onPullDownRefresh() {
+
+  },
+
+  /**
+   * 页面上拉触底事件的处理函数
+   */
+  onReachBottom() {
+
+  },
+
+  /**
+   * 用户点击右上角分享
+   */
+  onShareAppMessage() {
+
   }
-});
+})

@@ -1,4 +1,5 @@
 const app = getApp();
+const { imagePaths } = require('../../config/imageConfig');
 
 // 渐变色配置 - 淡色系，相邻店铺有明显差异
 const bgColors = [
@@ -10,8 +11,9 @@ const bgColors = [
   'linear-gradient(135deg, #F8F0FF 0%, #F0E6FF 100%)',  // 淡紫
 ];
 
-// 菜系映射 - 20个大类（简化名称）
+// 菜系映射 - 包含20个大类和上传店铺的简化分类
 const cuisineMap = {
+  // 20个大类（Mode B 使用）
   'chuanyu': '川渝',
   'xianggan': '湘赣',
   'yueshi': '粤式',
@@ -31,11 +33,31 @@ const cuisineMap = {
   'haixian': '海鲜',
   'zizhu': '自助',
   'nongjia': '农家',
-  'sifang': '私房'
+  'sifang': '私房',
+  // 上传店铺使用的简化分类
+  'chinese': '中餐',
+  'japanese': '日韩餐',
+  'western': '西餐',
+  'bbq': '烧烤',
+  'hotpot': '火锅',
+  'meat': '烤肉',
+  'seafood': '海鲜',
+  'crayfish': '小龙虾',
+  'local': '地方特色',
+  'dessert': '甜品',
+  'tea': '奶茶',
+  'cafe': '咖啡',
+  'bar': '酒吧',
+  'snack': '小吃',
+  'fastfood': '快餐',
+  'bread': '面包',
+  'fruit': '水果',
+  'other': '其他'
 };
 
 Page({
   data: {
+    imagePaths: imagePaths,
     shops: [],
     loading: false,
     hasMore: true,
@@ -63,7 +85,12 @@ Page({
       { id: 'haixian', name: '海鲜' },
       { id: 'zizhu', name: '自助' },
       { id: 'nongjia', name: '农家' },
-      { id: 'sifang', name: '私房' }
+      { id: 'sifang', name: '私房' },
+      { id: 'snack', name: '小吃' },
+      { id: 'fastfood', name: '快餐' },
+      { id: 'dessert', name: '甜品' },
+      { id: 'cafe', name: '咖啡' },
+      { id: 'bar', name: '酒吧' }
     ],
     // 图片预览
     previewVisible: false,
@@ -552,6 +579,127 @@ Page({
     wx.navigateTo({
       url: '/pages/upload-shop/upload-shop'
     });
+  },
+
+  // 导航到店铺
+  navigateToShop(e) {
+    e.stopPropagation();
+    const { shop } = e.currentTarget.dataset;
+    if (!shop || !shop.location) {
+      wx.showToast({ title: '暂无地址信息', icon: 'none' });
+      return;
+    }
+
+    // 显示导航选项
+    wx.showActionSheet({
+      itemList: ['查看距离', '导航到店铺', '复制地址'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          // 查看距离 - 获取用户位置并计算距离
+          this.calculateDistance(shop);
+        } else if (res.tapIndex === 1) {
+          // 导航到店铺
+          this.openLocationAction(shop.location, shop.name);
+        } else if (res.tapIndex === 2) {
+          // 复制地址
+          wx.setClipboardData({
+            data: shop.location,
+            success: () => {
+              wx.showToast({ title: '地址已复制', icon: 'success' });
+            }
+          });
+        }
+      }
+    });
+  },
+
+  // 计算距离
+  calculateDistance(shop) {
+    wx.showLoading({ title: '计算距离中...' });
+
+    wx.getLocation({
+      type: 'gcj02',
+      success: (res) => {
+        const { latitude, longitude } = res;
+
+        // 使用腾讯地图SDK计算距离（需要配置key）
+        // 这里简化处理，实际应该调用地图API进行地址解析和距离计算
+        wx.request({
+          url: 'https://apis.map.qq.com/ws/geocoder/v1/',
+          data: {
+            address: shop.location,
+            key: 'YOUR_TENCENT_MAP_KEY' // 需要替换为实际的key
+          },
+          success: (geoRes) => {
+            wx.hideLoading();
+            if (geoRes.data && geoRes.data.status === 0) {
+              const location = geoRes.data.result.location;
+              const distance = this.getDistance(latitude, longitude, location.lat, location.lng);
+
+              wx.showModal({
+                title: '距离信息',
+                content: `您距离「${shop.name}」约 ${distance}`,
+                confirmText: '去导航',
+                success: (modalRes) => {
+                  if (modalRes.confirm) {
+                    wx.openLocation({
+                      latitude: location.lat,
+                      longitude: location.lng,
+                      name: shop.name,
+                      address: shop.location
+                    });
+                  }
+                }
+              });
+            } else {
+              wx.showToast({ title: '无法获取位置信息', icon: 'none' });
+            }
+          },
+          fail: () => {
+            wx.hideLoading();
+            wx.showToast({ title: '距离计算失败', icon: 'none' });
+          }
+        });
+      },
+      fail: () => {
+        wx.hideLoading();
+        wx.showModal({
+          title: '需要授权',
+          content: '开启位置权限后，可计算店铺与您的距离并排序展示',
+          confirmText: '去开启',
+          cancelText: '暂不需要',
+          success: (res) => {
+            if (res.confirm) {
+              wx.openSetting();
+            }
+          }
+        });
+      }
+    });
+  },
+
+  // 计算两点间距离（简化版，使用直线距离）
+  getDistance(lat1, lng1, lat2, lng2) {
+    const radLat1 = lat1 * Math.PI / 180.0;
+    const radLat2 = lat2 * Math.PI / 180.0;
+    const a = radLat1 - radLat2;
+    const b = lng1 * Math.PI / 180.0 - lng2 * Math.PI / 180.0;
+    let s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) +
+      Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
+    s = s * 6378.137; // 地球半径
+    s = Math.round(s * 10000) / 10000;
+
+    if (s < 1) {
+      return Math.round(s * 1000) + '米';
+    } else {
+      return s.toFixed(1) + '公里';
+    }
+  },
+
+  // 位置图标加载失败
+  onLocationIconError(e) {
+    console.error('位置图标加载失败:', e);
+    this.setData({ locationIconError: true });
   },
 
   onShareAppMessage() {

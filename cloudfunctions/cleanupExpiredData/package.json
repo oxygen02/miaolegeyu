@@ -1,0 +1,9 @@
+{
+  "name": "cleanupExpiredData",
+  "version": "1.0.0",
+  "description": "定时清理过期数据云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

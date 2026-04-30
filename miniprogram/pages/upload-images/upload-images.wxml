@@ -1,0 +1,22 @@
+<view class="container">
+  <view class="header">
+    <text class="title">批量上传图片到云存储</text>
+    <text class="subtitle">共 {{uploadStatus.length}} 张图片</text>
+  </view>
+
+  <view class="progress-section" wx:if="{{isUploading}}">
+    <progress percent="{{progress}}" show-info stroke-width="12" activeColor="#FF9F43" />
+    <text class="progress-text">上传进度: {{progress}}%</text>
+  </view>
+
+  <button class="upload-btn {{isUploading ? 'disabled' : ''}}" bindtap="startUpload" disabled="{{isUploading}}">
+    {{isUploading ? '上传中...' : '开始上传'}}
+  </button>
+
+  <view class="status-list">
+    <view class="status-item {{item.status}}" wx:for="{{uploadStatus}}" wx:key="index">
+      <text class="status-name">{{item.name}}</text>
+      <text class="status-badge">{{item.status === 'pending' ? '待上传' : item.status === 'uploading' ? '上传中' : item.status === 'success' ? '成功' : '失败'}}</text>
+    </view>
+  </view>
+</view>

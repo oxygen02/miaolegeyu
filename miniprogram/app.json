@@ -16,12 +16,16 @@
     "pages/food-discovery/food-discovery",
     "pages/shop-detail/shop-detail",
     "pages/upload-shop/upload-shop",
+    "pages/upload-images/upload-images",
     "pages/profile/profile",
     "pages/room-list/room-list",
     "pages/avatar-select/avatar-select",
     "pages/settings/settings",
     "pages/history/history",
-    "pages/about/about"
+    "pages/about/about",
+    "pages/roomConsole/console",
+    "pages/recommend-restaurant/recommend-restaurant",
+    "pages/test-recommend/test-recommend"
   ],
   "window": {
     "backgroundTextStyle": "light",

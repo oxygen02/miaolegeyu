@@ -1,4 +1,25 @@
 <view class="vote-page">
+  <!-- 密码输入弹窗 -->
+  <view class="password-modal" wx:if="{{showPasswordModal}}">
+    <view class="password-mask"></view>
+    <view class="password-content">
+      <image class="password-cat" src="{{imagePaths.decorations.juzeAvatar}}" mode="aspectFit"/>
+      <text class="password-title">该房间需要密码</text>
+      <text class="password-subtitle">请输入房间密码加入</text>
+      <input 
+        class="password-input" 
+        type="text" 
+        maxlength="6"
+        placeholder="请输入4-6位密码"
+        value="{{inputPassword}}"
+        bindinput="onPasswordInput"
+      />
+      <view class="password-btn {{inputPassword.length >= 4 ? 'active' : ''}}" bindtap="submitPassword">
+        <text>确认加入</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 顶部渐变区域 -->
   <view class="header-section">
     <view class="header-content">
@@ -9,7 +30,7 @@
         <text class="progress-text" wx:if="{{currentStep === 'subcategory'}}">{{subCategoryCurrentIndex + 1}} / {{subCategoryCards.length}} (每个大类选1个)</text>
       </block>
     </view>
-    <image class="header-tail" src="/assets/images/maoweiba.png" mode="aspectFit" />
+    <image class="header-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit" />
   </view>
 
   <!-- ========== Mode A: 海报投票（抖音式上下滑动） ========== -->
@@ -27,27 +48,22 @@
           
           <image class="full-img" src="{{item.imageUrl}}" mode="aspectFill" bindtap="onTapCard" data-index="{{index}}"/>
           
-          <!-- 平台角标 -->
-          <view class="platform-badge {{item.platformSource}}">
-            <text>{{item.platformSource === 'meituan' ? '美团' : item.platformSource === 'dianping' ? '点评' : '京东'}}</text>
-          </view>
-
           <!-- 否决印章 - 只在非喜欢状态下显示 -->
           <view class="veto-stamp" wx:if="{{item.isVetoed && !item.isLiked}}">
-            <image class="stamp-cat" src="/assets/images/angry-cat.png" mode="aspectFit"/>
+            <image class="stamp-cat" src="{{imagePaths.decorations.angryCat}}" mode="aspectFit"/>
             <text class="stamp-text">不想喵</text>
           </view>
 
           <!-- 爱心猫咪特效 -->
           <view class="love-cat-effect {{showLoveCat && loveCatIndex === index ? 'show' : ''}}">
-            <image class="love-cat-img" src="/assets/images/love-cat-icon.png" mode="aspectFit"/>
+            <image class="love-cat-img" src="{{imagePaths.decorations.loveCatIcon}}" mode="aspectFit"/>
             <text class="love-cat-text">想要喵</text>
           </view>
 
           <!-- 底部文字遮罩 -->
           <view class="card-overlay">
             <text class="card-title">{{item.shopName || '推荐餐厅'}}</text>
-            <text class="card-desc">上滑跳过 · 双击收藏</text>
+            <text class="card-desc">上滑跳过 · 双击选择</text>
           </view>
           
           <!-- 操作栏 - 右下角抖音风格 -->
@@ -79,7 +95,7 @@
 
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{currentIndex >= posters.length}}">
-      <image class="empty-cat-image" src="/assets/images/wink-cat-icon.png" mode="aspectFit" />
+      <image class="empty-cat-image" src="{{imagePaths.decorations.winkCatIcon}}" mode="aspectFit" />
       <text class="empty-text">都筛完了，去提交吧</text>
     </view>
   </block>
@@ -119,6 +135,11 @@
           </view>
           <button class="btn-next-grid" bindtap="goToSubCategory">下一步</button>
         </view>
+        <!-- 未选大类时的提示 -->
+        <view class="selected-categories-bar empty" wx:if="{{selectedCategoryIds.length === 0}}">
+          <text class="empty-hint">请选择至少一个大类</text>
+          <button class="btn-next-grid disabled" disabled>下一步</button>
+        </view>
       </view>
     </block>
 
@@ -133,15 +154,22 @@
       </view>
       
       <!-- 单图片swiper展示 -->
-      <swiper 
-        class="subcategory-swiper" 
+      <swiper
+        class="subcategory-swiper"
         vertical
         bindchange="onSubCategoryChange"
-        current="{{subCategoryCurrentIndex}}"
+        current="{{subCategorySwiperCurrent}}"
       >
-        <swiper-item wx:for="{{subCategoryCards}}" wx:key="index" wx:if="{{!item.isHidden}}">
+        <swiper-item wx:for="{{visibleSubCategoryCards}}" wx:key="index">
           <view class="subcategory-card">
-            <image class="subcategory-full-img" src="{{item.image}}" mode="aspectFill" bindtap="onSubCategoryTap" data-index="{{index}}"/>
+            <image
+              class="subcategory-full-img"
+              src="{{item.image}}"
+              mode="aspectFill"
+              bindtap="onSubCategoryTap"
+              data-index="{{index}}"
+              lazy-load
+            />
             
             <!-- 底部文字遮罩 -->
             <view class="subcategory-overlay">

@@ -8,7 +8,7 @@
   <!-- 用户信息区域 -->
   <view class="user-section">
     <view class="user-avatar" bindtap="changeAvatar">
-      <image src="{{userInfo.avatarUrl || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFill"/>
+      <image src="{{userInfo.avatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFill"/>
       <view class="avatar-edit">更换头像</view>
     </view>
     <view class="user-info">

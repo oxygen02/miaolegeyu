@@ -1,0 +1,9 @@
+{
+  "name": "getVoteStats",
+  "version": "1.0.0",
+  "description": "获取投票统计（控制台用）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

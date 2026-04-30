@@ -1,7 +1,10 @@
+const { imagePaths } = require('../../config/imageConfig');
+const audioManager = require('../../utils/audioManager');
+
 // 发起者选择页
 Page({
   data: {
-    // 页面数据
+    imagePaths: imagePaths
   },
 
   onLoad() {
@@ -15,6 +18,7 @@ Page({
 
   // 模式A：我挑好了
   goModeA() {
+    audioManager.playMeowShort();
     wx.navigateTo({
       url: '/pages/create-mode-a/create-mode-a'
     });
@@ -22,6 +26,7 @@ Page({
 
   // 模式B：你们来定
   goModeB() {
+    audioManager.playMeowShort();
     wx.navigateTo({
       url: '/pages/create-mode-b/create-mode-b'
     });
@@ -29,6 +34,7 @@ Page({
 
   // 拼单
   goGroup() {
+    audioManager.playMeowShort();
     wx.navigateTo({
       url: '/pages/create-group-order/create-group-order'
     });

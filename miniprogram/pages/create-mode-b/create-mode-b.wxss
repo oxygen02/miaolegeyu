@@ -1,11 +1,43 @@
+/* 页面容器 */
 .modeb-page {
   height: 100vh;
-  background: var(--bg);
-  padding: 48rpx;
+  background: linear-gradient(180deg, #FFF8F0 0%, #FFE4CC 100%);
+  padding: 0;
   display: flex;
   flex-direction: column;
   padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
   overflow: hidden;
+  position: relative;
+}
+
+/* 顶部橘色背景区域 */
+.modeb-header-bg {
+  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
+  padding: 40rpx 32rpx;
+  margin: 0;
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 猫尾巴 - 右下角 */
+.modeb-header-bg::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -10rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background-image: url('https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/banners/maoweiba.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  opacity: 1;
+  pointer-events: none;
+  z-index: 2;
+  transform: rotate(-10deg);
 }
 
 /* 头部 */
@@ -13,7 +45,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 32rpx;
   flex-shrink: 0;
 }
 
@@ -25,14 +56,16 @@
 }
 
 .cat-img {
-  width: 120rpx;
-  height: 120rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 50%;
+  border: 4rpx solid #666666;
+  box-sizing: border-box;
 }
 
 .speech-bubble {
   background: var(--card);
-  padding: 20rpx 32rpx;
+  padding: 16rpx 28rpx;
   border-radius: 24rpx;
   border: 2rpx solid rgba(212, 101, 42, 0.15);
   box-shadow: var(--shadow-card);
@@ -50,28 +83,39 @@
 }
 
 .bubble-text {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 600;
-  color: var(--primary);
+  color: #FF9F43;
 }
 
 .header-sub {
-  margin-top: 24rpx;
+  margin-top: 12rpx;
   font-size: 28rpx;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 页面内容区域 */
+.modeb-content {
+  flex: 1;
+  padding: 32rpx;
+  padding-bottom: 0;
+  overflow-y: auto;
 }
 
 /* 表单卡片 */
 .form-card {
   padding: 32rpx;
-  margin-bottom: 24rpx;
-  flex: 1;
-  overflow-y: auto;
+  margin-bottom: 16rpx;
+  flex-shrink: 0;
   overflow-x: hidden;
 }
 
+.form-card:last-child {
+  margin-bottom: 0;
+}
+
 .form-group {
-  margin-bottom: 24rpx;
+  margin-bottom: 16rpx;
 }
 
 .form-group:last-child {
@@ -193,8 +237,16 @@
 }
 
 .date-section .section-label {
+font-size: 28rpx;
+color: var(--text-secondary);
+font-weight: 500;
+}
+
+/* 通用 section-label 样式 */
+.section-label {
+  display: block;
   font-size: 28rpx;
-  color: var(--text-secondary);
+  color: #666666;
   font-weight: 500;
 }
 
@@ -260,12 +312,35 @@
   height: 48rpx;
 }
 
+/* 房间密码输入框 */
+.password-input-section {
+  margin-top: -8rpx;
+  margin-bottom: 16rpx;
+}
+
+.password-input {
+  width: 100%;
+  height: 88rpx;
+  background: var(--bg);
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+  color: var(--text);
+  margin-bottom: 8rpx;
+}
+
+.password-hint {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  padding-left: 8rpx;
+}
+
 /* 决策说明 - 合并结果生效规则和流程说明 */
 .decision-section {
   background: rgba(255, 159, 67, 0.2);
   border-radius: var(--radius-card);
-  padding: 24rpx;
-  margin-bottom: 24rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 16rpx;
   flex-shrink: 0;
 }
 
@@ -274,13 +349,13 @@
   font-size: 28rpx;
   font-weight: 600;
   color: #D4652A;
-  margin-bottom: 24rpx;
+  margin-bottom: 16rpx;
 }
 
 .decision-list {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 8rpx;
 }
 
 .decision-item {
@@ -298,8 +373,8 @@
 }
 
 .decision-text {
-  font-size: 28rpx;
-  color: #3D3D3D;
+  font-size: 24rpx;
+  color: #666666;
   font-weight: 500;
 }
 
@@ -336,27 +411,66 @@
   font-weight: 500;
 }
 
-/* 设置行 - 付费方式和匿名投票在同一行 */
-.combined-settings {
+/* 匿名投票和房间密码 - 同一行对齐 */
+.switch-row-combined {
   display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 8rpx;
-  padding: 12rpx 0;
+  align-items: center;
+  gap: 16rpx;
 }
 
-.setting-section {
+.switch-item {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
-  min-width: 0;
+  gap: 8rpx;
 }
 
-.setting-section .section-label {
+.switch-label {
   font-size: 28rpx;
   color: var(--text-secondary);
   font-weight: 500;
+}
+
+.switch-control {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.switch-status {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.switch-divider {
+width: 1rpx;
+height: 60rpx;
+background: rgba(0,0,0,0.1);
+align-self: center;
+}
+
+/* 餐厅推荐开关 */
+.recommend-switch-section {
+  margin-top: 8rpx;
+}
+
+.recommend-switch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.recommend-switch-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  flex: 1;
+}
+
+.recommend-switch-hint {
+  font-size: 24rpx;
+  color: var(--text-secondary);
 }
 
 .payment-options-compact {
@@ -441,10 +555,10 @@
 
 /* 底部按钮 - 粗边框风格 */
 .bottom-panel {
-  display: flex;
-  justify-content: center;
+  padding: 32rpx 0;
   flex-shrink: 0;
-  margin-bottom: 24rpx;
+  margin-top: auto;
+  margin-bottom: 0;
 }
 
 .submit-btn {
@@ -455,11 +569,11 @@
   border-radius: 36rpx !important;
   background: #FF9F43 !important;
   color: #fff !important;
-  font-size: 30rpx !important;
+  font-size: 28rpx !important;
   font-weight: 600 !important;
   border: 4rpx solid #3D3D3D !important;
   box-shadow: 4rpx 4rpx 0 #3D3D3D !important;
-  padding: 20rpx 48rpx !important;
+  padding: 20rpx 56rpx !important;
   margin: 0 auto !important;
 }
 
@@ -468,4 +582,8 @@
   color: #888 !important;
   border-color: #999 !important;
   box-shadow: 4rpx 4rpx 0 #999 !important;
+}
+
+.submit-btn::after {
+  display: none !important;
 }

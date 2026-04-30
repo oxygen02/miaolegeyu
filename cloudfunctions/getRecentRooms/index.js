@@ -5,7 +5,8 @@ const _ = db.command;
 
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
-  const { limit = 10 } = event;
+  // 限制最大返回数量，防止数据过大
+  const limit = Math.min(parseInt(event.limit) || 10, 20);
   
   try {
     // 获取用户参与过的房间（使用 room_participants 集合）

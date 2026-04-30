@@ -247,37 +247,6 @@
   box-shadow: 1rpx 2rpx 0 rgba(61, 61, 61, 0.15);
 }
 
-/* 左滑删除 */
-.swipe-item {
-  position: relative;
-  overflow: hidden;
-}
-
-.swipe-delete-btn {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 160rpx;
-  background: linear-gradient(135deg, #FF4757 0%, #FF6B81 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0 20rpx 20rpx 0;
-  border-top: 3rpx solid #3D3D3D;
-  border-bottom: 6rpx solid #3D3D3D;
-  border-right: 6rpx solid #3D3D3D;
-}
-
-.swipe-delete-btn .delete-text {
-  color: #fff;
-  font-size: 28rpx;
-  font-weight: 600;
-}
-
-.activity-card.swiping {
-  transition: none;
-}
 
 .activity-card:last-child {
   margin-bottom: 0;
@@ -730,8 +699,212 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 300rpx;
-  background: linear-gradient(to top, rgba(245, 240, 232, 0.95) 0%, rgba(245, 240, 232, 0.7) 50%, transparent 100%);
+  height: 120rpx;
+  background: linear-gradient(to top, rgba(245, 240, 232, 0.98) 0%, rgba(245, 240, 232, 0.5) 60%, transparent 100%);
   pointer-events: none;
   z-index: 10;
+}
+
+/* ========== 批量操作样式 ========== */
+
+/* 编辑按钮 */
+.edit-btn {
+  margin-left: auto;
+  padding: 8rpx 20rpx;
+  background: rgba(255, 159, 67, 0.1);
+  border-radius: 24rpx;
+  border: 2rpx solid #FF9F43;
+}
+
+.edit-btn text {
+  font-size: 24rpx;
+  color: #FF9F43;
+  font-weight: 500;
+}
+
+.edit-btn.cancel {
+  background: rgba(153, 153, 153, 0.1);
+  border-color: #999;
+}
+
+.edit-btn.cancel text {
+  color: #999;
+}
+
+/* 左上角复选框 */
+.checkbox-top-left {
+  position: absolute;
+  top: 16rpx;
+  left: 16rpx;
+  z-index: 10;
+}
+
+.checkbox-top-left .checkbox {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  border: 3rpx solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+}
+
+.checkbox-top-left .checkbox.checked {
+  background: #FF9F43;
+  border-color: #FF9F43;
+}
+
+.checkbox-top-left .checkbox text {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+/* 顶部批量操作栏 */
+.top-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 32rpx;
+  background: #fff;
+  border-bottom: 2rpx solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 16rpx;
+}
+
+.top-select-all {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.top-select-all .checkbox {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 3rpx solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.top-select-all .checkbox.checked {
+  background: #FF9F43;
+  border-color: #FF9F43;
+}
+
+.top-select-all .checkbox text {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.select-all-text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.top-info {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.top-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+/* 复选框 */
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 20rpx;
+}
+
+.checkbox {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 3rpx solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  transition: all 0.2s;
+}
+
+.checkbox.checked {
+  background: #FF9F43;
+  border-color: #FF9F43;
+}
+
+.checkbox text {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+/* 卡片选中状态 */
+.activity-card.selected {
+  background: linear-gradient(135deg, #FFF0E0 0%, #FFE4CC 100%);
+  border-color: #FF9F43;
+}
+
+/* 批量操作栏 */
+.batch-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120rpx;
+  background: #fff;
+  border-top: 2rpx solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 1000;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.batch-select-all {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.select-all-text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.batch-info {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.batch-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+/* 危险按钮 */
+.btn-danger {
+  background: #FF6B6B;
+  color: #fff;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+}
+
+.btn-danger.disabled {
+  background: #ccc;
+  border-color: #999;
+  box-shadow: none;
+  opacity: 0.6;
 }

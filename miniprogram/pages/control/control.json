@@ -1,5 +1,10 @@
 {
   "navigationBarTitleText": "发起人控制台",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#FFF8F0",
   "enablePullDownRefresh": true,
-  "backgroundColor": "#F5F0E8"
+  "usingComponents": {
+    "poster-modal": "../../components/poster-modal/poster-modal"
+  }
 }

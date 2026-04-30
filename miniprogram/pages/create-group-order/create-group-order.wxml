@@ -5,7 +5,7 @@
       <view class="header-left-content">
         <view class="cat-hint">
           <view class="cat-img-wrapper">
-            <image class="cat-img" src="/assets/images/juze_avatar.png" mode="aspectFit" />
+            <image class="cat-img" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFit" />
           </view>
           <view class="speech-bubble">
             <text class="bubble-text">拼个单</text>
@@ -13,7 +13,7 @@
         </view>
         <text class="header-sub">外卖凑单，一起免运费</text>
       </view>
-      <image class="header-tail" src="/assets/images/maoweiba.png" mode="aspectFit" />
+      <image class="header-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit" />
     </view>
   </view>
 

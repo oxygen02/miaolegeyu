@@ -7,6 +7,11 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
 
+  // 参数校验
+  if (!openid) {
+    return { success: false, error: '用户未登录' };
+  }
+
   const {
     roomId,
     posterIndices,
@@ -18,82 +23,136 @@ exports.main = async (event, context) => {
     status
   } = event;
 
+  if (!roomId) {
+    return { success: false, error: '房间ID不能为空' };
+  }
+
   try {
-    // 获取房间
-    const roomResult = await db.collection('rooms').doc(roomId).get();
-    if (!roomResult.data) {
-      return { success: false, error: '房间不存在' };
+    // 确保 votes 集合存在
+    try {
+      await db.createCollection('votes');
+      console.log('votes 集合创建成功');
+    } catch (err) {
+      if (err.message && err.message.includes('already exists')) {
+        console.log('votes 集合已存在');
+      } else {
+        console.log('votes 集合创建失败（可能已存在）:', err.message);
+      }
     }
 
-    const room = roomResult.data;
+    // 使用事务确保数据一致性
+    const transaction = await db.startTransaction();
+    
+    try {
+      // 获取房间（在事务中查询）
+      const roomResult = await transaction.collection('rooms').where({ roomId }).get();
+      if (roomResult.data.length === 0) {
+        await transaction.rollback();
+        return { success: false, error: '房间不存在' };
+      }
 
-    // 检查房间状态
-    if (room.status !== 'voting') {
-      return { success: false, error: '投票已结束' };
-    }
+      const room = roomResult.data[0];
 
-    // 查找或创建参与者记录
-    let participantResult = await db.collection('participants').where({
-      roomId,
-      openid
-    }).get();
+      // 检查房间状态
+      if (room.status !== 'voting') {
+        await transaction.rollback();
+        return { success: false, error: '投票已结束' };
+      }
 
-    const voteData = {
-      posterIndices: posterIndices || [],
-      vetoIndices: vetoIndices || [],
-      hardTaboos: hardTaboos || [],
-      softTaboos: softTaboos || [],
-      timestamp: new Date()
-    };
+      // 检查用户是否已参与房间
+      const participantCheck = await transaction.collection('room_participants').where({
+        roomId,
+        openid
+      }).get();
 
-    // 构建更新数据，使用 _.set 确保字段被正确设置
-    const updateData = {
-      roomId,
-      openid,
-      uuid: openid,
-      status: status || 'voted',
-      vote: voteData,
-      hardTaboos: hardTaboos || [],
-      softTaboos: softTaboos || [],
-      updatedAt: db.serverDate()
-    };
+      if (participantCheck.data.length === 0) {
+        await transaction.rollback();
+        return { success: false, error: '您未加入此房间，无法投票' };
+      }
 
-    // 只有当 timeInfo 不为 null 时才更新该字段
-    // 如果 timeInfo 为 null，使用 _.remove() 删除该字段，避免在 null 上创建子字段的错误
-    if (timeInfo) {
-      updateData.timeInfo = timeInfo;
-    } else {
-      updateData.timeInfo = _.remove();
-    }
+      // 检查是否已投票（防止重复投票）
+      const existingVote = await transaction.collection('votes').where({
+        roomId,
+        openid
+      }).get();
 
-    // 同样处理 leaveInfo
-    if (leaveInfo) {
-      updateData.leaveInfo = leaveInfo;
-    } else {
-      updateData.leaveInfo = _.remove();
-    }
-
-    if (participantResult.data.length > 0) {
-      // 更新已有记录
-      await db.collection('participants').doc(participantResult.data[0]._id).update({
-        data: updateData
-      });
-    } else {
-      // 创建新记录
-      const participantData = {
-        ...updateData,
-        createdAt: db.serverDate()
+      const voteData = {
+        posterIndices: posterIndices || [],
+        vetoIndices: vetoIndices || [],
+        hardTaboos: hardTaboos || [],
+        softTaboos: softTaboos || [],
+        timestamp: new Date()
       };
-      // 对于新记录，如果 timeInfo/leaveInfo 为 null，直接设为 null 而不是使用 _.remove()
-      if (!timeInfo) participantData.timeInfo = null;
-      if (!leaveInfo) participantData.leaveInfo = null;
-      await db.collection('participants').add({
-        data: participantData
-      });
-    }
 
-    return { success: true, msg: '投票成功' };
+      if (existingVote.data.length > 0) {
+        // 删除旧记录，重新创建
+        const existingDoc = existingVote.data[0];
+        await transaction.collection('votes').doc(existingDoc._id).remove();
+        
+        // 创建新投票记录
+        await transaction.collection('votes').add({
+          data: {
+            roomId,
+            openid,
+            vote: voteData,
+            status: status || 'voted',
+            hardTaboos: hardTaboos || [],
+            softTaboos: softTaboos || [],
+            timeInfo: timeInfo || null,
+            leaveInfo: leaveInfo || null,
+            createdAt: existingDoc.createdAt || db.serverDate(),
+            updatedAt: db.serverDate()
+          }
+        });
+      } else {
+        // 创建新投票记录
+        await transaction.collection('votes').add({
+          data: {
+            roomId,
+            openid,
+            vote: voteData,
+            status: status || 'voted',
+            hardTaboos: hardTaboos || [],
+            softTaboos: softTaboos || [],
+            timeInfo: timeInfo || null,
+            leaveInfo: leaveInfo || null,
+            createdAt: db.serverDate(),
+            updatedAt: db.serverDate()
+          }
+        });
+
+        // 原子操作：增加房间投票计数
+        await transaction.collection('rooms').doc(room._id).update({
+          data: {
+            voteCount: _.inc(1),
+            updatedAt: db.serverDate()
+          }
+        });
+      }
+
+      // 更新参与者投票状态
+      await transaction.collection('room_participants').where({
+        roomId,
+        openid
+      }).update({
+        data: {
+          status: 'voted',
+          vote: voteData,
+          updatedAt: db.serverDate()
+        }
+      });
+
+      // 提交事务
+      await transaction.commit();
+
+      return { success: true, msg: '投票成功' };
+    } catch (err) {
+      // 回滚事务
+      await transaction.rollback();
+      throw err;
+    }
   } catch (err) {
-    return { success: false, error: err.message };
+    console.error('投票失败:', err);
+    return { success: false, error: err.message || '投票失败' };
   }
 };

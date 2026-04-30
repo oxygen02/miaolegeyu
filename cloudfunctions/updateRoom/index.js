@@ -4,7 +4,7 @@ const db = cloud.database();
 
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
-  const { roomId, title, location, peopleCount, activityDate, activityTime, candidatePosters, voteDeadline, timeAuxiliary } = event;
+  const { roomId, title, location, peopleCount, activityDate, activityTime, candidatePosters, voteDeadline, timeAuxiliary, enableRestaurantRecommend, dinnerTime, paymentMode, isAnonymous } = event;
   
   if (!roomId) {
     return { code: -1, msg: '房间ID不能为空' };
@@ -44,6 +44,10 @@ exports.main = async (event) => {
     if (candidatePosters !== undefined) updateData.candidatePosters = candidatePosters;
     if (voteDeadline !== undefined) updateData.voteDeadline = voteDeadline;
     if (timeAuxiliary !== undefined) updateData.timeAuxiliary = timeAuxiliary;
+    if (enableRestaurantRecommend !== undefined) updateData.enableRestaurantRecommend = enableRestaurantRecommend;
+    if (dinnerTime !== undefined) updateData.appointmentDate = new Date(dinnerTime);
+    if (paymentMode !== undefined) updateData.paymentMode = paymentMode;
+    if (isAnonymous !== undefined) updateData.isAnonymous = isAnonymous;
     updateData.updatedAt = db.serverDate();
     
     await db.collection('rooms')

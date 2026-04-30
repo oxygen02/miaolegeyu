@@ -1,0 +1,93 @@
+<!-- 推荐餐厅页面 -->
+<view class="recommend-page">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <image class="loading-icon" src="{{imagePaths.misc.fishIcon}}" mode="aspectFit"/>
+    <text class="loading-text">正在寻找附近好店...</text>
+  </view>
+
+  <!-- 主要内容 -->
+  <block wx:else>
+    <!-- 顶部提示 -->
+    <view class="header-section">
+      <view class="cat-hint">
+        <image class="cat-img" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFit" />
+        <view class="speech-bubble">
+          <text class="bubble-text">根据大家的口味，为你推荐这些店</text>
+        </view>
+      </view>
+      <view class="location-info" wx:if="{{room.location}}">
+        <image class="location-icon" src="{{imagePaths.icons.location}}" mode="aspectFit" />
+        <text class="location-text">{{room.location.name || room.location}}</text>
+      </view>
+    </view>
+
+    <!-- 口味偏好标签 -->
+    <view class="preference-section" wx:if="{{topMatches.length > 0}}">
+      <text class="section-label">大家最爱的口味</text>
+      <view class="preference-list">
+        <view class="preference-tag {{index === 0 ? 'top' : ''}}" wx:for="{{topMatches}}" wx:key="index">
+          <text class="tag-name">{{item.categoryName}}·{{item.subCategoryName}}</text>
+          <text class="tag-count">{{item.voterCount}}人选</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 推荐餐厅列表 -->
+    <view class="restaurant-section">
+      <view class="refresh-bar">
+        <text class="section-label">附近推荐</text>
+        <view class="refresh-btn" bindtap="refreshSearch" wx:if="{{!loading}}">
+          <text class="refresh-icon">🔄</text>
+          <text>换一批</text>
+        </view>
+      </view>
+      
+      <!-- 有推荐结果 -->
+      <view class="restaurant-list" wx:if="{{restaurants.length > 0}}">
+        <view class="restaurant-card" wx:for="{{restaurants}}" wx:key="index" bindtap="onRestaurantTap" data-index="{{index}}">
+          <view class="card-main">
+            <image class="restaurant-image" src="{{item.image || imagePaths.cuisine(1, 1)}}" mode="aspectFill" lazy-load/>
+            <view class="restaurant-info">
+              <view class="info-header">
+                <text class="restaurant-name">{{item.name}}</text>
+                <view class="distance-tag" wx:if="{{item.distanceText}}">
+                  <text>{{item.distanceText}}</text>
+                </view>
+              </view>
+              <view class="rating-row">
+                <text class="rating-text" wx:if="{{item.rating}}">⭐ {{item.rating}}分</text>
+                <text class="price-text" wx:if="{{item.avgPrice}}">¥{{item.avgPrice}}/人</text>
+                <text class="cuisine-text" wx:if="{{item.cuisineType}}">{{item.cuisineType}}</text>
+              </view>
+              <text class="address-text" wx:if="{{item.address}}">{{item.address}}</text>
+            </view>
+          </view>
+          <view class="card-actions">
+            <view class="action-btn navigate-btn" catchtap="onNavigateTap" data-index="{{index}}">
+              <text class="btn-text">🧭 导航</text>
+            </view>
+            <view class="action-btn call-btn" wx:if="{{item.phone}}" catchtap="onCallTap" data-phone="{{item.phone}}">
+              <text class="btn-text">📞 电话</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 无推荐结果 -->
+      <view class="empty-state" wx:else>
+        <image class="empty-img" src="{{imagePaths.banners.taiyakiIcon}}" mode="aspectFit" />
+        <text class="empty-title">附近暂无推荐</text>
+        <text class="empty-desc">可以尝试更换位置或手动搜索</text>
+        <view class="manual-search-btn" bindtap="openMapSearch">
+          <text>去地图搜索</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部提示 -->
+    <view class="footer-hint">
+      <text>推荐结果来自地图服务，仅供参考</text>
+    </view>
+  </block>
+</view>

@@ -1,5 +1,6 @@
 // 餐饮分类数据 - 20个大类及细类
-// 图片路径: /assets/images/cuisine_all/category_XX_YY.png
+// 图片路径: cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_XX_YY.png
+// 数据与编号对照表.md完全一致
 const cuisineCategories = [
   {
     id: 'chuanyu',
@@ -9,13 +10,13 @@ const cuisineCategories = [
     icon: '椒',
     color: '#FFE4E1',
     darkColor: '#FF6B6B',
-    image: '/assets/images/cuisine_all/category_01_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_01_00.png',
     subCategories: [
-      { name: '麻辣火锅', image: '/assets/images/cuisine_all/category_01_01.png' },
-      { name: '水煮鱼', image: '/assets/images/cuisine_all/category_01_02.png' },
-      { name: '回锅肉', image: '/assets/images/cuisine_all/category_01_03.png' },
-      { name: '宫保鸡丁', image: '/assets/images/cuisine_all/category_01_04.png' },
-      { name: '麻婆豆腐', image: '/assets/images/cuisine_all/category_01_05.png' }
+      { name: '经典川菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_01_01.png' },
+      { name: '重庆江湖菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_01_02.png' },
+      { name: '水煮干锅菜系', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_01_03.png' },
+      { name: '麻辣家常菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_01_04.png' },
+      { name: '自贡盐帮菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_01_05.png' }
     ]
   },
   {
@@ -26,13 +27,13 @@ const cuisineCategories = [
     icon: '辣',
     color: '#FFE4E1',
     darkColor: '#FF6B6B',
-    image: '/assets/images/cuisine_all/category_02_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_02_00.png',
     subCategories: [
-      { name: '剁椒鱼头', image: '/assets/images/cuisine_all/category_02_01.png' },
-      { name: '辣椒炒肉', image: '/assets/images/cuisine_all/category_02_02.png' },
-      { name: '口味虾', image: '/assets/images/cuisine_all/category_02_03.png' },
-      { name: '农家小炒', image: '/assets/images/cuisine_all/category_02_04.png' },
-      { name: '啤酒鸭', image: '/assets/images/cuisine_all/category_02_05.png' }
+      { name: '精品湘菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_02_01.png' },
+      { name: '江西特色菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_02_02.png' },
+      { name: '农家辣味土菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_02_03.png' },
+      { name: '特色下饭馆', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_02_04.png' },
+      { name: '风味腊味菜系', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_02_05.png' }
     ]
   },
   {
@@ -43,13 +44,13 @@ const cuisineCategories = [
     icon: '茶',
     color: '#FFF8DC',
     darkColor: '#FFA502',
-    image: '/assets/images/cuisine_all/category_03_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_03_00.png',
     subCategories: [
-      { name: '虾饺', image: '/assets/images/cuisine_all/category_03_01.png' },
-      { name: '烧鹅', image: '/assets/images/cuisine_all/category_03_02.png' },
-      { name: '叉烧', image: '/assets/images/cuisine_all/category_03_03.png' },
-      { name: '肠粉', image: '/assets/images/cuisine_all/category_03_04.png' },
-      { name: '煲仔饭', image: '/assets/images/cuisine_all/category_03_05.png' }
+      { name: '正统粤菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_03_01.png' },
+      { name: '潮汕风味菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_03_02.png' },
+      { name: '港式茶餐厅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_03_03.png' },
+      { name: '广式烧腊', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_03_04.png' },
+      { name: '粤式早茶点心', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_03_05.png' }
     ]
   },
   {
@@ -60,13 +61,13 @@ const cuisineCategories = [
     icon: '甜',
     color: '#FFF8DC',
     darkColor: '#FFA502',
-    image: '/assets/images/cuisine_all/category_04_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_04_00.png',
     subCategories: [
-      { name: '红烧肉', image: '/assets/images/cuisine_all/category_04_01.png' },
-      { name: '糖醋排骨', image: '/assets/images/cuisine_all/category_04_02.png' },
-      { name: '清蒸鱼', image: '/assets/images/cuisine_all/category_04_03.png' },
-      { name: '白切鸡', image: '/assets/images/cuisine_all/category_04_04.png' },
-      { name: '生煎包', image: '/assets/images/cuisine_all/category_04_05.png' }
+      { name: '江浙融合菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_04_01.png' },
+      { name: '上海本帮菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_04_02.png' },
+      { name: '淮扬精致菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_04_03.png' },
+      { name: '杭帮家常菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_04_04.png' },
+      { name: '江南清淡菜系', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_04_05.png' }
     ]
   },
   {
@@ -77,14 +78,14 @@ const cuisineCategories = [
     icon: '北',
     color: '#FFF8DC',
     darkColor: '#FFA502',
-    image: '/assets/images/cuisine_all/category_05_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_05_00.png',
     subCategories: [
-      { name: '北京烤鸭', image: '/assets/images/cuisine_all/category_05_01.png' },
-      { name: '锅包肉', image: '/assets/images/cuisine_all/category_05_02.png' },
-      { name: '地三鲜', image: '/assets/images/cuisine_all/category_05_03.png' },
-      { name: '猪肉炖粉条', image: '/assets/images/cuisine_all/category_05_04.png' },
-      { name: '炸酱面', image: '/assets/images/cuisine_all/category_05_05.png' },
-      { name: '东北乱炖', image: '/assets/images/cuisine_all/category_05_06.png' }
+      { name: '东北特色菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_05_01.png' },
+      { name: '鲁菜胶东菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_05_02.png' },
+      { name: '老北京风味菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_05_03.png' },
+      { name: '华北家常菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_05_04.png' },
+      { name: '中原豫菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_05_05.png' },
+      { name: '铁锅炖', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_05_06.png' }
     ]
   },
   {
@@ -95,13 +96,13 @@ const cuisineCategories = [
     icon: '面',
     color: '#F5F5DC',
     darkColor: '#C4A35A',
-    image: '/assets/images/cuisine_all/category_06_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_06_00.png',
     subCategories: [
-      { name: '羊肉泡馍', image: '/assets/images/cuisine_all/category_06_01.png' },
-      { name: '肉夹馍', image: '/assets/images/cuisine_all/category_06_02.png' },
-      { name: '凉皮', image: '/assets/images/cuisine_all/category_06_03.png' },
-      { name: '大盘鸡', image: '/assets/images/cuisine_all/category_06_04.png' },
-      { name: '拉面', image: '/assets/images/cuisine_all/category_06_05.png' }
+      { name: '陕西特色菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_06_01.png' },
+      { name: '新疆风味餐', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_06_02.png' },
+      { name: '甘肃特色风味', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_06_03.png' },
+      { name: '内蒙蒙餐', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_06_04.png' },
+      { name: '西北清真硬菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_06_05.png' }
     ]
   },
   {
@@ -112,13 +113,13 @@ const cuisineCategories = [
     icon: '菌',
     color: '#F0FFF0',
     darkColor: '#2ED573',
-    image: '/assets/images/cuisine_all/category_07_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_07_00.png',
     subCategories: [
-      { name: '过桥米线', image: '/assets/images/cuisine_all/category_07_01.png' },
-      { name: '汽锅鸡', image: '/assets/images/cuisine_all/category_07_02.png' },
-      { name: '酸汤鱼', image: '/assets/images/cuisine_all/category_07_03.png' },
-      { name: '野生菌', image: '/assets/images/cuisine_all/category_07_04.png' },
-      { name: '竹筒饭', image: '/assets/images/cuisine_all/category_07_05.png' }
+      { name: '云南滇菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_07_01.png' },
+      { name: '贵州酸汤菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_07_02.png' },
+      { name: '广西特色菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_07_03.png' },
+      { name: '傣味特色料理', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_07_04.png' },
+      { name: '山野风味菜系', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_07_05.png' }
     ]
   },
   {
@@ -129,13 +130,13 @@ const cuisineCategories = [
     icon: '藕',
     color: '#F0FFFF',
     darkColor: '#1DD1A1',
-    image: '/assets/images/cuisine_all/category_08_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_08_00.png',
     subCategories: [
-      { name: '热干面', image: '/assets/images/cuisine_all/category_08_01.png' },
-      { name: '鸭脖', image: '/assets/images/cuisine_all/category_08_02.png' },
-      { name: '三鲜豆皮', image: '/assets/images/cuisine_all/category_08_03.png' },
-      { name: '武昌鱼', image: '/assets/images/cuisine_all/category_08_04.png' },
-      { name: '莲藕排骨汤', image: '/assets/images/cuisine_all/category_08_05.png' }
+      { name: '湖北鄂菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_08_01.png' },
+      { name: '闽南特色菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_08_02.png' },
+      { name: '徽菜皖味', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_08_03.png' },
+      { name: '客家私房菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_08_04.png' },
+      { name: '海南琼菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_08_05.png' }
     ]
   },
   {
@@ -146,15 +147,15 @@ const cuisineCategories = [
     icon: '锅',
     color: '#FFE4E1',
     darkColor: '#FF6B6B',
-    image: '/assets/images/cuisine_all/category_09_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_09_00.png',
     subCategories: [
-      { name: '重庆火锅', image: '/assets/images/cuisine_all/category_09_01.png' },
-      { name: '老北京涮肉', image: '/assets/images/cuisine_all/category_09_02.png' },
-      { name: '花胶鸡', image: '/assets/images/cuisine_all/category_09_03.png' },
-      { name: '猪肚鸡', image: '/assets/images/cuisine_all/category_09_07.png' },
-      { name: '椰子鸡', image: '/assets/images/cuisine_all/category_09_05.png' },
-      { name: '潮汕牛肉锅', image: '/assets/images/cuisine_all/category_09_06.png' },
-      { name: '羊蝎子', image: '/assets/images/cuisine_all/category_09_04.png' }
+      { name: '川渝牛油火锅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_09_01.png' },
+      { name: '潮汕牛肉火锅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_09_02.png' },
+      { name: '老北京铜锅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_09_03.png' },
+      { name: '羊蝎子汤锅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_09_04.png' },
+      { name: '猪肚鸡煲锅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_09_05.png' },
+      { name: '鱼蛙主题火锅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_09_06.png' },
+      { name: '清汤养生火锅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_09_07.png' }
     ]
   },
   {
@@ -165,13 +166,13 @@ const cuisineCategories = [
     icon: '串',
     color: '#FFE4E1',
     darkColor: '#FF6B6B',
-    image: '/assets/images/cuisine_all/category_10_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_10_00.png',
     subCategories: [
-      { name: '成都串串', image: '/assets/images/cuisine_all/category_10_01.png' },
-      { name: '麻辣烫', image: '/assets/images/cuisine_all/category_10_02.png' },
-      { name: '麻辣香锅', image: '/assets/images/cuisine_all/category_10_03.png' },
-      { name: '冒菜', image: '/assets/images/cuisine_all/category_10_04.png' },
-      { name: '钵钵鸡', image: '/assets/images/cuisine_all/category_10_05.png' }
+      { name: '冷热串串', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_10_01.png' },
+      { name: '麻辣香锅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_10_02.png' },
+      { name: '干锅系列菜品', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_10_03.png' },
+      { name: '钵钵鸡冷串', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_10_04.png' },
+      { name: '围炉涮串串', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_10_05.png' }
     ]
   },
   {
@@ -182,14 +183,14 @@ const cuisineCategories = [
     icon: '烤',
     color: '#FFF8DC',
     darkColor: '#FFA502',
-    image: '/assets/images/cuisine_all/category_11_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_11_00.png',
     subCategories: [
-      { name: '东北烧烤', image: '/assets/images/cuisine_all/category_11_01.png' },
-      { name: '韩式烤肉', image: '/assets/images/cuisine_all/category_11_02.png' },
-      { name: '日式烧鸟', image: '/assets/images/cuisine_all/category_11_03.png' },
-      { name: '新疆烤肉', image: '/assets/images/cuisine_all/category_11_04.png' },
-      { name: '烤羊腿', image: '/assets/images/cuisine_all/category_11_05.png' },
-      { name: '烤海鲜', image: '/assets/images/cuisine_all/category_11_06.png' }
+      { name: '中式传统烤串', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_11_01.png' },
+      { name: '韩式炭火烤肉', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_11_02.png' },
+      { name: '日式精致烧肉', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_11_03.png' },
+      { name: '铁板烧料理', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_11_04.png' },
+      { name: '烤羊排烤全羊', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_11_05.png' },
+      { name: '东北烤肉', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_11_06.png' }
     ]
   },
   {
@@ -200,13 +201,13 @@ const cuisineCategories = [
     icon: '虾',
     color: '#FFE4E1',
     darkColor: '#FF6B6B',
-    image: '/assets/images/cuisine_all/category_12_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_12_00.png',
     subCategories: [
-      { name: '麻辣小龙虾', image: '/assets/images/cuisine_all/category_12_01.png' },
-      { name: '蒜蓉小龙虾', image: '/assets/images/cuisine_all/category_12_02.png' },
-      { name: '烤鱼', image: '/assets/images/cuisine_all/category_12_03.png' },
-      { name: '纸包鱼', image: '/assets/images/cuisine_all/category_12_04.png' },
-      { name: '干锅牛蛙', image: '/assets/images/cuisine_all/category_12_05.png' }
+      { name: '麻辣小龙虾', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_12_01.png' },
+      { name: '炭火特色烤鱼', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_12_02.png' },
+      { name: '香辣蟹大餐', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_12_03.png' },
+      { name: '花甲田螺排档', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_12_04.png' },
+      { name: '纸包鱼专项', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_12_05.png' }
     ]
   },
   {
@@ -217,13 +218,13 @@ const cuisineCategories = [
     icon: '鮨',
     color: '#F0F8FF',
     darkColor: '#54A0FF',
-    image: '/assets/images/cuisine_all/category_13_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_13_00.png',
     subCategories: [
-      { name: '寿司', image: '/assets/images/cuisine_all/category_13_01.png' },
-      { name: '刺身', image: '/assets/images/cuisine_all/category_13_02.png' },
-      { name: '拉面', image: '/assets/images/cuisine_all/category_13_03.png' },
-      { name: '天妇罗', image: '/assets/images/cuisine_all/category_13_04.png' },
-      { name: '居酒屋', image: '/assets/images/cuisine_all/category_13_05.png' }
+      { name: '寿司刺身料理', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_13_01.png' },
+      { name: '日式居酒屋', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_13_02.png' },
+      { name: '日式炭火烧肉', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_13_03.png' },
+      { name: '日式定食正餐', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_13_04.png' },
+      { name: '日式寿喜烧', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_13_05.png' }
     ]
   },
   {
@@ -234,13 +235,13 @@ const cuisineCategories = [
     icon: '拌',
     color: '#FFF0F5',
     darkColor: '#FF9FF3',
-    image: '/assets/images/cuisine_all/category_14_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_14_00.png',
     subCategories: [
-      { name: '石锅拌饭', image: '/assets/images/cuisine_all/category_14_01.png' },
-      { name: '部队锅', image: '/assets/images/cuisine_all/category_14_02.png' },
-      { name: '炸鸡啤酒', image: '/assets/images/cuisine_all/category_14_03.png' },
-      { name: '冷面', image: '/assets/images/cuisine_all/category_14_04.png' },
-      { name: '泡菜汤', image: '/assets/images/cuisine_all/category_14_05.png' }
+      { name: '韩式正餐料理', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_14_01.png' },
+      { name: '韩式烤肉', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_14_02.png' },
+      { name: '韩式部队火锅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_14_03.png' },
+      { name: '韩式特色汤锅', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_14_04.png' },
+      { name: '韩餐硬核硬菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_14_05.png' }
     ]
   },
   {
@@ -251,13 +252,13 @@ const cuisineCategories = [
     icon: '椰',
     color: '#F5FFFA',
     darkColor: '#48DBFB',
-    image: '/assets/images/cuisine_all/category_15_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_15_00.png',
     subCategories: [
-      { name: '泰国菜', image: '/assets/images/cuisine_all/category_15_01.png' },
-      { name: '越南粉', image: '/assets/images/cuisine_all/category_15_02.png' },
-      { name: '新加坡菜', image: '/assets/images/cuisine_all/category_15_03.png' },
-      { name: '马来西亚', image: '/assets/images/cuisine_all/category_15_04.png' },
-      { name: '印尼菜', image: '/assets/images/cuisine_all/category_15_05.png' }
+      { name: '泰国菜系', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_15_01.png' },
+      { name: '越南料理', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_15_02.png' },
+      { name: '新加坡风味', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_15_03.png' },
+      { name: '马来西亚菜系', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_15_04.png' },
+      { name: '东南亚融合菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_15_05.png' }
     ]
   },
   {
@@ -268,13 +269,13 @@ const cuisineCategories = [
     icon: '餐',
     color: '#F0F8FF',
     darkColor: '#54A0FF',
-    image: '/assets/images/cuisine_all/category_16_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_16_00.png',
     subCategories: [
-      { name: '牛排', image: '/assets/images/cuisine_all/category_16_01.png' },
-      { name: '意大利面', image: '/assets/images/cuisine_all/category_16_02.png' },
-      { name: '披萨', image: '/assets/images/cuisine_all/category_16_03.png' },
-      { name: '汉堡', image: '/assets/images/cuisine_all/category_16_04.png' },
-      { name: '法式料理', image: '/assets/images/cuisine_all/category_16_05.png' }
+      { name: '经典牛排西餐', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_16_01.png' },
+      { name: '意大利正餐', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_16_02.png' },
+      { name: '法式精致料理', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_16_03.png' },
+      { name: '德式传统西餐', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_16_04.png' },
+      { name: '俄式经典正餐', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_16_05.png' }
     ]
   },
   {
@@ -285,13 +286,13 @@ const cuisineCategories = [
     icon: '鲜',
     color: '#F0FFFF',
     darkColor: '#1DD1A1',
-    image: '/assets/images/cuisine_all/category_17_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_17_00.png',
     subCategories: [
-      { name: '海鲜大咖', image: '/assets/images/cuisine_all/category_17_01.png' },
-      { name: '蒸汽海鲜', image: '/assets/images/cuisine_all/category_17_02.png' },
-      { name: '海鲜自助', image: '/assets/images/cuisine_all/category_17_03.png' },
-      { name: '生蚝', image: '/assets/images/cuisine_all/category_17_04.png' },
-      { name: '螃蟹', image: '/assets/images/cuisine_all/category_17_05.png' }
+      { name: '蒸汽海鲜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_17_01.png' },
+      { name: '海鲜大排档', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_17_02.png' },
+      { name: '高端海鲜酒楼', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_17_03.png' },
+      { name: '海鲜特色小炒', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_17_04.png' },
+      { name: '生蚝龙虾专项', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_17_05.png' }
     ]
   },
   {
@@ -302,13 +303,13 @@ const cuisineCategories = [
     icon: '畅',
     color: '#FFF8DC',
     darkColor: '#FFA502',
-    image: '/assets/images/cuisine_all/category_18_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_18_00.png',
     subCategories: [
-      { name: '日料自助', image: '/assets/images/cuisine_all/category_18_01.png' },
-      { name: '烤肉自助', image: '/assets/images/cuisine_all/category_18_02.png' },
-      { name: '火锅自助', image: '/assets/images/cuisine_all/category_18_03.png' },
-      { name: '海鲜自助', image: '/assets/images/cuisine_all/category_18_04.png' },
-      { name: '酒店自助', image: '/assets/images/cuisine_all/category_18_05.png' }
+      { name: '经典火锅自助', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_18_01.png' },
+      { name: '炭火烤肉自助', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_18_02.png' },
+      { name: '豪华海鲜自助', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_18_03.png' },
+      { name: '综合全能自助', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_18_04.png' },
+      { name: '高端料理自助', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_18_05.png' }
     ]
   },
   {
@@ -319,13 +320,13 @@ const cuisineCategories = [
     icon: '土',
     color: '#F5F5DC',
     darkColor: '#C4A35A',
-    image: '/assets/images/cuisine_all/category_19_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_19_00.png',
     subCategories: [
-      { name: '土鸡汤', image: '/assets/images/cuisine_all/category_19_01.png' },
-      { name: '农家小炒', image: '/assets/images/cuisine_all/category_19_02.png' },
-      { name: '腊肉', image: '/assets/images/cuisine_all/category_19_03.png' },
-      { name: '野菜', image: '/assets/images/cuisine_all/category_19_04.png' },
-      { name: '土鸡蛋', image: '/assets/images/cuisine_all/category_19_05.png' }
+      { name: '乡村土菜馆', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_19_01.png' },
+      { name: '农家大院菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_19_02.png' },
+      { name: '山野家常菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_19_03.png' },
+      { name: '田园特色菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_19_04.png' },
+      { name: '柴火灶炖菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_19_05.png' }
     ]
   },
   {
@@ -336,13 +337,13 @@ const cuisineCategories = [
     icon: '私',
     color: '#FFF0F5',
     darkColor: '#FF9FF3',
-    image: '/assets/images/cuisine_all/category_20_00.png',
+    image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_20_00.png',
     subCategories: [
-      { name: '创意菜', image: '/assets/images/cuisine_all/category_20_01.png' },
-      { name: '分子料理', image: '/assets/images/cuisine_all/category_20_02.png' },
-      { name: '私房菜', image: '/assets/images/cuisine_all/category_20_03.png' },
-      { name: '融合菜', image: '/assets/images/cuisine_all/category_20_04.png' },
-      { name: '精致中餐', image: '/assets/images/cuisine_all/category_20_05.png' }
+      { name: '高端私房菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_20_01.png' },
+      { name: '无国界融合菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_20_02.png' },
+      { name: '创意意境菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_20_03.png' },
+      { name: '小众特色私厨', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_20_04.png' },
+      { name: '精致宴席菜', image: 'cloud://cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909/cuisine-images/category_20_05.png' }
     ]
   }
 ];

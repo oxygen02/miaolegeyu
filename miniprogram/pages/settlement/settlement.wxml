@@ -2,7 +2,7 @@
   <!-- 头部 -->
   <view class="settle-header">
     <view class="cat-icon anim-breathe">
-      <image class="cat-img" src="/assets/images/juze_avatar.png" mode="aspectFit" />
+      <image class="cat-img" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFit" />
     </view>
     <text class="header-title">结算</text>
     <text class="header-sub">聚餐费用分摊</text>

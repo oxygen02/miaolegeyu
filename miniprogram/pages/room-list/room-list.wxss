@@ -21,13 +21,13 @@ page {
   overflow: hidden;
 }
 
-/* 猫尾巴 - 在输入框下方 */
+/* 猫尾巴 - 贴靠右下角 */
 .header-tail {
   width: 80rpx;
   height: 80rpx;
   position: absolute;
-  right: 20rpx;
-  bottom: -10rpx;
+  right: 0;
+  bottom: 0;
   z-index: 2;
   transform: rotate(-10deg);
 }
@@ -379,4 +379,283 @@ page {
 /* 底部留白 */
 .bottom-space {
   height: 40rpx;
+}
+
+/* ==================== 新卡片样式 ==================== */
+
+/* 房间列表容器 */
+.room-list-container {
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* 卡片整体 */
+.room-card {
+  display: flex;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  /* 上左细，下右粗 */
+  border-top: 4rpx solid #3D3D3D;
+  border-left: 4rpx solid #3D3D3D;
+  border-bottom: 8rpx solid #3D3D3D;
+  border-right: 8rpx solid #3D3D3D;
+  /* 阴影效果 */
+  box-shadow:
+    4rpx 6rpx 0 rgba(61, 61, 61, 0.15),
+    8rpx 12rpx 20rpx rgba(61, 61, 61, 0.1);
+  transition: all 0.2s ease;
+}
+
+.room-card:active {
+  transform: translateY(4rpx);
+  box-shadow:
+    2rpx 3rpx 0 rgba(61, 61, 61, 0.15),
+    4rpx 6rpx 10rpx rgba(61, 61, 61, 0.1);
+}
+
+/* 左侧图片区域 */
+.card-image-wrap {
+  position: relative;
+  width: 176rpx;
+  height: 176rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+}
+
+/* 状态标签（毛玻璃效果） */
+.status-tag {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10rpx);
+  -webkit-backdrop-filter: blur(10rpx);
+}
+
+.status-tag text {
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+/* 状态颜色 */
+.status-tag.voting text {
+  color: #34C759;
+}
+
+.status-tag.locked text {
+  color: #FF8C42;
+}
+
+.status-tag.ended text {
+  color: #999999;
+}
+
+/* 右侧信息区 */
+.card-info {
+  flex: 1;
+  margin-left: 24rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 176rpx;
+}
+
+/* 信息行通用 */
+.info-row {
+  display: flex;
+  align-items: center;
+}
+
+/* 第一行：标题 */
+.title-row {
+  margin-bottom: 4rpx;
+}
+
+.room-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* 第二行：元信息（日期+时间+地点） */
+.meta-row {
+  gap: 24rpx;
+  margin-bottom: 4rpx;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.meta-item text {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.meta-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+/* 第三行：截止+房间号 */
+.deadline-row {
+  gap: 24rpx;
+  margin-bottom: 4rpx;
+}
+
+.deadline-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.deadline-item text {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.room-code {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.room-code text {
+  font-size: 24rpx;
+  color: #FF8C42;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+/* 第四行：底部锚点（右对齐） */
+.action-row {
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: auto;
+}
+
+.participant-count {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.dot {
+  font-size: 24rpx;
+  color: #CCCCCC;
+}
+
+.manage-btn {
+  font-size: 24rpx;
+  color: #FF8C42;
+  font-weight: 600;
+  padding: 4rpx 12rpx;
+}
+
+/* 管理菜单弹窗 */
+.action-sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.action-sheet.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.action-sheet-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.action-sheet-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #FFFFFF;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.action-sheet.show .action-sheet-content {
+  transform: translateY(0);
+}
+
+.action-sheet-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 32rpx;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 24rpx;
+  background: #F5F5F5;
+  border-radius: 16rpx;
+}
+
+.action-item text {
+  font-size: 28rpx;
+  color: #1A1A1A;
+}
+
+.action-item.delete text {
+  color: #FF3B30;
+}
+
+.action-icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.action-cancel {
+  text-align: center;
+  padding: 24rpx;
+  font-size: 28rpx;
+  color: #999999;
+  background: #F5F5F5;
+  border-radius: 16rpx;
 }

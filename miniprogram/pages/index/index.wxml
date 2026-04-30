@@ -10,7 +10,7 @@
       <view class="cat-container">
         <view class="cat-glow"></view>
         <view class="cat-ring"></view>
-        <image class="cat-avatar" src="/assets/images/juze_avatar.png" mode="aspectFill" />
+        <image class="cat-avatar" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFill" />
       </view>
     </view>
     <view class="fence-decoration"></view>
@@ -28,7 +28,7 @@
                 <text class="title-char">不</text>
                 <text class="title-char">喵</text>
               </view>
-              <image class="brand-icon-large" src="/assets/images/cat-avatar-icon.png" mode="aspectFill" />
+              <image class="brand-icon-large" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFill" />
             </view>
           </view>
           <view class="banner-middle-content">
@@ -61,17 +61,17 @@
             </view>
           </view>
           <view class="banner-right-action">
-            <image class="action-paw" src="/assets/images/singleclaw.png" mode="aspectFit" />
+            <image class="action-paw" src="{{imagePaths.misc.singleclaw}}" mode="aspectFit" />
             <view class="action-btn {{item.isJoined ? 'joined' : ''}}" catchtap="onJoinTap" data-appointment-id="{{item._id}}">
               <text class="action-text">{{item.isJoined ? '已喵' : '报名'}}</text>
-              <image wx:if="{{item.isJoined}}" class="paw-stamp" src="/assets/images/gaizhang.png" mode="aspectFit" />
+              <image wx:if="{{item.isJoined}}" class="paw-stamp" src="{{imagePaths.icons.gaizhang}}" mode="aspectFit" />
             </view>
           </view>
         </view>
       </swiper-item>
       <swiper-item>
         <view class="banner-card ad-banner" bindtap="onBannerTap" data-type="ad">
-          <image class="ad-image" src="/assets/images/lunbozhanwei.png" mode="aspectFit" />
+          <image class="ad-image" src="{{imagePaths.banners.lunbozhanwei}}" mode="aspectFit" />
         </view>
       </swiper-item>
     </swiper>
@@ -83,7 +83,7 @@
       <view class="feature-card" bindtap="goCreate" data-index="0">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #FFF5E9;">
-            <image class="feature-icon-image" src="/assets/images/faqijucan.png" mode="aspectFit" />
+            <image class="feature-icon-image" src="{{imagePaths.banners.faqijucan}}" mode="aspectFit" />
           </view>
           <view class="feature-text-wrapper">
             <text class="feature-title">发起聚餐</text>
@@ -94,7 +94,7 @@
       <view class="feature-card" bindtap="goJoin" data-index="1">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #E8F8F5;">
-            <image class="feature-icon-image" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+            <image class="feature-icon-image" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
           </view>
           <view class="feature-text-wrapper">
             <text class="feature-title">参与投票</text>
@@ -105,7 +105,7 @@
       <view class="feature-card" bindtap="goFishTank">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #E8F4FD;">
-            <image class="feature-icon-image large-icon" src="/assets/images/yutangpindan.png" mode="aspectFit" />
+            <image class="feature-icon-image large-icon" src="{{imagePaths.banners.yutangpindan}}" mode="aspectFit" />
           </view>
           <view class="feature-text-wrapper">
             <text class="feature-title">鱼塘拼单</text>
@@ -116,7 +116,7 @@
       <view class="feature-card" bindtap="goFoodDiscovery">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #FFF5E9;">
-            <image class="feature-icon-image" src="/assets/images/love-cat-icon.png" mode="aspectFit" />
+            <image class="feature-icon-image" src="{{imagePaths.decorations.loveCatIcon}}" mode="aspectFit" />
           </view>
           <view class="feature-text-wrapper">
             <text class="feature-title">发现美食</text>
@@ -124,6 +124,15 @@
           </view>
         </view>
       </view>
+    </view>
+  </view>
+
+  <!-- 临时测试按钮 -->
+  <view class="test-section" wx:if="{{pageReady}}">
+    <view class="test-btn" bindtap="goTestRecommend">
+      <text class="test-icon">🧪</text>
+      <text class="test-text">测试餐厅推荐</text>
+      <text class="test-arrow">›</text>
     </view>
   </view>
 
@@ -167,19 +176,19 @@
     <view class="tab-bar-container">
       <view class="tab-bar-item active" data-index="0" bindtap="switchTab">
         <view class="icon-wrapper">
-          <image class="tab-icon" src="/assets/images/paw-home-icon.png" mode="aspectFit" />
+          <image class="tab-icon" src="{{imagePaths.misc.pawHomeIcon}}" mode="aspectFit" />
         </view>
         <text class="tab-text">首页</text>
       </view>
       <view class="tab-bar-item" data-index="1" catchtap="switchTab">
         <view class="icon-wrapper">
-          <image class="tab-icon fish-icon" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+          <image class="tab-icon fish-icon" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
         </view>
         <text class="tab-text">喵不喵</text>
       </view>
       <view class="tab-bar-item" data-index="2" bindtap="switchTab">
         <view class="icon-wrapper">
-          <image class="tab-icon" src="/assets/images/fish-icon.png" mode="aspectFit" />
+          <image class="tab-icon" src="{{imagePaths.misc.fishIcon}}" mode="aspectFit" />
         </view>
         <text class="tab-text">我的</text>
       </view>

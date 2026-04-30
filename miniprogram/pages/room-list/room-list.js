@@ -1,11 +1,17 @@
+const { imagePaths } = require('../../config/imageConfig');
+const audioManager = require('../../utils/audioManager');
+
 Page({
   data: {
+    imagePaths: imagePaths,
     allRooms: [],
     currentFilter: 'all',
     loading: true,
     cardColors: ['orange', 'green', 'blue', 'purple', 'pink'],
     inputRoomId: '',
-    inputFocused: false
+    inputFocused: false,
+    showActionSheet: false,
+    selectedRoomId: null
   },
 
   onLoad() {
@@ -14,7 +20,46 @@ Page({
       frontColor: '#000000',
       backgroundColor: '#F5F0E8'
     });
+    // 加载云存储图片 URL
+    this.loadCloudImageUrls();
     this.loadData();
+  },
+
+  // 获取云存储图片的临时访问 URL
+  async loadCloudImageUrls() {
+    try {
+      const cloudPaths = [];
+      const pathMap = {};
+
+      // 收集 icons 路径
+      Object.keys(imagePaths.icons).forEach(key => {
+        const path = imagePaths.icons[key];
+        if (path && path.startsWith('cloud://')) {
+          cloudPaths.push(path);
+          pathMap[path] = { category: 'icons', key };
+        }
+      });
+
+      if (cloudPaths.length === 0) return;
+
+      const { result } = await wx.cloud.callFunction({
+        name: 'getTempFileURL',
+        data: { fileList: cloudPaths }
+      });
+
+      if (result && result.fileList) {
+        const newImagePaths = { ...this.data.imagePaths };
+        result.fileList.forEach(item => {
+          const mapping = pathMap[item.fileID];
+          if (mapping && item.tempFileURL) {
+            newImagePaths[mapping.category][mapping.key] = item.tempFileURL;
+          }
+        });
+        this.setData({ imagePaths: newImagePaths });
+      }
+    } catch (err) {
+      console.error('获取云存储图片 URL 失败:', err);
+    }
   },
 
   onShow() {
@@ -23,42 +68,59 @@ Page({
 
   async loadData() {
     this.setData({ loading: true });
-    
+
     try {
-      // 先加载模拟数据
-      const mockData = this.getMockData();
-      
-      // 尝试从云函数获取真实数据
+      const { currentFilter } = this.data;
       let allRooms = [];
-      try {
-        const res = await wx.cloud.callFunction({
-          name: 'getRoomsByCreator',
-          data: { status: this.data.currentFilter === 'all' ? '' : this.data.currentFilter }
-        });
-        
-        if (res.result.code === 0) {
-          // 将分组数据扁平化为房间列表
-          const creatorGroups = res.result.data || [];
-          allRooms = this.flattenRooms(creatorGroups);
+
+      // 根据筛选类型调用不同的云函数
+      if (currentFilter === 'participated') {
+        // 获取我参与的房间
+        try {
+          const res = await wx.cloud.callFunction({
+            name: 'getMyParticipatedRooms',
+            data: { status: '' }
+          });
+
+          if (res.result.code === 0) {
+            allRooms = res.result.data || [];
+          }
+        } catch (cloudErr) {
+          console.log('获取参与的房间失败:', cloudErr);
         }
-      } catch (cloudErr) {
-        console.log('云函数加载失败，使用模拟数据:', cloudErr);
+      } else {
+        // 获取我创建的房间
+        const mockData = this.getMockData();
+        try {
+          const res = await wx.cloud.callFunction({
+            name: 'getRoomsByCreator',
+            data: { status: currentFilter === 'all' || currentFilter === 'created' ? '' : currentFilter }
+          });
+
+          if (res.result.code === 0) {
+            const creatorGroups = res.result.data || [];
+            allRooms = this.flattenRooms(creatorGroups);
+          }
+        } catch (cloudErr) {
+          console.log('云函数加载失败，使用模拟数据:', cloudErr);
+        }
+
+        // 合并模拟数据
+        if (currentFilter === 'all' || currentFilter === 'created') {
+          allRooms = [...mockData, ...allRooms];
+        }
       }
-      
-      // 合并模拟数据和真实数据
-      const combinedRooms = [...mockData, ...allRooms];
-      
+
       // 根据筛选条件过滤
-      const filteredRooms = this.filterRooms(combinedRooms, this.data.currentFilter);
-      
+      const filteredRooms = this.filterRooms(allRooms, currentFilter);
+
       this.setData({
         allRooms: filteredRooms,
         loading: false
       });
-      
+
     } catch (err) {
       console.error('加载失败:', err);
-      // 即使出错也显示模拟数据
       const mockData = this.getMockData();
       this.setData({
         allRooms: mockData,
@@ -87,7 +149,7 @@ Page({
 
   // 根据筛选条件过滤房间
   filterRooms(rooms, filter) {
-    if (filter === 'all') {
+    if (filter === 'all' || filter === 'created' || filter === 'participated') {
       return rooms;
     }
     return rooms.filter(room => {
@@ -120,6 +182,10 @@ Page({
     const tomorrowData = formatDateTime(tomorrow);
     const dayAfterData = formatDateTime(dayAfterTomorrow);
 
+    // 使用在线图片作为默认图片（确保图片可以正常显示）
+    const defaultPoster = 'https://picsum.photos/400/300?random=1';
+    const defaultAvatar = 'https://picsum.photos/100/100?random=avatar';
+
     return [
       {
         roomId: '284756',
@@ -129,13 +195,13 @@ Page({
         activityDate: tomorrowData.date,
         activityTime: tomorrowData.time,
         location: '西单大悦城',
-        finalPoster: '/assets/images/wotiaohaole1.png',
+        finalPoster: defaultPoster,
         candidatePosters: [
-          { imageUrl: '/assets/images/wotiaohaole1.png', shopName: '海底捞火锅' },
-          { imageUrl: '/assets/images/nimenlaiding2.png', shopName: '西贝莜面村' }
+          { imageUrl: 'https://picsum.photos/400/300?random=2', shopName: '海底捞火锅' },
+          { imageUrl: 'https://picsum.photos/400/300?random=3', shopName: '西贝莜面村' }
         ],
         creatorName: '吃货小王',
-        creatorAvatar: '/assets/images/cat-avatar-icon.png',
+        creatorAvatar: 'https://picsum.photos/100/100?random=1',
         creatorId: 'mock-creator-001'
       },
       {
@@ -146,12 +212,12 @@ Page({
         activityDate: dayAfterData.date,
         activityTime: dayAfterData.time,
         location: '朝阳大悦城',
-        finalPoster: '/assets/images/taiyaki-icon.png',
+        finalPoster: 'https://picsum.photos/400/300?random=4',
         candidatePosters: [
-          { imageUrl: '/assets/images/taiyaki-icon.png', shopName: '美食广场' }
+          { imageUrl: 'https://picsum.photos/400/300?random=5', shopName: '美食广场' }
         ],
         creatorName: '吃货小王',
-        creatorAvatar: '/assets/images/cat-avatar-icon.png',
+        creatorAvatar: 'https://picsum.photos/100/100?random=2',
         creatorId: 'mock-creator-001'
       },
       {
@@ -162,13 +228,13 @@ Page({
         activityDate: dayAfterData.date,
         activityTime: '19:00',
         location: '朝阳大悦城',
-        finalPoster: '/assets/images/nimenlaiding2.png',
+        finalPoster: 'https://picsum.photos/400/300?random=6',
         candidatePosters: [
-          { imageUrl: '/assets/images/nimenlaiding2.png', shopName: '西贝莜面村' },
-          { imageUrl: '/assets/images/wotiaohaole1.png', shopName: '海底捞火锅' }
+          { imageUrl: 'https://picsum.photos/400/300?random=7', shopName: '西贝莜面村' },
+          { imageUrl: 'https://picsum.photos/400/300?random=8', shopName: '海底捞火锅' }
         ],
         creatorName: '美食家小李',
-        creatorAvatar: '/assets/images/cat-avatar-icon.png',
+        creatorAvatar: 'https://picsum.photos/100/100?random=3',
         creatorId: 'mock-creator-002'
       }
     ];
@@ -201,6 +267,7 @@ Page({
 
   // 通过房间号进入
   enterRoomById() {
+    audioManager.playMeowShort();
     const { inputRoomId } = this.data;
     if (!inputRoomId.trim()) {
       wx.showToast({
@@ -232,5 +299,55 @@ Page({
   goToRoom(e) {
     const { roomid } = e.currentTarget.dataset;
     this.goToRoomById(roomid);
+  },
+
+  // 管理菜单相关方法
+  onManageTap(e) {
+    e.stopPropagation();
+    const { roomid } = e.currentTarget.dataset;
+    this.setData({
+      showActionSheet: true,
+      selectedRoomId: roomid
+    });
+  },
+
+  onCloseActionSheet() {
+    this.setData({
+      showActionSheet: false,
+      selectedRoomId: null
+    });
+  },
+
+  onActionSheetTap(e) {
+    e.stopPropagation();
+  },
+
+  onShare() {
+    const roomId = this.data.selectedRoomId;
+    this.onCloseActionSheet();
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    });
+  },
+
+  onDelete() {
+    const roomId = this.data.selectedRoomId;
+    wx.showModal({
+      title: '确认删除',
+      content: '删除后无法恢复，是否继续？',
+      confirmColor: '#FF3B30',
+      success: (res) => {
+        if (res.confirm) {
+          const allRooms = this.data.allRooms.filter(item => item.roomId !== roomId);
+          this.setData({ allRooms });
+          wx.showToast({
+            title: '已删除',
+            icon: 'success'
+          });
+        }
+        this.onCloseActionSheet();
+      }
+    });
   }
 });

@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
 exports.main = async (event, context) => {
-  const { shopId, name, category, address, rating, tags, recommendedDishes, reason, tips, images } = event;
+  const { shopId, name, category, address, rating, tags, recommendedDishes, reason, tips, images, cuisines } = event;
   const { OPENID } = cloud.getWXContext();
   
   if (!shopId) {
@@ -33,6 +33,11 @@ exports.main = async (event, context) => {
     if (reason !== undefined) updateData.reason = reason;
     if (tips !== undefined) updateData.tips = tips;
     if (images !== undefined) updateData.images = images;
+    if (cuisines !== undefined) {
+      updateData.cuisines = cuisines;
+      // 同时更新 cuisine 字段（兼容旧数据，取第一个）
+      updateData.cuisine = cuisines.length > 0 ? cuisines[0] : '';
+    }
     updateData.updateTime = new Date();
     
     // 更新店铺

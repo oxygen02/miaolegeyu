@@ -1,9 +1,0 @@
-{
-  "name": "testGetAvatars",
-  "version": "1.0.0",
-  "description": "测试获取头像",
-  "main": "index.js",
-  "dependencies": {
-    "wx-server-sdk": "latest"
-  }
-}

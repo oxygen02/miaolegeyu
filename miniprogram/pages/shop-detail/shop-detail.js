@@ -1,4 +1,5 @@
 const app = getApp();
+const { imagePaths } = require('../../config/imageConfig');
 
 // 生成年月日时分数据
 const generateDateTimeData = () => {
@@ -28,6 +29,7 @@ const { years, months, days, hours, minutes } = generateDateTimeData();
 
 Page({
   data: {
+    imagePaths: imagePaths,
     shop: null,
     loading: true,
     currentImageIndex: 0,
@@ -86,6 +88,8 @@ Page({
     editShopAddress: '',
     editShopReason: '',
     editShopTips: '',
+    editCuisineOptions: [],
+    editSelectedCuisines: [],
     // 发起者操作菜单
     showOwnerActions: false,
     // 匿名发起选项
@@ -170,7 +174,7 @@ Page({
           {
             openId: 'user1',
             name: '吃货小王',
-            avatar: '/assets/images/cat-avatar-icon.png',
+            avatar: imagePaths.decorations.catAvatarIcon,
             isAnonymous: false,
             rating: 5,
             ratingComment: '味道很棒，推荐！',
@@ -179,7 +183,7 @@ Page({
           {
             openId: 'user2',
             name: '美食家小李',
-            avatar: '/assets/images/cat-avatar-icon.png',
+            avatar: imagePaths.decorations.catAvatarIcon,
             isAnonymous: false,
             rating: 4,
             ratingComment: '环境不错',
@@ -207,14 +211,14 @@ Page({
             appointmentTimeStr: '2026年4月20日',
             initiatorOpenId: 'user1',
             initiatorName: '吃货小王',
-            initiatorAvatar: '/assets/images/cat-avatar-icon.png',
+            initiatorAvatar: imagePaths.decorations.catAvatarIcon,
             isAnonymous: false,
             participantCount: 4,
             participants: [
-              { openId: 'user1', name: '吃货小王', avatar: '/assets/images/cat-avatar-icon.png' },
-              { openId: 'user4', name: '张三', avatar: '/assets/images/cat-avatar-icon.png' },
-              { openId: 'user5', name: '李四', avatar: '/assets/images/cat-avatar-icon.png' },
-              { openId: 'user6', name: '王五', avatar: '/assets/images/cat-avatar-icon.png' }
+              { openId: 'user1', name: '吃货小王', avatar: imagePaths.decorations.catAvatarIcon },
+              { openId: 'user4', name: '张三', avatar: imagePaths.decorations.catAvatarIcon },
+              { openId: 'user5', name: '李四', avatar: imagePaths.decorations.catAvatarIcon },
+              { openId: 'user6', name: '王五', avatar: imagePaths.decorations.catAvatarIcon }
             ],
             rating: { stars: 5, comment: '味道很棒，推荐！' }
           },
@@ -223,13 +227,13 @@ Page({
             appointmentTimeStr: '2026年4月15日',
             initiatorOpenId: 'user2',
             initiatorName: '美食家小李',
-            initiatorAvatar: '/assets/images/cat-avatar-icon.png',
+            initiatorAvatar: imagePaths.decorations.catAvatarIcon,
             isAnonymous: false,
             participantCount: 3,
             participants: [
-              { openId: 'user2', name: '美食家小李', avatar: '/assets/images/cat-avatar-icon.png' },
-              { openId: 'user7', name: '赵六', avatar: '/assets/images/cat-avatar-icon.png' },
-              { openId: 'user8', name: '钱七', avatar: '/assets/images/cat-avatar-icon.png' }
+              { openId: 'user2', name: '美食家小李', avatar: imagePaths.decorations.catAvatarIcon },
+              { openId: 'user7', name: '赵六', avatar: imagePaths.decorations.catAvatarIcon },
+              { openId: 'user8', name: '钱七', avatar: imagePaths.decorations.catAvatarIcon }
             ],
             rating: { stars: 4, comment: '环境不错' }
           },
@@ -243,10 +247,10 @@ Page({
             participantCount: 5,
             participants: [
               { openId: 'user3', name: '', avatar: '' },
-              { openId: 'user9', name: '用户9', avatar: '/assets/images/cat-avatar-icon.png' },
-              { openId: 'user10', name: '用户10', avatar: '/assets/images/cat-avatar-icon.png' },
-              { openId: 'user11', name: '用户11', avatar: '/assets/images/cat-avatar-icon.png' },
-              { openId: 'user12', name: '用户12', avatar: '/assets/images/cat-avatar-icon.png' }
+              { openId: 'user9', name: '用户9', avatar: imagePaths.decorations.catAvatarIcon },
+              { openId: 'user10', name: '用户10', avatar: imagePaths.decorations.catAvatarIcon },
+              { openId: 'user11', name: '用户11', avatar: imagePaths.decorations.catAvatarIcon },
+              { openId: 'user12', name: '用户12', avatar: imagePaths.decorations.catAvatarIcon }
             ],
             rating: { stars: 5, comment: '' }
           }
@@ -391,12 +395,45 @@ Page({
   // 显示编辑店铺弹窗
   showEditShopModal() {
     const { shop } = this.data;
+    // 菜系选项列表
+    const cuisineOptions = [
+      { id: 'chuanyu', name: '川渝' },
+      { id: 'xianggan', name: '湘赣' },
+      { id: 'yueshi', name: '粤式' },
+      { id: 'jiangnan', name: '江南' },
+      { id: 'beifang', name: '北方' },
+      { id: 'xibei', name: '西北' },
+      { id: 'yungui', name: '云贵' },
+      { id: 'huazhong', name: '华中' },
+      { id: 'huoguo', name: '火锅' },
+      { id: 'chuanchuan', name: '串串' },
+      { id: 'shaokao', name: '烧烤' },
+      { id: 'longxia', name: '龙虾' },
+      { id: 'riliao', name: '日料' },
+      { id: 'hanliao', name: '韩料' },
+      { id: 'dongnanya', name: '东南亚' },
+      { id: 'xishi', name: '西式' },
+      { id: 'haixian', name: '海鲜' },
+      { id: 'zizhu', name: '自助' },
+      { id: 'nongjia', name: '农家' },
+      { id: 'sifang', name: '私房' },
+      { id: 'snack', name: '小吃' }
+    ];
+    // 获取当前店铺的菜系（可能是数组或字符串）
+    const currentCuisines = shop.cuisines || (shop.cuisine ? [shop.cuisine] : []);
+    // 标记已选中的菜系
+    const editCuisineOptions = cuisineOptions.map(item => ({
+      ...item,
+      selected: currentCuisines.includes(item.id)
+    }));
     this.setData({
       showEditShopModal: true,
       editShopName: shop.name || '',
       editShopAddress: shop.address || '',
       editShopReason: shop.reason || '',
-      editShopTips: shop.tips || ''
+      editShopTips: shop.tips || '',
+      editCuisineOptions,
+      editSelectedCuisines: currentCuisines
     });
   },
 
@@ -419,10 +456,29 @@ Page({
     this.setData({ editShopTips: e.detail.value });
   },
 
+  // 切换菜系标签选择
+  toggleCuisineTag(e) {
+    const { id } = e.currentTarget.dataset;
+    const { editCuisineOptions } = this.data;
+    const updatedOptions = editCuisineOptions.map(item => {
+      if (item.id === id) {
+        return { ...item, selected: !item.selected };
+      }
+      return item;
+    });
+    const selectedCuisines = updatedOptions
+      .filter(item => item.selected)
+      .map(item => item.id);
+    this.setData({
+      editCuisineOptions: updatedOptions,
+      editSelectedCuisines: selectedCuisines
+    });
+  },
+
   // 提交编辑店铺
   async submitEditShop() {
-    const { shop, editShopName, editShopAddress, editShopReason, editShopTips } = this.data;
-    
+    const { shop, editShopName, editShopAddress, editShopReason, editShopTips, editSelectedCuisines } = this.data;
+
     if (!editShopName.trim()) {
       wx.showToast({ title: '店铺名称不能为空', icon: 'none' });
       return;
@@ -437,7 +493,8 @@ Page({
           name: editShopName,
           address: editShopAddress,
           reason: editShopReason,
-          tips: editShopTips
+          tips: editShopTips,
+          cuisines: editSelectedCuisines
         }
       });
 
@@ -502,7 +559,13 @@ Page({
       if (result.success && result.appointments && result.appointments.length > 0) {
         const appointment = result.appointments[0];
         const isInitiator = appointment.initiatorOpenId === result.openid;
-        
+
+        // 计算剩余时间
+        const deadline = new Date(appointment.deadline);
+        const now = new Date();
+        const remainingTime = deadline.getTime() - now.getTime();
+        appointment.remainingTime = remainingTime > 0 ? remainingTime : 0;
+
         this.setData({
           appointment: {
             ...appointment,
@@ -724,6 +787,24 @@ Page({
       value = value + '00';
       this.setData({ appointmentTime: value });
     }
+  },
+
+  // 清空约饭时间
+  clearAppointmentTime() {
+    this.setData({
+      appointmentYear: '2026',
+      appointmentDate: '',
+      appointmentTime: ''
+    });
+  },
+
+  // 清空截止时间
+  clearDeadlineTime() {
+    this.setData({
+      deadlineYear: '2026',
+      deadlineDate: '',
+      deadlineTime: ''
+    });
   },
 
   // 截止时间输入

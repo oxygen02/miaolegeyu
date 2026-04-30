@@ -1,0 +1,9 @@
+{
+  "name": "getLockedResult",
+  "version": "1.0.0",
+  "description": "获取已锁定的结果",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

@@ -8,21 +8,32 @@ Page({
     page: 1,
     pageSize: 200, // 一次性加载所有头像（174个）
     hasMore: true,
-    loading: false
+    loading: false,
+    // 登录模式相关
+    isLoginMode: false,
+    nickName: '',
+    showNickNameInput: false
   },
 
-  onLoad() {
+  onLoad(options) {
+    // 判断是否为登录模式
+    const isLoginMode = options.mode === 'login';
+    this.setData({
+      isLoginMode,
+      showNickNameInput: isLoginMode
+    });
+
     this.loadAvatars();
   },
 
   // 加载头像列表
   async loadAvatars(reset = false) {
     if (this.data.loading) return;
-    
+
     const page = reset ? 1 : this.data.page;
-    
+
     this.setData({ loading: true });
-    
+
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'getAvatars',
@@ -129,8 +140,15 @@ Page({
     wx.navigateBack();
   },
 
+  // 昵称输入
+  onNickNameInput(e) {
+    this.setData({
+      nickName: e.detail.value
+    });
+  },
+
   // 确认选择
-  confirmSelect() {
+  async confirmSelect() {
     if (!this.data.selectedAvatar) {
       wx.showToast({
         title: '请先选择头像',
@@ -139,27 +157,127 @@ Page({
       return;
     }
 
-    // 保存到本地存储
-    const userInfo = wx.getStorageSync('userInfo') || {};
-    userInfo.avatarUrl = this.data.selectedAvatarUrl;
-    wx.setStorageSync('userInfo', userInfo);
-
-    // 返回上一页
-    const pages = getCurrentPages();
-    const prevPage = pages[pages.length - 2];
-    if (prevPage) {
-      prevPage.setData({
-        'userInfo.avatarUrl': this.data.selectedAvatarUrl
-      });
+    // 登录模式下，检查昵称
+    if (this.data.isLoginMode) {
+      if (!this.data.nickName.trim()) {
+        wx.showToast({
+          title: '请输入昵称',
+          icon: 'none'
+        });
+        return;
+      }
+      // 执行登录
+      this.doLogin();
+      return;
     }
 
-    wx.showToast({
-      title: '选择成功',
-      icon: 'success'
-    });
+    // 非登录模式，保存头像
+    this.saveAvatar();
+  },
 
-    setTimeout(() => {
-      wx.navigateBack();
-    }, 1000);
+  // 执行登录（登录模式）
+  async doLogin() {
+    wx.showLoading({ title: '登录中...' });
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'userLogin',
+        data: {
+          nickName: this.data.nickName.trim(),
+          avatarUrl: this.data.selectedAvatarUrl,
+          isCustom: true
+        }
+      });
+
+      wx.hideLoading();
+
+      if (result.code === 0) {
+        const userData = {
+          ...result.data,
+          isLogin: true
+        };
+
+        // 保存到本地存储
+        wx.setStorageSync('userInfo', userData);
+
+        wx.showToast({ title: '登录成功', icon: 'success' });
+
+        // 返回个人中心页
+        setTimeout(() => {
+          wx.navigateBack();
+          // 通知上一页刷新
+          const pages = getCurrentPages();
+          const prevPage = pages[pages.length - 2];
+          if (prevPage && prevPage.setData) {
+            prevPage.setData({ userInfo: userData });
+            if (prevPage.loadStats) {
+              prevPage.loadStats();
+            }
+          }
+        }, 1000);
+      } else {
+        wx.showToast({ title: result.msg || '登录失败', icon: 'none' });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('登录失败:', err);
+      wx.showToast({ title: '登录失败', icon: 'none' });
+    }
+  },
+
+  // 保存头像（非登录模式）
+  async saveAvatar() {
+    wx.showLoading({ title: '保存中...' });
+
+    try {
+      console.log('选择的头像URL:', this.data.selectedAvatarUrl);
+      // 调用云函数更新数据库
+      const { result } = await wx.cloud.callFunction({
+        name: 'updateUserInfo',
+        data: {
+          avatarUrl: this.data.selectedAvatarUrl
+        }
+      });
+      console.log('updateUserInfo 结果:', result);
+
+      if (result.code !== 0) {
+        throw new Error(result.msg || '更新失败');
+      }
+
+      // 保存到本地存储
+      const userInfo = wx.getStorageSync('userInfo') || {};
+      userInfo.avatarUrl = this.data.selectedAvatarUrl;
+      wx.setStorageSync('userInfo', userInfo);
+
+      // 返回上一页
+      const pages = getCurrentPages();
+      const prevPage = pages[pages.length - 2];
+      if (prevPage) {
+        prevPage.setData({
+          'userInfo.avatarUrl': this.data.selectedAvatarUrl
+        });
+        // 如果上一页是profile页且当前显示的是我发起的聚餐列表，刷新列表
+        if (prevPage.route === 'pages/profile/profile' && prevPage.data.currentList === 'myRooms') {
+          prevPage.loadMyRooms();
+        }
+      }
+
+      wx.hideLoading();
+      wx.showToast({
+        title: '选择成功',
+        icon: 'success'
+      });
+
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 1000);
+    } catch (err) {
+      wx.hideLoading();
+      console.error('保存头像失败:', err);
+      wx.showToast({
+        title: '保存失败',
+        icon: 'none'
+      });
+    }
   }
 });

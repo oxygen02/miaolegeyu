@@ -194,14 +194,31 @@
 
 /* 底部按钮 */
 .bottom-panel {
-  margin-top: 24rpx;
-  padding-top: 24rpx;
+  padding: 32rpx 0;
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 .settle-btn {
-  width: 100%;
+  display: block !important;
+  width: fit-content !important;
+  height: auto !important;
+  line-height: 1 !important;
+  border-radius: 36rpx !important;
+  background: #FF9F43 !important;
+  color: #fff !important;
+  font-size: 28rpx !important;
+  font-weight: 600 !important;
+  border: 4rpx solid #3D3D3D !important;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D !important;
+  padding: 20rpx 56rpx !important;
+  margin: 0 auto !important;
+}
+
+.settle-btn::after {
+  display: none !important;
 }
 
 .settle-btn.complete {
-  background: var(--secondary);
+  background: #4CAF50 !important;
 }

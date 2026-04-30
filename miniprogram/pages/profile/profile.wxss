@@ -62,7 +62,7 @@
   color: var(--text-secondary);
 }
 
-/* 数据统计 */
+/* 数据统计 - 四个并列一排 */
 .stats-section {
   margin-bottom: 32rpx;
 }
@@ -73,27 +73,47 @@
   border-radius: 24rpx;
   border: 4rpx solid #3D3D3D;
   box-shadow: 0 8rpx 0 rgba(61, 61, 61, 0.1);
-  padding: 32rpx 16rpx;
+  overflow: hidden;
 }
 
 .stat-item {
   flex: 1;
+  background: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16rpx 0;
+  padding: 24rpx 0;
+  transition: all 0.2s;
+  border-right: 2rpx solid #F0F0F0;
+}
+
+.stat-item:last-child {
+  border-right: none;
+}
+
+.stat-item:active {
+  background: #FFF8F0;
 }
 
 .stat-num {
-  font-size: 40rpx;
-  font-weight: 600;
-  color: var(--primary);
-  margin-bottom: 8rpx;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #FF9F43;
+  margin-bottom: 4rpx;
+  min-height: 44rpx;
+  line-height: 44rpx;
 }
 
 .stat-label {
   font-size: 24rpx;
-  color: var(--text-secondary);
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 2rpx;
+}
+
+.stat-sublabel {
+  font-size: 18rpx;
+  color: #999;
 }
 
 /* 功能菜单 */
@@ -138,6 +158,18 @@
   color: var(--text-secondary);
 }
 
+/* 菜单徽章 */
+.menu-badge {
+  font-size: 22rpx;
+  color: #fff;
+  background: #FF9F43;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  margin-right: 16rpx;
+  min-width: 32rpx;
+  text-align: center;
+}
+
 /* 列表弹窗 */
 .list-modal {
   position: fixed;
@@ -153,7 +185,7 @@
 }
 
 .modal-content {
-  background: #fff;
+  background: #F5F5F5;
   width: 100%;
   height: 80vh;
   border-radius: 32rpx 32rpx 0 0;
@@ -212,7 +244,9 @@
 
 .list-content {
   flex: 1;
-  padding: 24rpx;
+  padding: 0;
+  overflow-y: auto;
+  max-height: calc(80vh - 120rpx);
 }
 
 .empty-tip {
@@ -222,26 +256,55 @@
   font-size: 28rpx;
 }
 
-/* 聚餐房间卡片 */
+/* 聚餐房间卡片 - 新设计 */
 .room-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  padding: 20rpx 0;
+  background: transparent;
 }
 
 .room-card {
   display: flex;
-  gap: 20rpx;
+  background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
+  border-radius: 20rpx;
   padding: 20rpx;
-  background: #f8f8f8;
-  border-radius: 16rpx;
+  margin: 0 24rpx 20rpx 24rpx;
+  border-top: 3rpx solid #3D3D3D;
+  border-left: 3rpx solid #3D3D3D;
+  border-bottom: 6rpx solid #3D3D3D;
+  border-right: 6rpx solid #3D3D3D;
+  box-shadow: 3rpx 4rpx 0 rgba(61, 61, 61, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: auto;
+  box-sizing: border-box;
+  min-height: 160rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.room-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
+  border-radius: 20rpx;
+  z-index: -1;
+}
+
+.room-card:active {
+  transform: translateY(2rpx);
+  box-shadow: 1rpx 2rpx 0 rgba(61, 61, 61, 0.15);
 }
 
 .room-poster {
   position: relative;
-  width: 160rpx;
-  height: 160rpx;
-  border-radius: 12rpx;
+  width: 176rpx;
+  height: 176rpx;
+  border-radius: 16rpx;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -251,74 +314,238 @@
   height: 100%;
 }
 
+/* 状态标签（毛玻璃效果） */
 .room-status {
   position: absolute;
-  top: 8rpx;
-  right: 8rpx;
-  padding: 6rpx 12rpx;
-  border-radius: 8rpx;
+  top: 12rpx;
+  left: 12rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10rpx);
+  -webkit-backdrop-filter: blur(10rpx);
   font-size: 20rpx;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .room-status.voting {
-  background: #4CAF50;
-  color: #fff;
+  color: #34C759;
 }
 
 .room-status.locked {
-  background: #8A8A8A;
-  color: #fff;
+  color: #FF8C42;
+}
+
+.room-status.ended {
+  color: #999999;
+}
+
+.room-role-badge {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  background: #FF8C42;
+  color: #FFFFFF;
+  font-size: 18rpx;
+  font-weight: 600;
 }
 
 .room-info {
   flex: 1;
+  margin-left: 20rpx;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   min-width: 0;
+  overflow: hidden;
+  gap: 4rpx;
 }
 
 .room-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #1A1A1A;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* 元信息行 */
 .room-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
+  gap: 24rpx;
 }
 
 .meta-item {
-  font-size: 24rpx;
-  color: #666;
-  background: rgba(255,255,255,0.8);
-  padding: 6rpx 12rpx;
-  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
+.meta-item text {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.meta-item.deadline text {
+  color: #999999;
+}
+
+.meta-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+/* 底部信息行 */
 .room-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 12rpx;
 }
 
 .room-id {
   font-size: 24rpx;
-  color: #FF9F43;
-  background: rgba(255,159,67,0.1);
-  padding: 8rpx 16rpx;
-  border-radius: 8rpx;
+  color: #FF8C42;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
 }
 
 .participant-count {
   font-size: 24rpx;
-  color: #666;
+  color: #999999;
+}
+
+.room-hint {
+  display: none;
+}
+
+/* 信息行 */
+.info-row {
+  display: flex;
+  align-items: center;
+}
+
+.title-row {
+  margin-bottom: 4rpx;
+}
+
+.meta-row {
+  gap: 24rpx;
+  margin-bottom: 4rpx;
+}
+
+.deadline-row {
+  gap: 24rpx;
+  margin-bottom: 4rpx;
+}
+
+.creator-row {
+  margin-bottom: 4rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.creator-info {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.creator-avatar {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  border: 2rpx solid #FF9F43;
+}
+
+.creator-name {
+  font-size: 22rpx;
+  color: #666666;
+}
+
+.participant-avatars {
+  display: flex;
+  align-items: center;
+  gap: -8rpx;
+}
+
+.participant-avatar {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  border: 2rpx solid #fff;
+  margin-left: -8rpx;
+}
+
+.participant-avatar:first-child {
+  margin-left: 0;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.action-row {
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: auto;
+  padding-top: 8rpx;
+  border-top: 1rpx solid rgba(255, 159, 67, 0.2);
+  width: 100%;
+}
+
+.dot {
+  font-size: 24rpx;
+  color: #CCCCCC;
+}
+
+.manage-btn {
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: 600;
+  padding: 6rpx 16rpx;
+  background: linear-gradient(135deg, #FF9F43 0%, #FF7B1A 100%);
+  border: 2rpx solid #3D3D3D;
+  border-radius: 20rpx;
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+  transition: all 0.2s;
+  margin-left: 12rpx;
+  flex-shrink: 0;
+}
+
+.manage-btn:active {
+  transform: translate(1rpx, 1rpx);
+  box-shadow: 1rpx 1rpx 0 #3D3D3D;
+}
+
+/* 房主标识 */
+.room-role-badge {
+  position: absolute;
+  top: 8rpx;
+  left: 8rpx;
+  padding: 4rpx 10rpx;
+  background: #FF9F43;
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: 600;
+  border-radius: 6rpx;
+  border: 2rpx solid #fff;
+}
+
+/* 长按提示 */
+.room-hint {
+  font-size: 18rpx;
+  color: #999;
+  text-align: right;
+  margin-top: 4rpx;
 }
 
 /* 店铺列表 */
@@ -331,10 +558,13 @@
 .shop-card {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 20rpx;
+  gap: 12rpx;
+  padding: 12rpx;
   background: #f8f8f8;
   border-radius: 16rpx;
+  width: calc(100% - 96rpx);
+  margin: 0 48rpx;
+  box-sizing: border-box;
 }
 
 .shop-image {
@@ -383,9 +613,12 @@
 }
 
 .appointment-card {
-  padding: 24rpx;
+  padding: 12rpx;
   background: #f8f8f8;
   border-radius: 16rpx;
+  width: calc(100% - 96rpx);
+  margin: 0 48rpx;
+  box-sizing: border-box;
 }
 
 .appointment-header {
@@ -446,60 +679,116 @@
   background: rgba(255,107,107,0.1);
 }
 
-/* 收藏列表 */
-.favorite-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
+/* 收藏列表 - 使用 room-card 样式 */
+.favorite-card {
+  background: linear-gradient(135deg, #FFF8F0 0%, #FFF0E0 100%);
 }
 
-.favorite-card {
+/* 收藏类型标签 */
+.favorite-type-tag {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  backdrop-filter: blur(10rpx);
+  -webkit-backdrop-filter: blur(10rpx);
+}
+
+.favorite-type-tag.shop {
+  background: rgba(255, 159, 67, 0.9);
+  color: #fff;
+}
+
+.favorite-type-tag.appointment {
+  background: rgba(52, 199, 89, 0.9);
+  color: #fff;
+}
+
+/* 描述行 */
+.desc-row {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 20rpx;
-  background: #f8f8f8;
-  border-radius: 16rpx;
+  gap: 8rpx;
+  margin-bottom: 4rpx;
 }
 
-.favorite-image {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 12rpx;
+.desc-row .meta-icon {
+  width: 24rpx;
+  height: 24rpx;
+  flex-shrink: 0;
 }
 
-.favorite-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.favorite-name {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-  display: block;
-  margin-bottom: 8rpx;
+.desc-text {
+  font-size: 24rpx;
+  color: #666;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
 }
 
-.favorite-type {
+/* 评分行 */
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 4rpx;
+}
+
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.star-icon {
   font-size: 24rpx;
-  color: #FF9F43;
-  background: rgba(255,159,67,0.1);
+  color: #FFB800;
+}
+
+.rating-score {
+  font-size: 24rpx;
+  color: #FFB800;
+  font-weight: 600;
+}
+
+.price-tag {
+  font-size: 24rpx;
+  color: #FF6B6B;
+  font-weight: 500;
+}
+
+/* 收藏底部 */
+.favorite-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 8rpx;
+  border-top: 1rpx solid rgba(255, 159, 67, 0.2);
+}
+
+.favorite-time {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.cancel-btn {
+  background: rgba(138, 138, 138, 0.1) !important;
+  color: #8A8A8A !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 参与者徽章 */
+.participant-badge {
+  font-size: 20rpx;
+  color: #4CAF50;
+  font-weight: 600;
   padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  display: inline-block;
-}
-
-.favorite-actions .action-btn {
-  font-size: 26rpx;
-  padding: 12rpx 24rpx;
-  border-radius: 8rpx;
-}
-
-.favorite-actions .action-btn.cancel {
-  color: #8A8A8A;
-  background: rgba(138,138,138,0.1);
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 12rpx;
 }

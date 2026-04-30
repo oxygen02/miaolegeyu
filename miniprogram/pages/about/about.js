@@ -1,33 +1,36 @@
+const { imagePaths } = require('../../config/imageConfig');
+
 Page({
   data: {
+    imagePaths: imagePaths,
     version: '1.0.0',
     appName: '喵了个鱼',
     description: '熟人聚餐决策助手',
     features: [
       {
-        icon: '/assets/images/toupiaojuece.png',
+        icon: imagePaths.icons.toupiaojuece,
         title: '聚餐决策',
         desc: '快速创建聚餐活动，邀请好友参与投票'
       },
       {
-        icon: '/assets/images/tuijian.png',
+        icon: imagePaths.icons.tuijian,
         title: '店铺推荐',
         desc: '发现优质店铺，分享美食体验'
       },
       {
-        icon: '/assets/images/hudong.png',
+        icon: imagePaths.icons.hudong,
         title: '好友互动',
         desc: '邀请好友一起决策，让聚餐更有趣'
       },
       {
-        icon: '/assets/images/gexingtouxiang.png',
+        icon: imagePaths.icons.gexingtouxiang,
         title: '个性头像',
         desc: '丰富的头像选择，展现独特个性'
       }
     ],
     contact: {
-      email: '76525330@qq.com',
-      wechat: '喵了个鱼官方'
+      email: '15510183555@163.com',
+      wechat: '15510183555oygq'
     }
   },
 

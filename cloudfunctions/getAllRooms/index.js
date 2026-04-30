@@ -4,23 +4,55 @@ const db = cloud.database();
 const _ = db.command;
 
 exports.main = async (event) => {
+  const wxContext = cloud.getWXContext();
   const { limit = 20, mode = '' } = event;
-  
+
+  // 检查用户登录态
+  if (!wxContext.OPENID) {
+    return {
+      success: false,
+      error: '用户未登录',
+      rooms: []
+    };
+  }
+
   try {
     let whereClause = {
       status: 'voting' // 只显示进行中的活动
     };
-    
+
     // 根据模式筛选
     if (mode === 'group') {
       whereClause.mode = 'group';
     } else if (mode === 'dining') {
-      whereClause.mode = _.in(['a', 'b']);
+      whereClause.mode = 'pick_for_them';
     }
 
-    // 获取所有进行中的房间
+    // 获取所有进行中的房间（只返回必要字段，脱敏处理）
     const { data: rooms } = await db.collection('rooms')
       .where(whereClause)
+      .field({
+        _id: true,
+        roomId: true,
+        title: true,
+        status: true,
+        mode: true,
+        activityDate: true,
+        activityTime: true,
+        location: true,
+        shopName: true,
+        shopImage: true,
+        platform: true,
+        minAmount: true,
+        deadline: true,
+        createdAt: true,
+        voteDeadline: true,
+        finalPoster: true,
+        candidatePosters: true,
+        creatorNickName: true,
+        creatorAvatarUrl: true
+        // 注意：不返回 creatorOpenId 等敏感字段
+      })
       .orderBy('createdAt', 'desc')
       .limit(limit)
       .get();
@@ -34,18 +66,17 @@ exports.main = async (event) => {
 
     // 获取所有房间ID
     const roomIds = rooms.map(room => room.roomId);
-    
-    // 批量获取参与者数量和头像
+
+    // 批量获取参与者数量
     let participantCounts = {};
-    let participantAvatars = {};
     try {
       const { data: participants } = await db.collection('room_participants')
         .where({
           roomId: _.in(roomIds)
         })
-        .field({ roomId: true, openid: true })
+        .field({ roomId: true })
         .get();
-      
+
       // 统计每个房间的参与者数量
       participants.forEach(p => {
         participantCounts[p.roomId] = (participantCounts[p.roomId] || 0) + 1;
@@ -53,16 +84,18 @@ exports.main = async (event) => {
     } catch (err) {
       console.error('获取参与者数量失败:', err);
     }
-    
+
     // 对于拼单模式，获取拼单参与者头像
+    let participantAvatars = {};
     try {
       const { data: groupParticipants } = await db.collection('group_order_participants')
         .where({
           roomId: _.in(roomIds)
         })
+        .field({ roomId: true, openid: true })
         .get();
-      
-      // 按房间分组获取参与者openid
+
+      // 按房间分组获取参与者
       const roomParticipantOpenIds = {};
       groupParticipants.forEach(p => {
         if (!roomParticipantOpenIds[p.roomId]) {
@@ -70,20 +103,20 @@ exports.main = async (event) => {
         }
         roomParticipantOpenIds[p.roomId].push(p.openid);
       });
-      
-      // 获取用户头像信息（简化处理，使用默认头像或从其他集合获取）
+
+      // 使用默认头像（脱敏处理，不暴露真实openid）
       for (const roomId of Object.keys(roomParticipantOpenIds)) {
         participantAvatars[roomId] = roomParticipantOpenIds[roomId].map((openid, index) => ({
-          openid,
           avatarUrl: '/assets/images/cat-avatar-icon.png', // 默认头像
           index
+          // 注意：不返回 openid
         }));
       }
     } catch (err) {
       console.error('获取拼单参与者头像失败:', err);
     }
 
-    // 组装返回数据
+    // 组装返回数据（脱敏处理）
     const roomsWithParticipants = rooms.map(room => ({
       _id: room._id,
       roomId: room.roomId,
@@ -107,6 +140,7 @@ exports.main = async (event) => {
       creatorAvatarUrl: room.creatorAvatarUrl || '',
       // 拼单参与者头像
       participantAvatars: participantAvatars[room.roomId] || []
+      // 注意：不返回 creatorOpenId 等敏感字段
     }));
 
     return {

@@ -1,0 +1,206 @@
+<view class="control-page">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 主要内容 -->
+  <block wx:else>
+    <!-- 顶部信息 -->
+    <view class="header-section">
+      <view class="room-info">
+        <text class="room-title">{{room.title || '未命名聚餐'}}</text>
+        <view class="room-meta">
+          <text class="room-id" bindtap="copyRoomId">房间号: {{room.roomId || '-'}}</text>
+        </view>
+      </view>
+      
+      <!-- 右侧状态和信息 -->
+      <view class="header-right">
+        <view class="status-badge {{room.status || 'voting'}}">
+          <text>{{room.status === 'voting' ? '投票中' : room.status === 'locked' ? '已结束' : room.status === 'cancelled' ? '已取消' : '进行中'}}</text>
+        </view>
+        <text class="vote-count" bindtap="viewVoteDetail">
+          {{(voteStats && voteStats.totalVoters) || (participants && participants.length) || 0}}人已投票
+        </text>
+      </view>
+    </view>
+
+    <!-- Mode A: 海报投票统计 -->
+    <block wx:if="{{room.mode === 'a'}}">
+      <view class="stats-section">
+        <view class="section-title">
+          <text>投票结果</text>
+          <text class="subtitle" wx:if="{{voteStats && voteStats.totalVoters > 0}}">（被否决的海报不显示）</text>
+        </view>
+
+        <!-- 候选海报列表（始终显示） -->
+        <view class="poster-ranking" wx:if="{{room.candidatePosters && room.candidatePosters.length > 0}}">
+          <view
+            class="rank-item {{selectedPosterIndex === index ? 'selected' : ''}}"
+            wx:for="{{room.candidatePosters}}"
+            wx:key="index"
+            bindtap="selectFinalPoster"
+            data-index="{{index}}"
+          >
+            <view class="rank-num">{{index + 1}}</view>
+            <image
+              class="rank-poster"
+              src="{{item.imageUrl}}"
+              mode="aspectFill"
+              bindtap="previewPoster"
+              data-url="{{item.imageUrl}}"
+            />
+            <view class="rank-info">
+              <text class="vote-count" wx:if="{{voteStats && voteStats.validPosters.length > 0}}">{{voteStats.validPosters[index].likes || 0}}票</text>
+              <text class="platform-tag {{item.platformSource}}">
+                {{item.platformSource === 'meituan' ? '美团' : item.platformSource === 'dianping' ? '点评' : '京东'}}
+              </text>
+            </view>
+            <view class="select-icon" wx:if="{{selectedPosterIndex === index}}">✓</view>
+          </view>
+        </view>
+
+        <!-- 无海报 -->
+        <view class="empty-stats" wx:elif="{{!room.candidatePosters || room.candidatePosters.length === 0}}">
+          <text>还没有上传海报</text>
+        </view>
+
+        <!-- 无投票数据 -->
+        <view class="empty-stats" wx:elif="{{!voteStats || voteStats.totalVoters === 0}}">
+          <text>还没有人投票，快去分享吧！</text>
+        </view>
+      </view>
+    </block>
+
+    <!-- Mode B: 口味偏好统计 - 使用Mode A风格 -->
+    <block wx:if="{{room.mode === 'b'}}">
+      <view class="stats-section">
+        <view class="section-title">
+          <text>投票结果</text>
+          <text class="subtitle">（成员选择的品类偏好）</text>
+        </view>
+
+        <!-- 口味排行 - 使用poster-ranking样式 -->
+        <view class="poster-ranking" wx:if="{{cuisineStats.length > 0}}">
+          <view
+            class="rank-item {{selectedCuisine === item.name ? 'selected' : ''}}"
+            wx:for="{{cuisineStats}}"
+            wx:key="name"
+            bindtap="selectCuisine"
+            data-name="{{item.name}}"
+          >
+            <view class="rank-num">{{index + 1}}</view>
+            <view class="rank-poster cuisine-rank-icon">
+              <text class="cuisine-icon-text">{{item.name[0]}}</text>
+            </view>
+            <view class="rank-info">
+              <text class="vote-count">{{item.count}}票</text>
+              <text class="platform-tag">{{item.name}}</text>
+            </view>
+            <view class="select-icon" wx:if="{{selectedCuisine === item.name}}">✓</view>
+          </view>
+        </view>
+
+        <!-- 无数据 -->
+        <view class="empty-stats" wx:elif="{{participants.length === 0}}">
+          <text>还没有人投票，快去分享吧！</text>
+        </view>
+
+        <view class="empty-stats" wx:else>
+          <text>等待成员选择口味偏好...</text>
+        </view>
+
+        <!-- 可选品类 -->
+        <view class="cuisine-options-section" wx:if="{{room.cuisineOptions && room.cuisineOptions.length > 0}}">
+          <view class="section-title">
+            <text>可选品类</text>
+          </view>
+          <view class="cuisine-tags">
+            <view class="cuisine-tag" wx:for="{{room.cuisineOptions}}" wx:key="*this">
+              {{item}}
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 参与者列表 -->
+    <view class="participants-section">
+      <view class="section-title">
+        <text>参与情况</text>
+      </view>
+      <view class="participant-list">
+        <view class="participant-item" wx:for="{{participants}}" wx:key="_id">
+          <image class="participant-avatar-image" src="{{item.avatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFill"/>
+          <text class="participant-status {{item.status}}">
+            {{item.status === 'voted' ? '已投票' :
+              item.status === 'waived' ? '已弃权' :
+              item.status === 'leave' ? '请假' : '未投票'}}
+          </text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部操作栏 -->
+    <view class="bottom-bar" wx:if="{{room.status === 'voting' && isCreator}}">
+      <button class="btn-share" open-type="share">分享投票</button>
+      <button class="btn-edit" bindtap="editRoom">编辑活动</button>
+      <button class="btn-lock" bindtap="{{room.mode === 'b' ? 'showLockModalB' : 'showLockModal'}}">锁定结果</button>
+    </view>
+
+    <!-- 锁定确认弹窗 -->
+    <view class="modal-mask" wx:if="{{showLockConfirm}}" bindtap="closeLockModal">
+      <view class="modal-content" catchtap="preventBubble">
+        <view class="modal-header">
+          <text class="modal-title">确认锁定结果</text>
+          <text class="modal-close" bindtap="closeLockModal">×</text>
+        </view>
+        
+        <view class="modal-body">
+          <text class="confirm-text">确定要结束投票并公布结果吗？</text>
+          
+          <!-- Mode A: 选中的海报 -->
+          <view class="selected-preview" wx:if="{{room.mode === 'a' && selectedPosterIndex >= 0}}">
+            <image 
+              class="preview-image" 
+              src="{{voteStats.candidatePosters[selectedPosterIndex].imageUrl}}"
+              mode="aspectFill"
+            />
+            <text class="preview-votes">{{selectedPosterVotes}}票</text>
+          </view>
+          
+          <!-- Mode B: 选中的口味 -->
+          <view class="selected-cuisine" wx:if="{{room.mode === 'b' && selectedCuisine}}">
+            <text class="cuisine-label">最终选择</text>
+            <text class="cuisine-value">{{selectedCuisine}}</text>
+          </view>
+          
+          <!-- 时间选择 -->
+          <view class="form-item">
+            <text class="form-label">聚餐时间</text>
+            <picker mode="multiSelector" range="{{timeRange}}" bindchange="onTimeChange">
+              <view class="picker-value">{{finalTime || '请选择时间'}}</view>
+            </picker>
+          </view>
+          
+          <!-- 地址输入 -->
+          <view class="form-item">
+            <text class="form-label">店铺地址</text>
+            <input 
+              placeholder="输入店铺地址（可选）" 
+              value="{{finalAddress}}"
+              bindinput="onAddressInput"
+            />
+          </view>
+        </view>
+        
+        <view class="modal-footer">
+          <button class="btn-cancel" bindtap="closeLockModal">取消</button>
+          <button class="btn-confirm" bindtap="lockRoom">确认锁定</button>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

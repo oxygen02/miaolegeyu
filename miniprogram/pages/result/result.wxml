@@ -1,7 +1,10 @@
 <view class="result-page">
+  <!-- 画布，用于生成海报 -->
+  <canvas type="2d" id="posterCanvas" style="position: fixed; left: -750px; top: 0; width: 750px; height: 1200px; z-index: -1;"></canvas>
+
   <!-- 加载状态 -->
   <view class="loading-container" wx:if="{{loading}}">
-    <view class="loading-icon cat-sleeping"></view>
+    <image class="loading-icon" src="{{imagePaths.misc.fishIcon}}" mode="aspectFit"/>
     <text class="loading-text">橘仔正在计算...</text>
   </view>
 
@@ -9,7 +12,7 @@
   <block wx:else>
     <!-- 结果头部 -->
     <view class="result-header">
-      <view class="result-icon cat-happy"></view>
+      <image class="result-avatar" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFill"/>
       <text class="result-title">橘仔宣布</text>
       <text class="result-subtitle">本次聚餐地点已定</text>
     </view>
@@ -41,38 +44,141 @@
       </view>
     </view>
 
+    <!-- Mode B 匹配结果展示 -->
+    <view class="modeb-result-section" wx:if="{{room.mode === 'b' && voteStats}}">
+      <!-- 最佳匹配 -->
+      <view class="best-matches-section" wx:if="{{voteStats.bestMatches.length > 0}}">
+        <text class="section-title">🎯 最佳匹配</text>
+        <view class="best-match-list">
+          <view class="best-match-item {{item.matchType}}" wx:for="{{voteStats.bestMatches}}" wx:key="index">
+            <view class="match-rank">{{index + 1}}</view>
+            <view class="match-info">
+              <text class="match-name">{{item.categoryName}} · {{item.subCategoryName}}</text>
+              <view class="match-stats">
+                <text class="match-type">{{item.matchType === 'perfect' ? '完美匹配' : '部分匹配'}}</text>
+                <text class="match-rate">{{item.matchRate}}%</text>
+                <text class="voter-count">{{item.voterCount}}/{{voteStats.totalVoters}}人选</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 详细统计 -->
+      <view class="category-stats-section" wx:if="{{voteStats.categoryStats.length > 0}}">
+        <text class="section-title">📊 详细统计</text>
+        <view class="category-list">
+          <view class="category-item" wx:for="{{voteStats.categoryStats}}" wx:key="categoryId">
+            <view class="category-header">
+              <text class="category-name">{{item.categoryName}}</text>
+              <text class="category-count">{{item.categoryCount}}人选</text>
+            </view>
+
+            <!-- 完美匹配 -->
+            <view class="sub-list perfect" wx:if="{{item.perfectMatch.length > 0}}">
+              <text class="sub-title">✓ 完美匹配</text>
+              <view class="sub-item" wx:for="{{item.perfectMatch}}" wx:key="name">
+                <text class="sub-name">{{item.name}}</text>
+                <text class="sub-count">{{item.count}}人</text>
+              </view>
+            </view>
+
+            <!-- 部分匹配 -->
+            <view class="sub-list partial" wx:if="{{item.partialMatch.length > 0}}">
+              <text class="sub-title">~ 部分匹配</text>
+              <view class="sub-item" wx:for="{{item.partialMatch}}" wx:key="name">
+                <text class="sub-name">{{item.name}}</text>
+                <text class="sub-count">{{item.count}}人 ({{item.matchRate}}%)</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 禁忌统计 -->
+      <view class="taboo-stats-section" wx:if="{{voteStats.hardTabooStats && Object.keys(voteStats.hardTabooStats).length > 0}}">
+        <text class="section-title">🚫 共同禁忌</text>
+        <view class="taboo-list">
+          <view class="taboo-item" wx:for="{{voteStats.hardTabooStats}}" wx:key="*this">
+            <text class="taboo-name">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 推荐餐厅入口 -->
+      <view class="recommend-restaurant-section" wx:if="{{room.enableRestaurantRecommend && voteStats.bestMatches.length > 0}}">
+        <view class="recommend-restaurant-card" bindtap="goRecommendRestaurant">
+          <view class="recommend-restaurant-info">
+            <text class="recommend-restaurant-title">🍽️ 推荐附近餐厅</text>
+            <text class="recommend-restaurant-desc">根据口味偏好和位置，为你推荐周边好店</text>
+          </view>
+          <view class="recommend-restaurant-arrow">
+            <text class="arrow-text">去看看</text>
+            <text class="arrow-icon">›</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <!-- 无结果状态 -->
-    <view class="no-result-section" wx:if="{{!room.finalPoster}}">
-      <view class="no-result-icon cat-sad"></view>
+    <view class="no-result-section" wx:if="{{!room.finalPoster && room.mode !== 'b'}}">
+      <image class="no-result-avatar" src="{{imagePaths.banners.faqijucan}}" mode="aspectFill"/>
       <text class="no-result-text">还没有最终结果哦</text>
       <text class="no-result-hint">等橘仔选好了会通知你~</text>
     </view>
 
     <!-- 操作按钮 -->
     <view class="action-section">
-      <button class="btn-primary" bindtap="goToPlatform">
-        <view class="btn-icon icon-fork"></view>
-        <text>去平台看看</text>
-      </button>
+      <!-- 平台跳转按钮 -->
+      <view class="platform-buttons" wx:if="{{room.finalPoster && room.finalPoster.platformSource}}">
+        <button
+          class="btn-platform meituan"
+          bindtap="goToPlatform"
+          wx:if="{{room.finalPoster.platformSource === 'meituan'}}"
+        >
+          <image class="platform-icon" src="{{imagePaths.icons.meituantubiao}}" mode="aspectFit"/>
+          <text>去美团看看</text>
+        </button>
+        <button
+          class="btn-platform dianping"
+          bindtap="goToPlatform"
+          wx:if="{{room.finalPoster.platformSource === 'dianping'}}"
+        >
+          <image class="platform-icon" src="{{imagePaths.icons.dazhongdianping}}" mode="aspectFit"/>
+          <text>去大众点评看看</text>
+        </button>
+      </view>
       
+      <button class="btn-secondary" bindtap="addToCalendar" wx:if="{{room.finalPoster && room.finalPoster.time}}">
+        <view class="btn-icon icon-calendar"></view>
+        <text>添加到日历</text>
+      </button>
+
       <button class="btn-secondary" bindtap="openNavigation" wx:if="{{room.finalPoster && room.finalPoster.address}}">
         <view class="btn-icon icon-location"></view>
         <text>导航去店</text>
       </button>
-      
+
       <button class="btn-secondary" bindtap="goSettlement" wx:if="{{room.groupOrderOption}}">
         <view class="btn-icon icon-money"></view>
         <text>去结算</text>
       </button>
     </view>
 
-    <!-- 分享提示 -->
+    <!-- 分享区域 -->
     <view class="share-section">
-      <text class="share-text">分享结果给小伙伴们</text>
-      <button class="btn-share" open-type="share">
-        <view class="share-icon icon-heart"></view>
-        <text>分享</text>
-      </button>
+      <text class="share-title">分享结果给小伙伴们</text>
+      <view class="share-buttons">
+        <button class="share-btn wechat" open-type="share">
+          <image class="share-icon-img" src="/assets/images/sharetowxfriends.png" mode="aspectFit"/>
+          <text class="share-label">分享给好友</text>
+        </button>
+        <view class="share-divider"></view>
+        <view class="share-btn poster" bindtap="generatePoster">
+          <image class="share-icon-img" src="/assets/images/generatorposter.png" mode="aspectFit"/>
+          <text class="share-label">生成海报</text>
+        </view>
+      </view>
     </view>
 
     <!-- 返回首页 -->

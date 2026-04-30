@@ -1,327 +1,504 @@
+const ANON_NAMES = ['吃货喵', '馋嘴猫', '干饭喵', '探店喵', '觅食喵', '品鉴喵', '寻味喵', '尝鲜喵', '老饕喵', '滋味喵'];
+
 Page({
   data: {
     roomId: '',
-    room: {},
-    voteStats: null,
-    participants: [],
-    isCreator: false,
-    loading: true,
-    showLockConfirm: false,
-    selectedPosterIndex: -1,
-    selectedPosterVotes: 0,
-    finalTime: '',
-    finalAddress: '',
-    timeRange: [
-      ['今天', '明天', '后天'],
-      ['11:00', '12:00', '13:00', '14:00', '17:00', '18:00', '19:00', '20:00', '21:00']
+    bannerCatUrl: '',
+    isTipExpanded: false,
+    showPosterModal: false,
+    posterData: null,
+    roomCode: '731286',
+    roomTitle: '周二晚撸串建设北路',
+    roomAddress: '建设北路',
+    roomTime: '4月28日 18:00',
+    roomStatus: 'voting',
+    statusText: '投票中',
+    isAnonymous: false,
+    needPassword: false,
+    roomPassword: '',
+    qrCodeUrl: '',
+    countdown: '02:15:30',
+    countdownTimer: null,
+    pollTimer: null,
+    votedCount: 1,
+    unvotedCount: 0,
+    progressPercent: 100,
+    participants: [
+      { id: 'o001', nickName: '喵友9606', avatarUrl: '', isVoted: true, isHost: true, anonName: '吃货喵', choices: [] }
     ],
-    // mode-b 相关数据
-    cuisineStats: [],
-    selectedCuisine: null
+    topOptions: [
+      { id: 'sub_01_01', name: '经典川菜', image: '/images/category_01_01.jpg', count: 3, percent: 75 },
+      { id: 'sub_01_02', name: '重庆火锅', image: '/images/category_01_02.jpg', count: 2, percent: 50 },
+      { id: 'sub_10_02', name: '麻辣香锅', image: '/images/category_10_02.jpg', count: 2, percent: 50 }
+    ],
+    winner: {
+      name: '味记小渔匠肥肠鱼稻田蛙',
+      address: '东郊记忆店',
+      category: '川菜',
+      price: 68,
+      image: '/images/shop_demo.jpg',
+      voteCount: 4,
+      votePercent: 80
+    }
   },
 
   onLoad(options) {
-    const { roomId } = options;
+    const roomId = options.roomId || '';
     this.setData({ roomId });
-    this.loadData();
+    this.loadBannerCat();
+    this.startCountdown();
+    this.calculateStats(this.data.participants);
+    if (roomId && wx.cloud) {
+      this.fetchRoomData(roomId);
+    }
+  },
+
+  loadBannerCat() {
+    this.setData({ bannerCatUrl: 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/decorations/cat-fish-logo.png' });
+  },
+
+  onUnload() {
+    this.clearAllTimers();
+  },
+
+  onHide() {
+    this.clearAllTimers();
   },
 
   onShow() {
-    if (this.data.roomId) {
-      this.loadData();
+    this.startCountdown();
+    if (this.data.roomId && this.data.roomStatus === 'voting' && wx.cloud) {
+      this.startPolling();
     }
   },
 
-  onPullDownRefresh() {
-    this.loadData().then(() => {
-      wx.stopPullDownRefresh();
+  fetchRoomData(roomId) {
+    wx.cloud.callFunction({
+      name: 'getRoomDetail',
+      data: { roomId },
+      timeout: 5000
+    }).then(res => {
+      if (res.result && res.result.code === 0 && res.result.data) {
+        const room = res.result.data;
+        const isAnon = room.isAnonymous || false;
+        const participants = (room.participants || []).map((p, idx) => ({
+          ...p,
+          anonName: ANON_NAMES[idx % ANON_NAMES.length] + (idx >= ANON_NAMES.length ? (idx + 1) : '')
+        }));
+        this.setData({
+          _id: room._id,
+          roomCode: room.roomCode || '',
+          roomTitle: room.title || '',
+          roomAddress: room.address || '',
+          roomTime: this.formatTime(room.mealTime),
+          roomStatus: room.status || 'voting',
+          statusText: this.getStatusText(room.status),
+          isAnonymous: isAnon,
+          needPassword: room.needPassword || false,
+          roomPassword: room.roomPassword || '',
+          participants: participants
+        });
+        this.calculateStats(participants);
+        if (room.status === 'voting') {
+          this.fetchVoteStats(roomId);
+        }
+        if (room.status === 'locked') {
+          this.loadLockedResult();
+        }
+      }
+    }).catch(err => {
+      console.error('获取房间详情失败:', err);
     });
   },
 
-  async loadData() {
-    this.setData({ loading: true });
-    
-    try {
-      // 获取房间数据
-      const roomRes = await wx.cloud.callFunction({
-        name: 'getRoom',
-        data: { roomId: this.data.roomId }
-      });
-      
-      if (roomRes.result.code !== 0) {
-        throw new Error(roomRes.result.msg);
-      }
-      
-      const room = roomRes.result.data;
-      
-      console.log('Room data:', room);
-      
-      // 检查房间数据是否完整
-      if (!room || !room.roomId) {
-        throw new Error('房间数据不完整');
-      }
-      
-      // 根据 mode 处理不同的数据
-      if (room.mode === 'b') {
-        // mode-b: 获取口味偏好统计
-        await this.loadModeBData(room);
-      } else {
-        // mode-a: 获取投票统计
-        await this.loadModeAData(room);
-      }
-      
-      this.setData({
-        room,
-        participants: room.participants || [],
-        isCreator: room.isCreator,
-        loading: false
-      });
-      
-    } catch (err) {
-      this.setData({ loading: false });
-      wx.showToast({ title: err.message || '加载失败', icon: 'none' });
+  toggleAnonymous() {
+    if (this.data.roomStatus !== 'voting') {
+      wx.showToast({ title: '投票已结束，无法更改', icon: 'none' });
+      return;
     }
+    const newVal = !this.data.isAnonymous;
+    wx.showModal({
+      title: newVal ? '开启匿名投票？' : '关闭匿名投票？',
+      content: newVal ? '开启后，所有人的投票身份将互不可见，仅房主可在控制台查看汇总。' : '关闭后，所有人的投票身份将对全员可见。',
+      confirmColor: '#FF9F43',
+      success: (res) => {
+        if (res.confirm) {
+          this.doToggleAnonymous(newVal);
+        }
+      }
+    });
   },
 
-  // mode-a: 加载海报投票数据
-  async loadModeAData(room) {
-    const statsRes = await wx.cloud.callFunction({
-      name: 'countVotes',
-      data: { roomId: this.data.roomId }
-    });
-    
-    if (statsRes.result.code !== 0) {
-      throw new Error(statsRes.result.msg);
+  doToggleAnonymous(newVal) {
+    if (!wx.cloud) {
+      this.setData({ isAnonymous: newVal });
+      wx.showToast({ title: newVal ? '已开启匿名投票' : '已关闭匿名投票', icon: 'success' });
+      return;
     }
-    
-    this.setData({
-      voteStats: statsRes.result.data
+    wx.showLoading({ title: '设置中...' });
+    wx.cloud.callFunction({
+      name: 'setAnonymousMode',
+      data: { roomId: this.data.roomId, isAnonymous: newVal },
+      timeout: 5000
+    }).then(() => {
+      wx.hideLoading();
+      this.setData({ isAnonymous: newVal });
+      wx.showToast({ title: newVal ? '已开启匿名投票' : '已关闭匿名投票', icon: 'success' });
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('设置匿名模式失败:', err);
+      wx.showToast({ title: '设置失败', icon: 'none' });
     });
   },
 
-  // mode-b: 加载口味偏好统计
-  async loadModeBData(room) {
-    // 统计口味偏好
-    const participants = room.participants || [];
-    const cuisineCount = {};
-    
-    participants.forEach(p => {
-      if (p.cuisinePreferences && Array.isArray(p.cuisinePreferences)) {
-        p.cuisinePreferences.forEach(cuisine => {
-          cuisineCount[cuisine] = (cuisineCount[cuisine] || 0) + 1;
+  calculateStats(participants) {
+    const voted = participants.filter(p => p.isVoted).length;
+    const total = participants.length;
+    const percent = total > 0 ? Math.round((voted / total) * 100) : 0;
+    this.setData({ votedCount: voted, unvotedCount: total - voted, progressPercent: percent });
+  },
+
+  fetchVoteStats(roomId) {
+    if (!wx.cloud) return;
+    wx.cloud.callFunction({
+      name: 'getVoteStats',
+      data: { roomId },
+      timeout: 5000
+    }).then(res => {
+      if (res.result) {
+        const stats = res.result;
+        this.setData({
+          votedCount: stats.votedCount || 0,
+          unvotedCount: stats.unvotedCount || 0,
+          progressPercent: stats.progressPercent || 0,
+          topOptions: stats.topOptions || []
         });
       }
+    }).catch(err => {
+      console.error('获取投票统计失败:', err);
     });
-    
-    // 转换为数组并排序
-    const cuisineStats = Object.entries(cuisineCount)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
-    
-    this.setData({ cuisineStats });
   },
 
-  // 分享房间
-  onShareAppMessage() {
-    const { room } = this.data;
-    if (room.mode === 'b') {
-      return {
-        title: `【${room.title}】快来选择你的口味偏好！`,
-        path: `/pages/vote/vote?roomId=${this.data.roomId}`,
-        imageUrl: '/assets/images/share-default.png'
-      };
+  startCountdown() {
+    this.clearCountdown();
+    const deadline = Date.now() + (2 * 60 * 60 + 15 * 60 + 30) * 1000;
+    const update = () => {
+      const diff = deadline - Date.now();
+      if (diff <= 0) {
+        this.setData({ countdown: '00:00:00' });
+        this.clearCountdown();
+        return;
+      }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      const pad = n => n < 10 ? '0' + n : n;
+      this.setData({ countdown: `${pad(h)}:${pad(m)}:${pad(s)}` });
+    };
+    update();
+    this.setData({ countdownTimer: setInterval(update, 1000) });
+  },
+
+  clearCountdown() {
+    if (this.data.countdownTimer) {
+      clearInterval(this.data.countdownTimer);
+      this.setData({ countdownTimer: null });
     }
+  },
+
+  startPolling() {
+    this.clearPolling();
+    if (this.data.roomStatus === 'voting' && this.data.roomId) {
+      this.setData({ pollTimer: setInterval(() => this.fetchVoteStats(this.data.roomId), 3000) });
+    }
+  },
+
+  clearPolling() {
+    if (this.data.pollTimer) {
+      clearInterval(this.data.pollTimer);
+      this.setData({ pollTimer: null });
+    }
+  },
+
+  clearAllTimers() {
+    this.clearCountdown();
+    this.clearPolling();
+  },
+
+  copyRoomCode() {
+    wx.setClipboardData({
+      data: this.data.roomCode,
+      success: () => wx.showToast({ title: `房间号 ${this.data.roomCode} 已复制`, icon: 'none' })
+    });
+  },
+
+  shareRoom() {
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
+  },
+
+  onShareAppMessage() {
     return {
-      title: `【${room.title}】来投票决定吃什么！`,
-      path: `/pages/vote/vote?roomId=${this.data.roomId}`,
-      imageUrl: room.candidatePosters?.[0]?.imageUrl || ''
+      title: `「${this.data.roomTitle}」快来一起选餐厅！`,
+      path: `/pages/room/join?roomCode=${this.data.roomCode}`,
+      imageUrl: '/assets/share-cover.png'
     };
   },
 
-  // 选择最终海报 (mode-a)
-  selectFinalPoster(e) {
-    const { index } = e.currentTarget.dataset;
-    const selectedPosterVotes = this.calcPosterVotes(index);
-    this.setData({ 
-      selectedPosterIndex: index,
-      selectedPosterVotes: selectedPosterVotes
-    });
-  },
-
-  // 选择口味 (mode-b)
-  selectCuisine(e) {
-    const { name } = e.currentTarget.dataset;
-    this.setData({ selectedCuisine: name });
-  },
-
-  // 计算海报票数
-  calcPosterVotes(index) {
-    const { voteStats } = this.data;
-    if (!voteStats || !voteStats.validPosters || index < 0) {
-      return 0;
+  handleMemberTap(e) {
+    const idx = e.currentTarget.dataset.index;
+    const member = this.data.participants[idx];
+    if (!member.isVoted) {
+      wx.showToast({ title: '该成员尚未投票', icon: 'none' });
+      return;
     }
-    const poster = voteStats.validPosters.find(function(i) {
-      return i.index === index;
-    });
-    return poster ? poster.likes : 0;
-  },
-
-  // 时间选择
-  onTimeChange(e) {
-    const [dayIdx, timeIdx] = e.detail.value;
-    const days = this.data.timeRange[0];
-    const times = this.data.timeRange[1];
-    this.setData({ finalTime: `${days[dayIdx]} ${times[timeIdx]}` });
-  },
-
-  // 地址输入
-  onAddressInput(e) {
-    this.setData({ finalAddress: e.detail.value });
-  },
-
-  // 显示锁定确认 (mode-a)
-  showLockModal() {
-    const { selectedPosterIndex, voteStats } = this.data;
-    let newIndex = selectedPosterIndex;
-    
-    if (selectedPosterIndex === -1 && voteStats && voteStats.validPosters.length > 0) {
-      // 自动选择票数最高的
-      newIndex = voteStats.validPosters[0].index;
-    }
-    
-    const selectedPosterVotes = this.calcPosterVotes(newIndex);
-    
-    this.setData({ 
-      selectedPosterIndex: newIndex,
-      selectedPosterVotes: selectedPosterVotes,
-      showLockConfirm: true 
-    });
-  },
-
-  // 显示锁定确认 (mode-b)
-  showLockModalB() {
-    const { selectedCuisine, cuisineStats } = this.data;
-    let selected = selectedCuisine;
-    
-    if (!selected && cuisineStats.length > 0) {
-      // 自动选择票数最高的
-      selected = cuisineStats[0].name;
-    }
-    
-    this.setData({ 
-      selectedCuisine: selected,
-      showLockConfirm: true 
-    });
-  },
-
-  // 关闭锁定确认
-  closeLockModal() {
-    this.setData({ showLockConfirm: false });
-  },
-
-  // 锁定房间
-  async lockRoom() {
-    const { roomId, selectedPosterIndex, selectedCuisine, finalTime, finalAddress, room } = this.data;
-    
-    if (room.mode === 'a') {
-      // mode-a: 需要选择海报
-      if (selectedPosterIndex === -1) {
-        wx.showToast({ title: '请选择最终海报', icon: 'none' });
-        return;
-      }
-    } else {
-      // mode-b: 需要选择口味
-      if (!selectedCuisine) {
-        wx.showToast({ title: '请选择最终口味', icon: 'none' });
-        return;
-      }
-    }
-    
-    try {
-      wx.showLoading({ title: '锁定中' });
-      
-      const lockData = {
-        roomId,
-        finalTime,
-        finalAddress
-      };
-      
-      if (room.mode === 'a') {
-        lockData.finalPosterIndex = selectedPosterIndex;
-      } else {
-        lockData.finalCuisine = selectedCuisine;
-      }
-      
-      const { result } = await wx.cloud.callFunction({
-        name: 'lockRoom',
-        data: lockData
+    if (!this.data.isAnonymous) {
+      wx.showModal({
+        title: `${member.nickName} 的投票`,
+        content: (member.choices || ['暂无记录']).join('、'),
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#FF9F43'
       });
-      
-      if (result.code !== 0) {
-        throw new Error(result.msg);
-      }
-      
-      wx.hideLoading();
-      this.setData({ showLockConfirm: false });
-      
-      wx.showToast({ title: '已锁定', icon: 'success' });
-      
-      // 跳转到结果页
-      setTimeout(() => {
-        wx.redirectTo({
-          url: `/pages/result/result?roomId=${roomId}`
-        });
-      }, 1500);
-      
-    } catch (err) {
-      wx.hideLoading();
-      wx.showToast({ title: err.message || '锁定失败', icon: 'none' });
+      return;
     }
+    wx.showToast({ title: '匿名模式下不可查看个人选择', icon: 'none' });
   },
 
-  // 预览海报
-  previewPoster(e) {
-    const { url } = e.currentTarget.dataset;
-    const urls = this.data.room.candidatePosters?.map(p => p.imageUrl) || [];
-    wx.previewImage({ urls, current: url });
-  },
-
-  // 查看投票详情
-  viewVoteDetail() {
+  remindMember(e) {
+    const id = e.currentTarget.dataset.id;
+    const member = this.data.participants.find(p => p.id === id);
+    if (!member || member.isVoted) return;
     wx.showModal({
-      title: '投票详情',
-      content: `已投票: ${this.data.voteStats?.totalVoters || 0}人`,
-      showCancel: false
-    });
-  },
-
-  // 复制房间号
-  copyRoomId() {
-    wx.setClipboardData({
-      data: this.data.roomId,
-      success: () => {
-        wx.showToast({ title: '已复制房间号', icon: 'success' });
+      title: '提醒投票',
+      content: `给 ${this.data.isAnonymous ? member.anonName : member.nickName} 发送催票通知？`,
+      confirmColor: '#FF9F43',
+      success: (res) => {
+        if (res.confirm) {
+          this.sendReminder(id);
+        }
       }
     });
   },
 
-  // 编辑房间信息
+  sendReminder(targetId) {
+    if (!wx.cloud) {
+      wx.showToast({ title: '提醒已发送（演示）', icon: 'success' });
+      return;
+    }
+    wx.cloud.callFunction({
+      name: 'sendReminder',
+      data: { roomId: this.data.roomId, targetId, roomTitle: this.data.roomTitle, isAnonymous: this.data.isAnonymous },
+      timeout: 5000
+    }).then(() => {
+      wx.showToast({ title: '提醒已发送', icon: 'success' });
+    }).catch(() => {
+      wx.showToast({ title: '发送失败', icon: 'none' });
+    });
+  },
+
   editRoom() {
-    const { room } = this.data;
-    
-    // 检查是否已截止
-    if (room.voteDeadline) {
-      const deadline = new Date(room.voteDeadline);
-      const now = new Date();
-      if (deadline < now) {
-        wx.showToast({ title: '投票已截止，无法编辑', icon: 'none' });
-        return;
+    if (this.data.roomStatus === 'locked') {
+      wx.showToast({ title: '已锁定，无法编辑', icon: 'none' });
+      return;
+    }
+    // 跳转到编辑页面，带上房间ID
+    wx.navigateTo({
+      url: `/pages/create-mode-b/create-mode-b?edit=true&roomId=${this.data.roomId}`
+    });
+  },
+
+  lockResult() {
+    if (this.data.roomStatus === 'locked') {
+      wx.showToast({ title: '结果已锁定', icon: 'none' });
+      return;
+    }
+    wx.showModal({
+      title: '锁定聚餐地点',
+      content: '锁定后将停止投票，所有人会收到最终通知。确定现在锁定吗？',
+      confirmText: '确认锁定',
+      confirmColor: '#FF9F43',
+      cancelText: '再等等',
+      success: (res) => {
+        if (res.confirm) {
+          this.doLockResult();
+        }
       }
+    });
+  },
+
+  doLockResult() {
+    if (this.data.roomStatus === 'locked') {
+      this.setData({ roomStatus: 'locked', statusText: '已锁定' });
+      wx.showToast({ title: '结果已锁定', icon: 'success' });
+      return;
     }
     
-    // 跳转到编辑页面
-    wx.navigateTo({
-      url: `/pages/create-mode-${room.mode}/create-mode-${room.mode}?edit=true&roomId=${room.roomId}`
+    // 检查 _id 是否存在
+    if (!this.data._id) {
+      wx.showToast({ title: '房间数据加载中，请稍候', icon: 'none' });
+      return;
+    }
+    
+    wx.showLoading({ title: '计算结果中...', mask: true });
+    wx.cloud.callFunction({
+      name: 'lockRoom',
+      data: { roomId: this.data._id },
+      timeout: 10000
+    }).then(res => {
+      wx.hideLoading();
+      if (res.result && res.result.code === 0) {
+        this.setData({ roomStatus: 'locked', statusText: '已锁定' });
+        this.clearPolling();
+        // 加载锁定结果
+        this.loadLockedResult();
+        wx.showModal({
+          title: '结果已锁定',
+          content: '投票已结束，最终结果已确定',
+          showCancel: false,
+          confirmText: '查看结果',
+          confirmColor: '#FF9F43'
+        });
+      } else {
+        wx.showToast({ title: res.result?.msg || '锁定失败', icon: 'none' });
+      }
+    }).catch(err => {
+      wx.hideLoading();
+      console.error('锁定失败:', err);
+      wx.showToast({ title: '锁定失败，请重试', icon: 'none' });
     });
+  },
+
+  loadLockedResult() {
+    if (!wx.cloud) return;
+    wx.cloud.callFunction({
+      name: 'getLockedResult',
+      data: { roomId: this.data.roomId },
+      timeout: 5000
+    }).then(res => {
+      if (res.result && res.result.winner) {
+        this.setData({ winner: res.result.winner });
+      }
+    }).catch(err => {
+      console.error('加载锁定结果失败:', err);
+    });
+  },
+
+  shareToFriends() {
+    const itemList = ['分享到聊天', '复制房间号', '生成分享海报'];
+    if (this.data.roomStatus === 'locked' && this.data.winner) {
+      itemList.push('生成结果海报');
+    }
+
+    wx.showActionSheet({
+      itemList,
+      success: (res) => {
+        switch (res.tapIndex) {
+          case 0: this.shareRoom(); break;
+          case 1: this.copyRoomCode(); break;
+          case 2: this.generateSharePoster(); break;
+          case 3:
+            if (this.data.roomStatus === 'locked' && this.data.winner) {
+              this.generateResultPoster();
+            }
+            break;
+        }
+      }
+    });
+  },
+
+  generateSharePoster() {
+    const posterData = {
+      type: 'share',
+      roomTitle: this.data.roomTitle,
+      roomCode: this.data.roomCode,
+      roomPassword: this.data.roomPassword,
+      needPassword: this.data.needPassword,
+      roomTime: this.data.roomTime,
+      roomAddress: this.data.roomAddress,
+      winner: this.data.winner,
+      // 小程序码URL，需要通过云函数生成
+      qrCodeUrl: this.data.qrCodeUrl || '',
+      // 餐厅图片列表（用于未选定时的层叠效果）
+      restaurantImages: this.data.topOptions ? this.data.topOptions.map(o => o.image).filter(Boolean) : []
+    };
+    this.setData({
+      posterData,
+      showPosterModal: true
+    });
+    
+    // 如果没有小程序码，尝试生成
+    if (!this.data.qrCodeUrl && this.data.roomId) {
+      this.generateQRCode();
+    }
+  },
+  
+  // 生成小程序码
+  async generateQRCode() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'generateQRCode',
+        data: {
+          scene: `roomId=${this.data.roomId}`,
+          page: 'pages/vote/vote'
+        }
+      });
+      if (result.code === 0 && result.data) {
+        this.setData({ qrCodeUrl: result.data });
+      }
+    } catch (err) {
+      console.error('生成小程序码失败:', err);
+    }
+  },
+
+  generateResultPoster() {
+    const posterData = {
+      winner: this.data.winner,
+      roomTitle: this.data.roomTitle,
+      roomTime: this.data.roomTime,
+      roomAddress: this.data.roomAddress,
+      participants: this.data.participants,
+      isAnonymous: this.data.isAnonymous
+    };
+    this.setData({
+      posterData,
+      showPosterModal: true
+    });
+  },
+
+  onPosterClose() {
+    this.setData({ showPosterModal: false });
+  },
+
+  onPosterSave(e) {
+    console.log('海报已保存:', e.detail.imagePath);
+  },
+
+  onPosterShare(e) {
+    const { imagePath } = e.detail;
+    wx.showShareImageMenu({
+      path: imagePath,
+      success: () => {
+        wx.showToast({ title: '分享成功', icon: 'success' });
+      },
+      fail: (err) => {
+        console.error('分享失败:', err);
+      }
+    });
+  },
+
+  formatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const pad = n => n < 10 ? '0' + n : n;
+    return `${pad(d.getMonth() + 1)}月${pad(d.getDate())}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  },
+
+  getStatusText(status) {
+    const map = { 'voting': '投票中', 'locked': '已锁定', 'ended': '已结束' };
+    return map[status] || '未知';
+  },
+
+  toggleTipExpand() {
+    this.setData({ isTipExpanded: !this.data.isTipExpanded });
   }
 });

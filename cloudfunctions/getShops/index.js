@@ -12,10 +12,32 @@ exports.main = async (event, context) => {
     });
 
     // 如果指定了菜系，添加筛选条件
+    // 支持同义词映射：shaokao -> ['shaokao', 'bbq', 'snack'] (烧烤包含小吃)
+    const cuisineSynonyms = {
+      'shaokao': ['shaokao', 'bbq', 'snack', 'meat'],
+      'bbq': ['shaokao', 'bbq', 'snack', 'meat'],
+      'huoguo': ['huoguo', 'hotpot'],
+      'hotpot': ['huoguo', 'hotpot'],
+      'haixian': ['haixian', 'seafood'],
+      'seafood': ['haixian', 'seafood'],
+      'longxia': ['longxia', 'crayfish'],
+      'crayfish': ['longxia', 'crayfish'],
+      'hanliao': ['hanliao', 'japanese', 'riliao'],
+      'japanese': ['hanliao', 'japanese', 'riliao'],
+      'riliao': ['hanliao', 'japanese', 'riliao'],
+      'xishi': ['xishi', 'western'],
+      'western': ['xishi', 'western'],
+      'chuanchuan': ['chuanchuan', 'bbq', 'shaokao'],
+      'meat': ['meat', 'bbq', 'shaokao']
+    };
+
     if (cuisine && cuisine !== 'all') {
-      query = query.where({
-        cuisine: cuisine
-      });
+      const synonyms = cuisineSynonyms[cuisine] || [cuisine];
+      // 同时匹配 cuisine 字段（单标签，兼容旧数据）和 cuisines 字段（多标签数组）
+      query = query.where(_.or([
+        { cuisine: _.in(synonyms) },
+        { cuisines: _.elemMatch(_.in(synonyms)) }
+      ]));
     }
 
     // 获取总数

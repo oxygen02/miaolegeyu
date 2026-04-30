@@ -9,7 +9,8 @@ Page({
     softTaboos: [
       {name: 'coriander', label: '香菜', selected: false},
       {name: 'onion', label: '葱', selected: false},
-      {name: 'garlic', label: '蒜', selected: false}
+      {name: 'garlic', label: '蒜', selected: false},
+      {name: 'houttuynia', label: '折耳根', selected: false}
     ]
   },
   toggleHard(e) {

@@ -31,7 +31,7 @@
             <text class="action-icon {{isFavorited ? 'favorited' : ''}}">{{isFavorited ? '★' : '☆'}}</text>
           </view>
           <button class="action-btn-circle share-circle-btn" open-type="share">
-            <image class="action-icon-svg" src="/assets/images/share-icon.svg" mode="aspectFit" />
+            <image class="action-icon-svg" src="/assets/images/share.png" mode="aspectFit" />
           </button>
           <view class="action-btn-circle" wx:if="{{isShopOwner}}" bindtap="showOwnerActions">
             <text class="action-icon">⋯</text>
@@ -60,7 +60,7 @@
                 wx:for-index="pawIndex"
                 wx:key="pawIndex"
                 class="paw-icon-small {{item ? 'filled' : 'empty'}}"
-                src="/assets/images/cat-paw-icon.png"
+                src="{{imagePaths.misc.catPawIcon}}"
                 mode="aspectFit"
                 style="opacity: {{item ? 1 : 0.3}}; filter: {{item ? 'none' : 'grayscale(100%)'}}"
               />
@@ -76,7 +76,7 @@
             <view class="location-content-inline">
               <text class="location-name">{{shop.location}}</text>
               <view class="nav-btn-inline" bindtap="openLocation" data-address="{{shop.location}}" data-name="{{shop.name}}">
-                <image class="nav-icon-inline" src="/assets/images/location-icon.svg" mode="aspectFit"/>
+                <image class="nav-icon-inline" src="{{imagePaths.icons.location}}" mode="aspectFit"/>
               </view>
             </view>
           </view>
@@ -94,15 +94,15 @@
         <view class="recommenders-list">
           <view class="recommender-item" wx:for="{{shop.additionalRecommenders}}" wx:key="openId">
             <block wx:if="{{!item.isAnonymous}}">
-              <image class="recommender-avatar" src="{{item.avatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+              <image class="recommender-avatar" src="{{item.avatar || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
               <text class="recommender-name">{{item.name}}</text>
             </block>
             <block wx:else>
-              <image class="recommender-avatar" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+              <image class="recommender-avatar" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
               <text class="recommender-name">匿名喵友</text>
             </block>
             <view class="recommender-rating" wx:if="{{item.rating > 0}}">
-              <image class="rating-paw-small" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+              <image class="rating-paw-small" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
               <text class="rating-score">{{item.rating}}</text>
             </view>
           </view>
@@ -130,11 +130,11 @@
             <text class="info-label-small">推荐人</text>
             <view class="uploader-inline">
               <block wx:if="{{shop.isAnonymous}}">
-                <image class="uploader-avatar-small" src="/assets/images/cat-avatar-icon.png" mode="aspectFit" />
+                <image class="uploader-avatar-small" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
                 <text class="uploader-name-small">匿名喵友</text>
               </block>
               <block wx:else>
-                <image class="uploader-avatar-small" src="{{shop.uploaderAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+                <image class="uploader-avatar-small" src="{{shop.uploaderAvatar || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
                 <text class="uploader-name-small">{{shop.uploaderName || '神秘喵友'}}</text>
               </block>
             </view>
@@ -167,7 +167,7 @@
                     wx:for-index="starIdx"
                     wx:key="starIdx"
                     class="paw-icon-small"
-                    src="/assets/images/cat-paw-icon.png"
+                    src="{{imagePaths.misc.catPawIcon}}"
                     mode="aspectFit"
                     style="opacity: {{starIdx < item.rating.stars ? 1 : 0.3}}"
                   />
@@ -175,7 +175,7 @@
               </view>
             </view>
             <view class="history-initiator" wx:if="{{!item.isAnonymous}}">
-              <image class="initiator-avatar" src="{{item.initiatorAvatar || '/assets/images/cat-avatar-icon.png'}}" mode="aspectFit" />
+              <image class="initiator-avatar" src="{{item.initiatorAvatar || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
               <text class="initiator-name">{{item.initiatorName || '神秘喵友'}}</text>
             </view>
             <view class="history-participants">
@@ -186,7 +186,7 @@
                   wx:key="openId"
                   class="stack-avatar small"
                   style="z-index: {{item.participants.length - index}}; margin-left: {{index > 0 ? '-16rpx' : '0'}}"
-                  src="{{p.avatar || '/assets/images/cat-avatar-icon.png'}}" 
+                  src="{{p.avatar || imagePaths.decorations.catAvatarIcon}}" 
                   mode="aspectFit"
                 />
               </view>
@@ -199,7 +199,7 @@
       <!-- 约饭报名区域 -->
       <view class="section appointment-section" wx:if="{{appointmentLoaded && appointment}}">
         <view class="appointment-header">
-          <image class="appointment-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+          <image class="appointment-icon" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
           <text class="section-title appointment-title">喵不喵 - 约饭报名中</text>
           <!-- 付费模式标识 -->
           <view class="payment-badge {{appointment.paymentMode === 'AA' ? 'aa' : 'treat'}}">
@@ -260,7 +260,7 @@
                 wx:key="openId"
                 class="stack-avatar {{item.openId === appointment.initiatorOpenId ? 'initiator' : ''}}"
                 style="z-index: {{appointment.participants.length - index}}; margin-left: {{index > 0 ? '-20rpx' : '0'}}"
-                src="{{item.avatar || '/assets/images/cat-avatar-icon.png'}}" 
+                src="{{item.avatar || imagePaths.decorations.catAvatarIcon}}" 
                 mode="aspectFit"
                 data-name="{{item.name}}"
                 bindtap="showParticipantName"
@@ -303,7 +303,7 @@
       <!-- 发起约饭按钮（没有约饭时显示） -->
       <view class="section create-appointment-section" wx:if="{{appointmentLoaded && !appointment}}">
         <view class="create-appointment-hint">
-          <image class="hint-icon" src="/assets/images/cat-paw-icon.png" mode="aspectFit" />
+          <image class="hint-icon" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
           <text class="hint-text">想找小伙伴一起去吃？</text>
         </view>
         <button class="create-btn" bindtap="onCreateAppointment">发起约饭</button>
@@ -336,7 +336,7 @@
             >
               <image 
                 class="star-icon" 
-                src="/assets/images/cat-paw-icon.png" 
+                src="{{imagePaths.misc.catPawIcon}}" 
                 mode="aspectFit"
                 style="opacity: {{shopRatingStars >= item ? 1 : 0.3}}"
               />
@@ -375,24 +375,30 @@
           <text class="form-value">{{shop.name}}</text>
         </view>
         <view class="form-item">
-          <text class="form-label required">约饭时间</text>
+          <view class="form-label-row">
+            <text class="form-label required">约饭时间</text>
+            <text class="clear-btn" bindtap="clearAppointmentTime">清空</text>
+          </view>
           <view class="datetime-inputs">
-            <input class="datetime-input year" type="number" maxlength="4" placeholder="2026" value="{{appointmentYear}}" bindinput="onAppointmentYearInput" />
+            <input class="datetime-input year" type="number" maxlength="4" placeholder="年" value="{{appointmentYear}}" bindinput="onAppointmentYearInput" />
             <text class="datetime-separator">年</text>
-            <input class="datetime-input date" type="number" maxlength="4" placeholder="0421" value="{{appointmentDate}}" bindinput="onAppointmentDateInput" />
+            <input class="datetime-input date" type="number" maxlength="4" placeholder="月日" value="{{appointmentDate}}" bindinput="onAppointmentDateInput" />
             <text class="datetime-separator">月日</text>
-            <input class="datetime-input time" type="number" maxlength="4" placeholder="2000" value="{{appointmentTime}}" bindinput="onAppointmentTimeInput" bindblur="onAppointmentTimeBlur" />
+            <input class="datetime-input time" type="number" maxlength="4" placeholder="时分" value="{{appointmentTime}}" bindinput="onAppointmentTimeInput" bindblur="onAppointmentTimeBlur" />
             <text class="datetime-separator">时分</text>
           </view>
         </view>
         <view class="form-item">
-          <text class="form-label required">报名截止</text>
+          <view class="form-label-row">
+            <text class="form-label required">报名截止</text>
+            <text class="clear-btn" bindtap="clearDeadlineTime">清空</text>
+          </view>
           <view class="datetime-inputs">
-            <input class="datetime-input year" type="number" maxlength="4" placeholder="2026" value="{{deadlineYear}}" bindinput="onDeadlineYearInput" />
+            <input class="datetime-input year" type="number" maxlength="4" placeholder="年" value="{{deadlineYear}}" bindinput="onDeadlineYearInput" />
             <text class="datetime-separator">年</text>
-            <input class="datetime-input date" type="number" maxlength="4" placeholder="0421" value="{{deadlineDate}}" bindinput="onDeadlineDateInput" />
+            <input class="datetime-input date" type="number" maxlength="4" placeholder="月日" value="{{deadlineDate}}" bindinput="onDeadlineDateInput" />
             <text class="datetime-separator">月日</text>
-            <input class="datetime-input time" type="number" maxlength="4" placeholder="2000" value="{{deadlineTime}}" bindinput="onDeadlineTimeInput" bindblur="onDeadlineTimeBlur" />
+            <input class="datetime-input time" type="number" maxlength="4" placeholder="时分" value="{{deadlineTime}}" bindinput="onDeadlineTimeInput" bindblur="onDeadlineTimeBlur" />
             <text class="datetime-separator">时分</text>
           </view>
         </view>
@@ -402,7 +408,7 @@
         </view>
         <!-- 付费模式选择 -->
         <view class="form-item">
-          <text class="form-label">付费模式</text>
+          <text class="form-label">打开付款码的姿势</text>
           <view class="payment-selector">
             <view 
               class="payment-option {{paymentMode === 'AA' ? 'selected' : ''}}" 
@@ -515,6 +521,20 @@
         <view class="form-item">
           <text class="form-label">注意要点</text>
           <textarea class="form-textarea" placeholder="请输入注意事项..." value="{{editShopTips}}" bindinput="onEditShopTipsInput" maxlength="500" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">菜系标签（可多选）</text>
+          <view class="cuisine-tags-edit">
+            <view 
+              class="cuisine-tag-item {{item.selected ? 'selected' : ''}}" 
+              wx:for="{{editCuisineOptions}}" 
+              wx:key="id"
+              data-id="{{item.id}}"
+              bindtap="toggleCuisineTag"
+            >
+              {{item.name}}
+            </view>
+          </view>
         </view>
       </scroll-view>
       <view class="modal-footer">

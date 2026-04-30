@@ -1,9 +1,0 @@
-{
-  "name": "fixAvatarUrls",
-  "version": "1.0.0",
-  "description": "修复头像URL",
-  "main": "index.js",
-  "dependencies": {
-    "wx-server-sdk": "latest"
-  }
-}

@@ -1,7 +1,10 @@
+const { imagePaths } = require('../config/imageConfig');
+
 // 自定义底部导航栏
 Component({
   data: {
     selected: 0,
+    imagePaths: imagePaths,
     list: [
       { pagePath: '/pages/index/index', text: '首页' },
       { pagePath: '/pages/fish-tank/fish-tank', text: '鱼塘' },
