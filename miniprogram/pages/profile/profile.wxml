@@ -10,6 +10,28 @@
       <text class="user-name">{{userInfo.nickName || '点击登录'}}</text>
       <text class="user-id" wx:if="{{userInfo.isLogin}}">ID: {{userInfo.userId}}</text>
     </view>
+    <!-- 积分等级信息 -->
+    <view class="user-points-section" wx:if="{{userInfo.isLogin}}">
+      <view class="level-badge">
+        <text class="level-name">{{userPoints.levelName}}</text>
+      </view>
+      <view class="points-row">
+        <view class="points-item">
+          <image class="points-icon" src="{{imagePaths.misc.fishIcon}}" mode="aspectFit"/>
+          <text class="points-value">{{userPoints.fishCoins}}</text>
+        </view>
+        <view class="points-item">
+          <text class="points-label">总积分</text>
+          <text class="points-value">{{userPoints.total}}</text>
+        </view>
+      </view>
+      <view class="level-progress">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{(userPoints.total / userPoints.nextLevelNeed) * 100}}%;"></view>
+        </view>
+        <text class="progress-text">{{userPoints.total}}/{{userPoints.nextLevelNeed}} 升级进度</text>
+      </view>
+    </view>
   </view>
 
   <!-- 数据统计 - 四个并列一排 -->

@@ -16,6 +16,14 @@ Page({
       myRooms: 0,
       myParticipated: 0
     },
+    // 游戏化积分系统
+    userPoints: {
+      total: 128,
+      fishCoins: 56,
+      level: 3,
+      levelName: '资深喵友',
+      nextLevelNeed: 200
+    },
     favorites: [],
     myShops: [],
     myAppointments: [],

@@ -30,18 +30,18 @@ page {
   --purple: #9B59B6;
   --blue: #3498DB;
   
-  /* 圆角系统 */
-  --radius-sm: 16rpx;
-  --radius-md: 24rpx;
-  --radius-lg: 32rpx;
-  --radius-xl: 44rpx;
+  /* 圆角系统 - 统一使用16-20rpx */
+  --radius-sm: 12rpx;
+  --radius-md: 16rpx;
+  --radius-lg: 20rpx;
+  --radius-xl: 28rpx;
   --radius-full: 50%;
   
-  /* 阴影系统 */
-  --shadow-sm: 0 4rpx 16rpx rgba(255, 159, 67, 0.08);
-  --shadow-md: 0 8rpx 32rpx rgba(255, 159, 67, 0.12);
-  --shadow-lg: 0 16rpx 48rpx rgba(255, 159, 67, 0.16);
-  --shadow-card: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
+  /* 阴影系统 - 更柔和的阴影 */
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
   
   /* 间距系统 */
   --spacing-xs: 12rpx;
