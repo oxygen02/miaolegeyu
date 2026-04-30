@@ -1,16 +1,16 @@
-<view class="index-page">
+<view class="index-page anim-page-enter">
   <!-- Hero 区域 -->
   <view class="hero-section">
     <view class="stripe-background"></view>
     <view class="hero-content">
-      <view class="title-area">
+      <view class="title-area anim-slide-up delay-1">
         <text class="app-title">喵了个鱼</text>
         <text class="app-subtitle">今天吃什么？让橘仔来决定</text>
       </view>
-      <view class="cat-container">
-        <view class="cat-glow"></view>
+      <view class="cat-container anim-pop delay-2">
+        <view class="cat-glow anim-pulse"></view>
         <view class="cat-ring"></view>
-        <image class="cat-avatar" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFill" />
+        <image class="cat-avatar anim-float" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFill" />
       </view>
     </view>
     <view class="fence-decoration"></view>
@@ -80,7 +80,7 @@
   <!-- 功能卡片 -->
   <view class="feature-section" wx:if="{{pageReady}}">
     <view class="feature-grid">
-      <view class="feature-card" bindtap="goCreate" data-index="0">
+      <view class="feature-card anim-slide-up delay-3" bindtap="goCreate" data-index="0">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #FFF5E9;">
             <image class="feature-icon-image" src="{{imagePaths.banners.faqijucan}}" mode="aspectFit" />
@@ -91,7 +91,7 @@
           </view>
         </view>
       </view>
-      <view class="feature-card" bindtap="goJoin" data-index="1">
+      <view class="feature-card anim-slide-up delay-4" bindtap="goJoin" data-index="1">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #E8F8F5;">
             <image class="feature-icon-image" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
@@ -102,7 +102,7 @@
           </view>
         </view>
       </view>
-      <view class="feature-card" bindtap="goFishTank">
+      <view class="feature-card anim-slide-up delay-5" bindtap="goFishTank">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #E8F4FD;">
             <image class="feature-icon-image large-icon" src="{{imagePaths.banners.yutangpindan}}" mode="aspectFit" />
@@ -113,7 +113,7 @@
           </view>
         </view>
       </view>
-      <view class="feature-card" bindtap="goFoodDiscovery">
+      <view class="feature-card anim-slide-up delay-6" bindtap="goFoodDiscovery">
         <view class="card-inner">
           <view class="feature-icon-wrapper" style="background: #FFF5E9;">
             <image class="feature-icon-image" src="{{imagePaths.decorations.loveCatIcon}}" mode="aspectFit" />

@@ -1,19 +1,18 @@
-/* 自定义底部导航栏 - 蜡笔像素风 */
+/* 自定义底部导航栏 - 中间突出主按钮 */
 .tab-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 140rpx;
-  background: #FFF8F0;
+  height: 160rpx;
+  background: transparent;
   display: flex;
   justify-content: center;
   align-items: flex-end;
   box-sizing: border-box;
-  /* 去掉底部边框 */
   border: none;
-  padding: 0 10rpx calc(8rpx + constant(safe-area-inset-bottom)) 10rpx;
-  padding: 0 10rpx calc(8rpx + env(safe-area-inset-bottom)) 10rpx;
+  padding: 0 32rpx calc(20rpx + constant(safe-area-inset-bottom)) 32rpx;
+  padding: 0 32rpx calc(20rpx + env(safe-area-inset-bottom)) 32rpx;
   z-index: 9999;
 }
 
@@ -22,7 +21,7 @@
   display: none;
 }
 
-/* 导航项容器 - 整体边框，下右边框更粗 */
+/* 导航项容器 - 柔和风格 */
 .tab-bar-container {
   display: flex;
   justify-content: space-around;
@@ -30,18 +29,11 @@
   width: 100%;
   height: 120rpx;
   background: #fff;
-  /* 上左细，下右粗 */
-  border-top: 4rpx solid #3D3D3D;
-  border-left: 4rpx solid #3D3D3D;
-  border-bottom: 8rpx solid #3D3D3D;
-  border-right: 8rpx solid #3D3D3D;
-  border-radius: 24rpx;
-  /* 阴影效果 */
-  box-shadow: 
-    4rpx 6rpx 0 rgba(61, 61, 61, 0.15),
-    8rpx 12rpx 20rpx rgba(61, 61, 61, 0.1);
-  padding: 0 20rpx;
+  border-radius: 60rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  padding: 0 40rpx;
   box-sizing: border-box;
+  position: relative;
 }
 
 /* 每个导航项 */
@@ -78,13 +70,42 @@
   opacity: 0.5;
 }
 
-/* 炸鱼图标 */
-.fish-icon {
+/* 中间突出的主按钮 */
+.center-item {
+  position: relative;
+  top: -30rpx;
+}
+
+.center-btn-wrapper {
+  position: relative;
+  width: 100rpx;
+  height: 100rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.center-btn-bg {
+  width: 96rpx;
+  height: 96rpx;
+  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(255, 159, 67, 0.4);
+  border: 4rpx solid #fff;
+}
+
+.center-icon {
   width: 56rpx;
   height: 56rpx;
-  border-radius: 0;
-  filter: grayscale(100%);
-  opacity: 0.5;
+  border-radius: 50%;
+}
+
+.center-text {
+  margin-top: 8rpx;
+  font-size: 20rpx;
 }
 
 /* 标签文字 */

@@ -42,6 +42,14 @@ Component({
     switchTab(e) {
       const index = parseInt(e.currentTarget.dataset.index);
 
+      // 中间按钮（发起聚餐）特殊处理
+      if (index === 1) {
+        wx.navigateTo({
+          url: '/pages/create/create'
+        });
+        return;
+      }
+
       // 如果已经是当前选中，不处理
       if (this.data.selected === index) {
         return;

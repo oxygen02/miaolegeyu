@@ -1,8 +1,8 @@
-<!-- 自定义底部导航栏 - 蜡笔像素风 -->
+<!-- 自定义底部导航栏 - 中间突出主按钮 -->
 <view class="tab-bar">
   <view class="tab-bar-border"></view>
 
-  <!-- 三个导航项的容器 - 带边框 -->
+  <!-- 三个导航项的容器 -->
   <view class="tab-bar-container">
     <!-- 首页 -->
     <view class="tab-bar-item {{selected === 0 ? 'active' : ''}}" data-index="0" bindtap="switchTab">
@@ -12,12 +12,14 @@
       <text class="tab-text">首页</text>
     </view>
 
-    <!-- 喵不喵 -->
-    <view class="tab-bar-item {{selected === 1 ? 'active' : ''}}" data-index="1" catchtap="switchTab">
-      <view class="icon-wrapper">
-        <image class="tab-icon fish-icon" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" catchtap="" />
+    <!-- 中间突出的主按钮 - 发起聚餐 -->
+    <view class="tab-bar-item center-item {{selected === 1 ? 'active' : ''}}" data-index="1" catchtap="switchTab">
+      <view class="center-btn-wrapper">
+        <view class="center-btn-bg">
+          <image class="center-icon" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
+        </view>
       </view>
-      <text class="tab-text" catchtap="">喵不喵</text>
+      <text class="tab-text center-text">发起聚餐</text>
     </view>
 
     <!-- 我的 -->
