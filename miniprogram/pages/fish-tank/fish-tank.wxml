@@ -78,7 +78,7 @@
           </view>
         </view>
         <view class="activity-main">
-          <image class="activity-image" src="{{item.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.image}}" />
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.image}}" binderror="onImageError" data-index="{{index}}" data-type="ongoing" />
           <view class="activity-info">
             <view class="activity-header-row">
               <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
@@ -90,7 +90,7 @@
             <text class="activity-title">{{item.title}}</text>
             <text class="activity-shop">{{item.shopNameStr || item.shopName}}</text>
             <view class="activity-meta">
-              <text class="activity-time">截止: {{item.time}}</text>
+              <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{item.time}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
             </view>
             <!-- 参与用户头像 -->
             <view class="participant-avatars" wx:if="{{item.participantAvatars.length > 0}}">
@@ -129,7 +129,7 @@
           </view>
         </view>
         <view class="activity-main">
-          <image class="activity-image" src="{{item.image}}" mode="aspectFill" />
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}" data-type="my" />
           <view class="activity-info">
             <view class="activity-header-row">
               <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
@@ -137,7 +137,7 @@
             <text class="activity-title">{{item.title}}</text>
             <text class="activity-shop">{{item.shopName}}</text>
             <view class="activity-meta">
-              <text class="activity-time">{{item.time}}</text>
+              <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{item.time}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
               <text class="activity-participants">{{item.participantCount}}人参与</text>
             </view>
           </view>
@@ -160,7 +160,7 @@
           </view>
         </view>
         <view class="activity-main">
-          <image class="activity-image" src="{{item.image}}" mode="aspectFill" />
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}" data-type="participated" />
           <view class="activity-info">
             <view class="activity-header-row">
               <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
@@ -168,7 +168,7 @@
             <text class="activity-title">{{item.title}}</text>
             <text class="activity-shop">{{item.shopName}}</text>
             <view class="activity-meta">
-              <text class="activity-time">{{item.time}}</text>
+              <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{item.time}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
               <text class="activity-participants">{{item.participantCount}}人参与</text>
             </view>
           </view>
@@ -183,7 +183,7 @@
     <view class="empty-state" wx:if="{{(activeTab === 'ongoing' && ongoingActivities.length === 0) || (activeTab === 'my' && myActivities.length === 0) || (activeTab === 'participated' && participatedActivities.length === 0)}}">
       <image class="empty-icon" src="{{imagePaths.decorations.sleepingCatIcon}}" mode="aspectFit" />
       <text class="empty-text">暂无相关活动</text>
-      <text class="empty-subtext">去发现美食或发起拼单吧</text>
+      <text class="empty-subtext">去新店探索或发起拼单吧</text>
     </view>
 
     </scroll-view>
@@ -223,7 +223,7 @@
           <view class="option-icon">🍽️</view>
           <view class="option-info">
             <text class="option-title">聚餐</text>
-            <text class="option-desc">发起聚餐投票</text>
+            <text class="option-desc">聚餐发起投票</text>
           </view>
         </view>
       </view>

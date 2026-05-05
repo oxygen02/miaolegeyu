@@ -81,88 +81,80 @@
   <view class="feature-section" wx:if="{{pageReady}}">
     <view class="feature-grid">
       <view class="feature-card anim-slide-up delay-3" bindtap="goCreate" data-index="0">
+        <view class="card-top-bar" style="background: #FF9F43;"></view>
         <view class="card-inner">
-          <view class="feature-icon-wrapper" style="background: #FFF5E9;">
-            <image class="feature-icon-image" src="{{imagePaths.banners.faqijucan}}" mode="aspectFit" />
+          <view class="feature-left">
+            <view class="feature-icon-wrapper" style="background: linear-gradient(135deg, #FFF5E9 0%, #FFECD2 100%);">
+              <image class="feature-icon-image" src="{{imagePaths.banners.faqijucan}}" mode="aspectFit" />
+            </view>
+            <view class="feature-text-wrapper">
+              <text class="feature-title">聚餐发起</text>
+              <text class="feature-desc">投票房间创建</text>
+            </view>
           </view>
-          <view class="feature-text-wrapper">
-            <text class="feature-title">发起聚餐</text>
-            <text class="feature-desc">创建投票房间</text>
-          </view>
+          <view class="feature-arrow">›</view>
         </view>
       </view>
       <view class="feature-card anim-slide-up delay-4" bindtap="goJoin" data-index="1">
+        <view class="card-top-bar" style="background: #4ECDC4;"></view>
         <view class="card-inner">
-          <view class="feature-icon-wrapper" style="background: #E8F8F5;">
-            <image class="feature-icon-image" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
+          <view class="feature-left">
+            <view class="feature-icon-wrapper" style="background: linear-gradient(135deg, #E8F8F5 0%, #D0F0E8 100%);">
+              <image class="feature-icon-image" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
+            </view>
+            <view class="feature-text-wrapper">
+              <text class="feature-title">投票参与</text>
+              <text class="feature-desc">已有房间加入</text>
+            </view>
           </view>
-          <view class="feature-text-wrapper">
-            <text class="feature-title">参与投票</text>
-            <text class="feature-desc">加入已有房间</text>
-          </view>
+          <view class="feature-arrow">›</view>
         </view>
       </view>
       <view class="feature-card anim-slide-up delay-5" bindtap="goFishTank">
+        <view class="card-top-bar" style="background: #45B7D1;"></view>
         <view class="card-inner">
-          <view class="feature-icon-wrapper" style="background: #E8F4FD;">
-            <image class="feature-icon-image large-icon" src="{{imagePaths.banners.yutangpindan}}" mode="aspectFit" />
+          <view class="feature-left">
+            <view class="feature-icon-wrapper" style="background: linear-gradient(135deg, #E8F4FD 0%, #D0E8F8 100%);">
+              <image class="feature-icon-image large-icon" src="{{imagePaths.banners.yutangpindan}}" mode="aspectFit" />
+            </view>
+            <view class="feature-text-wrapper">
+              <text class="feature-title">鱼塘拼单</text>
+              <text class="feature-desc">吃喝外卖凑单</text>
+            </view>
           </view>
-          <view class="feature-text-wrapper">
-            <text class="feature-title">鱼塘拼单</text>
-            <text class="feature-desc">一起凑单免运费</text>
-          </view>
+          <view class="feature-arrow">›</view>
         </view>
       </view>
       <view class="feature-card anim-slide-up delay-6" bindtap="goFoodDiscovery">
+        <view class="card-top-bar" style="background: #FF6B6B;"></view>
         <view class="card-inner">
-          <view class="feature-icon-wrapper" style="background: #FFF5E9;">
-            <image class="feature-icon-image" src="{{imagePaths.decorations.loveCatIcon}}" mode="aspectFit" />
+          <view class="feature-left">
+            <view class="feature-icon-wrapper" style="background: linear-gradient(135deg, #FFF0F0 0%, #FFE0E0 100%);">
+              <image class="feature-icon-image" src="{{imagePaths.decorations.loveCatIcon}}" mode="aspectFit" />
+            </view>
+            <view class="feature-text-wrapper">
+              <text class="feature-title">新店探索</text>
+              <text class="feature-desc">好店美味推荐</text>
+            </view>
           </view>
-          <view class="feature-text-wrapper">
-            <text class="feature-title">发现美食</text>
-            <text class="feature-desc">橘仔推荐好味道</text>
-          </view>
+          <view class="feature-arrow">›</view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 临时测试按钮 -->
-  <view class="test-section" wx:if="{{pageReady}}">
-    <view class="test-btn" bindtap="goTestRecommend">
-      <text class="test-icon">🧪</text>
-      <text class="test-text">测试餐厅推荐</text>
-      <text class="test-arrow">›</text>
-    </view>
-  </view>
-
-  <!-- 游动的小鱼区域 -->
+  <!-- 游动的小鱼区域 - JS 驱动 -->
   <view class="fish-tank" wx:if="{{pageReady}}">
-    <view class="fish fish-1 {{scaredFish === '1' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" catchtap="onFishTap" data-fish="1">
-      <view class="fish-body"></view>
-      <view class="fish-tail"></view>
-      <view class="fish-fin"></view>
-      <view class="fish-eye"></view>
-    </view>
-    <view class="fish fish-2 {{scaredFish === '2' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" catchtap="onFishTap" data-fish="2">
-      <view class="fish-body"></view>
-      <view class="fish-tail"></view>
-      <view class="fish-fin"></view>
-      <view class="fish-eye"></view>
-    </view>
-    <view class="fish fish-3 {{scaredFish === '3' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" catchtap="onFishTap" data-fish="3">
-      <view class="fish-body"></view>
-      <view class="fish-tail"></view>
-      <view class="fish-fin"></view>
-      <view class="fish-eye"></view>
-    </view>
-    <view class="fish fish-4 {{scaredFish === '4' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" catchtap="onFishTap" data-fish="4">
-      <view class="fish-body"></view>
-      <view class="fish-tail"></view>
-      <view class="fish-fin"></view>
-      <view class="fish-eye"></view>
-    </view>
-    <view class="fish fish-5 {{scaredFish === '5' ? (scaredFishDirection === 'left' ? 'scared-left' : 'scared-right') : ''}}" catchtap="onFishTap" data-fish="5">
+    <view
+      wx:for="{{fishes}}"
+      wx:key="index"
+      id="fish-{{index + 1}}"
+      class="fish"
+      style="top: {{item.top}}; --tail-color: {{item.tail}}; --fin-color: {{item.fin}}; --body-gradient: {{item.body}};"
+      animation="{{item.animation}}"
+      catchtap="onFishTap"
+      data-fish="{{index + 1}}"
+    >
       <view class="fish-body"></view>
       <view class="fish-tail"></view>
       <view class="fish-fin"></view>

@@ -10,13 +10,18 @@
   justify-content: center;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  pointer-events: none;
+  overflow: hidden;
 }
 
 .poster-modal.show {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
+
+
 
 .modal-mask {
   position: absolute;
@@ -26,20 +31,27 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(10rpx);
+  z-index: 1;
 }
 
 .modal-content {
   position: relative;
   width: 680rpx;
+  max-height: 90vh;
   background: #FFFFFF;
   border-radius: 32rpx;
   padding: 40rpx;
   transform: scale(0.9) translateY(50rpx);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  z-index: 2;
+  /* 关键：确保内容区不会穿透 */
+  overflow: hidden;
+  overflow-y: hidden;
 }
 
-.poster-modal.show .modal-content {
+.content-show {
   transform: scale(1) translateY(0);
 }
 
@@ -87,7 +99,7 @@
 .canvas-wrapper {
   position: relative;
   width: 600rpx;
-  height: 960rpx;
+  height: 768rpx; /* 按比例缩放：750 * (600/750) = 768 */
   margin: 0 auto 30rpx;
   background: #F5F5F5;
   border-radius: 16rpx;
@@ -98,6 +110,19 @@
 .poster-canvas {
   width: 100%;
   height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* 生成的海报图片（覆盖在canvas上） */
+.poster-image {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
 }
 
 /* 加载状态 */
@@ -112,6 +137,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  z-index: 10;
 }
 
 .loading-mask text {

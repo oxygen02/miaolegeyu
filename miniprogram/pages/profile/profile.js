@@ -1,5 +1,10 @@
-const { imagePaths } = require('../../config/imageConfig');
+/**
+ * 个人中心页面
+ * 功能：展示用户信息、登录/登出、统计概览、收藏/店铺/聚餐/房间列表管理
+ * 登录方式：微信登录、快速体验（随机昵称）、自定义登录（头像+昵称选择页）
+ */
 const audioManager = require('../../utils/audioManager');
+const auth = require('../../utils/auth');
 
 Page({
   data: {
@@ -35,9 +40,7 @@ Page({
   },
 
   onLoad() {
-    // 获取云存储文件的临时 URL
     this.loadCloudImageUrls();
-    // 页面加载时检查登录状态
     this.checkLoginStatus();
   },
 
@@ -83,11 +86,6 @@ Page({
     }
   },
 
-  onLoad() {
-    // 页面加载时检查登录状态
-    this.checkLoginStatus();
-  },
-
   onShow() {
     // 每次页面显示时，重新检查登录状态（解决从设置页面退出登录后返回不刷新的问题）
     this.checkLoginStatus();
@@ -102,85 +100,58 @@ Page({
   },
 
   // 检查登录状态
-  async checkLoginStatus() {
-    try {
-      // 尝试从本地存储获取用户信息
-      const localUserInfo = wx.getStorageSync('userInfo');
-      if (localUserInfo && localUserInfo.isLogin) {
-        this.setData({
-          userInfo: localUserInfo
-        });
-        this.loadStats();
-      } else {
-        // 未登录，显示默认状态
-        this.setData({
-          userInfo: {
-            nickName: '点击登录',
-            avatarUrl: '',
-            userId: '',
-            isLogin: false
-          }
-        });
-      }
-    } catch (err) {
-      console.error('检查登录状态失败:', err);
+  checkLoginStatus() {
+    const localUserInfo = auth.getUserInfo();
+    if (localUserInfo && localUserInfo.isLogin) {
+      this.setData({ userInfo: localUserInfo });
+      this.loadStats();
+    } else {
+      this.setData({
+        userInfo: {
+          nickName: '点击登录',
+          avatarUrl: '',
+          userId: '',
+          isLogin: false
+        }
+      });
     }
   },
 
-  // 登录入口 - 提供三种登录方式选择（统一在一个菜单）
-  async wxLogin() {
+  // 登录入口
+  wxLogin() {
     if (this.data.userInfo.isLogin) {
-      // 已登录，显示操作菜单
       this.showUserMenu();
       return;
     }
-
-    // 显示登录方式选择（微信登录、快速体验、自定义昵称和头像）
-    wx.showActionSheet({
-      itemList: ['微信一键登录', '快速体验（随机昵称）', '自定义昵称和头像'],
-      success: (res) => {
-        if (res.tapIndex === 0) {
-          // 方式一：微信一键登录
-          this.wechatLogin();
-        } else if (res.tapIndex === 1) {
-          // 方式二：快速体验，自动生成随机昵称
-          this.quickLogin();
-        } else if (res.tapIndex === 2) {
-          // 方式三：先选择头像昵称，再登录
-          this.customLogin();
-        }
-      },
-      fail: () => {
-        // 用户点击取消，不做任何操作
-      }
+    auth.showLoginOptions((userInfo) => {
+      this.setData({ userInfo });
+      this.loadStats();
     });
   },
 
-  // 微信登录直接入口（来自登录选择区域的直接点击）
+  // 微信登录直接入口
   wechatLoginDirect() {
     this.wechatLogin();
   },
 
-  // 快速体验直接入口（来自登录选择区域的直接点击）
+  // 快速体验直接入口
   quickLoginDirect() {
     this.quickLogin();
   },
 
-  // 方式一：快速体验登录
+  // 快速体验登录
   quickLogin() {
     wx.showLoading({ title: '登录中...' });
-
     const randomNames = ['橘喵', '胖橘', '三花', '狸花', '布偶', '英短', '美短', '暹罗', '缅因', '波斯', '金渐层', '银渐层', '蓝猫', '黑猫', '白猫'];
     const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
     const defaultUserInfo = {
       nickName: randomName + Math.floor(Math.random() * 10000),
       avatarUrl: ''
     };
-
     this.doLogin(defaultUserInfo);
   },
 
-  // 方式二：微信一键登录（获取微信头像和昵称）
+  // 微信一键登录
   wechatLogin() {
     wx.showLoading({ title: '登录中...' });
 
@@ -250,7 +221,7 @@ Page({
         };
 
         // 保存到本地存储
-        wx.setStorageSync('userInfo', userData);
+        auth.setUserInfo(userData);
 
         this.setData({ userInfo: userData });
         this.loadStats();
@@ -266,15 +237,14 @@ Page({
     }
   },
 
-  // 方式三：自定义登录 - 先跳转到信息填写页
+  // 自定义登录
   customLogin() {
-    // 跳转到自定义登录页
     wx.navigateTo({
       url: '/pages/avatar-select/avatar-select?mode=login'
     });
   },
 
-  // 获取用户信息（兼容旧版调用）
+  // 兼容旧版调用
   getUserInfo() {
     this.quickLogin();
   },
@@ -300,23 +270,8 @@ Page({
           isLogin: true
         };
 
-        // 保存到本地存储
-        wx.setStorageSync('userInfo', userData);
-
+        auth.setUserInfo(userData);
         this.setData({ userInfo: userData });
-        this.loadStats();
-
-        wx.showToast({ title: '登录成功', icon: 'success' });
-
-        // 提示用户
-        setTimeout(() => {
-          wx.showModal({
-            title: '欢迎喵~',
-            content: `您的昵称是「${userData.nickName}」，点击头像可随时修改昵称和头像`,
-            showCancel: false,
-            confirmText: '知道了'
-          });
-        }, 1500);
       } else {
         wx.showToast({ title: result.msg || '登录失败', icon: 'none' });
       }
@@ -366,12 +321,12 @@ Page({
             wx.hideLoading();
 
             if (result.code === 0) {
-              const userInfo = {
-                ...this.data.userInfo,
-                nickName: res.content
-              };
-              wx.setStorageSync('userInfo', userInfo);
-              this.setData({ userInfo });
+            const userInfo = {
+              ...this.data.userInfo,
+              nickName: res.content
+            };
+            auth.setUserInfo(userInfo);
+            this.setData({ userInfo });
               wx.showToast({ title: '修改成功', icon: 'success' });
             } else {
               wx.showToast({ title: result.msg || '修改失败', icon: 'none' });
@@ -394,32 +349,21 @@ Page({
 
   // 退出登录
   logout() {
-    wx.showModal({
-      title: '确认退出',
-      content: '确定要退出登录吗？',
-      success: (res) => {
-        if (res.confirm) {
-          // 清除本地存储
-          wx.removeStorageSync('userInfo');
-
-          this.setData({
-            userInfo: {
-              nickName: '点击登录',
-              avatarUrl: '',
-              userId: '',
-              isLogin: false
-            },
-            stats: {
-              favorites: 0,
-              myShops: 0,
-              myAppointments: 0,
-              myRooms: 0
-            }
-          });
-
-          wx.showToast({ title: '已退出登录', icon: 'success' });
+    auth.logout(() => {
+      this.setData({
+        userInfo: {
+          nickName: '点击登录',
+          avatarUrl: '',
+          userId: '',
+          isLogin: false
+        },
+        stats: {
+          favorites: 0,
+          myShops: 0,
+          myAppointments: 0,
+          myRooms: 0
         }
-      }
+      });
     });
   },
 

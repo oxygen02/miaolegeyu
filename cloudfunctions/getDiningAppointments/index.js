@@ -4,7 +4,7 @@ const db = cloud.database();
 const _ = db.command;
 
 exports.main = async (event) => {
-  const { limit = 20, status = 'active', shopId } = event;
+  const { limit = 100, status = 'active', shopId } = event;
   const { OPENID } = cloud.getWXContext();
 
   try {
@@ -14,7 +14,8 @@ exports.main = async (event) => {
     // 根据状态筛选
     if (status === 'active') {
       whereClause.status = 'active';
-      whereClause.deadline = _.gte(new Date());
+      // 暂时不过滤截止时间，显示所有活动
+      // whereClause.deadline = _.gte(new Date());
     } else if (status === 'completed') {
       whereClause.status = 'completed';
     }
@@ -38,6 +39,26 @@ exports.main = async (event) => {
       };
     }
 
+    // 获取所有店铺ID
+    const shopIds = appointments.map(apt => apt.shopId).filter(id => id);
+    let shopMap = {};
+    
+    // 如果有店铺ID，查询店铺信息获取图片
+    if (shopIds.length > 0) {
+      try {
+        const { data: shops } = await db.collection('shops')
+          .where({ _id: _.in(shopIds) })
+          .get();
+        
+        shopMap = shops.reduce((map, shop) => {
+          map[shop._id] = shop;
+          return map;
+        }, {});
+      } catch (shopErr) {
+        console.error('获取店铺信息失败:', shopErr);
+      }
+    }
+
     // 组装返回数据
     const formattedAppointments = appointments.map(apt => {
       // 处理参与者数据
@@ -47,6 +68,10 @@ exports.main = async (event) => {
         avatar: p.avatar || ''
       })) : [];
 
+      // 获取店铺图片
+      const shop = shopMap[apt.shopId] || {};
+      const shopImage = shop.image || shop.coverImage || shop.posterImage || '';
+
       return {
         _id: apt._id,
         roomId: apt._id,
@@ -54,7 +79,7 @@ exports.main = async (event) => {
         status: 'voting',
         mode: 'meal',
         shopName: apt.shopName || '未知店铺',
-        shopImage: '',
+        shopImage: shopImage,
         location: apt.shopName || '',
         activityTime: apt.appointmentTime ? new Date(apt.appointmentTime).toLocaleString() : '时间待定',
         deadline: apt.deadline ? new Date(apt.deadline).toLocaleString() : '',

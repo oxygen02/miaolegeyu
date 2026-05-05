@@ -10,7 +10,7 @@ Page({
       {
         icon: imagePaths.icons.toupiaojuece,
         title: '聚餐决策',
-        desc: '快速创建聚餐活动，邀请好友参与投票'
+        desc: '快速创建聚餐活动，邀请好友投票参与'
       },
       {
         icon: imagePaths.icons.tuijian,

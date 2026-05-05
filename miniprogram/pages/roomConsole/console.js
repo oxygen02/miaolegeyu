@@ -10,8 +10,9 @@ Page({
     roomStatus: 'voting',
     statusText: '投票中',
     isAnonymous: false,
-    countdown: '02:15:30',
+    countdown: '00:00:00',
     countdownTimer: null,
+    voteDeadline: null,
     pollTimer: null,
     votedCount: 3,
     unvotedCount: 2,
@@ -21,7 +22,7 @@ Page({
       { id: 'o002', nickName: '吃货小王', avatarUrl: '/assets/cat-avatar2.png', isVoted: true, isHost: false, anonName: '馋嘴猫', choices: ['重庆火锅'] },
       { id: 'o003', nickName: '美食家小李', avatarUrl: '/assets/cat-avatar3.png', isVoted: true, isHost: false, anonName: '干饭喵', choices: ['经典川菜', '麻辣香锅'] },
       { id: 'o004', nickName: '橘仔', avatarUrl: '/assets/cat-avatar4.png', isVoted: false, isHost: false, anonName: '探店喵', choices: [] },
-      { id: 'o005', nickName: '匿名喵友', avatarUrl: '/assets/cat-default.png', isVoted: false, isHost: false, anonName: '觅食喵', choices: [] }
+      { id: 'o005', nickName: '匿名喵友', avatarUrl: 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/decorations/juze_avatar.png', isVoted: false, isHost: false, anonName: '觅食喵', choices: [] }
     ],
     topOptions: [
       { id: 'sub_01_01', name: '经典川菜', image: '/images/category_01_01.jpg', count: 3, percent: 75 },
@@ -85,9 +86,11 @@ Page({
           roomStatus: room.status || 'voting',
           statusText: this.getStatusText(room.status),
           isAnonymous: isAnon,
-          participants: participants
+          participants: participants,
+          voteDeadline: room.deadline || room.voteDeadline || null
         });
         this.calculateStats(participants);
+        this.startCountdown();
         if (room.status === 'voting') {
           this.fetchVoteStats(roomId);
         }
@@ -170,7 +173,12 @@ Page({
 
   startCountdown() {
     this.clearCountdown();
-    const deadline = Date.now() + (2 * 60 * 60 + 15 * 60 + 30) * 1000;
+    const deadlineTime = this.data.voteDeadline;
+    if (!deadlineTime) {
+      this.setData({ countdown: '00:00:00' });
+      return;
+    }
+    const deadline = new Date(deadlineTime).getTime();
     const update = () => {
       const diff = deadline - Date.now();
       if (diff <= 0) {
@@ -375,8 +383,11 @@ Page({
   formatTime(ts) {
     if (!ts) return '';
     const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    // 转换为北京时间 UTC+8
+    const beijingDate = new Date(d.getTime() + 8 * 60 * 60 * 1000);
     const pad = n => n < 10 ? '0' + n : n;
-    return `${pad(d.getMonth() + 1)}月${pad(d.getDate())}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return `${pad(beijingDate.getUTCMonth() + 1)}月${pad(beijingDate.getUTCDate())}日 ${pad(beijingDate.getUTCHours())}:${pad(beijingDate.getUTCMinutes())}`;
   },
 
   getStatusText(status) {

@@ -1,7 +1,6 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/loading/loading",
     "pages/create/create",
     "pages/create-mode-a/create-mode-a",
     "pages/create-mode-b/create-mode-b",
@@ -24,8 +23,7 @@
     "pages/history/history",
     "pages/about/about",
     "pages/roomConsole/console",
-    "pages/recommend-restaurant/recommend-restaurant",
-    "pages/test-recommend/test-recommend"
+    "pages/recommend-restaurant/recommend-restaurant"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -36,10 +34,14 @@
   },
   "tabBar": {
     "custom": true,
+    "color": "#999999",
+    "selectedColor": "#FF9F43",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/index/index", "text": "首页" },
-      { "pagePath": "pages/fish-tank/fish-tank", "text": "鱼塘" },
-      { "pagePath": "pages/profile/profile", "text": "我的" }
+      { "pagePath": "/pages/index/index", "text": "首页" },
+      { "pagePath": "/pages/fish-tank/fish-tank", "text": "喵不喵" },
+      { "pagePath": "/pages/profile/profile", "text": "我的" }
     ]
   },
   "sitemapLocation": "sitemap.json"

@@ -19,5 +19,6 @@
     "bigPackageSizeSupport": false,
     "useIsolateContext": true
   },
-  "condition": {}
+  "condition": {},
+  "cloudfunctionRoot": "cloudfunctions/"
 }

@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk');
+const crypto = require('crypto');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
@@ -39,7 +40,13 @@ exports.main = async (event) => {
 
       // 5. 验证密码（如果房间设置了密码）
       if (room.needPassword && room.roomPassword) {
-        if (!password || password !== room.roomPassword) {
+        if (!password) {
+          await transaction.rollback();
+          return { code: -1, msg: '该房间需要密码' };
+        }
+        // 对输入的密码进行md5哈希后比较
+        const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
+        if (hashedPassword !== room.roomPassword) {
           await transaction.rollback();
           return { code: -1, msg: '密码错误' };
         }

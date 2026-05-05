@@ -1,0 +1,9 @@
+{
+  "name": "toggleDiningInterest",
+  "version": "1.0.0",
+  "description": "切换店铺约饭意向",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

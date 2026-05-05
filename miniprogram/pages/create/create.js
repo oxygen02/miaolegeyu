@@ -16,7 +16,7 @@ Page({
     wx.navigateBack();
   },
 
-  // 模式A：我挑好了
+  // 模式A：我选好了
   goModeA() {
     audioManager.playMeowShort();
     wx.navigateTo({

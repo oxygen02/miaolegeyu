@@ -11,7 +11,8 @@ Page({
     inputRoomId: '',
     inputFocused: false,
     showActionSheet: false,
-    selectedRoomId: null
+    selectedRoomId: null,
+    deadlineTimer: null
   },
 
   onLoad() {
@@ -66,6 +67,14 @@ Page({
     this.loadData();
   },
 
+  onHide() {
+    this.clearDeadlineTimer();
+  },
+
+  onUnload() {
+    this.clearDeadlineTimer();
+  },
+
   async loadData() {
     this.setData({ loading: true });
 
@@ -114,18 +123,89 @@ Page({
       // 根据筛选条件过滤
       const filteredRooms = this.filterRooms(allRooms, currentFilter);
 
+      // 计算截止时间紧急状态和倒计时
+      const roomsWithDeadline = this.processDeadlines(filteredRooms);
+
       this.setData({
-        allRooms: filteredRooms,
+        allRooms: roomsWithDeadline,
         loading: false
       });
+
+      // 启动倒计时定时器（每60秒更新一次）
+      this.startDeadlineTimer();
 
     } catch (err) {
       console.error('加载失败:', err);
       const mockData = this.getMockData();
+      const roomsWithDeadline = this.processDeadlines(mockData);
       this.setData({
-        allRooms: mockData,
+        allRooms: roomsWithDeadline,
         loading: false
       });
+      this.startDeadlineTimer();
+    }
+  },
+
+  // 处理房间列表的截止时间：计算紧急状态和倒计时文字
+  processDeadlines(rooms) {
+    const now = Date.now();
+    const ONE_HOUR = 3600000;
+
+    return rooms.map(room => {
+      let deadlineUrgent = false;
+      let deadlineCountdown = '';
+
+      if (room.voteDeadline) {
+        try {
+          const deadline = new Date(room.voteDeadline).getTime();
+          if (!isNaN(deadline)) {
+            const diff = deadline - now;
+            if (diff > 0 && diff <= ONE_HOUR) {
+              deadlineUrgent = true;
+              // 格式化剩余时间
+              const minutes = Math.ceil(diff / 60000);
+              if (minutes >= 60) {
+                const h = Math.floor(diff / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                deadlineCountdown = `剩${h}时${m}分`;
+              } else {
+                deadlineCountdown = `剩${minutes}分`;
+              }
+            } else if (diff <= 0) {
+              deadlineUrgent = true;
+              deadlineCountdown = '已截止';
+            }
+          }
+        } catch (e) {
+          // 解析失败忽略
+        }
+      }
+
+      return {
+        ...room,
+        deadlineUrgent,
+        deadlineCountdown
+      };
+    });
+  },
+
+  // 启动截止时间倒计时定时器
+  startDeadlineTimer() {
+    this.clearDeadlineTimer();
+    this.deadlineTimer = setInterval(() => {
+      const { allRooms } = this.data;
+      if (allRooms && allRooms.length > 0) {
+        const roomsWithDeadline = this.processDeadlines(allRooms);
+        this.setData({ allRooms: roomsWithDeadline });
+      }
+    }, 60000); // 每分钟更新一次
+  },
+
+  // 清除定时器
+  clearDeadlineTimer() {
+    if (this.deadlineTimer) {
+      clearInterval(this.deadlineTimer);
+      this.deadlineTimer = null;
     }
   },
 
@@ -202,7 +282,13 @@ Page({
         ],
         creatorName: '吃货小王',
         creatorAvatar: 'https://picsum.photos/100/100?random=1',
-        creatorId: 'mock-creator-001'
+        creatorId: 'mock-creator-001',
+        participantCount: 3,
+        participantAvatars: [
+          { avatarUrl: 'https://picsum.photos/100/100?random=a1' },
+          { avatarUrl: 'https://picsum.photos/100/100?random=a2' },
+          { avatarUrl: 'https://picsum.photos/100/100?random=a3' }
+        ]
       },
       {
         roomId: '192837',
@@ -218,7 +304,9 @@ Page({
         ],
         creatorName: '吃货小王',
         creatorAvatar: 'https://picsum.photos/100/100?random=2',
-        creatorId: 'mock-creator-001'
+        creatorId: 'mock-creator-001',
+        participantCount: 0,
+        participantAvatars: []
       },
       {
         roomId: '563421',
@@ -235,7 +323,15 @@ Page({
         ],
         creatorName: '美食家小李',
         creatorAvatar: 'https://picsum.photos/100/100?random=3',
-        creatorId: 'mock-creator-002'
+        creatorId: 'mock-creator-002',
+        participantCount: 5,
+        participantAvatars: [
+          { avatarUrl: 'https://picsum.photos/100/100?random=b1' },
+          { avatarUrl: 'https://picsum.photos/100/100?random=b2' },
+          { avatarUrl: 'https://picsum.photos/100/100?random=b3' },
+          { avatarUrl: 'https://picsum.photos/100/100?random=b4' },
+          { avatarUrl: 'https://picsum.photos/100/100?random=b5' }
+        ]
       }
     ];
   },

@@ -1,5 +1,9 @@
-const { imagePaths } = require('../../config/imageConfig');
+/**
+ * 设置页面
+ * 功能：用户信息展示/编辑、登录/退出、通知/音效/自动更新设置、缓存清理
+ */
 const audioManager = require('../../utils/audioManager');
+const auth = require('../../utils/auth');
 
 Page({
   data: {
@@ -18,20 +22,12 @@ Page({
   },
 
   onLoad() {
-    this.loadUserInfo();
+    auth.refreshUserInfo(this);
     this.loadSettings();
   },
 
   onShow() {
-    this.loadUserInfo();
-  },
-
-  // 加载用户信息
-  loadUserInfo() {
-    const userInfo = wx.getStorageSync('userInfo');
-    if (userInfo) {
-      this.setData({ userInfo });
-    }
+    auth.refreshUserInfo(this);
   },
 
   // 加载设置
@@ -120,34 +116,18 @@ Page({
 
   // 退出登录
   logout() {
-    wx.showModal({
-      title: '退出登录',
-      content: '确定要退出登录吗？',
-      confirmColor: '#FF6B6B',
-      success: (res) => {
-        if (res.confirm) {
-          wx.removeStorageSync('userInfo');
-          this.setData({
-            userInfo: {
-              nickName: '',
-              avatarUrl: '',
-              userId: '',
-              isLogin: false
-            }
-          });
-          wx.showToast({
-            title: '已退出登录',
-            icon: 'success'
-          });
-        }
-      }
+    auth.logout(() => {
+      auth.refreshUserInfo(this);
     });
   },
 
   // 修改昵称
   editNickName() {
-    if (!this.data.userInfo.isLogin) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
+    if (!auth.isLoggedIn()) {
+      auth.showLoginOptions((userInfo) => {
+        auth.refreshUserInfo(this);
+        this.editNickName();
+      });
       return;
     }
 
@@ -168,12 +148,12 @@ Page({
             wx.hideLoading();
 
             if (result.code === 0) {
-              const userInfo = {
-                ...this.data.userInfo,
-                nickName: res.content
-              };
-              wx.setStorageSync('userInfo', userInfo);
-              this.setData({ userInfo });
+            const userInfo = {
+              ...this.data.userInfo,
+              nickName: res.content
+            };
+            auth.setUserInfo(userInfo);
+            this.setData({ userInfo });
               wx.showToast({ title: '修改成功', icon: 'success' });
             } else {
               wx.showToast({ title: result.msg || '修改失败', icon: 'none' });
@@ -189,8 +169,11 @@ Page({
 
   // 更换头像
   changeAvatar() {
-    if (!this.data.userInfo.isLogin) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
+    if (!auth.isLoggedIn()) {
+      auth.showLoginOptions((userInfo) => {
+        auth.refreshUserInfo(this);
+        this.changeAvatar();
+      });
       return;
     }
 
@@ -207,28 +190,12 @@ Page({
   // 点击用户区域（头像/用户名）
   onUserTap() {
     if (this.data.userInfo.isLogin) {
-      // 已登录，显示操作菜单
       this.showUserMenu();
     } else {
-      // 未登录，显示登录选项
-      this.showLoginOptions();
+      auth.showLoginOptions((userInfo) => {
+        auth.refreshUserInfo(this);
+      });
     }
-  },
-
-  // 显示登录选项
-  showLoginOptions() {
-    wx.showActionSheet({
-      itemList: ['微信一键登录', '快速体验（随机昵称）', '自定义昵称和头像'],
-      success: (res) => {
-        if (res.tapIndex === 0) {
-          this.wechatLogin();
-        } else if (res.tapIndex === 1) {
-          this.quickLogin();
-        } else if (res.tapIndex === 2) {
-          this.customLogin();
-        }
-      }
-    });
   },
 
   // 显示已登录用户的菜单
@@ -246,52 +213,7 @@ Page({
       }
     });
   },
-
-  // 快速体验登录
-  quickLogin() {
-    wx.showLoading({ title: '登录中...' });
-    const randomNames = ['橘喵', '胖橘', '三花', '狸花', '布偶', '英短', '美短', '暹罗', '缅因', '波斯', '金渐层', '银渐层', '蓝猫', '黑猫', '白猫'];
-    const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
-    const userInfo = {
-      nickName: randomName + Math.floor(Math.random() * 10000),
-      avatarUrl: '',
-      userId: 'user_' + Date.now(),
-      isLogin: true
-    };
-    wx.setStorageSync('userInfo', userInfo);
-    this.setData({ userInfo });
-    wx.hideLoading();
-    wx.showToast({ title: '登录成功', icon: 'success' });
-  },
-
-  // 微信登录
-  wechatLogin() {
-    wx.showLoading({ title: '登录中...' });
-    wx.getUserProfile({
-      desc: '用于完善用户资料',
-      success: (profileRes) => {
-        const userInfo = {
-          nickName: profileRes.userInfo.nickName,
-          avatarUrl: profileRes.userInfo.avatarUrl,
-          userId: 'user_' + Date.now(),
-          isLogin: true
-        };
-        wx.setStorageSync('userInfo', userInfo);
-        this.setData({ userInfo });
-        wx.hideLoading();
-        wx.showToast({ title: '登录成功', icon: 'success' });
-      },
-      fail: () => {
-        wx.hideLoading();
-        wx.showToast({ title: '已取消', icon: 'none' });
-      }
-    });
-  },
-
-  // 自定义登录
-  customLogin() {
-    wx.navigateTo({
-      url: '/pages/avatar-select/avatar-select?mode=login'
-    });
+  onShareAppMessage() {
+    return {};
   }
 });

@@ -2,7 +2,7 @@
   <!-- 顶部渐变区域 -->
   <view class="header-section">
     <view class="header-content">
-      <text class="page-title">发起聚餐</text>
+      <text class="page-title">聚餐发起</text>
       <text class="page-subtitle">选择一种方式开始</text>
     </view>
     
@@ -27,7 +27,7 @@
         <image class="mode-icon-image" src="{{imagePaths.banners.wotiaohaole1}}" mode="aspectFit" />
       </view>
       <view class="mode-content">
-        <text class="mode-title">我挑好了</text>
+        <text class="mode-title">我选好了</text>
         <view class="mode-desc">
           <text class="mode-desc-line">已看好2-6家店，</text>
           <text class="mode-desc-line">大家直接投票选</text>

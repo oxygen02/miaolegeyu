@@ -283,7 +283,7 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
     return { startTime, endTime };
   },
 
-  // 格式化为日历 API 需要的格式：YYYY-MM-DD HH:MM:SS
+  // 格式化为日历 API 需要的格式：YYYY-MM-DD HH:MM:SS（使用本地时间）
   formatCalendarTime(date) {
     const pad = (n) => n < 10 ? '0' + n : n;
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
@@ -321,6 +321,26 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
     return { sign, timestamp };
   },
 
+  // 生成小程序码
+  async generateQRCodeForPoster() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'generateQRCode',
+        data: {
+          scene: `roomId=${this.data.roomId}`,
+          page: 'pages/vote/vote',
+          width: 280
+        }
+      });
+      if (result.code === 0 && result.data) {
+        return result.data;
+      }
+    } catch (err) {
+      console.error('生成小程序码失败:', err);
+    }
+    return '';
+  },
+
   // 生成分享海报（西部通缉令风格 - 严格按照用户规格）
   async generatePoster() {
     try {
@@ -339,26 +359,31 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
         totalVoters: voteStats?.totalVoters || 0
       };
 
-      // 获取云存储图片的临时 URL
+      // 并行获取：云存储图片临时URL + 小程序码
       const cloudImages = [
         imagePaths.misc.juzeAvatar,
-        imagePaths.banners.posterBg // 使用专门的海报背景图
+        imagePaths.banners.posterBg
       ];
       let tempUrls = {};
+      let qrCodeUrl = '';
       try {
-        const { result } = await wx.cloud.callFunction({
-          name: 'getTempFileURL',
-          data: { fileList: cloudImages }
-        });
-        if (result.code === 0 && result.fileList) {
-          result.fileList.forEach((item, index) => {
+        const [{ result: urlResult }, qrResult] = await Promise.all([
+          wx.cloud.callFunction({
+            name: 'getTempFileURL',
+            data: { fileList: cloudImages }
+          }),
+          this.generateQRCodeForPoster()
+        ]);
+        qrCodeUrl = qrResult;
+        if (urlResult.code === 0 && urlResult.fileList) {
+          urlResult.fileList.forEach((item, index) => {
             if (item.tempFileURL) {
               tempUrls[cloudImages[index]] = item.tempFileURL;
             }
           });
         }
       } catch (err) {
-        console.error('获取临时URL失败:', err);
+        console.error('获取资源失败:', err);
       }
 
       // 创建离屏画布
@@ -379,11 +404,29 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
           canvas.height = 1200 * dpr;
           ctx.scale(dpr, dpr);
 
-          // ========== 1. 绘制海报底板 ==========
-          const bgUrl = tempUrls[imagePaths.banners.posterBg];
+          // ========== 1. 绘制海报底板（使用 juze_avatar 作为背景图） ==========
+          const bgUrl = tempUrls[imagePaths.misc.juzeAvatar];
           const bgImg = bgUrl ? await this.loadImage(canvas, bgUrl) : null;
           if (bgImg) {
-            ctx.drawImage(bgImg, 0, 0, 750, 1200);
+            // 保持比例覆盖整个画布
+            const imgRatio = bgImg.width / bgImg.height;
+            const canvasRatio = 750 / 1200;
+            let drawW, drawH, drawX, drawY;
+            if (imgRatio > canvasRatio) {
+              drawH = 1200;
+              drawW = drawH * imgRatio;
+              drawX = (750 - drawW) / 2;
+              drawY = 0;
+            } else {
+              drawW = 750;
+              drawH = drawW / imgRatio;
+              drawX = 0;
+              drawY = (1200 - drawH) / 2;
+            }
+            ctx.drawImage(bgImg, drawX, drawY, drawW, drawH);
+            // 添加半透明遮罩，使文字更清晰
+            ctx.fillStyle = 'rgba(255, 248, 240, 0.75)';
+            ctx.fillRect(0, 0, 750, 1200);
           } else {
             // 底图加载失败，使用牛皮纸色背景
             ctx.fillStyle = '#D4A574';
@@ -402,9 +445,6 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
           }
 
           // ========== 3. 文字绘制（严格按照用户规格） ==========
-          // 使用小程序支持的字体
-          const fontFamily = 'PingFang SC, Microsoft YaHei, sans-serif';
-
           // 1) 固定标题：YOU ARE WANTED（最顶部，距离顶部80px，海报最大字号）
           ctx.fillStyle = '#2C1810'; // 深棕色
           ctx.font = 'bold 72px "PingFang SC"'; // 西部复古粗体，最大字号
@@ -460,7 +500,40 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
           }
           this.drawStrokeText(ctx, detailsText, 375, 940, 525, 2);
 
-          // ========== 4. 保存图片 ==========
+          // ========== 6. 绘制小程序码 ==========
+          const qrY = 1120;
+          if (qrCodeUrl) {
+            try {
+              const qrImg = await this.loadImage(canvas, qrCodeUrl);
+              if (qrImg) {
+                ctx.save();
+                // 白色圆形背景
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(375, qrY, 70, 0, Math.PI * 2);
+                ctx.fill();
+                // 裁剪圆形绘制小程序码
+                ctx.beginPath();
+                ctx.arc(375, qrY, 60, 0, Math.PI * 2);
+                ctx.clip();
+                ctx.drawImage(qrImg, 375 - 60, qrY - 60, 120, 120);
+                ctx.restore();
+              }
+            } catch (e) {
+              console.error('小程序码绘制失败:', e);
+            }
+          }
+
+          // ========== 7. 底部提示文字 ==========
+          ctx.save();
+          ctx.font = '20px "PingFang SC"';
+          ctx.fillStyle = '#8A8A8A';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText('长按识别小程序码进入投票', 375, 1200);
+          ctx.restore();
+
+          // ========== 8. 保存图片 ==========
           setTimeout(() => {
             wx.canvasToTempFilePath({
               canvas: canvas,
@@ -468,8 +541,8 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
               y: 0,
               width: 750,
               height: 1200,
-              destWidth: 750,
-              destHeight: 1200,
+              destWidth: 750 * dpr,
+              destHeight: 1200 * dpr,
               fileType: 'png',
               quality: 1,
               success: (res) => {
@@ -485,7 +558,7 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
                 this.showPosterPreview(posterData);
               }
             });
-          }, 500);
+          }, 800);
         });
     } catch (err) {
       console.error('生成海报失败:', err);

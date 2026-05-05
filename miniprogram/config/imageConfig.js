@@ -20,10 +20,12 @@ const imagePaths = {
     meituantubiao: `${BASE_URL}/icons/meituantubiao.png`,
     sharetofriends: `${BASE_URL}/icons/sharetofriends.png`,
     location: `${BASE_URL}/icons/location.png`,
+    favorite: `${BASE_URL}/icons/favorite.png`,
     // 个人中心页面需要的图标（需要上传到云存储）
     calendar: `${BASE_URL}/icons/calendar.png`,      // 日历图标 - 缺失
     time: `${BASE_URL}/icons/time.png`,              // 时间图标 - 缺失  
     deadline: `${BASE_URL}/icons/deadline.png`,      // 截止/时钟图标 - 缺失
+    roomnum: `${BASE_URL}/icons/roomnum.png`,          // 房间号图标
     // test-recommend 页面图标
     hint: `${BASE_URL}/icons/hint.png`,              // 提示灯泡
     restaurant: `${BASE_URL}/icons/restaurant.png`,  // 餐厅/餐具

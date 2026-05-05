@@ -318,16 +318,21 @@ Page({
     return null;
   },
 
-  // 检查是否可以提交 - 至少有一个选项填写了标题、图片、时间和平台
+  // 检查是否可以提交 - 至少有一个选项填写了标题
   canSubmit() {
     const { shopOptions } = this.data;
-    // 至少有一个选项填写了标题、图片、时间和平台
+    // 至少有一个选项填写了标题即可发起
     return shopOptions.some(option => 
-      option.title && option.title.trim() !== '' &&
+      option.title && option.title.trim() !== ''
+    );
+  },
+
+  // 检查单个选项是否完整（用于提示用户）
+  isOptionComplete(option) {
+    return option.title && option.title.trim() !== '' &&
       option.shopImage && option.shopImage.trim() !== '' &&
       option.deadlineText && option.deadlineText.trim() !== '' &&
-      option.selectedPlatform && option.selectedPlatform.trim() !== ''
-    );
+      option.selectedPlatform && option.selectedPlatform.trim() !== '';
   },
 
   // 创建拼单
@@ -348,16 +353,23 @@ Page({
       const roomId = generateRoomId();
       const { shopOptions } = this.data;
 
-      // 只处理完整填写的选项（与canSubmit逻辑一致）
+      // 保存所有填写了标题的选项（不再强制要求所有字段都填）
       const validOptions = shopOptions.filter(option => 
-        option.title && option.title.trim() !== '' &&
-        option.shopImage && option.shopImage.trim() !== '' &&
-        option.deadlineText && option.deadlineText.trim() !== '' &&
-        option.selectedPlatform && option.selectedPlatform.trim() !== ''
+        option.title && option.title.trim() !== ''
       );
       
       console.log('有效选项数量:', validOptions.length);
       console.log('有效选项:', validOptions);
+
+      // 检查是否有不完整的选项，给出提示
+      const incompleteOptions = validOptions.filter(opt => !this.isOptionComplete(opt));
+      if (incompleteOptions.length > 0) {
+        const names = incompleteOptions.map((opt, i) => {
+          const idx = shopOptions.indexOf(opt);
+          return `选项${idx + 1}「${opt.title}」`;
+        }).join('、');
+        wx.showToast({ title: `${names} 信息不完整，部分内容将缺失`, icon: 'none', duration: 2500 });
+      }
 
       // 处理选项的图片上传
       const optionsWithImages = await Promise.all(
@@ -385,6 +397,11 @@ Page({
           return data;
         })
       );
+
+      console.log('====== 准备传入云函数的 optionsWithImages ======');
+      console.log('optionsWithImages 数量:', optionsWithImages.length);
+      console.log('optionsWithImages 详情:', JSON.stringify(optionsWithImages));
+      console.log('================================================');
 
       // 创建拼单房间
       await wx.cloud.callFunction({

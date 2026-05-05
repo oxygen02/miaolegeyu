@@ -1,0 +1,9 @@
+{
+  "name": "getShopInterests",
+  "version": "1.0.0",
+  "description": "获取对店铺感兴趣的用户列表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk');
+const crypto = require('crypto');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
@@ -122,13 +123,15 @@ exports.main = async (event) => {
     console.log('roomData.candidatePosters:', roomData.candidatePosters);
     console.log('roomData.candidatePosters 长度:', roomData.candidatePosters.length);
     
-    // mode-b 字段
-    if (mode === 'b') {
+    // mode-b 字段（你们来定）
+    // 支持 'b' 和 'pick_for_them' 两种 mode 值
+    if (mode === 'b' || mode === 'pick_for_them') {
       roomData.cuisineOptions = cuisineOptions || [];
       roomData.paymentMode = paymentMode || 'AA';
       roomData.isAnonymous = isAnonymous || false;
       roomData.needPassword = needPassword || false;
-      roomData.roomPassword = needPassword ? roomPassword : '';
+      // 密码使用md5哈希存储，避免明文
+      roomData.roomPassword = needPassword ? crypto.createHash('md5').update(roomPassword).digest('hex') : '';
       roomData.enableRestaurantRecommend = enableRestaurantRecommend || false;
     }
     

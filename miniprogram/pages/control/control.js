@@ -17,9 +17,10 @@ Page({
     needPassword: false,
     roomPassword: '',
     qrCodeUrl: '',
-    countdown: '02:15:30',
+    countdown: '00:00:00',
     countdownTimer: null,
     pollTimer: null,
+    voteDeadline: null,
     votedCount: 1,
     unvotedCount: 0,
     progressPercent: 100,
@@ -85,20 +86,30 @@ Page({
           ...p,
           anonName: ANON_NAMES[idx % ANON_NAMES.length] + (idx >= ANON_NAMES.length ? (idx + 1) : '')
         }));
+        // 处理 address 可能是对象的情况
+        let address = room.address || '';
+        if (address && typeof address === 'object') {
+          address = address.name || address.title || address.address || JSON.stringify(address);
+        }
+
         this.setData({
           _id: room._id,
           roomCode: room.roomCode || '',
           roomTitle: room.title || '',
-          roomAddress: room.address || '',
+          roomAddress: address,
           roomTime: this.formatTime(room.mealTime),
           roomStatus: room.status || 'voting',
           statusText: this.getStatusText(room.status),
           isAnonymous: isAnon,
           needPassword: room.needPassword || false,
           roomPassword: room.roomPassword || '',
-          participants: participants
+          participants: participants,
+          voteDeadline: room.deadline || room.voteDeadline || null,
+          mode: room.mode || 'a',
+          finalPoster: room.finalPoster || null
         });
         this.calculateStats(participants);
+        this.startCountdown();
         if (room.status === 'voting') {
           this.fetchVoteStats(roomId);
         }
@@ -181,7 +192,12 @@ Page({
 
   startCountdown() {
     this.clearCountdown();
-    const deadline = Date.now() + (2 * 60 * 60 + 15 * 60 + 30) * 1000;
+    const deadlineTime = this.data.voteDeadline;
+    if (!deadlineTime) {
+      this.setData({ countdown: '00:00:00' });
+      return;
+    }
+    const deadline = new Date(deadlineTime).getTime();
     const update = () => {
       const diff = deadline - Date.now();
       if (diff <= 0) {
@@ -233,14 +249,54 @@ Page({
   },
 
   shareRoom() {
-    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
+    // 显示分享选项
+    wx.showActionSheet({
+      itemList: ['转发给好友', '生成分享海报'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          // 转发给好友 - 设置分享数据并引导用户点击右上角转发
+          this.setShareData();
+          wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
+          wx.showToast({
+            title: '请点击右上角转发',
+            icon: 'none',
+            duration: 2000
+          });
+        } else if (res.tapIndex === 1) {
+          // 生成分享海报
+          this.generateSharePoster();
+        }
+      }
+    });
+  },
+
+  // 设置分享数据
+  setShareData() {
+    const shareData = {
+      title: `「${this.data.roomTitle}」快来一起选餐厅！`,
+      path: `/pages/room/join?roomCode=${this.data.roomCode}`,
+      imageUrl: this.data.shareImagePath || '/assets/share-cover.png'
+    };
+    // 保存到页面数据中供 onShareAppMessage 使用
+    this.setData({
+      sharePosterData: {
+        roomTitle: this.data.roomTitle,
+        roomCode: this.data.roomCode
+      }
+    });
   },
 
   onShareAppMessage() {
+    // 如果有海报图片，使用海报作为分享封面
+    const imageUrl = this.data.shareImagePath || '/assets/share-cover.png';
+    const title = this.data.sharePosterData ? 
+      `「${this.data.sharePosterData.roomTitle || '聚餐投票'}」快来一起选餐厅！` : 
+      `「${this.data.roomTitle}」快来一起选餐厅！`;
+    
     return {
-      title: `「${this.data.roomTitle}」快来一起选餐厅！`,
+      title: title,
       path: `/pages/room/join?roomCode=${this.data.roomCode}`,
-      imageUrl: '/assets/share-cover.png'
+      imageUrl: imageUrl
     };
   },
 
@@ -451,14 +507,19 @@ Page({
   },
 
   generateResultPoster() {
+    const { winner, mode, finalPoster } = this.data;
     const posterData = {
-      winner: this.data.winner,
+      type: 'result',
+      mode: mode || 'a',
+      winner: winner,
+      finalPoster: finalPoster || null,
       roomTitle: this.data.roomTitle,
       roomTime: this.data.roomTime,
       roomAddress: this.data.roomAddress,
       participants: this.data.participants,
       isAnonymous: this.data.isAnonymous
     };
+    console.log('[control] 生成结果海报, mode:', mode, 'finalPoster:', JSON.stringify(finalPoster), 'winner.image:', winner?.image);
     this.setData({
       posterData,
       showPosterModal: true
@@ -466,31 +527,41 @@ Page({
   },
 
   onPosterClose() {
-    this.setData({ showPosterModal: false });
+    // 先隐藏弹窗，清理数据防止穿透
+    this.setData({ 
+      showPosterModal: false,
+      posterData: null 
+    });
   },
 
   onPosterSave(e) {
     console.log('海报已保存:', e.detail.imagePath);
   },
 
-  onPosterShare(e) {
-    const { imagePath } = e.detail;
-    wx.showShareImageMenu({
-      path: imagePath,
-      success: () => {
-        wx.showToast({ title: '分享成功', icon: 'success' });
-      },
-      fail: (err) => {
-        console.error('分享失败:', err);
-      }
+  onPosterShareFriend(e) {
+    // 设置分享数据，供 onShareAppMessage 使用
+    const { posterData } = e.detail;
+    this.setData({
+      sharePosterData: posterData,
+      shareImagePath: e.detail.imagePath
+    });
+
+    // 提示用户使用右上角菜单分享
+    wx.showToast({
+      title: '请点击右上角 ··· 分享',
+      icon: 'none',
+      duration: 2000
     });
   },
 
   formatTime(ts) {
     if (!ts) return '';
     const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    // 转换为北京时间 UTC+8
+    const beijingDate = new Date(d.getTime() + 8 * 60 * 60 * 1000);
     const pad = n => n < 10 ? '0' + n : n;
-    return `${pad(d.getMonth() + 1)}月${pad(d.getDate())}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return `${pad(beijingDate.getUTCMonth() + 1)}月${pad(beijingDate.getUTCDate())}日 ${pad(beijingDate.getUTCHours())}:${pad(beijingDate.getUTCMinutes())}`;
   },
 
   getStatusText(status) {

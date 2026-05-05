@@ -35,7 +35,7 @@
               <text class="option-title">{{item.title || '选项' + (index + 1)}}</text>
               <view class="option-badge" wx:if="{{mySelectedOption === index}}">已选</view>
             </view>
-            <text class="option-platform" wx:if="{{item.platform}}">平台: {{item.platform}}</text>
+            <text class="option-platform" wx:if="{{item.platformName}}">平台: {{item.platformName}}</text>
             <text class="option-deadline" wx:if="{{item.deadlineText}}">截止时间: {{item.deadlineText}}</text>
             <view class="option-stats">
               <text class="stats-text">{{optionStats[index].count}}人选择</text>

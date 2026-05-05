@@ -23,15 +23,15 @@ exports.main = async (event) => {
     if (mode === 'group') {
       whereClause.mode = 'group';
     } else if (mode === 'dining') {
-      whereClause.mode = 'a';
+      whereClause.mode = 'pick_for_them';
     } else if (mode === 'meal') {
-      whereClause.mode = 'b';
+      whereClause.mode = 'meal';
     }
 
     let query = db.collection('rooms').where(whereClause);
 
     // 获取当前用户创建的所有房间（限制数量避免超时）
-    const { data: rooms } = await query.orderBy('createdAt', 'desc').limit(20).get();
+    const { data: rooms } = await query.orderBy('createdAt', 'desc').limit(100).get();
 
     if (!rooms || rooms.length === 0) {
       return {
@@ -41,8 +41,12 @@ exports.main = async (event) => {
       };
     }
 
+    // 过滤掉 roomId 为空的文档
+    const validRooms = rooms.filter(room => room.roomId);
+    console.log('getMyRooms 有效房间数:', validRooms.length, '原始房间数:', rooms.length);
+
     // 获取所有房间ID
-    const roomIds = rooms.map(room => room.roomId);
+    const roomIds = validRooms.map(room => room.roomId);
     
     // 批量获取参与者信息和数量
     let participantCounts = {};
@@ -161,7 +165,7 @@ exports.main = async (event) => {
     }
 
     // 组装返回数据
-    const roomsWithParticipants = rooms.map(room => {
+    const roomsWithParticipants = validRooms.map(room => {
       // 处理 location 字段，可能是对象或字符串
       let locationStr = '';
       if (room.location) {
@@ -173,15 +177,17 @@ exports.main = async (event) => {
         }
       }
       
-      // 格式化 voteDeadline
+      // 格式化 voteDeadline（转换为北京时间 UTC+8）
       let voteDeadlineStr = '';
       if (room.voteDeadline) {
         const date = new Date(room.voteDeadline);
         if (!isNaN(date.getTime())) {
-          const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
-          const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
-          const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
-          const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+          // 使用 toLocaleString 获取北京时间
+          const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+          const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
+          const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
+          const hour = (beijingDate.getUTCHours() < 10 ? '0' : '') + beijingDate.getUTCHours();
+          const minute = (beijingDate.getUTCMinutes() < 10 ? '0' : '') + beijingDate.getUTCMinutes();
           voteDeadlineStr = `${month}-${day} ${hour}:${minute}`;
         }
       }
@@ -207,7 +213,17 @@ exports.main = async (event) => {
         participantCount: participantCounts[room.roomId] || 0,
         creatorNickName: creatorInfo.nickName,
         creatorAvatarUrl: creatorInfo.avatarUrl,
-        participantAvatars: participantAvatars[room.roomId] || []
+        participantAvatars: participantAvatars[room.roomId] || [],
+        // 新增字段：用于编辑模式
+        needPassword: room.needPassword || false,
+        roomPassword: room.roomPassword || '',
+        peopleCount: room.peopleCount || 0,
+        timeAuxiliary: room.timeAuxiliary !== false,
+        isAnonymous: room.isAnonymous || false,
+        paymentMode: room.paymentMode || 'AA',
+        dinnerTime: room.appointmentDate || room.dinnerTime || null,
+        appointmentDate: room.appointmentDate || room.dinnerTime || null,
+        enableRestaurantRecommend: room.enableRestaurantRecommend || false
       };
     });
 

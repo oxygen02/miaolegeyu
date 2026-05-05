@@ -2,8 +2,8 @@
   <!-- 页面标题和房间号输入合并 -->
   <view class="page-header">
     <view class="header-left">
-      <text class="page-title">参与投票</text>
-      <text class="page-subtitle">点击卡片参与投票</text>
+<text class="page-title">投票参与</text>
+    <text class="page-subtitle">点击卡片参与投票</text>
     </view>
     <view class="header-right">
       <view class="input-wrapper-inline {{inputFocused ? 'focused' : ''}}">
@@ -65,10 +65,10 @@
       <view class="card-image-wrap">
         <image 
           class="card-image" 
-          src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || '/assets/cat-default.png'}}" 
+          src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/banners/taiyaki-icon.png'}}" 
           mode="aspectFill"
         />
-        <!-- 状态标签（毛玻璃效果） -->
+        <!-- 状态标签（毛玻璃效果，位于左上角） -->
         <view class="status-tag {{item.status}}">
           <text>{{item.status === 'voting' ? '进行中' : (item.status === 'locked' ? '已锁定' : '已结束')}}</text>
         </view>
@@ -76,9 +76,13 @@
 
       <!-- 右侧信息区 -->
       <view class="card-info">
-        <!-- 第一行：标题 -->
+        <!-- 第一行：标题 + 发起人 -->
         <view class="info-row title-row">
           <text class="room-title">{{item.title}}</text>
+          <view class="creator-mini" wx:if="{{item.creatorName || item.creatorAvatar}}">
+            <image class="creator-avatar-mini" src="{{item.creatorAvatar || 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/decorations/juze_avatar.png'}}" mode="aspectFill" />
+            <text class="creator-name-mini">{{item.creatorName || '发起人'}}</text>
+          </view>
         </view>
 
         <!-- 第二行：日期+时间+地点 -->
@@ -97,20 +101,34 @@
           </view>
         </view>
 
-        <!-- 第三行：截止+房间号 -->
+        <!-- 第三行：截止+房间号（剩余≤1小时红色显示） -->
         <view class="info-row deadline-row">
-          <view class="deadline-item">
+          <view class="deadline-item {{item.deadlineUrgent ? 'urgent' : ''}}">
             <image class="meta-icon" src="{{imagePaths.icons.deadline}}" mode="aspectFit" />
-            <text>截止: {{item.voteDeadlineStr || '待定'}}</text>
+            <text>截止: {{item.voteDeadlineStr || '待定'}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
           </view>
           <view class="room-code">
+            <image class="meta-icon roomnum-icon" src="{{imagePaths.icons.roomnum}}" mode="aspectFit" />
             <text>{{item.roomId}}</text>
           </view>
         </view>
 
-        <!-- 第四行：底部锚点（右对齐） -->
+        <!-- 第四行：底部（参与人头像+人数+管理） -->
         <view class="info-row action-row">
+          <!-- 参与人头像叠加（左侧） -->
+          <view class="participant-avatars" wx:if="{{item.participantAvatars && item.participantAvatars.length > 0}}">
+            <image
+              wx:for="{{item.participantAvatars}}"
+              wx:key="index"
+              class="participant-avatar {{index > 0 ? 'avatar-overlap' : ''}}"
+              src="{{item.avatarUrl}}"
+              mode="aspectFill"
+              style="z-index: {{item.participantAvatars.length - index}};"
+            />
+          </view>
+          <!-- 参与人数 -->
           <text class="participant-count">{{item.participantCount || 0}}人参与</text>
+          <view style="flex:1"></view>
           <text class="dot">·</text>
           <text class="manage-btn" catchtap="onManageTap" data-roomid="{{item.roomId}}">管理</text>
         </view>

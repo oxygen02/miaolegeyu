@@ -1521,6 +1521,65 @@ Page({
     });
   },
 
+  // 模式B：重选当前细类（取消当前细类的选中状态）
+  resetCurrentSubCategory() {
+    const { subCategorySwiperCurrent, visibleSubCategoryCards, selectedSubCategories, selectedCategoryIds } = this.data;
+    
+    if (subCategorySwiperCurrent >= visibleSubCategoryCards.length) {
+      wx.showToast({ title: '当前无选中项', icon: 'none' });
+      return;
+    }
+
+    const currentCard = visibleSubCategoryCards[subCategorySwiperCurrent];
+    if (!currentCard) return;
+
+    const categoryId = currentCard.categoryId || currentCard.parentId;
+
+    // 从已选细类中移除当前细类
+    const newSelectedSub = { ...selectedSubCategories };
+    if (newSelectedSub[categoryId]) {
+      newSelectedSub[categoryId] = newSelectedSub[categoryId].filter(
+        sub => sub.id !== currentCard.id
+      );
+      // 如果该大类下没有已选细类了，同时取消大类的选中状态
+      if (newSelectedSub[categoryId].length === 0) {
+        delete newSelectedSub[categoryId];
+        const newCategoryIds = selectedCategoryIds.filter(c => c.id !== categoryId);
+        // 更新大类卡片的选中状态
+        const newCategoryCards = this.data.categoryCards.map(c =>
+          c.id === categoryId ? { ...c, isSelected: false } : c
+        );
+        this.setData({
+          selectedSubCategories: newSelectedSub,
+          selectedCategoryIds: newCategoryIds,
+          categoryCards: newCategoryCards,
+          canSubmit: newCategoryIds.length > 0
+        });
+      } else {
+        this.setData({
+          selectedSubCategories: newSelectedSub
+        });
+      }
+    }
+
+    // 更新当前卡片为未选中状态
+    const newVisibleCards = visibleSubCategoryCards.map((card, idx) =>
+      idx === subCategorySwiperCurrent ? { ...card, isSelected: false } : card
+    );
+    // 同步更新 subCategoryCards 中的对应项
+    const newAllCards = this.data.subCategoryCards.map(card =>
+      card.id === currentCard.id ? { ...card, isSelected: false } : card
+    );
+
+    this.setData({
+      visibleSubCategoryCards: newVisibleCards,
+      subCategoryCards: newAllCards
+    });
+
+    wx.showToast({ title: '已重选', icon: 'success' });
+    this.saveVoteState();
+  },
+
   // 模式B：细类选择 - 上一张
   onSubCategoryPrev() {
     const { subCategorySwiperCurrent } = this.data;

@@ -5,7 +5,7 @@ const _ = db.command;
 
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
-  const { limit = 20, mode = '' } = event;
+  const { limit = 50, mode = '' } = event;
 
   // 检查用户登录态
   if (!wxContext.OPENID) {
@@ -26,6 +26,15 @@ exports.main = async (event) => {
       whereClause.mode = 'group';
     } else if (mode === 'dining') {
       whereClause.mode = 'pick_for_them';
+    } else if (mode === 'meal') {
+      // 约饭模式不查询 rooms 集合，返回空
+      return {
+        success: true,
+        rooms: []
+      };
+    } else if (mode === '' || mode === 'all') {
+      // 全部模式：只查询 group 和 pick_for_them
+      whereClause.mode = _.in(['group', 'pick_for_them']);
     }
 
     // 获取所有进行中的房间（只返回必要字段，脱敏处理）
@@ -64,8 +73,18 @@ exports.main = async (event) => {
       };
     }
 
+    // 过滤掉 roomId 为空的文档，并记录日志
+    const validRooms = rooms.filter(room => {
+      if (!room.roomId) {
+        console.log('发现 roomId 为空的文档:', room._id, room.title);
+        return false;
+      }
+      return true;
+    });
+    console.log('有效房间数:', validRooms.length, '原始房间数:', rooms.length);
+
     // 获取所有房间ID
-    const roomIds = rooms.map(room => room.roomId);
+    const roomIds = validRooms.map(room => room.roomId);
 
     // 批量获取参与者数量
     let participantCounts = {};
@@ -117,7 +136,7 @@ exports.main = async (event) => {
     }
 
     // 组装返回数据（脱敏处理）
-    const roomsWithParticipants = rooms.map(room => ({
+    const roomsWithParticipants = validRooms.map(room => ({
       _id: room._id,
       roomId: room.roomId,
       title: room.title,

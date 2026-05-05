@@ -46,8 +46,6 @@ const cuisineMap = {
   'local': '地方特色',
   'dessert': '甜品',
   'tea': '奶茶',
-  'cafe': '咖啡',
-  'bar': '酒吧',
   'snack': '小吃',
   'fastfood': '快餐',
   'bread': '面包',
@@ -64,34 +62,38 @@ Page({
     page: 1,
     pageSize: 10,
     selectedCuisine: 'all',
-    cuisines: [
+    // 高频标签（始终显示）
+    hotCuisines: [
       { id: 'all', name: '全部' },
       { id: 'chuanyu', name: '川渝' },
+      { id: 'beifang', name: '北方' },
+      { id: 'yungui', name: '云贵' },
+      { id: 'huoguo', name: '火锅' },
+      { id: 'shaokao', name: '烧烤' },
+      { id: 'haixian', name: '海鲜' },
+      { id: 'riliao', name: '日料' },
+      { id: 'xishi', name: '西式' },
+      { id: 'dongnanya', name: '东南亚' },
+      { id: 'longxia', name: '小龙虾' },
+      { id: 'dessert', name: '甜品' }
+    ],
+    // 低频标签（展开后显示）
+    moreCuisines: [
       { id: 'xianggan', name: '湘赣' },
       { id: 'yueshi', name: '粤式' },
       { id: 'jiangnan', name: '江南' },
-      { id: 'beifang', name: '北方' },
       { id: 'xibei', name: '西北' },
-      { id: 'yungui', name: '云贵' },
       { id: 'huazhong', name: '华中' },
-      { id: 'huoguo', name: '火锅' },
       { id: 'chuanchuan', name: '串串' },
-      { id: 'shaokao', name: '烧烤' },
-      { id: 'longxia', name: '龙虾' },
-      { id: 'riliao', name: '日料' },
       { id: 'hanliao', name: '韩料' },
-      { id: 'dongnanya', name: '东南亚' },
-      { id: 'xishi', name: '西式' },
-      { id: 'haixian', name: '海鲜' },
       { id: 'zizhu', name: '自助' },
       { id: 'nongjia', name: '农家' },
       { id: 'sifang', name: '私房' },
       { id: 'snack', name: '小吃' },
       { id: 'fastfood', name: '快餐' },
-      { id: 'dessert', name: '甜品' },
-      { id: 'cafe', name: '咖啡' },
-      { id: 'bar', name: '酒吧' }
     ],
+    // 标签展开状态
+    isCuisineExpanded: false,
     // 图片预览
     previewVisible: false,
     previewImages: [],
@@ -106,6 +108,8 @@ Page({
     console.log('店铺加载完成，数量:', this.data.shops.length);
     await this.loadAppointments();
     console.log('约饭数据加载完成');
+    // 加载用户的约饭意向
+    await this.loadMyInterests();
   },
 
   async onShow() {
@@ -380,16 +384,17 @@ Page({
     }
   },
 
-  // 格式化约饭时间
+  // 格式化约饭时间（转换为北京时间 UTC+8）
   formatAppointmentTime(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return '';
 
-    const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
-    const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
-    const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
-    const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+    const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
+    const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
+    const hour = (beijingDate.getUTCHours() < 10 ? '0' : '') + beijingDate.getUTCHours();
+    const minute = (beijingDate.getUTCMinutes() < 10 ? '0' : '') + beijingDate.getUTCMinutes();
     return `${month}/${day} ${hour}:${minute}`;
   },
 
@@ -461,6 +466,13 @@ Page({
     this.loadAppointments();
   },
 
+  // 展开/收起标签
+  toggleCuisineExpand() {
+    this.setData({
+      isCuisineExpanded: !this.data.isCuisineExpanded
+    });
+  },
+
   // 约饭活动翻页切换
   onAppointmentSwiperChange(e) {
     const { current } = e.detail;
@@ -526,14 +538,46 @@ Page({
     e.stopPropagation();
   },
 
-  // 点击发起约饭按钮 - 跳转到店铺详情页
-  onCreateAppointmentTap(e) {
-    // catchtap 不需要 stopPropagation，它会自动阻止冒泡
+  // 点击发起约饭按钮 - 先查询意向用户，再跳转
+  async onCreateAppointmentTap(e) {
     const { shop } = e.currentTarget.dataset;
-    // 跳转到店铺详情页发起约饭
-    wx.navigateTo({
-      url: `/pages/shop-detail/shop-detail?id=${shop._id}&openAppointment=1`
-    });
+
+    try {
+      // 查询对该店铺感兴趣的用户
+      const { result } = await wx.cloud.callFunction({
+        name: 'getShopInterests',
+        data: { shopId: shop._id }
+      });
+
+      if (result.success && result.count > 0) {
+        // 有意向用户，显示提示弹窗
+        wx.showModal({
+          title: '提示',
+          content: `有 ${result.count} 位喵友对「${shop.name}」感兴趣，发起约饭后将通知他们。`,
+          confirmText: '发起约饭',
+          cancelText: '再想想',
+          success: (res) => {
+            if (res.confirm) {
+              // 用户确认，跳转到店铺详情页发起约饭
+              wx.navigateTo({
+                url: `/pages/shop-detail/shop-detail?id=${shop._id}&openAppointment=1&notifyInterested=1`
+              });
+            }
+          }
+        });
+      } else {
+        // 没有意向用户，直接跳转
+        wx.navigateTo({
+          url: `/pages/shop-detail/shop-detail?id=${shop._id}&openAppointment=1`
+        });
+      }
+    } catch (err) {
+      console.error('查询意向用户失败:', err);
+      // 查询失败，直接跳转
+      wx.navigateTo({
+        url: `/pages/shop-detail/shop-detail?id=${shop._id}&openAppointment=1`
+      });
+    }
   },
 
   // 点击参加按钮
@@ -702,9 +746,73 @@ Page({
     this.setData({ locationIconError: true });
   },
 
+  // 加载用户的约饭意向
+  async loadMyInterests() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getMyDiningInterests'
+      });
+
+      if (result.success) {
+        const interestedShopIds = result.shopIds || [];
+        // 更新店铺列表中的意向状态
+        const shops = this.data.shops.map(shop => ({
+          ...shop,
+          isInterested: interestedShopIds.includes(shop._id)
+        }));
+        this.setData({ shops });
+      }
+    } catch (err) {
+      console.error('加载约饭意向失败:', err);
+    }
+  },
+
+  // 切换约饭意向
+  async onToggleInterest(e) {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
+    const { shop } = e.currentTarget.dataset;
+
+    wx.showLoading({ title: '处理中...' });
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'toggleDiningInterest',
+        data: { shopId: shop._id }
+      });
+
+      if (result.success) {
+        // 更新本地状态
+        const shops = this.data.shops.map(item => {
+          if (item._id === shop._id) {
+            return {
+              ...item,
+              isInterested: result.isInterested
+            };
+          }
+          return item;
+        });
+        this.setData({ shops });
+
+        wx.showToast({
+          title: result.message,
+          icon: 'none'
+        });
+      } else {
+        wx.showToast({ title: result.error || '操作失败', icon: 'none' });
+      }
+    } catch (err) {
+      console.error('切换约饭意向失败:', err);
+      wx.showToast({ title: '操作失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
   onShareAppMessage() {
     return {
-      title: '发现美食 - 喵了个鱼',
+      title: '新店探索 - 喵了个鱼',
       path: '/pages/food-discovery/food-discovery'
     };
   }

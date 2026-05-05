@@ -7,7 +7,7 @@ Component({
     imagePaths: imagePaths,
     list: [
       { pagePath: '/pages/index/index', text: '首页' },
-      { pagePath: '/pages/fish-tank/fish-tank', text: '鱼塘' },
+      { pagePath: '/pages/fish-tank/fish-tank', text: '喵不喵' },
       { pagePath: '/pages/profile/profile', text: '我的' }
     ]
   },
@@ -41,14 +41,6 @@ Component({
 
     switchTab(e) {
       const index = parseInt(e.currentTarget.dataset.index);
-
-      // 中间按钮（发起聚餐）特殊处理
-      if (index === 1) {
-        wx.navigateTo({
-          url: '/pages/create/create'
-        });
-        return;
-      }
 
       // 如果已经是当前选中，不处理
       if (this.data.selected === index) {

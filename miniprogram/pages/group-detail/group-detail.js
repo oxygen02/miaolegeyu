@@ -1,3 +1,15 @@
+// 平台名称映射（英文标识 -> 中文显示）
+const PLATFORM_NAMES = {
+  meituan: '美团',
+  taobao: '淘宝闪送',
+  jd: '京东'
+};
+
+// 获取平台中文名称
+function getPlatformName(platform) {
+  return PLATFORM_NAMES[platform] || platform || '';
+}
+
 Page({
   data: {
     roomId: '',
@@ -9,7 +21,9 @@ Page({
     selectedOptionIndex: -1,
     mySelectedOption: -1,
     totalParticipants: 0,
-    joining: false
+    joining: false,
+    // 平台名称映射
+    PLATFORM_NAMES: PLATFORM_NAMES
   },
 
   onLoad(options) {
@@ -40,19 +54,32 @@ Page({
 
       const room = result.data;
       console.log('拼单房间数据:', room);
+      console.log('拼单选项数量:', (room.options || []).length);
+      console.log('拼单选项详情:', JSON.stringify(room.options));
 
       // 计算总参与人数
       const totalParticipants = (room.groupOrderParticipants && room.groupOrderParticipants.length) || 0;
 
-      // 处理选项统计数据，确保每个选项都有count值
-      const processedOptionStats = (room.optionStats || []).map(stat => ({
-        index: stat.index,
-        count: stat.count || 0
+      // 处理选项数据，为每个选项添加平台中文名称
+      const processedOptions = (room.options || []).map(opt => ({
+        ...opt,
+        platformName: getPlatformName(opt.platform)
+      }));
+
+      // 处理选项统计数据，确保每个选项都有count值（即使为0也要显示）
+      // 先用返回的optionStats构建map，再为每个option补全
+      const statsMap = {};
+      (room.optionStats || []).forEach(stat => {
+        statsMap[stat.index] = stat.count || 0;
+      });
+      const processedOptionStats = processedOptions.map((opt, idx) => ({
+        index: idx,
+        count: statsMap[idx] !== undefined ? statsMap[idx] : 0
       }));
 
       this.setData({
         room,
-        options: room.options || [],
+        options: processedOptions,
         optionStats: processedOptionStats,
         loading: false,
         hasJoined: room.hasJoinedGroupOrder,

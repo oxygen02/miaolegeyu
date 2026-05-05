@@ -261,7 +261,7 @@
   poster-data="{{posterData}}"
   bind:close="onPosterClose"
   bind:save="onPosterSave"
-  bind:share="onPosterShare"
+  bind:shareFriend="onPosterShareFriend"
 />
 
 <view class="bottom-bar">

@@ -6,7 +6,8 @@ const _ = db.command;
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
   // 限制最大返回数量，防止数据过大
-  const limit = Math.min(parseInt(event.limit) || 10, 20);
+  const limit = Math.min(parseInt(event.limit) || 10, 100);
+  const { mode = '' } = event;
   
   try {
     // 获取用户参与过的房间（使用 room_participants 集合）
@@ -25,11 +26,23 @@ exports.main = async (event) => {
       };
     }
     
+    // 构建房间查询条件
+    let roomWhereClause = {
+      roomId: _.in(roomIds)
+    };
+    
+    // 根据模式筛选
+    if (mode === 'group') {
+      roomWhereClause.mode = 'group';
+    } else if (mode === 'dining') {
+      roomWhereClause.mode = 'pick_for_them';
+    } else if (mode === 'meal') {
+      roomWhereClause.mode = 'meal';
+    }
+    
     // 获取房间详情（使用 roomId 字段查询）
     const roomResult = await db.collection('rooms')
-      .where({
-        roomId: _.in(roomIds)
-      })
+      .where(roomWhereClause)
       .get();
     
     // 按参与时间排序

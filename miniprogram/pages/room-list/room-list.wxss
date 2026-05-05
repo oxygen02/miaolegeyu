@@ -431,7 +431,7 @@ page {
   height: 100%;
 }
 
-/* 状态标签（毛玻璃效果） */
+/* 状态标签（毛玻璃效果，位于图片左上角） */
 .status-tag {
   position: absolute;
   top: 12rpx;
@@ -441,11 +441,15 @@ page {
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10rpx);
   -webkit-backdrop-filter: blur(10rpx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .status-tag text {
   font-size: 20rpx;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 /* 状态颜色 */
@@ -477,9 +481,35 @@ page {
   align-items: center;
 }
 
-/* 第一行：标题 */
+/* 第一行：标题 + 发起人 */
 .title-row {
   margin-bottom: 4rpx;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+/* 发起人小标签 */
+.creator-mini {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  background: #FFF3E0;
+  border-radius: 20rpx;
+  padding: 2rpx 10rpx 2rpx 2rpx;
+  flex-shrink: 0;
+}
+
+.creator-avatar-mini {
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  border: 1.5rpx solid #FF9F43;
+}
+
+.creator-name-mini {
+  font-size: 20rpx;
+  color: #E65100;
+  font-weight: 500;
 }
 
 .room-title {
@@ -531,6 +561,16 @@ page {
   color: #999999;
 }
 
+/* 截止时间紧急状态（≤1小时红色） */
+.deadline-item.urgent text {
+  color: #FF3B30;
+  font-weight: 600;
+}
+
+.deadline-item.urgent .meta-icon {
+  /* 图标也可用滤镜变红，或保持原色 */
+}
+
 .room-code {
   display: flex;
   align-items: center;
@@ -544,12 +584,37 @@ page {
   font-weight: 600;
 }
 
-/* 第四行：底部锚点（右对齐） */
+/* 第四行：底部（参与人头像+人数+管理） */
 .action-row {
-  justify-content: flex-end;
   align-items: center;
   gap: 12rpx;
   margin-top: auto;
+}
+
+/* 参与人区域 */
+.participant-area {
+  display: flex;
+  align-items: center;
+}
+
+/* ========== 第四行参与人头像叠加（行内） ========== */
+.participant-avatars {
+  display: flex;
+  align-items: center;
+}
+
+.participant-avatar {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 2rpx solid #fff;
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.15);
+  background: #f5f5f5;
+  flex-shrink: 0;
+}
+
+.avatar-overlap {
+  margin-left: -12rpx;
 }
 
 .participant-count {
@@ -563,10 +628,26 @@ page {
 }
 
 .manage-btn {
-  font-size: 24rpx;
-  color: #FF8C42;
+  font-size: 20rpx;
+  color: #fff;
   font-weight: 600;
-  padding: 4rpx 12rpx;
+  padding: 6rpx 16rpx;
+  background: linear-gradient(135deg, #FF9F43 0%, #FF7B1A 100%);
+  border: 2rpx solid #3D3D3D;
+  border-radius: 20rpx;
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+  flex-shrink: 0;
+}
+
+.manage-btn:active {
+  transform: translate(1rpx, 1rpx);
+  box-shadow: 1rpx 1rpx 0 #3D3D3D;
+}
+
+/* 房间号图标 */
+.roomnum-icon {
+  width: 26rpx;
+  height: 26rpx;
 }
 
 /* 管理菜单弹窗 */

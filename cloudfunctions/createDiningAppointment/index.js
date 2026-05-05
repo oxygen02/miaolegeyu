@@ -12,7 +12,8 @@ exports.main = async (event, context) => {
     requirements = [],
     customRequirement,
     paymentMode = 'AA',
-    isAnonymous = false
+    isAnonymous = false,
+    notifyInterested = false // 是否通知感兴趣的用户
   } = event;
   const { OPENID } = cloud.getWXContext();
   
@@ -58,9 +59,44 @@ exports.main = async (event, context) => {
         createTime: new Date()
       }
     });
-    
-    return { 
-      success: true, 
+
+    // 如果需要，通知对该店铺感兴趣的用户
+    if (notifyInterested) {
+      try {
+        const interests = await db.collection('shop_dining_interests')
+          .where({ shopId: shopId })
+          .get();
+
+        if (interests.data.length > 0) {
+          const openIds = interests.data.map(item => item.openId);
+          console.log('需要通知的用户:', openIds);
+
+          // 创建通知记录
+          for (const openId of openIds) {
+            if (openId !== OPENID) { // 不通知发起人自己
+              await db.collection('notifications').add({
+                data: {
+                  type: 'dining_interest',
+                  title: '约饭活动提醒',
+                  content: `您关注的「${shopName}」有人发起约饭啦！`,
+                  openId: openId,
+                  shopId: shopId,
+                  appointmentId: result._id,
+                  isRead: false,
+                  createTime: new Date()
+                }
+              });
+            }
+          }
+        }
+      } catch (notifyErr) {
+        console.error('通知感兴趣用户失败:', notifyErr);
+        // 不影响主流程
+      }
+    }
+
+    return {
+      success: true,
       appointmentId: result._id,
       message: '约饭报名发起成功'
     };

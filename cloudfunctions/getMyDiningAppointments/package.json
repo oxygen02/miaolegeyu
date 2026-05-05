@@ -1,0 +1,9 @@
+{
+  "name": "getMyDiningAppointments",
+  "version": "1.0.0",
+  "description": "获取我发起的约饭活动",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

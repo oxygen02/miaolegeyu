@@ -56,5 +56,8 @@
   "simulatorPluginLibVersion": {},
   "condition": {},
   "isGameTourist": false,
-  "editorSetting": {}
+  "editorSetting": {},
+  "cloudfunctionRootConfig": {
+    "cloud1-d5ggnf5wh2d872f3c": "cloudfunctions/"
+  }
 }

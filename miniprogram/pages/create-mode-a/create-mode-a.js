@@ -48,38 +48,144 @@ Page({
   async loadRoomData(roomId) {
     try {
       wx.showLoading({ title: '加载中' });
-      const { result } = await wx.cloud.callFunction({
-        name: 'getRoom',
-        data: { roomId }
-      });
-      
-      if (result.code !== 0) throw new Error(result.msg);
-      
-      const room = result.data;
-      
+
+      // 优先从本地存储读取
+      let room = wx.getStorageSync('editRoomData');
+      if (room && room.roomId === roomId) {
+        console.log('从本地存储读取房间数据:', room);
+        wx.removeStorageSync('editRoomData');
+      } else {
+        // 本地没有，尝试调用云函数
+        let result;
+        try {
+          const res = await wx.cloud.callFunction({
+            name: 'getRoom',
+            data: { roomId }
+          });
+          result = res.result;
+        } catch (err) {
+          console.log('getRoom 失败，尝试 getRoomDetail:', err);
+          const res = await wx.cloud.callFunction({
+            name: 'getRoomDetail',
+            data: { roomId }
+          });
+          result = res.result;
+        }
+
+        if (result.code !== 0 && !result.success) throw new Error(result.msg || '加载失败');
+
+        room = result.data || result.room;
+      }
+
+      console.log('编辑模式加载房间数据:', room);
+
+      // 处理 location 字段
+      let locationText = '';
+      if (room.location) {
+        if (typeof room.location === 'string') {
+          locationText = room.location;
+        } else if (typeof room.location === 'object') {
+          locationText = room.location.name || room.location.address || '';
+        }
+      }
+
+      // 处理聚餐日期 - 从 activityDate 解析
+      let activityDate = '';
+      let activityDateRaw = '';
+      if (room.activityDate) {
+        const dateStr = room.activityDate;
+        if (dateStr.includes('-')) {
+          // ISO 格式: 2026-05-05
+          const parts = dateStr.split('-');
+          const month = parseInt(parts[1]);
+          const day = parseInt(parts[2]);
+          activityDate = month + '月' + day + '日';
+          activityDateRaw = (month < 10 ? '0' : '') + month + (day < 10 ? '0' : '') + day;
+        } else if (dateStr.includes('月')) {
+          // 中文格式: 5月5日
+          activityDate = dateStr;
+          const match = dateStr.match(/(\d+)月(\d+)日?/);
+          if (match) {
+            const month = parseInt(match[1]);
+            const day = parseInt(match[2]);
+            activityDateRaw = (month < 10 ? '0' : '') + month + (day < 10 ? '0' : '') + day;
+          }
+        }
+      }
+
+      // 处理聚餐时间 - 从 activityTime 解析
+      let activityTime = '';
+      let activityTimeRaw = '';
+      if (room.activityTime) {
+        const timeStr = room.activityTime;
+        if (timeStr.includes(':')) {
+          // 格式: 12:00
+          const parts = timeStr.split(':');
+          const hour = parseInt(parts[0]);
+          const minute = parseInt(parts[1]);
+          activityTime = (hour < 10 ? '0' : '') + hour + ':' + (minute < 10 ? '0' : '') + minute;
+          activityTimeRaw = (hour < 10 ? '0' : '') + hour + (minute < 10 ? '0' : '') + minute;
+        } else if (timeStr.includes('时')) {
+          // 中文格式: 12时00分
+          activityTime = timeStr;
+          const match = timeStr.match(/(\d+)时(\d+)分?/);
+          if (match) {
+            const hour = parseInt(match[1]);
+            const minute = parseInt(match[2]);
+            activityTimeRaw = (hour < 10 ? '0' : '') + hour + (minute < 10 ? '0' : '') + minute;
+          }
+        }
+      }
+
+      // 处理投票截止时间 - 从 voteDeadline 解析
+      let deadlineDate = '';
+      let deadlineDateRaw = '';
+      let deadlineTime = '';
+      let deadlineTimeRaw = '';
+
+      if (room.voteDeadline) {
+        const date = new Date(room.voteDeadline);
+        if (!isNaN(date.getTime())) {
+          const month = date.getMonth() + 1;
+          const day = date.getDate();
+          const hour = date.getHours();
+          const minute = date.getMinutes();
+          deadlineDate = month + '月' + day + '日';
+          deadlineDateRaw = (month < 10 ? '0' : '') + month + (day < 10 ? '0' : '') + day;
+          deadlineTime = (hour < 10 ? '0' : '') + hour + ':' + (minute < 10 ? '0' : '') + minute;
+          deadlineTimeRaw = (hour < 10 ? '0' : '') + hour + (minute < 10 ? '0' : '') + minute;
+        }
+      }
+
+      // 处理海报
+      const posters = room.candidatePosters || [];
+
       // 填充表单数据
       this.setData({
         title: room.title || '',
-        location: room.location || '',
-        locationText: room.location || '',
+        location: locationText,
+        locationText: locationText,
         peopleCount: room.peopleCount ? String(room.peopleCount) : '',
-        posters: room.candidatePosters || [],
-        activityDate: room.activityDate || '',
-        activityDateRaw: room.activityDate ? room.activityDate.replace(/\D/g, '') : '',
-        activityTime: room.activityTime || '',
-        activityTimeRaw: room.activityTime ? room.activityTime.replace(/\D/g, '') : '',
-        deadlineDate: room.voteDeadline ? room.voteDeadline.split('T')[0] : '',
-        deadlineDateRaw: room.voteDeadline ? room.voteDeadline.split('T')[0].replace(/\D/g, '') : '',
-        deadlineTime: room.voteDeadline ? room.voteDeadline.split('T')[1].slice(0, 5) : '',
-        deadlineTimeRaw: room.voteDeadline ? room.voteDeadline.split('T')[1].slice(0, 5).replace(/\D/g, '') : '',
-        timeAuxiliary: room.timeAuxiliary !== false
+        posters: posters,
+        activityDate: activityDate,
+        activityDateRaw: activityDateRaw,
+        activityTime: activityTime,
+        activityTimeRaw: activityTimeRaw,
+        deadlineDate: deadlineDate,
+        deadlineDateRaw: deadlineDateRaw,
+        deadlineTime: deadlineTime,
+        deadlineTimeRaw: deadlineTimeRaw,
+        timeAuxiliary: room.timeAuxiliary !== false,
+        needPassword: room.needPassword || false,
+        roomPassword: room.roomPassword || ''
       }, () => {
         this.checkFormValid();
       });
-      
+
       wx.hideLoading();
     } catch (err) {
       wx.hideLoading();
+      console.error('加载房间数据失败:', err);
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
     }
   },

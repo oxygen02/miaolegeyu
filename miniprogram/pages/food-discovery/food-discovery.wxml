@@ -1,27 +1,46 @@
-<!-- 发现美食页面 -->
+<!-- 新店探索页面 -->
 <view class="food-discovery-page">
   <!-- 顶部固定区域：标题 + 分类筛选 -->
   <view class="sticky-header">
     <!-- 顶部标题区 -->
     <view class="header-section">
       <view class="header-content">
-        <text class="page-title">发现美食</text>
+        <text class="page-title">新店探索</text>
         <text class="page-subtitle">探索喵星人推荐的美味</text>
       </view>
       <image class="header-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit" />
     </view>
 
-    <!-- 菜系筛选 -->
+    <!-- 菜系筛选 - 高频标签两行 + 展开/收起 -->
     <view class="cuisine-filter">
       <view class="cuisine-list">
+        <!-- 高频标签 -->
         <view
           class="cuisine-item {{selectedCuisine === item.id ? 'active' : ''}}"
-          wx:for="{{cuisines}}"
+          wx:for="{{hotCuisines}}"
           wx:key="id"
           data-id="{{item.id}}"
           bindtap="onCuisineTap"
         >
           <text class="cuisine-name">{{item.name}}</text>
+        </view>
+        <!-- 低频标签（展开后显示） -->
+        <view
+          class="cuisine-item {{selectedCuisine === item.id ? 'active' : ''}}"
+          wx:for="{{moreCuisines}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onCuisineTap"
+          wx:if="{{isCuisineExpanded}}"
+        >
+          <text class="cuisine-name">{{item.name}}</text>
+        </view>
+        <!-- 展开/收起按钮 -->
+        <view
+          class="cuisine-item expand-btn"
+          bindtap="toggleCuisineExpand"
+        >
+          <text class="cuisine-name">{{isCuisineExpanded ? '收起' : '...'}}</text>
         </view>
       </view>
     </view>
@@ -53,15 +72,19 @@
 
         <!-- 店铺详情 -->
         <view class="shop-info">
-          <view class="info-row">
+          <!-- 第一行：店名 + 菜系标签 -->
+          <view class="info-row name-row">
             <text class="shop-name">{{item.name}}</text>
             <view class="cuisine-tag">{{item.cuisineName}}</view>
           </view>
 
-          <view class="info-row address-row">
-            <text class="shop-address">{{item.location}}</text>
+          <!-- 第二行：推荐人头像和昵称（店名下方） -->
+          <view class="info-row uploader-row">
+            <image class="uploader-avatar" src="{{item.isAnonymous ? imagePaths.decorations.catAvatarIcon : (item.uploaderAvatar || imagePaths.decorations.catAvatarIcon)}}" mode="aspectFit" />
+            <text class="uploader-name">{{item.isAnonymous ? '匿名喵友' : (item.uploaderName || '神秘喵友')}}</text>
           </view>
 
+          <!-- 第三行：评分 + 人均 -->
           <view class="info-row compact-row">
             <view class="shop-rating">
               <view class="paw-rating">
@@ -78,14 +101,19 @@
               <text class="rating-score">{{item.rating}}分</text>
             </view>
             <text class="shop-price">¥{{item.avgPrice}}/人</text>
+          </view>
+
+          <!-- 第四行：导航图标 + 地址（单独一行） -->
+          <view class="info-row address-row">
             <view class="nav-btn-small" bindtap="openLocation" data-address="{{item.location}}" data-name="{{item.name}}">
               <image class="nav-icon-small" src="{{imagePaths.icons.location}}" mode="aspectFit"/>
             </view>
+            <text class="shop-address">{{item.location}}</text>
           </view>
 
-          <view class="info-row uploader-row compact">
-            <image class="uploader-avatar" src="{{item.isAnonymous ? imagePaths.decorations.catAvatarIcon : (item.uploaderAvatar || imagePaths.decorations.catAvatarIcon)}}" mode="aspectFit" />
-            <text class="uploader-name">{{item.isAnonymous ? '匿名喵友' : (item.uploaderName || '神秘喵友')}}</text>
+          <!-- 第五行：推荐理由（填充空白） -->
+          <view class="recommend-reason" wx:if="{{item.recommendReason}}">
+            <text class="reason-text">💬 {{item.recommendReason}}</text>
           </view>
         </view>
       </view>
@@ -147,10 +175,15 @@
         </swiper>
       </view>
 
-      <!-- 右侧：发起约饭按钮（无活动时） -->
-      <view class="shop-right-empty" wx:elif="{{!item.appointments || item.appointments.length === 0}}" catchtap="onCreateAppointmentTap" data-shop="{{item}}">
-        <view class="create-btn-wide">
-          <text class="btn-text">发起约饭</text>
+      <!-- 右侧：约饭操作区（无活动时） -->
+      <view class="shop-right-empty" wx:elif="{{!item.appointments || item.appointments.length === 0}}">
+        <!-- 我想被约按钮 -->
+        <view class="interest-btn {{item.isInterested ? 'interested' : ''}}" catchtap="onToggleInterest" data-shop="{{item}}">
+          <text class="interest-text">{{item.isInterested ? '已标记' : '等约'}}</text>
+        </view>
+        <!-- 发起约饭按钮 -->
+        <view class="create-btn-wide" catchtap="onCreateAppointmentTap" data-shop="{{item}}">
+          <text class="btn-text">约饭</text>
         </view>
       </view>
     </view>

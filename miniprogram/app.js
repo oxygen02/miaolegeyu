@@ -1,4 +1,5 @@
 const audioManager = require('./utils/audioManager');
+const cloudConfig = require('./config/cloudConfig');
 
 App({
   onLaunch: function () {
@@ -7,7 +8,7 @@ App({
       console.error('请使用 2.2.3 或以上的基础库以使用云能力')
     } else {
       wx.cloud.init({
-        env: 'cloud1-d5ggnf5wh2d872f3c',
+        env: cloudConfig.env,
         traceUser: true,
       })
     }
@@ -49,22 +50,17 @@ App({
     wx.showModal({
       title: '隐私保护指引',
       content: '在使用本小程序之前，请您仔细阅读并同意《用户协议》和《隐私政策》。我们将保护您的个人信息安全。',
-      confirmText: '同意',
-      cancelText: '不同意',
+      confirmText: '同意并继续',
+      cancelText: '暂不使用',
       success: (res) => {
         if (res.confirm) {
           // 用户同意
           wx.setStorageSync('privacyAuthorized', true);
+          wx.showToast({ title: '感谢您的信任', icon: 'success' });
         } else {
-          // 用户不同意，退出小程序
-          wx.showToast({
-            title: '需要同意隐私协议才能使用',
-            icon: 'none',
-            duration: 2000
-          });
-          setTimeout(() => {
-            wx.exitMiniProgram();
-          }, 2000);
+          // 用户不同意，仅记录状态，不强制退出，允许游客模式使用
+          wx.setStorageSync('privacyAuthorized', false);
+          wx.showToast({ title: '已切换至游客模式', icon: 'none', duration: 2000 });
         }
       }
     });

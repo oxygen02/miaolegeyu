@@ -92,6 +92,30 @@
       "timeout": 10,
       "runtime": "Nodejs18.15",
       "handler": "index.main"
+    },
+    {
+      "name": "createRoom",
+      "timeout": 15,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "updateRoom",
+      "timeout": 15,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "getMyRooms",
+      "timeout": 15,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
+      "name": "getRoomDetail",
+      "timeout": 15,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
     }
   ]
 }

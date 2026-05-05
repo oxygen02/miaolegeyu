@@ -41,57 +41,183 @@ Page({
     }
   },
 
+  // 标记表单是否被修改过
+  markAsModified() {
+    if (this.data.isEditMode && !this.data.isModified) {
+      this.setData({ isModified: true });
+    }
+  },
+
   // 加载房间数据（编辑模式）
   async loadRoomData(roomId) {
     try {
       wx.showLoading({ title: '加载中' });
-      const { result } = await wx.cloud.callFunction({
-        name: 'getRoom',
-        data: { roomId }
-      });
-      
-      if (result.code !== 0) throw new Error(result.msg);
-      
-      const room = result.data;
-      
+
+      // 优先从本地存储读取
+      let room = wx.getStorageSync('editRoomData');
+      if (room && room.roomId === roomId) {
+        console.log('从本地存储读取房间数据:', room);
+        wx.removeStorageSync('editRoomData');
+      } else {
+        // 本地没有，尝试调用云函数
+        let result;
+        try {
+          const res = await wx.cloud.callFunction({
+            name: 'getRoom',
+            data: { roomId }
+          });
+          result = res.result;
+        } catch (err) {
+          console.log('getRoom 失败，尝试 getRoomDetail:', err);
+          const res = await wx.cloud.callFunction({
+            name: 'getRoomDetail',
+            data: { roomId }
+          });
+          result = res.result;
+        }
+
+        if (result.code !== 0 && !result.success) throw new Error(result.msg || '加载失败');
+
+        room = result.data || result.room;
+      }
+
+      console.log('编辑模式加载房间数据:', room);
+
       // 填充表单数据
+      // 处理 location 字段，可能是对象或字符串
+      let locationObj = {};
+      let locationText = '';
+      if (room.location) {
+        if (typeof room.location === 'string') {
+          locationText = room.location;
+          locationObj = { name: room.location };
+        } else if (typeof room.location === 'object') {
+          locationObj = room.location;
+          locationText = room.location.name || room.location.address || '';
+        }
+      }
+
+      // 处理聚餐时间 - 模式B（你们来定）使用 dinnerTime 或 appointmentDate
+      let dinnerDateRaw = '';
+      let dinnerTimeRaw = '';
+      let dinnerDate = '';
+      let dinnerTime = '';
+      let dinnerTimeValue = null;
+
+      // 优先从 dinnerTime 或 appointmentDate 解析（模式B的主要字段）
+      const dateValue = room.dinnerTime || room.appointmentDate;
+      if (dateValue) {
+        const date = new Date(dateValue);
+        if (!isNaN(date.getTime())) {
+          const month = date.getMonth() + 1;
+          const day = date.getDate();
+          const hour = date.getHours();
+          const minute = date.getMinutes();
+          dinnerDateRaw = (month < 10 ? '0' : '') + month + (day < 10 ? '0' : '') + day;
+          dinnerDate = month + '月' + day + '日';
+          dinnerTimeRaw = (hour < 10 ? '0' : '') + hour + (minute < 10 ? '0' : '') + minute;
+          dinnerTime = (hour < 10 ? '0' : '') + hour + ':' + (minute < 10 ? '0' : '') + minute;
+          dinnerTimeValue = date;
+        }
+      } else if (room.activityDate && room.activityTime) {
+        // 备选：从 activityDate 和 activityTime 解析
+        const dateStr = room.activityDate;
+        const timeStr = room.activityTime;
+
+        let year, month, day;
+        if (dateStr.includes('-')) {
+          const parts = dateStr.split('-');
+          year = parseInt(parts[0]);
+          month = parseInt(parts[1]);
+          day = parseInt(parts[2]);
+        } else if (dateStr.includes('月')) {
+          const match = dateStr.match(/(\d+)月(\d+)日?/);
+          if (match) {
+            month = parseInt(match[1]);
+            day = parseInt(match[2]);
+          }
+        }
+
+        let hour, minute;
+        if (timeStr.includes(':')) {
+          const parts = timeStr.split(':');
+          hour = parseInt(parts[0]);
+          minute = parseInt(parts[1]);
+        } else if (timeStr.includes('时')) {
+          const match = timeStr.match(/(\d+)时(\d+)分?/);
+          if (match) {
+            hour = parseInt(match[1]);
+            minute = parseInt(match[2]);
+          }
+        }
+
+        if (month && day) {
+          dinnerDateRaw = (month < 10 ? '0' : '') + month + (day < 10 ? '0' : '') + day;
+          dinnerDate = month + '月' + day + '日';
+        }
+        if (hour !== undefined && minute !== undefined) {
+          dinnerTimeRaw = (hour < 10 ? '0' : '') + hour + (minute < 10 ? '0' : '') + minute;
+          dinnerTime = (hour < 10 ? '0' : '') + hour + ':' + (minute < 10 ? '0' : '') + minute;
+          if (year && month && day) {
+            dinnerTimeValue = new Date(year, month - 1, day, hour, minute, 0);
+          }
+        }
+      }
+
+      // 处理投票截止时间 - 从 voteDeadline 解析
+      let deadlineDateRaw = '';
+      let deadlineTimeRaw = '';
+      let deadlineDate = '';
+      let deadlineTime = '';
+      let deadline = null;
+
+      if (room.voteDeadline) {
+        const date = new Date(room.voteDeadline);
+        if (!isNaN(date.getTime())) {
+          const month = date.getMonth() + 1;
+          const day = date.getDate();
+          const hour = date.getHours();
+          const minute = date.getMinutes();
+          deadlineDateRaw = (month < 10 ? '0' : '') + month + (day < 10 ? '0' : '') + day;
+          deadlineDate = month + '月' + day + '日';
+          deadlineTimeRaw = (hour < 10 ? '0' : '') + hour + (minute < 10 ? '0' : '') + minute;
+          deadlineTime = (hour < 10 ? '0' : '') + hour + ':' + (minute < 10 ? '0' : '') + minute;
+          deadline = room.voteDeadline;
+        }
+      }
+
+      // 处理海报
+      const posters = room.candidatePosters || [];
+
       this.setData({
         title: room.title || '',
-        location: room.location || {},
-        locationText: room.location?.name || '',
+        location: locationObj,
+        locationText: locationText,
         paymentMode: room.paymentMode || 'AA',
-        isAnonymous: room.isAnonymous || false
-      }, () => {
-        this.checkCanSubmit();
+        isAnonymous: room.isAnonymous || false,
+        needPassword: room.needPassword || false,
+        roomPassword: room.roomPassword || '',
+        enableRestaurantRecommend: room.enableRestaurantRecommend || false,
+        dinnerDate: dinnerDate,
+        dinnerDateRaw: dinnerDateRaw,
+        dinnerTime: dinnerTime,
+        dinnerTimeRaw: dinnerTimeRaw,
+        dinnerTimeValue: dinnerTimeValue,
+        deadlineDate: deadlineDate,
+        deadlineDateRaw: deadlineDateRaw,
+        deadlineTime: deadlineTime,
+        deadlineTimeRaw: deadlineTimeRaw,
+        deadline: deadline,
+        posters: posters,
+        // 编辑模式下初始状态设为不可提交，需要用户修改后才能提交
+        canSubmit: false,
+        isModified: false
       });
-      
-      // 处理聚餐时间
-      if (room.dinnerTime) {
-        const dinnerDate = new Date(room.dinnerTime);
-        this.setData({
-          dinnerDate: this.formatDate(dinnerDate),
-          dinnerDateRaw: dinnerDate,
-          dinnerTime: this.formatTime(dinnerDate),
-          dinnerTimeRaw: dinnerDate,
-          dinnerTimeValue: room.dinnerTime
-        });
-      }
-      
-      // 处理截止时间
-      if (room.voteDeadline) {
-        const deadlineDate = new Date(room.voteDeadline);
-        this.setData({
-          deadlineDate: this.formatDate(deadlineDate),
-          deadlineDateRaw: deadlineDate,
-          deadlineTime: this.formatTime(deadlineDate),
-          deadlineTimeRaw: deadlineDate,
-          deadline: room.voteDeadline
-        });
-      }
-      
+
       wx.hideLoading();
     } catch (err) {
       wx.hideLoading();
+      console.error('加载房间数据失败:', err);
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
     }
   },
@@ -112,14 +238,12 @@ Page({
 
   // 检查表单是否可提交
   checkCanSubmit() {
-    const hasTitle = this.data.title.trim() !== '';
-    const hasLocation = this.data.locationText.trim() !== '';
-    const hasDinnerTime = this.data.dinnerDate && this.data.dinnerTime;
-    const hasDeadline = this.data.deadlineDate && this.data.deadlineTime;
-    const canSubmit = hasTitle && hasLocation && hasDinnerTime && hasDeadline;
+    const formValid = this.canSubmit();
+    // 编辑模式下需要用户修改过数据才能提交
+    const canSubmit = this.data.isEditMode ? (formValid && this.data.isModified) : formValid;
     
     // 确保时间对象已更新
-    if (canSubmit) {
+    if (formValid) {
       this.updateDinnerTime();
       this.updateDeadline();
     }
@@ -129,6 +253,7 @@ Page({
 
   onTitleInput(e) {
     this.setData({ title: e.detail.value }, () => {
+      this.markAsModified();
       this.checkCanSubmit();
     });
   },
@@ -139,6 +264,7 @@ Page({
       locationText: e.detail.value,
       location: { name: e.detail.value }
     }, () => {
+      this.markAsModified();
       this.checkCanSubmit();
     });
   },
@@ -165,6 +291,7 @@ Page({
             longitude: res.longitude
           }
         });
+        this.markAsModified();
       },
       fail: (err) => {
         if (err.errMsg && err.errMsg.includes('cancel')) {
@@ -215,6 +342,7 @@ Page({
     // 只要有内容就更新，确保验证能通过
     let displayValue = this.formatDateDisplay(rawValue);
     this.setData({ dinnerDate: displayValue, dinnerDateRaw: rawValue }, () => {
+      this.markAsModified();
       this.checkCanSubmit();
     });
     this.updateDinnerTime();
@@ -250,6 +378,7 @@ Page({
     // 只要有内容就更新，确保验证能通过
     let displayValue = this.formatTimeDisplay(rawValue);
     this.setData({ dinnerTime: displayValue, dinnerTimeRaw: rawValue }, () => {
+      this.markAsModified();
       this.checkCanSubmit();
     });
     this.updateDinnerTime();
@@ -282,6 +411,7 @@ Page({
     // 只要有内容就更新，确保验证能通过
     let displayValue = this.formatDateDisplay(rawValue);
     this.setData({ deadlineDate: displayValue, deadlineDateRaw: rawValue }, () => {
+      this.markAsModified();
       this.checkCanSubmit();
     });
     this.updateDeadline();
@@ -314,6 +444,7 @@ Page({
     // 只要有内容就更新，确保验证能通过
     let displayValue = this.formatTimeDisplay(rawValue);
     this.setData({ deadlineTime: displayValue, deadlineTimeRaw: rawValue }, () => {
+      this.markAsModified();
       this.checkCanSubmit();
     });
     this.updateDeadline();
@@ -403,19 +534,25 @@ Page({
   onPaymentModeChange(e) {
     const mode = e.currentTarget.dataset.mode;
     this.setData({ paymentMode: mode });
+    this.markAsModified();
   },
 
   // 匿名投票切换
   onAnonymousChange(e) {
     this.setData({ isAnonymous: e.detail.value });
+    this.markAsModified();
   },
 
   // 密码开关切换
   onPasswordSwitchChange(e) {
+    const needPassword = e.detail.value;
+    // 编辑模式下保留原有密码，创建模式或关闭再打开时清空密码
+    const roomPassword = (this.data.isEditMode && needPassword) ? this.data.roomPassword : '';
     this.setData({ 
-      needPassword: e.detail.value,
-      roomPassword: ''
+      needPassword: needPassword,
+      roomPassword: roomPassword
     }, () => {
+      this.markAsModified();
       this.checkCanSubmit();
     });
   },
@@ -423,6 +560,7 @@ Page({
 // 密码输入
 onPasswordInput(e) {
 this.setData({ roomPassword: e.detail.value }, () => {
+this.markAsModified();
 this.checkCanSubmit();
 });
 },
@@ -432,6 +570,7 @@ onRecommendSwitchChange(e) {
 this.setData({
 enableRestaurantRecommend: e.detail.value
 });
+this.markAsModified();
 },
 
   canSubmit() {
@@ -475,7 +614,10 @@ enableRestaurantRecommend: e.detail.value
             dinnerTime: this.data.dinnerTimeValue,
             voteDeadline: this.data.deadline,
             paymentMode: this.data.paymentMode,
-            isAnonymous: this.data.isAnonymous
+            isAnonymous: this.data.isAnonymous,
+            needPassword: this.data.needPassword,
+            roomPassword: this.data.needPassword ? this.data.roomPassword : '',
+            enableRestaurantRecommend: this.data.enableRestaurantRecommend
           }
         });
       } else {

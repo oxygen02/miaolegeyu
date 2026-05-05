@@ -70,7 +70,24 @@ exports.main = async (event) => {
     // 如果不是创建者也不是参与者，且房间不是公开状态，则拒绝访问
     if (!isCreator && !isParticipant) {
       // 对于进行中的房间，允许任何人加入
-      // 但这里我们只返回基本信息，不返回敏感数据
+      // 拼单模式需要返回 options 以便用户选择参与
+      const isGroupMode = room.mode === 'group';
+      let groupOptionStats = [];
+      if (isGroupMode) {
+        try {
+          const { data: groupParticipants } = await db.collection('group_order_participants')
+            .where({ roomId })
+            .get();
+          const options = room.options || [];
+          groupOptionStats = options.map((opt, idx) => {
+            const count = (groupParticipants || []).filter(p => p.selectedOptionIndex === idx).length;
+            return { index: idx, count };
+          });
+        } catch (err) {
+          console.error('获取拼单统计失败:', err);
+        }
+      }
+
       return {
         code: 0,
         data: {
@@ -87,7 +104,14 @@ exports.main = async (event) => {
           isCreator: false,
           // 只返回基本的参与者统计
           totalCount: participants.length,
-          votedCount: participants.filter(p => p.status === 'voted').length
+          votedCount: participants.filter(p => p.status === 'voted').length,
+          // 拼单模式：返回选项列表和统计数据（供未加入用户选择）
+          ...(isGroupMode ? {
+            options: room.options || [],
+            optionStats: groupOptionStats,
+            shopImage: room.shopImage || '',
+            shopName: room.shopName || ''
+          } : {})
         },
         msg: '获取成功（未加入房间）'
       };
