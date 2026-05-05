@@ -245,12 +245,14 @@ class PosterGenerator {
     ctx.strokeStyle = '#FF8A65';
     ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(cx, avatarCY, avatarR + 6, 0, Math.PI * 2); ctx.stroke();
-    // 图片
+    // 图片（加载失败时绘制默认猫脸）
     if (catLogo) {
       ctx.save();
       ctx.beginPath(); ctx.arc(cx, avatarCY, avatarR, 0, Math.PI * 2); ctx.clip();
       ctx.drawImage(catLogo, cx - avatarR, avatarCY - avatarR, avatarR * 2, avatarR * 2);
       ctx.restore();
+    } else {
+      this._drawCatIcon(ctx, cx, avatarCY + 2, 22);
     }
 
     // ==================== 4. 白色大卡片 ====================
@@ -483,12 +485,14 @@ class PosterGenerator {
     ctx.strokeStyle = '#FF8A65';
     ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(cx, avatarCY, avatarR + 6, 0, Math.PI * 2); ctx.stroke();
-    // 图片
+    // 图片（加载失败时绘制默认猫脸）
     if (catLogo) {
       ctx.save();
       ctx.beginPath(); ctx.arc(cx, avatarCY, avatarR, 0, Math.PI * 2); ctx.clip();
       ctx.drawImage(catLogo, cx - avatarR, avatarCY - avatarR, avatarR * 2, avatarR * 2);
       ctx.restore();
+    } else {
+      this._drawCatIcon(ctx, cx, avatarCY + 2, 22);
     }
 
     // ==================== 4. 白色大卡片 ====================

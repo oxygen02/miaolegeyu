@@ -344,9 +344,28 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
   },
 
   // 生成结果海报（使用 poster-modal 组件）
-  showResultPoster() {
+  async showResultPoster() {
     const { room } = this.data;
     const winner = room.finalPoster || {};
+
+    // 生成小程序码
+    let qrCodeUrl = '';
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'generateQRCode',
+        data: {
+          scene: `roomId=${this.data.roomId}`,
+          page: 'pages/vote/vote',
+          width: 280
+        }
+      });
+      if (result.code === 0 && result.data) {
+        qrCodeUrl = result.data;
+      }
+    } catch (err) {
+      console.error('[result] 生成小程序码失败:', err);
+    }
+
     const posterData = {
       type: 'result',
       mode: room.mode || 'a',
@@ -364,7 +383,8 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
       roomTime: room.activityTime || winner.time || '',
       roomAddress: room.location?.name || room.location || '',
       participants: room.participants || [],
-      isAnonymous: room.isAnonymous || false
+      isAnonymous: room.isAnonymous || false,
+      qrCodeUrl: qrCodeUrl
     };
 
     this.setData({
