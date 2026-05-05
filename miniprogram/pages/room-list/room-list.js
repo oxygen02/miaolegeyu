@@ -288,7 +288,9 @@ Page({
 
   // 管理菜单相关方法
   onManageTap(e) {
-    e.stopPropagation();
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
     const { roomid } = e.currentTarget.dataset;
     this.setData({
       showActionSheet: true,
@@ -304,7 +306,9 @@ Page({
   },
 
   onActionSheetTap(e) {
-    e.stopPropagation();
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
   },
 
   onShare() {
