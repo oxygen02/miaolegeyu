@@ -89,6 +89,8 @@ Page({
   },
 
   onShow() {
+    // 每次页面显示时，重新检查登录状态（解决从设置页面退出登录后返回不刷新的问题）
+    this.checkLoginStatus();
     this.updateTabBarSelected();
     if (this.data.userInfo.isLogin) {
       this.loadStats();
@@ -125,7 +127,7 @@ Page({
     }
   },
 
-  // 登录入口 - 提供两种登录方式选择
+  // 登录入口 - 提供三种登录方式选择（统一在一个菜单）
   async wxLogin() {
     if (this.data.userInfo.isLogin) {
       // 已登录，显示操作菜单
@@ -133,34 +135,138 @@ Page({
       return;
     }
 
-    // 显示登录方式选择
+    // 显示登录方式选择（微信登录、快速体验、自定义昵称和头像）
     wx.showActionSheet({
-      itemList: ['快速体验（随机昵称）', '自定义昵称和头像'],
+      itemList: ['微信一键登录', '快速体验（随机昵称）', '自定义昵称和头像'],
       success: (res) => {
         if (res.tapIndex === 0) {
-          // 方式一：快速体验，自动生成随机昵称
-          this.quickLogin();
+          // 方式一：微信一键登录
+          this.wechatLogin();
         } else if (res.tapIndex === 1) {
-          // 方式二：先选择头像昵称，再登录
+          // 方式二：快速体验，自动生成随机昵称
+          this.quickLogin();
+        } else if (res.tapIndex === 2) {
+          // 方式三：先选择头像昵称，再登录
           this.customLogin();
         }
+      },
+      fail: () => {
+        // 用户点击取消，不做任何操作
       }
     });
+  },
+
+  // 微信登录直接入口（来自登录选择区域的直接点击）
+  wechatLoginDirect() {
+    this.wechatLogin();
+  },
+
+  // 快速体验直接入口（来自登录选择区域的直接点击）
+  quickLoginDirect() {
+    this.quickLogin();
   },
 
   // 方式一：快速体验登录
   quickLogin() {
     wx.showLoading({ title: '登录中...' });
 
+    const randomNames = ['橘喵', '胖橘', '三花', '狸花', '布偶', '英短', '美短', '暹罗', '缅因', '波斯', '金渐层', '银渐层', '蓝猫', '黑猫', '白猫'];
+    const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
     const defaultUserInfo = {
-      nickName: '喵友' + Math.floor(Math.random() * 10000),
+      nickName: randomName + Math.floor(Math.random() * 10000),
       avatarUrl: ''
     };
 
     this.doLogin(defaultUserInfo);
   },
 
-  // 方式二：自定义登录 - 先跳转到信息填写页
+  // 方式二：微信一键登录（获取微信头像和昵称）
+  wechatLogin() {
+    wx.showLoading({ title: '登录中...' });
+
+    // 调用 wx.login 获取 code
+    wx.login({
+      success: (loginRes) => {
+        if (loginRes.code) {
+          // 使用 getUserProfile 获取用户信息（新版推荐方式）
+          wx.getUserProfile({
+            desc: '用于完善用户资料',
+            success: (profileRes) => {
+              const userInfo = {
+                nickName: profileRes.userInfo.nickName,
+                avatarUrl: profileRes.userInfo.avatarUrl,
+                code: loginRes.code
+              };
+              this.doWechatLogin(userInfo);
+            },
+            fail: (err) => {
+              wx.hideLoading();
+              console.log('获取用户信息失败:', err);
+              // 用户拒绝授权，降级为快速体验
+              wx.showModal({
+                title: '提示',
+                content: '需要获取您的昵称和头像用于展示，您可以选择快速体验模式',
+                confirmText: '快速体验',
+                cancelText: '取消',
+                success: (res) => {
+                  if (res.confirm) {
+                    this.quickLogin();
+                  }
+                }
+              });
+            }
+          });
+        } else {
+          wx.hideLoading();
+          wx.showToast({ title: '登录失败', icon: 'none' });
+        }
+      },
+      fail: () => {
+        wx.hideLoading();
+        wx.showToast({ title: '登录失败', icon: 'none' });
+      }
+    });
+  },
+
+  // 微信登录执行
+  async doWechatLogin(userInfo) {
+    try {
+      // 调用云函数登录
+      const { result } = await wx.cloud.callFunction({
+        name: 'userLogin',
+        data: {
+          nickName: userInfo.nickName,
+          avatarUrl: userInfo.avatarUrl,
+          isCustom: false
+        }
+      });
+
+      wx.hideLoading();
+
+      if (result.code === 0) {
+        const userData = {
+          ...result.data,
+          isLogin: true
+        };
+
+        // 保存到本地存储
+        wx.setStorageSync('userInfo', userData);
+
+        this.setData({ userInfo: userData });
+        this.loadStats();
+
+        wx.showToast({ title: '登录成功', icon: 'success' });
+      } else {
+        wx.showToast({ title: result.msg || '登录失败', icon: 'none' });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('登录失败:', err);
+      wx.showToast({ title: '登录失败', icon: 'none' });
+    }
+  },
+
+  // 方式三：自定义登录 - 先跳转到信息填写页
   customLogin() {
     // 跳转到自定义登录页
     wx.navigateTo({
@@ -502,25 +608,29 @@ Page({
       if (result.code === 0) {
         // 处理数据，添加格式化字段
         const participated = result.data.map(item => {
-          // 格式化 voteDeadline
+          // 格式化 voteDeadline（转换为北京时间 UTC+8）
           let voteDeadlineStr = '';
           if (item.voteDeadline) {
             const date = new Date(item.voteDeadline);
             if (!isNaN(date.getTime())) {
-              const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
-              const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
-              const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
-              const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+              const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+              const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
+              const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
+              const hour = (beijingDate.getUTCHours() < 10 ? '0' : '') + beijingDate.getUTCHours();
+              const minute = (beijingDate.getUTCMinutes() < 10 ? '0' : '') + beijingDate.getUTCMinutes();
               voteDeadlineStr = `${month}-${day} ${hour}:${minute}`;
             }
           }
 
           return {
             ...item,
-            voteDeadlineStr
+            voteDeadlineStr,
+            ...this.calcDeadlineUrgent(item.voteDeadline)
           };
         });
         this.setData({ myParticipated: participated, loading: false });
+        // 启动倒计时定时器
+        this.startProfileDeadlineTimer('myParticipated');
       }
     } catch (err) {
       console.error('获取我参与的聚餐失败:', err);
@@ -534,7 +644,32 @@ Page({
     try {
       const { result } = await wx.cloud.callFunction({ name: 'getMyRooms' });
       if (result.code === 0) {
-        this.setData({ myRooms: result.data, loading: false });
+        // 前端再次格式化时间，确保北京时间显示正确
+        const formattedRooms = (result.data || []).map(room => {
+          if (room.voteDeadline) {
+            console.log('voteDeadline 原始值:', room.voteDeadline, '类型:', typeof room.voteDeadline);
+            const date = new Date(room.voteDeadline);
+            console.log('voteDeadline 解析后:', date.toISOString(), '小时:', date.getHours());
+            if (!isNaN(date.getTime())) {
+              const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+              const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
+              const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
+              const hour = (beijingDate.getUTCHours() < 10 ? '0' : '') + beijingDate.getUTCHours();
+              const minute = (beijingDate.getUTCMinutes() < 10 ? '0' : '') + beijingDate.getUTCMinutes();
+              room.voteDeadlineStr = `${month}-${day} ${hour}:${minute}`;
+              console.log('格式化后:', room.voteDeadlineStr);
+            }
+          }
+          // 打印字段信息用于调试模式判断
+          console.log('房间字段:', room.roomId, 'dinnerTime:', room.dinnerTime, 'candidatePosters:', room.candidatePosters);
+          return {
+            ...room,
+            ...this.calcDeadlineUrgent(room.voteDeadline)
+          };
+        });
+        this.setData({ myRooms: formattedRooms, loading: false });
+        // 启动倒计时定时器
+        this.startProfileDeadlineTimer('myRooms');
       }
     } catch (err) {
       console.error('获取我发起的聚餐失败:', err);
@@ -556,6 +691,72 @@ Page({
       return false;
     }
     return true;
+  },
+
+  // 计算截止时间紧急状态（≤1小时返回红色标记和倒计时文字）
+  calcDeadlineUrgent(voteDeadline) {
+    const now = Date.now();
+    const ONE_HOUR = 3600000;
+    let deadlineUrgent = false;
+    let deadlineCountdown = '';
+
+    if (voteDeadline) {
+      try {
+        const deadline = new Date(voteDeadline).getTime();
+        if (!isNaN(deadline)) {
+          const diff = deadline - now;
+          if (diff > 0 && diff <= ONE_HOUR) {
+            deadlineUrgent = true;
+            const minutes = Math.ceil(diff / 60000);
+            if (minutes >= 60) {
+              const h = Math.floor(diff / 3600000);
+              const m = Math.floor((diff % 3600000) / 60000);
+              deadlineCountdown = `剩${h}时${m}分`;
+            } else {
+              deadlineCountdown = `剩${minutes}分`;
+            }
+          } else if (diff <= 0) {
+            deadlineUrgent = true;
+            deadlineCountdown = '已截止';
+          }
+        }
+      } catch (e) {
+        // 解析失败忽略
+      }
+    }
+
+    return { deadlineUrgent, deadlineCountdown };
+  },
+
+  // 启动 profile 页面的截止时间倒计时定时器
+  startProfileDeadlineTimer(listKey) {
+    this.clearProfileDeadlineTimer();
+    this._profileDeadlineListKey = listKey;
+    this._profileDeadlineTimer = setInterval(() => {
+      const listData = this.data[listKey];
+      if (listData && listData.length > 0) {
+        const updatedList = listData.map(item => ({
+          ...item,
+          ...this.calcDeadlineUrgent(item.voteDeadline)
+        }));
+        this.setData({ [listKey]: updatedList });
+      }
+    }, 60000); // 每分钟更新一次
+  },
+
+  clearProfileDeadlineTimer() {
+    if (this._profileDeadlineTimer) {
+      clearInterval(this._profileDeadlineTimer);
+      this._profileDeadlineTimer = null;
+    }
+  },
+
+  onHide() {
+    this.clearProfileDeadlineTimer();
+  },
+
+  onUnload() {
+    this.clearProfileDeadlineTimer();
   },
 
   closeList() {
@@ -645,12 +846,50 @@ Page({
     });
   },
 
-  // 分享房间
+  // 分享房间 - 记录待分享的房间ID，提示用户使用右上角分享
   shareRoom(roomId) {
-    wx.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline']
+    this.setData({ _shareRoomId: roomId });
+    wx.showToast({
+      title: '请点击右上角 ··· 分享',
+      icon: 'none',
+      duration: 2000
     });
+  },
+
+  // 分享给朋友（页面生命周期钩子）
+  onShareAppMessage() {
+    const roomId = this.data._shareRoomId;
+    if (roomId) {
+      const room = [...(this.data.myRooms || []), ...(this.data.myParticipated || [])]
+        .find(r => r.roomId === roomId);
+      return {
+        title: room ? `「${room.title || '聚餐投票'}」快来一起选餐厅！` : '快来一起选餐厅！',
+        path: `/pages/room/join?roomCode=${roomId}`,
+        imageUrl: room?.finalPoster || (room?.candidatePosters?.[0]?.imageUrl) || ''
+      };
+    }
+    // 默认分享
+    return {
+      title: '喵了个鱼 - 聚餐投票神器',
+      path: '/pages/index/index'
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline() {
+    const roomId = this.data._shareRoomId;
+    if (roomId) {
+      const room = [...(this.data.myRooms || []), ...(this.data.myParticipated || [])]
+        .find(r => r.roomId === roomId);
+      return {
+        title: room ? `「${room.title || '聚餐投票'}」快来一起选餐厅！` : '喵了个鱼 - 聚餐投票神器',
+        query: `roomId=${roomId}`,
+        imageUrl: room?.finalPoster || ''
+      };
+    }
+    return {
+      title: '喵了个鱼 - 聚餐投票神器'
+    };
   },
 
   // 长按房间显示操作菜单
@@ -680,9 +919,45 @@ Page({
 
   // 编辑房间
   editRoom(roomId) {
-    wx.navigateTo({
-      url: `/pages/create/create?mode=edit&roomId=${roomId}`
-    });
+    // 查找房间信息以确定模式
+    const room = this.data.myRooms.find(r => r.roomId === roomId);
+    const mode = room ? room.mode : '';
+
+    console.log('编辑房间:', roomId, '找到房间:', room, 'mode:', mode);
+
+    // 将房间数据存储到本地，供编辑页面使用
+    if (room) {
+      wx.setStorageSync('editRoomData', room);
+    }
+
+    // 根据模式跳转到对应的编辑页面
+    // 优先使用 mode 字段判断：
+    // - 模式A（我选好了）：mode === 'group' 或 mode === ''（兼容旧数据）
+    // - 模式B（你们来定）：mode === 'pick_for_them'
+    // 当 mode 不可靠时，通过字段特征辅助判断：
+    // - 模式A（我选好了）：有 candidatePosters（海报）、activityDate、peopleCount
+    // - 模式B（你们来定）：没有 candidatePosters 或 candidatePosters 为空
+    const hasPosters = room && room.candidatePosters && room.candidatePosters.length > 0;
+    const hasActivityDate = room && room.activityDate;
+    const hasDinnerTime = room && room.dinnerTime;
+
+    // 优先使用 mode 字段判断
+    const isModeB = mode === 'pick_for_them';
+    const isModeA = mode === 'group' || mode === '';
+
+    if (isModeB || (hasDinnerTime && !hasPosters)) {
+      // 模式B：你们来定
+      console.log('跳转到模式B编辑页面（mode:', mode, '）');
+      wx.navigateTo({
+        url: `/pages/create-mode-b/create-mode-b?edit=true&roomId=${roomId}`
+      });
+    } else {
+      // 模式A：我选好了
+      console.log('跳转到模式A编辑页面（mode:', mode, '）');
+      wx.navigateTo({
+        url: `/pages/create-mode-a/create-mode-a?edit=true&roomId=${roomId}`
+      });
+    }
   },
 
   // 删除房间（房主）
@@ -831,10 +1106,13 @@ Page({
   formatDateTime(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
-    const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
-    const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
-    const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+    if (isNaN(date.getTime())) return '';
+    // 转换为北京时间 UTC+8
+    const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
+    const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
+    const hour = (beijingDate.getUTCHours() < 10 ? '0' : '') + beijingDate.getUTCHours();
+    const minute = (beijingDate.getUTCMinutes() < 10 ? '0' : '') + beijingDate.getUTCMinutes();
     return `${month}月${day}日 ${hour}:${minute}`;
   },
 

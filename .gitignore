@@ -1,0 +1,37 @@
+# 小程序
+miniprogram/node_modules/
+miniprogram/.DS_Store
+miniprogram/**/.DS_Store
+
+# 云函数依赖
+cloudfunctions/*/node_modules/
+cloudfunctions/*/package-lock.json
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# WorkBuddy
+.workbuddy/
+.cloudbase/
+
+# 临时文件
+*.log
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+
+# 构建产物
+dist/
+build/

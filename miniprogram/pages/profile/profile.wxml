@@ -1,16 +1,16 @@
 <view class="profile-page">
   <!-- 用户信息 -->
-  <view class="user-header" bindtap="wxLogin">
-    <view class="user-avatar">
+  <view class="user-header">
+    <view class="user-avatar" bindtap="wxLogin">
       <image src="{{userInfo.avatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit"/>
       <view class="avatar-edit" wx:if="{{userInfo.isLogin}}">更换头像</view>
       <view class="avatar-edit" wx:else>点击登录</view>
     </view>
-    <view class="user-info">
+    <view class="user-info" bindtap="wxLogin">
       <text class="user-name">{{userInfo.nickName || '点击登录'}}</text>
       <text class="user-id" wx:if="{{userInfo.isLogin}}">ID: {{userInfo.userId}}</text>
     </view>
-    <!-- 积分等级信息 -->
+    <!-- 积分等级信息（已登录时显示） -->
     <view class="user-points-section" wx:if="{{userInfo.isLogin}}">
       <view class="level-badge">
         <text class="level-name">{{userPoints.levelName}}</text>
@@ -30,6 +30,23 @@
           <view class="progress-fill" style="width: {{(userPoints.total / userPoints.nextLevelNeed) * 100}}%;"></view>
         </view>
         <text class="progress-text">{{userPoints.total}}/{{userPoints.nextLevelNeed}} 升级进度</text>
+      </view>
+    </view>
+    <!-- 登录方式选择（未登录时，嵌入橙色背景内） -->
+    <view class="login-section" wx:if="{{!userInfo.isLogin}}" catchtap="preventBubble">
+      <view class="login-btn-group">
+        <view class="login-btn wechat" bindtap="wechatLoginDirect" hover-class="login-btn-hover">
+          <text class="btn-label">微信登录</text>
+          <text class="btn-desc">一键快速登录</text>
+        </view>
+        <view class="login-btn quick" bindtap="quickLoginDirect" hover-class="login-btn-hover">
+          <text class="btn-label">快速体验</text>
+          <text class="btn-desc">游客模式浏览</text>
+        </view>
+        <view class="login-btn custom" bindtap="customLogin" hover-class="login-btn-hover">
+          <text class="btn-label">自定义</text>
+          <text class="btn-desc">设置昵称头像</text>
+        </view>
       </view>
     </view>
   </view>
@@ -107,7 +124,7 @@
           <view class="room-card" wx:for="{{myParticipated}}" wx:key="roomId" bindtap="goToRoomDetail" data-roomid="{{item.roomId}}">
             <!-- 左侧图片区域 -->
             <view class="room-poster">
-              <image src="{{item.finalPoster || (item.candidatePosters && item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || '/assets/cat-default.png'}}" mode="aspectFill"/>
+              <image src="{{item.finalPoster || (item.candidatePosters && item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || imagePaths.banners.taiyakiIcon}}" mode="aspectFill"/>
               <!-- 状态标签（毛玻璃效果） -->
               <view class="room-status {{item.status}}">
                 {{item.status === 'voting' ? '进行中' : (item.status === 'locked' ? '已锁定' : '已结束')}}
@@ -140,9 +157,9 @@
 
               <!-- 第三行：截止+房间号 -->
               <view class="info-row deadline-row">
-                <view class="meta-item deadline" wx:if="{{item.voteDeadlineStr}}">
+                <view class="meta-item deadline {{item.deadlineUrgent ? 'urgent' : ''}}" wx:if="{{item.voteDeadlineStr}}">
                   <image class="meta-icon" src="{{imagePaths.icons.deadline || '/assets/images/deadline-icon.svg'}}" mode="aspectFit" />
-                  <text>截止: {{item.voteDeadlineStr}}</text>
+                  <text>截止: {{item.voteDeadlineStr}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
                 </view>
                 <view class="room-id" wx:if="{{item.roomId}}">房间号: {{item.roomId}}</view>
               </view>
@@ -171,7 +188,7 @@
           <view class="room-card" wx:for="{{myRooms}}" wx:key="roomId" bindtap="goToRoomDetail" data-roomid="{{item.roomId}}" bindlongpress="onRoomLongPress" data-iscreator="{{item.isCreator}}">
             <!-- 左侧图片区域 -->
             <view class="room-poster">
-              <image src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || '/assets/cat-default.png'}}" mode="aspectFill"/>
+              <image src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || imagePaths.banners.taiyakiIcon}}" mode="aspectFill"/>
               <!-- 状态标签（毛玻璃效果） -->
               <view class="room-status {{item.status}}">
                 {{item.status === 'voting' ? '进行中' : (item.status === 'locked' ? '已锁定' : '已结束')}}
@@ -204,9 +221,9 @@
 
               <!-- 第三行：截止+房间号 -->
               <view class="info-row deadline-row">
-                <view class="meta-item deadline" wx:if="{{item.voteDeadlineStr}}">
+                <view class="meta-item deadline {{item.deadlineUrgent ? 'urgent' : ''}}" wx:if="{{item.voteDeadlineStr}}">
                   <image class="meta-icon" src="{{imagePaths.icons.deadline || '/assets/images/deadline-icon.svg'}}" mode="aspectFit" />
-                  <text>截止: {{item.voteDeadlineStr}}</text>
+                  <text>截止: {{item.voteDeadlineStr}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
                 </view>
                 <view class="room-id">房间号: {{item.roomId}}</view>
               </view>
@@ -255,7 +272,7 @@
           <view class="room-card" wx:for="{{myAppointments}}" wx:key="_id" bindtap="goToAppointmentDetail" data-shopid="{{item.shopId}}">
             <!-- 左侧图片区域 -->
             <view class="room-poster">
-              <image src="{{item.shopImage || item.imageUrl || '/assets/cat-default.png'}}" mode="aspectFill"/>
+              <image src="{{item.shopImage || item.imageUrl || imagePaths.banners.taiyakiIcon}}" mode="aspectFill"/>
               <!-- 状态标签（毛玻璃效果） -->
               <view class="room-status {{item.status}}">
                 {{item.status === 'active' ? '进行中' : (item.status === 'ended' ? '已结束' : '进行中')}}
@@ -319,7 +336,7 @@
           <view class="room-card favorite-card" wx:for="{{favorites}}" wx:key="_id" bindtap="goToFavoriteDetail" data-item="{{item}}">
             <!-- 左侧图片区域 -->
             <view class="room-poster">
-              <image src="{{item.displayImage || '/assets/cat-default.png'}}" mode="aspectFill"/>
+              <image src="{{item.displayImage || imagePaths.banners.taiyakiIcon}}" mode="aspectFill"/>
               <!-- 类型标签 -->
               <view class="favorite-type-tag {{item.type}}">
                 {{item.type === 'shop' ? '店铺' : '活动'}}

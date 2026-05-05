@@ -151,6 +151,68 @@
   display: block;
 }
 
+/* 登录方式选择区域（嵌在橙色头部内） */
+.login-section {
+  margin-top: 32rpx;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 32rpx;
+  box-sizing: border-box;
+}
+
+.login-btn-group {
+  display: flex;
+  gap: 16rpx;
+  width: 100%;
+}
+
+/* 登录按钮 - 白色背景，符合整体风格 */
+.login-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 8rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+  border: none;
+  line-height: 1.4;
+  font-size: inherit;
+  transition: all 0.2s ease;
+}
+
+.login-btn::after {
+  border: none;
+}
+
+.login-btn-hover {
+  transform: scale(0.96);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  background: #f8f8f8 !important;
+}
+
+/* 按钮文字 */
+.btn-label {
+  font-size: 26rpx;
+  color: #FF9F43;
+  font-weight: 600;
+  margin-bottom: 4rpx;
+}
+
+.btn-desc {
+  font-size: 18rpx;
+  color: #999;
+  line-height: 1.2;
+}
+
+/* 微信登录 - 特殊绿色 */
+.login-btn.wechat .btn-label {
+  color: #07C160;
+}
+
 /* 数据统计 - 卡片式布局 */
 .stats-section {
   margin: -20rpx 32rpx 32rpx;
@@ -488,6 +550,12 @@
 
 .meta-item.deadline text {
   color: #999999;
+}
+
+/* 截止时间紧急状态（≤1小时红色） */
+.meta-item.deadline.urgent text {
+  color: #FF3B30;
+  font-weight: 600;
 }
 
 .meta-icon {

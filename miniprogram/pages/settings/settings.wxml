@@ -6,13 +6,13 @@
   </view>
 
   <!-- 用户信息区域 -->
-  <view class="user-section">
-    <view class="user-avatar" bindtap="changeAvatar">
+  <view class="user-section" bindtap="onUserTap">
+    <view class="user-avatar">
       <image src="{{userInfo.avatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFill"/>
-      <view class="avatar-edit">更换头像</view>
+      <view class="avatar-edit">{{userInfo.isLogin ? '更换头像' : '点击登录'}}</view>
     </view>
     <view class="user-info">
-      <text class="user-name" bindtap="editNickName">{{userInfo.nickName || '未登录'}}</text>
+      <text class="user-name">{{userInfo.nickName || '未登录'}}</text>
       <text class="user-id" wx:if="{{userInfo.isLogin}}">ID: {{userInfo.userId}}</text>
     </view>
   </view>
