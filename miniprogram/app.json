@@ -39,10 +39,19 @@
     "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "/pages/index/index", "text": "首页" },
-      { "pagePath": "/pages/fish-tank/fish-tank", "text": "喵不喵" },
-      { "pagePath": "/pages/profile/profile", "text": "我的" }
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/fish-tank/fish-tank", "text": "喵不喵" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
     ]
+  },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation"
+  ],
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于推荐附近的餐厅"
+    }
   },
   "sitemapLocation": "sitemap.json"
 }

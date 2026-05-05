@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海报预览模拟器 - 喵了个鱼</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', sans-serif; background: #f5f0e8; padding: 20px; }
+  h1 { text-align: center; color: #FF9F43; margin-bottom: 8px; font-size: 24px; }
+  .subtitle { text-align: center; color: #999; margin-bottom: 20px; font-size: 14px; }
+  .controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+  button { padding: 10px 20px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: all 0.2s; }
+  button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .btn-share { background: #FF9F43; color: white; }
+  .btn-result { background: #E8913A; color: white; }
+  .btn-save { background: #4CAF50; color: white; }
+  .canvas-wrap { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px; }
+  .canvas-box { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .canvas-box h3 { text-align: center; margin-bottom: 10px; color: #666; font-size: 14px; }
+  canvas { display: block; border: 1px solid #eee; border-radius: 8px; max-width: 100%; }
+</style>
+</head>
+<body>
+
+<h1>喵了个鱼 - 海报预览模拟器</h1>
+<p class="subtitle">设计哲学重构 | Canvas 2D 绘制逻辑</p>
+
+<div class="controls">
+  <button class="btn-share" onclick="drawSharePoster()">邀请投票海报</button>
+  <button class="btn-result" onclick="drawResultPoster()">投票结果海报</button>
+  <button class="btn-save" onclick="saveImage()">保存图片</button>
+</div>
+
+<div class="canvas-wrap">
+  <div class="canvas-box">
+    <h3 id="posterTitle">邀请投票海报 (750x1200)</h3>
+    <canvas id="posterCanvas" width="750" height="1200"></canvas>
+  </div>
+</div>
+
+<script>
+const shareData = {
+  roomTitle: '周五团队聚餐',
+  roomCode: '888666',
+  roomPassword: '1234',
+  needPassword: true,
+  roomTime: '5月9日 18:30',
+  roomAddress: '望京SOHO T1 B1层',
+  qrCodeUrl: ''
+};
+
+const resultData = {
+  winner: {
+    name: '海底捞火锅（望京店）',
+    image: '',
+    address: '望京SOHO T1 B1层',
+    category: '火锅',
+    price: 120,
+    voteCount: 8,
+    votePercent: 67
+  },
+  roomTitle: '周五团队聚餐',
+  roomTime: '5月9日 18:30',
+  roomAddress: '望京SOHO T1 B1层',
+  participants: [{},{},{},{},{},{},{},{}],
+  isAnonymous: false,
+  mode: 'a',
+  finalPoster: { imageUrl: '' }
+};
+
+let currentType = 'share';
+
+function $(id) { return document.getElementById(id); }
+
+// 圆角矩形（填充）
+function roundRect(ctx, x, y, w, h, r, color) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+  if (color) { ctx.fillStyle = color; ctx.fill(); }
+  ctx.restore();
+}
+
+// 圆角矩形路径（仅描边/clip）
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// 文字换行绘制（返回最后一行底部的 Y + lineHeight）
+// 注意：调用前必须先设置好 ctx.font
+function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+  maxLines = maxLines || 99;
+  var chars = String(text).split('');
+  var line = '';
+  var lineY = y;
+  var lineCount = 0;
+  var totalChars = chars.length;
+  var processed = 0;
+
+  for (var i = 0; i < totalChars; i++) {
+    var testLine = line + chars[i];
+    if (ctx.measureText(testLine).width > maxWidth && line.length > 0) {
+      ctx.fillText(line, x, lineY);
+      line = '';
+      lineY += lineHeight;
+      lineCount++;
+      if (lineCount >= maxLines) break;
+    }
+    line += chars[i];
+    processed = i + 1;
+  }
+  // 最后一行
+  if (lineCount < maxLines) {
+    ctx.fillText(line, x, lineY);
+  } else if (processed < totalChars) {
+    // 截断 + 省略号
+    var remaining = line;
+    for (var j = processed; j < totalChars; j++) { remaining += chars[j]; }
+    var ellipsis = '...';
+    while (remaining.length > 1 && ctx.measureText(remaining + ellipsis).width > maxWidth) {
+      remaining = remaining.slice(0, -1);
+    }
+    if (remaining.length > 0) {
+      ctx.fillText(remaining + ellipsis, x, lineY);
+    }
+  }
+  return lineY + lineHeight;
+}
+
+// 信息行绘制（标签 + 值，居中对齐）
+function drawInfoRow(ctx, label, value, x, y, labelSize, valueSize, labelColor, valueColor) {
+  ctx.font = labelSize + 'px sans-serif';
+  ctx.fillStyle = labelColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(label, x, y);
+  ctx.font = 'bold ' + valueSize + 'px sans-serif';
+  ctx.fillStyle = valueColor;
+  ctx.fillText(value, x, y + valueSize + 8);
+  return y + valueSize + 8 + 16;
+}
+
+// ========== 设计哲学 ==========
+// 信息密度：高（邀请海报）/ 中（结果海报）
+// 层次：标题层 > 数据层 > 辅助层
+// 节奏：元素间用 padding 而非 margin，信息紧凑但呼吸感充足
+// 色彩：主色 #FF9F43 暖橙，辅色 #3D3D3D 深灰，底色 #FFF8F0 暖白
+// 字号比：标题 40 : 副标题 28 : 正文 24 : 辅助 20 = 10 : 7 : 6 : 5
+
+// ========== 邀请投票海报 ==========
+function drawSharePoster() {
+  currentType = 'share';
+  var canvas = $('posterCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = 750, H = 1200;
+  canvas.width = W; canvas.height = H;
+  $('posterTitle').textContent = '邀请投票海报 (750x1200)';
+  ctx.clearRect(0, 0, W, H);
+
+  // -- 背景层 --
+  ctx.fillStyle = '#FFF8F0';
+  ctx.fillRect(0, 0, W, H);
+
+  // -- 顶部色带：温暖的橙色标题区 --
+  roundRect(ctx, 0, 0, W, 200, 0, '#FF9F43');
+
+  // 标题文字
+  ctx.font = 'bold 40px sans-serif';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('一起来投票选餐厅', W / 2, 80);
+
+  // 活动名称
+  ctx.font = '28px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.fillText(shareData.roomTitle || '聚餐投票', W / 2, 130);
+
+  // 品牌标记线
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.fillRect(W / 2 - 40, 158, 80, 3);
+
+  // -- 主信息卡片 --
+  var cardX = 40, cardY = 230, cardW = W - 80, cardH = 700;
+  roundRect(ctx, cardX, cardY, cardW, cardH, 20, '#FFFFFF');
+
+  // 卡片内边距
+  var pad = 50;
+  var cx = W / 2; // 中心 X
+  var cy = cardY + 40; // 起始 Y
+
+  // 品牌文字图标
+  ctx.fillStyle = '#FFF5E9';
+  ctx.beginPath();
+  ctx.arc(cx, cy + 40, 48, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.font = 'bold 40px sans-serif';
+  ctx.fillStyle = '#FF9F43';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('喵', cx, cy + 43);
+
+  // 分隔线
+  cy += 110;
+  ctx.fillStyle = '#F0EBE4';
+  ctx.fillRect(pad + 40, cy, cardW - pad * 2 - 80, 1);
+
+  // 房间号区块
+  cy += 35;
+  ctx.font = '20px sans-serif';
+  ctx.fillStyle = '#AAAAAA';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('房间号', cx, cy);
+
+  cy += 14;
+  ctx.font = 'bold 64px sans-serif';
+  ctx.fillStyle = '#3D3D3D';
+  ctx.fillText(shareData.roomCode || '000000', cx, cy + 56);
+
+  // 密码区块（如果有）
+  cy += 80;
+  if (shareData.needPassword && shareData.roomPassword) {
+    // 密码背景胶囊
+    var pwdText = shareData.roomPassword;
+    ctx.font = 'bold 36px sans-serif';
+    var pwdW = ctx.measureText(pwdText).width;
+    var capsuleW = pwdW + 60;
+    roundRect(ctx, cx - capsuleW / 2, cy, capsuleW, 56, 28, '#FFF5E9');
+    ctx.fillStyle = '#FF9F43';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(pwdText, cx, cy + 28);
+    cy += 56;
+    // 密码标签
+    ctx.font = '18px sans-serif';
+    ctx.fillStyle = '#BBBBBB';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('房间密码', cx, cy + 16);
+    cy += 40;
+  }
+
+  // 分隔线
+  ctx.fillStyle = '#F0EBE4';
+  ctx.fillRect(pad + 40, cy, cardW - pad * 2 - 80, 1);
+  cy += 35;
+
+  // 时间地点信息
+  // 时间
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = '#AAAAAA';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('时间', cx, cy + 10);
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillStyle = '#3D3D3D';
+  ctx.fillText(shareData.roomTime || '时间待定', cx, cy + 40);
+  cy += 65;
+
+  // 地点
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = '#AAAAAA';
+  ctx.fillText('地点', cx, cy + 10);
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillStyle = '#3D3D3D';
+  ctx.fillText(shareData.roomAddress || '地点待定', cx, cy + 40);
+
+  // -- 小程序码区域（卡片内底部） --
+  var qrAreaY = cardY + cardH - 170;
+  // 分隔线
+  ctx.fillStyle = '#F0EBE4';
+  ctx.fillRect(pad + 40, qrAreaY, cardW - pad * 2 - 80, 1);
+
+  // QR码圆
+  var qrCY = qrAreaY + 90;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.arc(cx, qrCY, 56, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#EEEEEE';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.font = '16px sans-serif';
+  ctx.fillStyle = '#CCCCCC';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('小程序码', cx, qrCY);
+
+  // 底部提示（卡片内）
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = '#BBBBBB';
+  ctx.textBaseline = 'top';
+  ctx.fillText('长按识别小程序码进入投票', cx, qrCY + 68);
+
+  // -- 底部品牌 --
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = '#D4C8B8';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('喵了个鱼', W / 2, H - 40);
+}
+
+// ========== 投票结果海报 ==========
+function drawResultPoster() {
+  currentType = 'result';
+  var canvas = $('posterCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = 750, H = 1200;
+  canvas.width = W; canvas.height = H;
+  $('posterTitle').textContent = '投票结果海报 (750x1200)';
+  ctx.clearRect(0, 0, W, H);
+
+  // -- 背景层 --
+  ctx.fillStyle = '#FFF8F0';
+  ctx.fillRect(0, 0, W, H);
+
+  // -- 顶部色带 --
+  roundRect(ctx, 0, 0, W, 200, 0, '#FF9F43');
+
+  // 标题
+  ctx.font = 'bold 44px sans-serif';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('聚餐地点已定', W / 2, 80);
+
+  // 活动名称
+  ctx.font = '28px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.fillText(resultData.roomTitle || '聚餐投票', W / 2, 128);
+
+  // 品牌标记线
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.fillRect(W / 2 - 40, 158, 80, 3);
+
+  // -- 主信息卡片 --
+  var cardX = 40, cardY = 230, cardW = W - 80, cardH = 890;
+  roundRect(ctx, cardX, cardY, cardW, cardH, 20, '#FFFFFF');
+
+  var pad = 50;
+  var cx = W / 2;
+
+  // 餐厅图片区域
+  var imgX = 70, imgY = 260, imgW = W - 140, imgH = 340;
+  roundRect(ctx, imgX, imgY, imgW, imgH, 16, '#F0F0F0');
+  ctx.font = '24px sans-serif';
+  ctx.fillStyle = '#CCCCCC';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('餐厅图片区域', cx, imgY + imgH / 2);
+
+  // 餐厅名称（先设置字体，再调用 wrapText）
+  var nameStartY = imgY + imgH + 30; // 630
+  ctx.font = 'bold 38px sans-serif';
+  ctx.fillStyle = '#3D3D3D';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  var nameEndY = wrapText(ctx, resultData.winner.name || '未知餐厅', pad, nameStartY, W - pad * 2, 48, 2);
+
+  // 地址 · 分类
+  var infoY = nameEndY + 8;
+  ctx.font = '22px sans-serif';
+  ctx.fillStyle = '#AAAAAA';
+  ctx.textAlign = 'center';
+  ctx.fillText((resultData.winner.address || '') + ' \u00B7 ' + (resultData.winner.category || '美食'), cx, infoY);
+
+  // 价格标签
+  infoY += 30;
+  var priceTag = '\u4EBA\u5747\u00A5' + (resultData.winner.price || '--');
+  ctx.font = 'bold 24px sans-serif';
+  var pW = ctx.measureText(priceTag).width + 36;
+  roundRect(ctx, (W - pW) / 2, infoY, pW, 40, 20, '#FFF5E9');
+  ctx.fillStyle = '#FF9F43';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(priceTag, cx, infoY + 20);
+
+  // 分隔线
+  infoY += 60;
+  ctx.fillStyle = '#F0EBE4';
+  ctx.fillRect(pad + 40, infoY, cardW - pad * 2 - 80, 1);
+
+  // 投票结果数据
+  infoY += 50;
+  ctx.font = 'bold 72px sans-serif';
+  ctx.fillStyle = '#FF9F43';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText((resultData.winner.voteCount || 0) + '\u7968', cx, infoY + 64);
+
+  infoY += 80;
+  ctx.font = '22px sans-serif';
+  ctx.fillStyle = '#AAAAAA';
+  ctx.fillText('\u652F\u6301\u7387 ' + (resultData.winner.votePercent || 0) + '% \u00B7 ' + (resultData.participants.length || 0) + '\u4EBA\u53C2\u4E0E', cx, infoY + 10);
+
+  // 进度条
+  infoY += 35;
+  var barW = cardW - pad * 2 - 80;
+  var barX = (W - barW) / 2;
+  roundRectPath(ctx, barX, infoY, barW, 12, 6);
+  ctx.fillStyle = '#F0EBE4';
+  ctx.fill();
+  var progress = Math.max(0, (resultData.winner.votePercent || 0)) / 100;
+  if (progress > 0) {
+    roundRectPath(ctx, barX, infoY, Math.max(12, barW * progress), 12, 6);
+    ctx.fillStyle = '#FF9F43';
+    ctx.fill();
+  }
+
+  // 时间
+  infoY += 40;
+  ctx.font = '22px sans-serif';
+  ctx.fillStyle = '#AAAAAA';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('\u65F6\u95F4: ' + (resultData.roomTime || '\u5F85\u5B9A\u65F6\u95F4'), cx, infoY + 10);
+
+  // 匿名模式提示
+  if (resultData.isAnonymous) {
+    infoY += 35;
+    roundRect(ctx, (W - 280) / 2, infoY, 280, 40, 10, '#F8F4FC');
+    ctx.font = '20px sans-serif';
+    ctx.fillStyle = '#9B59B6';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('\u672C\u6B21\u6295\u7968\u4E3A\u533F\u540D\u6A21\u5F0F', cx, infoY + 20);
+  }
+
+  // -- 小程序码区域 --
+  var qrAreaY = cardY + cardH - 130;
+  ctx.fillStyle = '#F0EBE4';
+  ctx.fillRect(pad + 40, qrAreaY, cardW - pad * 2 - 80, 1);
+
+  var qrCY = qrAreaY + 70;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.arc(cx, qrCY, 44, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#EEEEEE';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.font = '14px sans-serif';
+  ctx.fillStyle = '#CCCCCC';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('\u5C0F\u7A0B\u5E8F\u7801', cx, qrCY);
+
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = '#BBBBBB';
+  ctx.textBaseline = 'top';
+  ctx.fillText('\u957F\u6309\u8BC6\u522B\u5C0F\u7A0B\u5E8F\u7801\u67E5\u770B\u8BE6\u60C5', cx, qrCY + 54);
+
+  // -- 底部品牌 --
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = '#D4C8B8';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('喵了个鱼', W / 2, H - 40);
+}
+
+function saveImage() {
+  var canvas = $('posterCanvas');
+  var link = document.createElement('a');
+  link.download = 'poster_' + currentType + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+drawSharePoster();
+</script>
+</body>
+</html>

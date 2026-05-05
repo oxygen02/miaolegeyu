@@ -1,5 +1,6 @@
 const { imagePaths } = require('../../config/imageConfig');
 const audioManager = require('../../utils/audioManager');
+const { withLock } = require('../../utils/debounce');
 
 Page({
   data: {
@@ -44,6 +45,8 @@ Page({
       this.setData({ viewMode: 'group' });
     }
     this.loadData();
+    // 防抖：加入活动
+    this._lockedJoinActivity = withLock(this.joinActivity.bind(this));
   },
 
   onShow() {

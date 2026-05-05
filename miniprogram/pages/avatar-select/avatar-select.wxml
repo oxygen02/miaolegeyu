@@ -22,7 +22,7 @@
       confirm-type="search"
       bindconfirm="onSearch"
     />
-    <view class="search-btn" bindtap="onSearch">🔍</view>
+    <image class="search-btn" src="{{imagePaths.icons.search || '/assets/images/search.png'}}" mode="aspectFit" bindtap="onSearch" />
   </view>
 
   <!-- 头像网格 -->

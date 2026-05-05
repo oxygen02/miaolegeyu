@@ -1,6 +1,9 @@
+const { imagePaths } = require('../../config/imageConfig');
+
 Page({
   data: {
     avatars: [],
+    allAvatars: [], // 全量数据，用于前端搜索过滤
     currentCategory: '',
     keyword: '',
     selectedAvatar: '',
@@ -9,6 +12,7 @@ Page({
     pageSize: 200, // 一次性加载所有头像（174个）
     hasMore: true,
     loading: false,
+    imagePaths: imagePaths,
     // 登录模式相关
     isLoginMode: false,
     nickName: '',
@@ -30,7 +34,11 @@ Page({
   async loadAvatars(reset = false) {
     if (this.data.loading) return;
 
-    const page = reset ? 1 : this.data.page;
+    // 如果已有全量数据，直接做前端过滤
+    if (this.data.allAvatars.length > 0 && !reset) {
+      this.filterAvatars();
+      return;
+    }
 
     this.setData({ loading: true });
 
@@ -40,7 +48,7 @@ Page({
         data: {
           category: this.data.currentCategory,
           keyword: this.data.keyword,
-          page,
+          page: 1,
           pageSize: this.data.pageSize
         }
       });
@@ -49,22 +57,17 @@ Page({
         throw new Error(result.msg);
       }
 
-      let { avatars, hasMore } = result.data;
+      let { avatars } = result.data;
 
       // 处理头像图片路径 - 转换为 cloud:// 格式
-      // 格式: cloud://环境ID.存储空间/文件路径
       const ENV_ID = 'cloud1-d5ggnf5wh2d872f3c';
-      const STORAGE_NAME = '636c-cloud1-d5ggnf5wh2d872f3c-1423896909'; // 从截图中看到的存储空间名称
+      const STORAGE_NAME = '636c-cloud1-d5ggnf5wh2d872f3c-1423896909';
       avatars = avatars.map(item => {
-        console.log('Processing avatar:', item.name, 'cloudPath:', item.cloudPath, 'current imageUrl:', item.imageUrl);
-        // 如果已经有 http 或 cloud:// 链接，直接使用
         if (item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('cloud://'))) {
           return item;
         }
-        // 使用 cloudPath 构建 cloud:// 路径
         if (item.cloudPath) {
           const newImageUrl = `cloud://${ENV_ID}.${STORAGE_NAME}/${item.cloudPath}`;
-          console.log('New imageUrl:', newImageUrl);
           return {
             ...item,
             imageUrl: newImageUrl
@@ -73,14 +76,21 @@ Page({
         return item;
       });
 
+      // 去掉名称前面的 "XX_" 序号前缀，保留文字和文字后的数字
+      avatars = avatars.map(item => {
+        if (item.name) {
+          item.name = item.name.replace(/^\d{2}_/, '');
+        }
+        return item;
+      });
+
+      // 保存到全量数据
       this.setData({
-        avatars: reset ? avatars : [...this.data.avatars, ...avatars],
-        hasMore,
-        page: page + 1,
+        allAvatars: avatars,
         loading: false
       }, () => {
-        // 确认数据已更新
-        console.log('setData completed, first avatar imageUrl:', this.data.avatars[0]?.imageUrl);
+        // 过滤并显示
+        this.filterAvatars();
       });
     } catch (err) {
       console.error('加载头像失败:', err);
@@ -92,31 +102,46 @@ Page({
     }
   },
 
+  // 前端过滤头像（按分类 + 关键词）
+  filterAvatars() {
+    let filtered = this.data.allAvatars;
+
+    // 按分类过滤
+    if (this.data.currentCategory) {
+      filtered = filtered.filter(item => item.category === this.data.currentCategory);
+    }
+
+    // 按关键词过滤（搜索名称）
+    if (this.data.keyword && this.data.keyword.trim()) {
+      const kw = this.data.keyword.trim().toLowerCase();
+      filtered = filtered.filter(item =>
+        (item.name && item.name.toLowerCase().includes(kw)) ||
+        (item.category && item.category.toLowerCase().includes(kw))
+      );
+    }
+
+    this.setData({
+      avatars: filtered,
+      hasMore: false
+    });
+  },
+
   // 选择分类
   selectCategory(e) {
     const category = e.currentTarget.dataset.category;
-    this.setData({
-      currentCategory: category,
-      page: 1,
-      avatars: []
-    });
-    this.loadAvatars(true);
+    this.setData({ currentCategory: category });
+    this.filterAvatars();
   },
 
-  // 搜索输入
+  // 搜索输入（实时搜索）
   onSearchInput(e) {
-    this.setData({
-      keyword: e.detail.value
-    });
+    this.setData({ keyword: e.detail.value });
+    this.filterAvatars();
   },
 
-  // 执行搜索
+  // 执行搜索（保留兼容）
   onSearch() {
-    this.setData({
-      page: 1,
-      avatars: []
-    });
-    this.loadAvatars(true);
+    this.filterAvatars();
   },
 
   // 选择头像
@@ -197,8 +222,9 @@ Page({
           isLogin: true
         };
 
-        // 保存到本地存储
-        wx.setStorageSync('userInfo', userData);
+        // 保存到本地存储，使用 auth 模块
+        const auth = require('../../utils/auth');
+        auth.setUserInfo(userData);
 
         wx.showToast({ title: '登录成功', icon: 'success' });
 
@@ -244,10 +270,11 @@ Page({
         throw new Error(result.msg || '更新失败');
       }
 
-      // 保存到本地存储
-      const userInfo = wx.getStorageSync('userInfo') || {};
+      // 保存到本地存储，使用 auth 模块
+      const auth = require('../../utils/auth');
+      const userInfo = auth.getUserInfo() || {};
       userInfo.avatarUrl = this.data.selectedAvatarUrl;
-      wx.setStorageSync('userInfo', userInfo);
+      auth.setUserInfo(userInfo);
 
       // 返回上一页
       const pages = getCurrentPages();

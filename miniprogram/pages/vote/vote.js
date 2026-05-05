@@ -1,6 +1,7 @@
 const app = getApp();
 const { cuisineCategories } = require('../../data/cuisineCategories.js');
 const audioManager = require('../../utils/audioManager');
+const { withLock } = require('../../utils/debounce');
 
 const { imagePaths } = require('../../config/imageConfig');
 
@@ -59,7 +60,10 @@ Page({
     showPasswordModal: false,
     inputPassword: '',
     needPassword: false,
-    isJoining: false
+    isJoining: false,
+    // 海报分享相关
+    showPosterModal: false,
+    posterData: null
   },
 
   onLoad(options) {
@@ -73,10 +77,9 @@ Page({
       }
     });
 
-    const { roomId, mock, mode: mockMode } = options;
+    const { roomId } = options;
     console.log('=== vote onLoad ===');
     console.log('options:', options);
-    console.log('roomId:', roomId, 'mock:', mock, 'mockMode:', mockMode);
     this.setData({ roomId });
 
     // 获取屏幕宽度
@@ -88,22 +91,19 @@ Page({
     // 双击检测
     this.lastTap = 0;
 
-    if (mock === 'true' || mock === true || mock === '1') {
-      const mode = mockMode || 'a';
-      console.log('进入模拟模式，mode:', mode);
-      this.loadMockData(mode);
+    // 防抖：提交投票
+    this._lockedDoSubmitVote = withLock(this.doSubmitVote.bind(this));
+
+    // 先尝试恢复本地状态
+    const hasRestored = this.restoreVoteState(roomId);
+    console.log('restoreVoteState 结果:', hasRestored);
+    if (!hasRestored) {
+      console.log('未恢复本地状态，调用 loadRoomData');
+      this.loadRoomData(roomId);
     } else {
-      console.log('正常加载房间数据，mock:', mock);
-      // 先尝试恢复本地状态
-      const hasRestored = this.restoreVoteState(roomId);
-      console.log('restoreVoteState 结果:', hasRestored);
-      if (!hasRestored) {
-        console.log('未恢复本地状态，调用 loadRoomData');
-        this.loadRoomData(roomId);
-      } else {
-        console.log('已恢复本地状态，跳过 loadRoomData');
-      }
+      console.log('已恢复本地状态，跳过 loadRoomData');
     }
+    this._timers = [];
   },
 
   onShow() {
@@ -242,108 +242,12 @@ Page({
     console.log('投票状态已清除');
   },
 
-  loadMockData(mode = 'a') {
-    console.log('loadMockData 被调用，mode:', mode);
-
-    // 模拟房间ID
-    const mockRoomId = 'mock-room-' + Date.now();
-    this.setData({ roomId: mockRoomId });
-
-    if (mode === 'b') {
-      const categoryCards = cuisineCategories.map((cat, index) => ({
-        ...cat,
-        index,
-        status: '',
-        isVetoed: false,
-        isSelected: false,
-        darkColor: cat.darkColor || cat.color
-      }));
-
-      const mockRoom = {
-        _id: mockRoomId,
-        title: '模拟聚餐投票 - 选偏好',
-        mode: 'b',
-        status: 'voting'
-      };
-
-      console.log('设置模式B数据，categoryCards数量:', categoryCards.length);
-      this.setData({
-        room: mockRoom,
-        mode: 'b',
-        categoryCards,
-        currentStep: 'category',
-        selectedCategoryIds: [],
-        selectedSubCategories: {},
-        posters: [],
-        currentIndex: 0,
-        categoryCurrentIndex: 0,
-        subCategoryCurrentIndex: 0
-      });
-    } else {
-      // 使用在线图片作为模拟数据（确保图片可以正常显示）
-      const mockPosters = [
-        {
-          index: 0,
-          imageUrl: 'https://picsum.photos/400/600?random=1',
-          platformSource: 'meituan',
-          shopName: '海底捞火锅',
-          status: '',
-          isVetoed: false,
-          isLiked: false,
-          isFav: false
-        },
-        {
-          index: 1,
-          imageUrl: 'https://picsum.photos/400/600?random=2',
-          platformSource: 'dianping',
-          shopName: '西贝莜面村',
-          status: '',
-          isVetoed: false,
-          isLiked: false,
-          isFav: false
-        },
-        {
-          index: 2,
-          imageUrl: 'https://picsum.photos/400/600?random=3',
-          platformSource: 'meituan',
-          shopName: '太二酸菜鱼',
-          status: '',
-          isVetoed: false,
-          isLiked: false,
-          isFav: false
-        },
-        {
-          index: 3,
-          imageUrl: 'https://picsum.photos/400/600?random=4',
-          platformSource: 'dianping',
-          shopName: '点都德',
-          status: '',
-          isVetoed: false,
-          isLiked: false,
-          isFav: false
-        }
-      ];
-
-      const mockRoom = {
-        _id: mockRoomId,
-        title: '模拟聚餐投票 - 选饭店',
-        mode: 'a',
-        status: 'voting'
-      };
-
-      console.log('设置模式A数据，posters数量:', mockPosters.length);
-      this.setData({
-        room: mockRoom,
-        posters: mockPosters,
-        mode: 'a',
-        currentIndex: 0,
-        categoryCurrentIndex: 0,
-        subCategoryCurrentIndex: 0
-      });
-    }
-  },
-
   onUnload() {
+    // 清理所有定时器，防止内存泄漏
+    if (this._timers && this._timers.length > 0) {
+      this._timers.forEach(t => clearTimeout(t));
+      this._timers = [];
+    }
   },
 
   async loadRoomData(roomId) {
@@ -490,9 +394,11 @@ Page({
         });
         wx.showToast({ title: '加入成功', icon: 'success' });
         // 重新加载房间数据
-        setTimeout(() => {
+        const pwTimer = setTimeout(() => {
           this.loadRoomData(roomId);
         }, 1000);
+        this._timers = this._timers || [];
+        this._timers.push(pwTimer);
       } else {
         wx.showToast({ title: result.msg || '密码错误', icon: 'none' });
       }
@@ -613,12 +519,14 @@ Page({
 
     // 3秒后隐藏爱心猫咪
     if (!isLiked) {
-      setTimeout(() => {
+      const loveTimer = setTimeout(() => {
         this.setData({
           showLoveCat: false,
           loveCatIndex: -1
         });
       }, 3000);
+      this._timers = this._timers || [];
+      this._timers.push(loveTimer);
     }
 
     this.updateCanSubmit();
@@ -1360,29 +1268,12 @@ Page({
       };
     }
 
-    this.doSubmitVote(voteData);
+    this._lockedDoSubmitVote(voteData);
   },
 
   async doSubmitVote(voteData) {
     try {
       wx.showLoading({ title: '提交中' });
-
-      // 检查是否是模拟模式
-      if (this.data.roomId && this.data.roomId.startsWith('mock-room-')) {
-        // 模拟模式下，模拟提交成功
-        wx.hideLoading();
-        wx.showToast({ title: '模拟投票成功', icon: 'success' });
-
-        // 清除本地状态
-        this.clearVoteState(this.data.roomId);
-
-        setTimeout(() => {
-          wx.redirectTo({
-            url: `/pages/result/result?roomId=${this.data.roomId}&mock=true`
-          });
-        }, 1500);
-        return;
-      }
 
       const { result } = await wx.cloud.callFunction({
         name: 'submitVote',
@@ -1401,11 +1292,13 @@ Page({
         // 提交成功后清除本地状态
         this.clearVoteState(this.data.roomId);
 
-        setTimeout(() => {
+        const submitTimer = setTimeout(() => {
           wx.redirectTo({
             url: `/pages/result/result?roomId=${this.data.roomId}`
           });
         }, 1500);
+        this._timers = this._timers || [];
+        this._timers.push(submitTimer);
       } else {
         throw new Error(result.error || result.msg);
       }
@@ -1646,5 +1539,80 @@ Page({
       title: newIsFav ? '已收藏' : '取消收藏',
       icon: 'success'
     });
+  },
+
+  // ========== 海报分享功能 ==========
+
+  // 显示邀请投票海报
+  showSharePoster() {
+    const { room } = this.data;
+    // 处理 address 可能是对象的情况
+    let address = room.address || room.location || '';
+    if (address && typeof address === 'object') {
+      address = address.name || address.title || address.address || '';
+    }
+
+    const posterData = {
+      type: 'share',
+      roomTitle: room.title || '聚餐投票',
+      roomCode: room.roomCode || room.code || '',
+      roomPassword: room.password || '',
+      needPassword: room.needPassword || false,
+      roomTime: room.mealTime || room.activityTime || '',
+      roomAddress: address,
+      qrCodeUrl: ''
+    };
+
+    this.setData({
+      posterData,
+      showPosterModal: true
+    });
+
+    // 尝试生成小程序码
+    if (this.data.roomId) {
+      this.generateVoteQRCode();
+    }
+
+    console.log('[vote] 显示邀请投票海报');
+  },
+
+  // 生成小程序码（用于海报）
+  async generateVoteQRCode() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'generateQRCode',
+        data: {
+          scene: `roomId=${this.data.roomId}`,
+          page: 'pages/vote/vote',
+          width: 280
+        }
+      });
+      if (result.code === 0 && result.data) {
+        // 更新 posterData 中的小程序码
+        this.setData({
+          'posterData.qrCodeUrl': result.data
+        });
+      }
+    } catch (err) {
+      console.error('[vote] 生成小程序码失败:', err);
+    }
+  },
+
+  // 海报弹窗关闭
+  onPosterClose() {
+    this.setData({
+      showPosterModal: false,
+      posterData: null
+    });
+  },
+
+  // 海报保存成功
+  onPosterSave(e) {
+    console.log('[vote] 海报已保存');
+  },
+
+  // 海报分享给好友
+  onPosterShareFriend(e) {
+    console.log('[vote] 海报已分享');
   }
 });

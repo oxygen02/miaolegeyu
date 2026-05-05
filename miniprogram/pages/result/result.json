@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "结果通知"
+  "navigationBarTitleText": "结果通知",
+  "usingComponents": {
+    "poster-modal": "../../components/poster-modal/poster-modal"
+  }
 }

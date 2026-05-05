@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海报 V8.1 修复溢出</title>
+<style>
+  * { margin:0; padding:0; box-sizing: border-box; }
+  body {
+    background: #F0EBE4;
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+    padding: 30px 16px;
+  }
+  .page-title { text-align: center; color: #2D2018; font-size: 22px; font-weight: bold; margin-bottom: 8px; }
+  .page-sub { text-align: center; color: #999488; font-size: 13px; margin-bottom: 36px; line-height: 1.6; }
+  .section { display: flex; flex-direction: column; align-items: center; gap: 50px; }
+  .label { font-size: 16px; font-weight: bold; color: #5D4037; margin-bottom: 10px; }
+  canvas { box-shadow: 0 16px 48px rgba(0,0,0,0.12); border-radius: 8px; }
+  .debug-info {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px 24px;
+    margin-top: 20px;
+    max-width: 750px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 14px;
+    color: #555;
+  }
+</style>
+</head>
+<body>
+<div class="page-title">海报 V8.1 - 修复溢出</div>
+<div class="page-sub">进度条自适应票数宽度 / 新文件名绕过缓存</div>
+<div class="section">
+  <div>
+    <div class="label">结果海报 V8.1</div>
+    <canvas id="result" width="750" height="1080" style="width:375px;height:540px;"></canvas>
+  </div>
+</div>
+
+<script>
+const CDN = 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la';
+const IMG = {
+  juzeAvatar: `${CDN}/decorations/juze_avatar.png`,
+};
+
+function loadImg(src) {
+  return new Promise(r => {
+    const i = new Image(); i.crossOrigin = 'anonymous';
+    i.onload = () => r(i); i.onerror = () => r(null); i.src = src;
+  });
+}
+
+function fillRoundRect(ctx, x, y, w, h, r, color) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+  if (color) { ctx.fillStyle = color; ctx.fill(); }
+}
+
+function drawStar(ctx, cx, cy, r, color) {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    const ia = angle + Math.PI / 5;
+    const ix = cx + r * 0.4 * Math.cos(ia);
+    const iy = cy + r * 0.4 * Math.sin(ia);
+    ctx.lineTo(ix, iy);
+  }
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+function drawTrophy(ctx, x, y, size) {
+  ctx.save();
+  ctx.fillStyle = '#FFD54F'; ctx.strokeStyle = '#F9A825'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x - size*0.30, y+size*0.15); ctx.lineTo(x+size*0.30, y+size*0.15);
+  ctx.lineTo(x+size*0.22, y+size*0.55); ctx.lineTo(x-size*0.22, y+size*0.55);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#FFD54F';
+  ctx.beginPath(); ctx.ellipse(x, y+size*0.12, size*0.34, size*0.10, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x-size*0.22,y+size*0.55);ctx.lineTo(x+size*0.22,y+size*0.55);
+  ctx.lineTo(x+size*0.18,y+size*0.72);ctx.lineTo(x-size*0.18,y+size*0.72);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(x-size*0.22,y+size*0.70,size*0.44,size*0.08,3);
+  ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x-size*0.36,y+size*0.32,size*0.14,-Math.PI*0.3,Math.PI*0.8); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x+size*0.36,y+size*0.32,size*0.14,Math.PI*0.2,Math.PI*1.3); ctx.stroke();
+  ctx.restore();
+}
+
+function drawRibbon(ctx, x, y, w, h, color, rot) {
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(rot * Math.PI/180);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(-w/2,-h/2); ctx.quadraticCurveTo(-w/4,-h,0,-h/2);
+  ctx.quadraticCurveTo(w/4,-h,w/2,-h/2);
+  ctx.lineTo(w/2,h/2); ctx.quadraticCurveTo(w/4,h,0,h/2);
+  ctx.quadraticCurveTo(-w/4,h,-w/2,h/2);
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+function drawCatIcon(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx-r*0.8,cy-r*0.6); ctx.lineTo(cx-r*1.1,cy-r*1.4); ctx.lineTo(cx-r*0.3,cy-r*0.8);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx+r*0.8,cy-r*0.6); ctx.lineTo(cx+r*1.1,cy-r*1.4); ctx.lineTo(cx+r*0.3,cy-r*0.8);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FF8A65';
+  ctx.beginPath(); ctx.arc(cx-r*0.35,cy-r*0.1,r*0.22,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+r*0.35,cy-r*0.1,r*0.22,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawCelebration(ctx, cardX, y, cardW) {
+  const cx = cardX + cardW/2;
+  drawStar(ctx,cardX+70,y+25,14,'#FFD54F');
+  drawStar(ctx,cardX+cardW-65,y+30,11,'#FFD54F');
+  drawStar(ctx,cardX+130,y-5,7,'#FFE082');
+  drawStar(ctx,cardX+cardW-110,y+50,6,'#FFE082');
+  drawStar(ctx,cardX+50,y+55,5,'#FFE082');
+  drawTrophy(ctx,cx,y+30,55);
+  drawRibbon(ctx,cardX+25,y+40,22,10,'#FF8A65',-25);
+  drawRibbon(ctx,cardX+cardW-20,y+35,18,8,'#81D4FA',30);
+  drawRibbon(ctx,cardX+45,y+70,14,6,'#FFD54F',-40);
+  drawRibbon(ctx,cardX+cardW-40,y+65,16,7,'#FF8A65',35);
+  [
+    {x:cardX+100,y:y+60,c:'#81D4FA',r:4},{x:cardX+cardW-80,y:y+15,c:'#FF8A65',r:3},
+    {x:cardX+160,y:y+45,c:'#FFD54F',r:3},{x:cardX+cardW-140,y:y+55,c:'#A5D6A7',r:4},
+    {x:cardX+85,y:y+10,c:'#FFD54F',r:2},{x:cardX+cardW-100,y:y+70,c:'#81D4FA',r:3}
+  ].forEach(p=>{ ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); });
+}
+
+async function drawResult() {
+  const c = document.getElementById('result');
+  const ctx = c.getContext('2d');
+  const W=750, H=1080, cx=W/2;
+
+  // 1. 背景
+  ctx.fillStyle='#FFF5E9'; ctx.fillRect(0,0,W,H);
+
+  // 2. 色带
+  const bandH=210;
+  const grad=ctx.createLinearGradient(0,0,W,0);
+  grad.addColorStop(0,'#FF8A65');grad.addColorStop(0.5,'#FF9F43');grad.addColorStop(1,'#FFB74D');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,W,bandH);
+
+  ctx.save();ctx.globalAlpha=0.08;ctx.fillStyle='#FFFFFF';
+  [{x:60,y:45,r:28},{x:W-70,y:60,r:20},{x:140,y:160,r:14},{x:W-120,y:135,r:16},{x:cx-160,y:85,r:10}]
+    .forEach(d=>{ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();});
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.moveTo(0,180);ctx.bezierCurveTo(W*0.15,160,W*0.38,215,cx,188);
+  ctx.bezierCurveTo(W*0.65,165,W*0.85,210,W,180);
+  ctx.lineTo(W,bandH);ctx.lineTo(0,bandH);
+  ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+
+  ctx.save();ctx.globalAlpha=0.25;
+  ctx.beginPath();
+  ctx.moveTo(0,195);ctx.bezierCurveTo(W*0.18,178,W*0.42,225,cx,200);
+  ctx.bezierCurveTo(W*0.65,182,W*0.88,220,W,195);
+  ctx.lineTo(W,230);ctx.lineTo(0,230);
+  ctx.closePath();ctx.fillStyle='#FFFFFF';ctx.fill();ctx.restore();
+
+  ctx.font='bold 52px sans-serif';ctx.fillStyle='#FFFFFF';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('聚餐地点已定',cx,85);
+  ctx.font='22px sans-serif';ctx.fillStyle='rgba(255,255,255,0.75)';
+  ctx.fillText('喵了个鱼 · 投票结果',cx,135);
+
+  // 3. 头像
+  const catLogo=await loadImg(IMG.juzeAvatar);
+  const avatarCY=205,avatarR=58;
+  ctx.save();ctx.shadowColor='rgba(0,0,0,0.12)';ctx.shadowBlur=16;ctx.shadowOffsetY=6;
+  ctx.fillStyle='#FFFFFF';
+  ctx.beginPath();ctx.arc(cx,avatarCY,avatarR+6,0,Math.PI*2);ctx.fill();ctx.restore();
+  ctx.strokeStyle='#FF8A65';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(cx,avatarCY,avatarR+6,0,Math.PI*2);ctx.stroke();
+  if(catLogo){
+    ctx.save();ctx.beginPath();ctx.arc(cx,avatarCY,avatarR,0,Math.PI*2);ctx.clip();
+    ctx.drawImage(catLogo,cx-avatarR,avatarCY-avatarR,avatarR*2,avatarR*2);ctx.restore();
+  }
+
+  // 4. 白色卡片
+  const cardX=32,cardY=260,cardW=W-64,cardH=760,cardR=28;
+  ctx.save();ctx.shadowColor='rgba(0,0,0,0.06)';ctx.shadowBlur=30;ctx.shadowOffsetY=10;
+  fillRoundRect(ctx,cardX,cardY,cardW,cardH,cardR,'#FFFFFF');ctx.restore();
+
+  let cy2=cardY+35;
+
+  drawCelebration(ctx,cardX,cy2,cardW); cy2+=110;
+
+  ctx.font='bold 38px sans-serif';ctx.fillStyle='#2D2018';
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  ctx.fillText('大渔铁板烧(海岸城店)',cx,cy2);cy2+=50;
+
+  ctx.font='22px sans-serif';ctx.fillStyle='#999488';
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  ctx.fillText('南山区海德三道 | 日本料理',cx,cy2);cy2+=48;
+
+  ctx.font='bold 28px sans-serif';ctx.fillStyle='#2D2018';
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  ctx.fillText('时间: 2026-05-10 18:30',cx,cy2);cy2+=35;
+
+  ctx.fillStyle='#EDE8E2';ctx.fillRect(cardX+40,cy2,cardW-80,1.5);cy2+=45;
+
+  // 5. 投票数据区 — 关键修复：自适应宽度
+  const voteNum=8,percent=67,pCount=12;
+  const voteY=cy2+55;
+  const numStr=String(voteNum);
+  ctx.font='bold 90px sans-serif';ctx.fillStyle='#FF8A65';
+  ctx.textAlign='left';ctx.textBaseline='middle';
+  ctx.fillText(numStr,cardX+40,voteY);
+  const numW=ctx.measureText(numStr).width;
+
+  ctx.font='bold 36px sans-serif';ctx.fillStyle='#2D2018';
+  ctx.fillText('票',cardX+40+numW+10,voteY);
+  const ticketW=ctx.measureText('票').width;
+
+  const barH=28,barY=voteY,capW=72,capH=40;
+  const leftPad=40,rightPad=40,ticketGap=16,barCapGap=10;
+  const usedLeft = leftPad + numW + 10 + ticketW + ticketGap;
+  const usedRight = barCapGap + capW + rightPad;
+  const barMaxW = Math.max(barH, cardW - usedLeft - usedRight);
+  const barX = cardX + usedLeft;
+  const barFillW = barMaxW * percent / 100;
+
+  fillRoundRect(ctx,barX,barY-barH/2,barMaxW,barH,barH/2,'#BBDEFB');
+
+  if(barFillW>barH&&percent>0){
+    const bg=ctx.createLinearGradient(barX,0,barX+barFillW,0);
+    bg.addColorStop(0,'#FF8A65');bg.addColorStop(1,'#FF7043');
+    fillRoundRect(ctx,barX,barY-barH/2,barFillW,barH,barH/2,bg);
+  }
+
+  const capX=barX+barMaxW+barCapGap,capY=barY-capH/2;
+  fillRoundRect(ctx,capX,capY,capW,capH,capH/2,'#FF8A65');
+  ctx.font='bold 22px sans-serif';ctx.fillStyle='#FFFFFF';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(percent+'%',capX+capW/2,capY+capH/2);
+
+  cy2=voteY+55;
+  ctx.font='20px sans-serif';ctx.fillStyle='#999488';
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  ctx.fillText('支持率 '+percent+'% · '+pCount+'人参与',cx,cy2);cy2+=55;
+
+  // 6. 二维码
+  const qrR=72,qrCY=cy2+qrR;
+  ctx.save();ctx.shadowColor='rgba(0,0,0,0.06)';ctx.shadowBlur=16;ctx.shadowOffsetY=4;
+  ctx.fillStyle='#FFFFFF';
+  ctx.beginPath();ctx.arc(cx,qrCY,qrR,0,Math.PI*2);ctx.fill();ctx.restore();
+
+  ctx.fillStyle='#F5F0EA';ctx.beginPath();ctx.arc(cx,qrCY,qrR-8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2D2018';
+  const qs=90,qx=cx-qs/2,qy=qrCY-qs/2,cs=22,ct=4;
+  ctx.fillRect(qx,qy,cs,ct);ctx.fillRect(qx,qy,ct,cs);
+  ctx.fillRect(qx,qy+cs-ct,cs,ct);ctx.fillRect(qx+cs-ct,qy,ct,cs);
+  ctx.fillStyle='#FFFFFF';ctx.fillRect(qx+6,qy+6,cs-12,cs-12);
+  ctx.fillStyle='#2D2018';ctx.fillRect(qx+10,qy+10,cs-20,cs-20);
+  ctx.fillRect(qx+qs-cs,qy,cs,ct);ctx.fillRect(qx+qs-ct,qy,ct,cs);
+  ctx.fillRect(qx+qs-cs,qy+cs-ct,cs,ct);ctx.fillRect(qx+qs-cs,qy,ct,cs);
+  ctx.fillStyle='#FFFFFF';ctx.fillRect(qx+qs-cs+6,qy+6,cs-12,cs-12);
+  ctx.fillStyle='#2D2018';ctx.fillRect(qx+qs-cs+10,qy+10,cs-20,cs-20);
+  ctx.fillRect(qx,qy+qs-cs,cs,ct);ctx.fillRect(qx,qy+qs-cs,ct,cs);
+  ctx.fillRect(qx,qy+qs-ct,cs,ct);ctx.fillRect(qx+cs-ct,qy+qs-cs,ct,cs);
+  ctx.fillStyle='#FFFFFF';ctx.fillRect(qx+6,qy+qs-cs+6,cs-12,cs-12);
+  ctx.fillStyle='#2D2018';ctx.fillRect(qx+10,qy+qs-cs+10,cs-20,cs-20);
+  ctx.fillStyle='#2D2018';
+  [[qx+35,qy+25,6,6],[qx+50,qy+20,5,5],[qx+42,qy+38,7,7],
+   [qx+25,qy+50,5,5],[qx+55,qy+48,6,6],[qx+38,qy+55,5,5],
+   [qx+qs-30,qy+qs-30,6,6],[qx+qs-45,qy+qs-25,5,5]]
+    .forEach(d=>ctx.fillRect(d[0],d[1],d[2],d[3]));
+
+  ctx.font='20px sans-serif';ctx.fillStyle='#999488';
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText('长按识别查看详情',cx,qrCY+qrR+18);cy2=qrCY+qrR+55;
+
+  // 7. 品牌
+  ctx.fillStyle='#EDE8E2';ctx.fillRect(cardX+40,cy2,cardW-80,1);cy2+=30;
+  const ls=44,lx=cx-70,ly=cy2;
+  fillRoundRect(ctx,lx,ly,ls,ls,10,'#FF8A65');
+  drawCatIcon(ctx,lx+ls/2,ly+ls/2+2,12);
+  ctx.font='bold 22px sans-serif';ctx.fillStyle='#2D2018';
+  ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  ctx.fillText('喵了个鱼',lx+ls+12,ly+ls/2+6);
+  ctx.font='16px sans-serif';ctx.fillStyle='#999488';
+  ctx.fillText('让聚餐不再纠结',lx+ls+12,ly+ls/2+28);
+
+  // 调试信息
+  document.querySelector('.debug-info').innerHTML =
+    '<b>布局调试信息：</b><br>' +
+    '卡片宽度: ' + cardW + 'px<br>' +
+    '票数 "' + numStr + '" 宽度: ~' + numW.toFixed(0) + 'px<br>' +
+    '"票"字宽度: ~' + ticketW.toFixed(0) + 'px<br>' +
+    '左侧占用: ' + usedLeft + 'px<br>' +
+    '右侧占用: ' + usedRight + 'px (' + barCapGap + '+' + capW + '+' + rightPad + ')<br>' +
+    '进度条可用宽: ' + barMaxW.toFixed(0) + 'px<br>' +
+    '进度条X坐标: ' + barX.toFixed(0) + ' (卡片内距40起)<br>' +
+    '胶囊X坐标: ' + capX.toFixed(0) + '<br>' +
+    '胶囊右边缘: ' + (capX + capW).toFixed(0) + ' (卡片右边缘: ' + (cardX + cardW) + ')';
+}
+async function init(){ await loadImg(IMG.juzeAvatar); await drawResult(); }
+init();
+</script>
+<div class="debug-info">正在计算布局数据...</div>
+</body>
+</html>

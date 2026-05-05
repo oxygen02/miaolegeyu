@@ -5,6 +5,7 @@
   "backgroundColor": "#F5F0E8",
   "disableScroll": true,
   "usingComponents": {
-    "time-picker": "/components/timePicker/timePicker"
+    "time-picker": "/components/timePicker/timePicker",
+    "poster-modal": "../../components/poster-modal/poster-modal"
   }
 }

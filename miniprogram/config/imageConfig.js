@@ -36,6 +36,7 @@ const imagePaths = {
     target: `${BASE_URL}/icons/target.png`,           // 目标/靶心 🎯
     forbidden: `${BASE_URL}/icons/forbidden.png`,     // 禁止 🚫
     refresh: `${BASE_URL}/icons/refresh.png`,         // 刷新 🔄
+    search: `${BASE_URL}/icons/search.png`,           // 搜索🔍
   },
   
   // 装饰图

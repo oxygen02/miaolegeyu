@@ -99,7 +99,6 @@ Page({
         }
       } else {
         // 获取我创建的房间
-        const mockData = this.getMockData();
         try {
           const res = await wx.cloud.callFunction({
             name: 'getRoomsByCreator',
@@ -111,12 +110,7 @@ Page({
             allRooms = this.flattenRooms(creatorGroups);
           }
         } catch (cloudErr) {
-          console.log('云函数加载失败，使用模拟数据:', cloudErr);
-        }
-
-        // 合并模拟数据
-        if (currentFilter === 'all' || currentFilter === 'created') {
-          allRooms = [...mockData, ...allRooms];
+          console.log('云函数加载失败:', cloudErr);
         }
       }
 
@@ -136,10 +130,8 @@ Page({
 
     } catch (err) {
       console.error('加载失败:', err);
-      const mockData = this.getMockData();
-      const roomsWithDeadline = this.processDeadlines(mockData);
       this.setData({
-        allRooms: roomsWithDeadline,
+        allRooms: [],
         loading: false
       });
       this.startDeadlineTimer();
@@ -242,108 +234,10 @@ Page({
     });
   },
 
-  // 获取模拟数据
-  getMockData() {
-    const now = new Date();
-    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    const dayAfterTomorrow = new Date(now.getTime() + 48 * 60 * 60 * 1000);
-    
-    const formatDateTime = (date) => {
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate().toString().padStart(2, '0');
-      const hour = date.getHours().toString().padStart(2, '0');
-      const minute = date.getMinutes().toString().padStart(2, '0');
-      return {
-        date: `${month}月${day}日`,
-        time: `${hour}:${minute}`
-      };
-    };
-
-    const tomorrowData = formatDateTime(tomorrow);
-    const dayAfterData = formatDateTime(dayAfterTomorrow);
-
-    // 使用在线图片作为默认图片（确保图片可以正常显示）
-    const defaultPoster = 'https://picsum.photos/400/300?random=1';
-    const defaultAvatar = 'https://picsum.photos/100/100?random=avatar';
-
-    return [
-      {
-        roomId: '284756',
-        title: '周五聚餐 - 选饭店',
-        mode: 'a',
-        status: 'voting',
-        activityDate: tomorrowData.date,
-        activityTime: tomorrowData.time,
-        location: '西单大悦城',
-        finalPoster: defaultPoster,
-        candidatePosters: [
-          { imageUrl: 'https://picsum.photos/400/300?random=2', shopName: '海底捞火锅' },
-          { imageUrl: 'https://picsum.photos/400/300?random=3', shopName: '西贝莜面村' }
-        ],
-        creatorName: '吃货小王',
-        creatorAvatar: 'https://picsum.photos/100/100?random=1',
-        creatorId: 'mock-creator-001',
-        participantCount: 3,
-        participantAvatars: [
-          { avatarUrl: 'https://picsum.photos/100/100?random=a1' },
-          { avatarUrl: 'https://picsum.photos/100/100?random=a2' },
-          { avatarUrl: 'https://picsum.photos/100/100?random=a3' }
-        ]
-      },
-      {
-        roomId: '192837',
-        title: '周末约饭 - 选偏好',
-        mode: 'b',
-        status: 'voting',
-        activityDate: dayAfterData.date,
-        activityTime: dayAfterData.time,
-        location: '朝阳大悦城',
-        finalPoster: 'https://picsum.photos/400/300?random=4',
-        candidatePosters: [
-          { imageUrl: 'https://picsum.photos/400/300?random=5', shopName: '美食广场' }
-        ],
-        creatorName: '吃货小王',
-        creatorAvatar: 'https://picsum.photos/100/100?random=2',
-        creatorId: 'mock-creator-001',
-        participantCount: 0,
-        participantAvatars: []
-      },
-      {
-        roomId: '563421',
-        title: '部门团建聚餐',
-        mode: 'a',
-        status: 'voting',
-        activityDate: dayAfterData.date,
-        activityTime: '19:00',
-        location: '朝阳大悦城',
-        finalPoster: 'https://picsum.photos/400/300?random=6',
-        candidatePosters: [
-          { imageUrl: 'https://picsum.photos/400/300?random=7', shopName: '西贝莜面村' },
-          { imageUrl: 'https://picsum.photos/400/300?random=8', shopName: '海底捞火锅' }
-        ],
-        creatorName: '美食家小李',
-        creatorAvatar: 'https://picsum.photos/100/100?random=3',
-        creatorId: 'mock-creator-002',
-        participantCount: 5,
-        participantAvatars: [
-          { avatarUrl: 'https://picsum.photos/100/100?random=b1' },
-          { avatarUrl: 'https://picsum.photos/100/100?random=b2' },
-          { avatarUrl: 'https://picsum.photos/100/100?random=b3' },
-          { avatarUrl: 'https://picsum.photos/100/100?random=b4' },
-          { avatarUrl: 'https://picsum.photos/100/100?random=b5' }
-        ]
-      }
-    ];
-  },
-
   switchFilter(e) {
     const filter = e.currentTarget.dataset.filter;
     this.setData({ currentFilter: filter });
-    
-    // 重新过滤当前数据
-    const allRooms = [...this.getMockData()]; // 简化处理，实际应该保留原始数据
-    const filteredRooms = this.filterRooms(allRooms, filter);
-    this.setData({ allRooms: filteredRooms });
+    this.loadData();
   },
 
   // 房间号输入
@@ -378,17 +272,9 @@ Page({
 
   // 跳转到指定房间
   goToRoomById(roomId) {
-    // 检查是否是模拟房间
-    if (roomId.startsWith('mock-room-')) {
-      const mode = roomId === 'mock-room-002' ? 'b' : 'a';
-      wx.navigateTo({
-        url: `/pages/vote/vote?roomId=${roomId}&mock=true&mode=${mode}`
-      });
-    } else {
-      wx.navigateTo({
-        url: `/pages/vote/vote?roomId=${roomId}`
-      });
-    }
+    wx.navigateTo({
+      url: `/pages/vote/vote?roomId=${roomId}`
+    });
   },
 
   // 点击卡片进入房间

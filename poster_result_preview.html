@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>结果海报 V8 - 喵了个鱼</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  padding: 20px;
+}
+.phone-frame {
+  width: 375px;
+  background: #fff;
+  border-radius: 40px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  overflow: hidden;
+  position: relative;
+}
+.notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 30px;
+  background: #000;
+  border-radius: 0 0 20px 20px;
+  z-index: 100;
+}
+/* 海报画布区域 */
+.poster-container {
+  width: 100%;
+  aspect-ratio: 750/1280;
+  background: #FFF5E9;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== 顶部珊瑚橙渐变色带 ===== */
+.band {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 24%;
+  background: linear-gradient(135deg, #FF8A65 0%, #FF9F43 50%, #FFB74D 100%);
+}
+/* 波浪底边 */
+.band-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 40px;
+}
+.band-wave svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 装饰圆圈 */
+.deco-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+}
+.deco-1 { width: 35px; height: 35px; top: 10%; left: 8%; }
+.deco-2 { width: 25px; height: 25px; top: 15%; right: 12%; }
+.deco-3 { width: 18px; height: 18px; top: 5%; left: 30%; }
+.deco-4 { width: 22px; height: 22px; top: 20%; right: 25%; }
+
+/* 色带标题 */
+.band-title {
+  position: absolute;
+  top: 14%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 26px;
+  font-weight: bold;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.band-subtitle {
+  position: absolute;
+  top: 26%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: rgba(255,255,255,0.75);
+  font-size: 13px;
+}
+
+/* 猫头（带白边和阴影） */
+.avatar-float {
+  position: absolute;
+  top: 19%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72px;
+  height: 72px;
+  background: #fff;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+.avatar-float img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-ring {
+  position: absolute;
+  top: 18.5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 78px;
+  height: 78px;
+  border: 3px solid #FF8A65;
+  border-radius: 50%;
+  z-index: 9;
+}
+
+/* ===== 白色大卡片 ===== */
+.result-card {
+  position: absolute;
+  top: 28%;
+  left: 4%;
+  right: 4%;
+  bottom: 5%;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* 卡片背景装饰色块 - 像素/油画风格 */
+.card-blob {
+  position: absolute;
+  border-radius: 40% 60% 55% 45% / 55% 45% 60% 40%;
+  opacity: 0.12;
+  filter: blur(1px);
+  pointer-events: none;
+}
+.card-blob-1 {
+  width: 120px; height: 100px;
+  top: 8%; left: -10%;
+  background: #FF8A65;
+  border-radius: 35% 65% 50% 50% / 50% 50% 65% 35%;
+}
+.card-blob-2 {
+  width: 80px; height: 80px;
+  top: 25%; right: -5%;
+  background: #81D4FA;
+  border-radius: 60% 40% 45% 55% / 45% 55% 40% 60%;
+}
+.card-blob-3 {
+  width: 60px; height: 60px;
+  top: 45%; left: 5%;
+  background: #FFD54F;
+  border-radius: 45% 55% 60% 40% / 55% 45% 40% 60%;
+}
+.card-blob-4 {
+  width: 100px; height: 70px;
+  bottom: 20%; right: -8%;
+  background: #A5D6A7;
+  border-radius: 50% 50% 35% 65% / 40% 60% 50% 50%;
+}
+.card-blob-5 {
+  width: 50px; height: 50px;
+  bottom: 35%; left: 15%;
+  background: #FFAB91;
+  border-radius: 55% 45% 50% 50% / 50% 50% 45% 55%;
+}
+
+/* 像素点装饰 */
+.pixel-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  opacity: 0.2;
+  pointer-events: none;
+}
+.pixel-1 { top: 15%; left: 20%; background: #FF8A65; }
+.pixel-2 { top: 35%; right: 18%; background: #81D4FA; width: 8px; height: 8px; }
+.pixel-3 { top: 55%; left: 35%; background: #FFD54F; }
+.pixel-4 { bottom: 30%; right: 25%; background: #A5D6A7; width: 5px; height: 5px; }
+.pixel-5 { bottom: 15%; left: 45%; background: #FFAB91; width: 7px; height: 7px; }
+.pixel-6 { top: 22%; left: 55%; background: #CE93D8; }
+.pixel-7 { bottom: 40%; left: 8%; background: #80CBC4; width: 4px; height: 4px; }
+.pixel-8 { top: 65%; right: 10%; background: #FFCC80; width: 6px; height: 6px; }
+
+/* 庆祝装饰区 */
+.celebration {
+  position: relative;
+  width: 100%;
+  height: 30px;
+  margin-bottom: 8px;
+}
+.star {
+  position: absolute;
+  font-size: 14px;
+}
+.star-1 { left: 18%; top: 0%; }
+.star-2 { right: 18%; top: 5%; }
+.star-3 { left: 32%; top: 50%; font-size: 10px; }
+.star-4 { right: 28%; top: 45%; font-size: 11px; }
+.confetti {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+.conf-1 { background: #81D4FA; left: 12%; top: 20%; }
+.conf-2 { background: #FF8A65; right: 14%; top: 15%; }
+.conf-3 { background: #FFD54F; left: 42%; top: 60%; }
+.conf-4 { background: #A5D6A7; right: 35%; top: 55%; }
+
+/* 餐厅名 */
+.restaurant-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2D2018;
+  text-align: center;
+  margin-bottom: 10px;
+  margin-top: 5px;
+}
+
+/* 地址和分类 */
+.address-category {
+  font-size: 14px;
+  color: #999488;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* 时间 */
+.time-display {
+  font-size: 16px;
+  font-weight: bold;
+  color: #2D2018;
+  margin-bottom: 18px;
+}
+
+/* 分隔线 */
+.divider {
+  width: 85%;
+  height: 1.5px;
+  background: #EDE8E2;
+  margin: 10px 0;
+}
+
+/* ===== 投票数据区 ===== */
+.vote-data {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 10px;
+  margin: 10px 0;
+}
+.vote-count {
+  display: flex;
+  align-items: baseline;
+}
+.vote-number {
+  font-size: 56px;
+  font-weight: bold;
+  color: #FF8A65;
+  line-height: 1;
+}
+.vote-unit {
+  font-size: 22px;
+  font-weight: bold;
+  color: #2D2018;
+  margin-left: 4px;
+}
+
+/* 进度条 */
+.progress-section {
+  flex: 1;
+  margin-left: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.progress-bar-bg {
+  flex: 1;
+  height: 14px;
+  background: #F0EBE4;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 80%;
+  background: linear-gradient(90deg, #FF8A65, #FF7043);
+  border-radius: 7px;
+}
+.percent-badge {
+  background: #FF8A65;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* 支持率说明 */
+.vote-desc {
+  font-size: 13px;
+  color: #999488;
+  margin-top: 8px;
+}
+
+/* ===== 小程序码 ===== */
+.qr-section {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px 0 5px;
+}
+.qr-circle {
+  width: 90px;
+  height: 90px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.qr-placeholder {
+  width: 75px;
+  height: 75px;
+  background: #F5F0EA;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #C0BAB0;
+}
+.qr-hint {
+  font-size: 12px;
+  color: #999488;
+}
+
+/* ===== 底部品牌 ===== */
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #EDE8E2;
+  width: 85%;
+}
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  background: #FF8A65;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+.brand-name {
+  font-size: 15px;
+  font-weight: bold;
+  color: #2D2018;
+}
+.brand-slogan {
+  font-size: 11px;
+  color: #999488;
+}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="notch"></div>
+  
+  <div class="poster-container">
+    <!-- 顶部色带 -->
+    <div class="band">
+      <div class="deco-circle deco-1"></div>
+      <div class="deco-circle deco-2"></div>
+      <div class="deco-circle deco-3"></div>
+      <div class="deco-circle deco-4"></div>
+      
+      <!-- 波浪底边 -->
+      <div class="band-wave">
+        <svg viewBox="0 0 375 40" preserveAspectRatio="none">
+          <path d="M0,20 Q56,5 140,25 Q187,35 234,20 Q300,5 375,25 L375,40 L0,40Z" fill="#FFF5E9"/>
+        </svg>
+      </div>
+    </div>
+    
+    <!-- 色带文字 -->
+    <div class="band-title">聚餐地点已定</div>
+    <div class="band-subtitle">喵了个鱼 · 投票结果</div>
+    
+    <!-- 猫头 -->
+    <div class="avatar-ring"></div>
+    <div class="avatar-float">
+      <img src="https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/icons/juze_avatar.png?sign=bcd3eecc5c843821345b7165824624d0&t=1777984201" alt="橘仔头像" />
+    </div>
+    
+    <!-- 白色结果卡片 -->
+    <div class="result-card">
+      <!-- 油画风格装饰色块 -->
+      <div class="card-blob card-blob-1"></div>
+      <div class="card-blob card-blob-2"></div>
+      <div class="card-blob card-blob-3"></div>
+      <div class="card-blob card-blob-4"></div>
+      <div class="card-blob card-blob-5"></div>
+      <div class="pixel-dot pixel-1"></div>
+      <div class="pixel-dot pixel-2"></div>
+      <div class="pixel-dot pixel-3"></div>
+      <div class="pixel-dot pixel-4"></div>
+      <div class="pixel-dot pixel-5"></div>
+      <div class="pixel-dot pixel-6"></div>
+      <div class="pixel-dot pixel-7"></div>
+      <div class="pixel-dot pixel-8"></div>
+      
+      <!-- 庆祝装饰 -->
+      <div class="celebration">
+        <span class="star star-1">⭐</span>
+        <span class="star star-2">⭐</span>
+        <span class="star star-3">✨</span>
+        <span class="star star-4">✨</span>
+        <div class="confetti conf-1"></div>
+        <div class="confetti conf-2"></div>
+        <div class="confetti conf-3"></div>
+        <div class="confetti conf-4"></div>
+      </div>
+      
+      <!-- 餐厅信息 -->
+      <div class="restaurant-name">味记小渔匠肥肠鱼稻田蛙</div>
+      <div class="address-category">东郊记忆店 | 川菜</div>
+      <div class="time-display">时间: 4月28日 18:00</div>
+      
+      <div class="divider"></div>
+      
+      <!-- 投票数据 -->
+      <div class="vote-data">
+        <div class="vote-count">
+          <span class="vote-number">4</span>
+          <span class="vote-unit">票</span>
+        </div>
+        <div class="progress-section">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill"></div>
+          </div>
+          <span class="percent-badge">80%</span>
+        </div>
+      </div>
+      <div class="vote-desc">支持率 80% · 5人参与</div>
+      
+      <div class="divider"></div>
+      
+      <!-- 小程序码 -->
+      <div class="qr-section">
+        <div class="qr-circle">
+          <div class="qr-placeholder">小程序码</div>
+        </div>
+        <span class="qr-hint">长按识别查看详情</span>
+      </div>
+      
+      <!-- 底部品牌 -->
+      <div class="brand-section">
+        <div class="brand-logo">🐱</div>
+        <div class="brand-text">
+          <span class="brand-name">喵了个鱼</span>
+          <span class="brand-slogan">让聚餐不再纠结</span>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  
+</div>
+</body>
+</html>

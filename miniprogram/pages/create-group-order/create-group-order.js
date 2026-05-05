@@ -1,5 +1,6 @@
 const { generateRoomId } = require('../../utils/uuid.js');
 const { imagePaths } = require('../../config/imageConfig');
+const { withLock } = require('../../utils/debounce');
 
 // 创建默认选项
 const createDefaultOption = () => ({
@@ -28,6 +29,8 @@ Page({
   },
 
   onLoad() {
+    // 防抖：创建拼单
+    this._lockedCreateGroupOrder = withLock(this.createGroupOrder.bind(this));
     // 初始化两个选项的默认时间
     this.updateDeadlineText(0);
     this.updateDeadlineText(1);

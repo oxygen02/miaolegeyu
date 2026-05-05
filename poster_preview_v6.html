@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海报 V6.3 油画风预览</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #F0EBE4;
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+    padding: 30px 16px;
+  }
+  .page-title { text-align: center; color: #2D2018; font-size: 22px; font-weight: bold; margin-bottom: 8px; }
+  .page-sub { text-align: center; color: #999488; font-size: 13px; margin-bottom: 36px; line-height: 1.6; }
+  .section { display: flex; flex-direction: column; align-items: center; gap: 50px; }
+  .label { font-size: 16px; font-weight: bold; color: #5D4037; margin-bottom: 10px; }
+  canvas { box-shadow: 0 16px 48px rgba(0,0,0,0.12); border-radius: 8px; }
+</style>
+</head>
+<body>
+<div class="page-title">海报 V6.3 油画风预览</div>
+<div class="page-sub">
+  V6.3：油画笔触风色块 — 不规则变形椭圆 + 弯曲笔刷痕 + 飞白纹理
+</div>
+<div class="section">
+  <div>
+    <div class="label">结果海报 V6.3 - 聚餐地点已定</div>
+    <canvas id="result" width="750" height="1150" style="width:375px;height:575px;"></canvas>
+  </div>
+</div>
+
+<script>
+const CDN = 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la';
+const IMG = {
+  catFishLogo: `${CDN}/decorations/cat-fish-logo.png`,
+  taiyakiIcon: `${CDN}/banners/taiyaki-icon.png`,
+  juzeAvatar: `${CDN}/decorations/juze_avatar.png`,
+};
+
+function loadImg(src) {
+  return new Promise(r => {
+    const i = new Image(); i.crossOrigin = 'anonymous';
+    i.onload = () => r(i); i.onerror = () => r(null); i.src = src;
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r, fill) {
+  ctx.save(); ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  ctx.restore();
+}
+
+async function drawResultV63() {
+  const c = document.getElementById('result');
+  const ctx = c.getContext('2d');
+  const W = 750, H = 1150, cx = W / 2;
+
+  // ==================== 背景层 ====================
+  ctx.fillStyle = '#FFF8F0';
+  ctx.fillRect(0, 0, W, H);
+
+  // 背景装饰点（少量，油画风不需要太多规则圆点）
+  const bgDecos = [
+    { x: 30, y: 420, r: 3, a: 0.10 },
+    { x: W - 40, y: 450, r: 4, a: 0.10 },
+    { x: 25, y: 720, r: 2, a: 0.07 },
+    { x: W - 30, y: 770, r: 3, a: 0.07 },
+  ];
+  bgDecos.forEach(d => {
+    ctx.save(); ctx.globalAlpha = d.a;
+    ctx.fillStyle = '#FFD54F';
+    ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+
+  // ==================== 色带层（200px）====================
+  const grad = ctx.createLinearGradient(0, 0, W, 0);
+  grad.addColorStop(0, '#FF8A65');
+  grad.addColorStop(0.5, '#FF9F43');
+  grad.addColorStop(1, '#FFB74D');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, 200);
+
+  // 色带装饰圆点
+  ctx.save(); ctx.globalAlpha = 0.12; ctx.fillStyle = '#FFFFFF';
+  [{x:80,y:50,r:22},{x:W-90,y:70,r:16},{x:140,y:160,r:10},{x:W-120,y:140,r:12}]
+    .forEach(d => { ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill(); });
+  ctx.restore();
+
+  // 波浪底边
+  ctx.beginPath();
+  ctx.moveTo(0, 175);
+  ctx.bezierCurveTo(W * 0.12, 158, W * 0.35, 210, cx, 185);
+  ctx.bezierCurveTo(W * 0.68, 160, W * 0.88, 205, W, 175);
+  ctx.lineTo(W, 200); ctx.lineTo(0, 200);
+  ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+
+  // 白色半透明过渡
+  ctx.save(); ctx.globalAlpha = 0.25;
+  ctx.beginPath();
+  ctx.moveTo(0, 190);
+  ctx.bezierCurveTo(W * 0.18, 175, W * 0.42, 215, cx, 195);
+  ctx.bezierCurveTo(W * 0.65, 178, W * 0.88, 212, W, 190);
+  ctx.lineTo(W, 220); ctx.lineTo(0, 220);
+  ctx.closePath(); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+  ctx.restore();
+
+  // --- 标题 ---
+  ctx.font = 'bold 40px sans-serif'; ctx.fillStyle = '#FFFFFF';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('聚餐地点已定', cx, 85);
+
+  // --- 猫咪头像（120px直径）---
+  const ay = 195, ar = 60;
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.10)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 6;
+  ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(cx, ay, ar + 6, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = '#FF8A65'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(cx, ay, ar + 6, 0, Math.PI * 2); ctx.stroke();
+  const catLogo = await loadImg(IMG.juzeAvatar);
+  if (catLogo) {
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, ay, ar, 0, Math.PI * 2); ctx.clip();
+    ctx.drawImage(catLogo, cx - ar, ay - ar, ar * 2, ar * 2); ctx.restore();
+  }
+
+  // ==================== 白色卡片 ====================
+  const cX = 60, cY = 275, cW = W - 120, cH = 820;
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.06)'; ctx.shadowBlur = 28; ctx.shadowOffsetY = 8;
+  roundRect(ctx, cX, cY, cW, cH, 24, '#FFFFFF');
+  ctx.restore();
+
+  // ==================== 油画风背景装饰 ====================
+  // 不规则变形椭圆色块（多层叠加，模拟油画厚涂）
+  function drawOilBlob(x, y, w, h, rot, baseColor, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot * Math.PI / 180);
+    const rgb = baseColor.match(/\d+/g).map(Number);
+    for (let layer = 0; layer < 4; layer++) {
+      const a = alpha * (1 - layer * 0.22);
+      const ox = (layer - 2) * w * 0.04;
+      const oy = (layer - 2) * h * 0.03;
+      const rw = w * (1 + layer * 0.03) / 2;
+      const rh = h * (1 + layer * 0.02) / 2;
+      ctx.save();
+      ctx.globalAlpha = Math.max(a, 0.008);
+      const r = Math.max(0, Math.min(255, rgb[0] + (layer - 1) * 10));
+      const g = Math.max(0, Math.min(255, rgb[1] + (layer - 1) * 8));
+      const b = Math.max(0, Math.min(255, rgb[2] + (layer - 1) * 5));
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.beginPath();
+      const steps = 32;
+      for (let i = 0; i <= steps; i++) {
+        const angle = (i / steps) * Math.PI * 2;
+        const deform = 1 + Math.sin(angle * 3 + layer) * 0.10 + Math.cos(angle * 5 + 0.7 + layer) * 0.07;
+        const px = ox + Math.cos(angle) * rw * deform;
+        const py = oy + Math.sin(angle) * rh * deform;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  // 弯曲笔触（二次贝塞尔曲线模拟笔刷痕）
+  function drawBrushMarks(x, y, w, h, rot, baseColor, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot * Math.PI / 180);
+    const rgb = baseColor.match(/\d+/g).map(Number);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (let i = 0; i < 8; i++) {
+      const bx = (Math.random() - 0.5) * w * 0.7;
+      const by = (Math.random() - 0.5) * h * 0.5;
+      const ex = bx + (Math.random() - 0.4) * w * 0.4;
+      const ey = by + (Math.random() - 0.4) * h * 0.3;
+      const cpx = (bx + ex) / 2 + (Math.random() - 0.5) * 20;
+      const cpy = (by + ey) / 2 + (Math.random() - 0.5) * 14;
+      ctx.save();
+      ctx.globalAlpha = alpha * (0.35 + Math.random() * 0.65);
+      const lr = Math.min(255, rgb[0] + 18 + Math.random() * 22) | 0;
+      const lg = Math.min(255, rgb[1] + 18 + Math.random() * 18) | 0;
+      const lb = Math.min(255, rgb[2] + 12 + Math.random() * 18) | 0;
+      ctx.strokeStyle = `rgb(${lr},${lg},${lb})`;
+      ctx.lineWidth = 1 + Math.random() * 3.5;
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  // 飞白干笔触（小点状纹理）
+  function drawDryDots(x, y, w, h, rot, color, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot * Math.PI / 180);
+    ctx.globalAlpha = alpha;
+    for (let i = 0; i < 14; i++) {
+      const dx = (Math.random() - 0.5) * w * 0.75;
+      const dy = (Math.random() - 0.5) * h * 0.55;
+      const size = 0.8 + Math.random() * 3;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(dx, dy, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // 油画厚涂色块（变形椭圆）
+  const oilBlobs = [
+    { x: cx - 50,  y: cY + 100, w: 370, h: 135, rot: -13, color: 'rgb(255,138,101)', a: 0.07 },
+    { x: cx + 135, y: cY + 235, w: 310, h: 105, rot: 11,  color: 'rgb(255,213,79)',  a: 0.055 },
+    { x: cx - 95,  y: cY + 380, w: 390, h: 115, rot: -9,  color: 'rgb(255,159,67)',  a: 0.05 },
+    { x: cx + 105, y: cY + 510, w: 330, h: 98,  rot: 8,   color: 'rgb(255,183,77)', a: 0.05 },
+    { x: cx - 35,  y: cY + 630, w: 290, h: 92,  rot: -6,  color: 'rgb(255,138,101)', a: 0.04 },
+    { x: cx + 95,  y: cY + 155, w: 300, h: 115, rot: 9,   color: 'rgb(100,181,246)', a: 0.06 },
+    { x: cx - 115, y: cY + 310, w: 350, h: 100, rot: -10, color: 'rgb(144,202,249)', a: 0.05 },
+    { x: cx + 145, y: cY + 440, w: 310, h: 108, rot: 6,   color: 'rgb(100,181,246)', a: 0.045 },
+    { x: cx - 75,  y: cY + 570, w: 270, h: 88,  rot: -7,  color: 'rgb(144,202,249)', a: 0.045 },
+  ];
+  oilBlobs.forEach(b => {
+    drawOilBlob(b.x, b.y, b.w, b.h, b.rot, b.color, b.a);
+  });
+
+  // 笔触纹理 + 飞白（叠加在色块区域）
+  const brushAreas = [
+    { x: cx + 55,  y: cY + 175, w: 230, h: 95,  rot: 17,  color: 'rgb(255,138,101)', a: 0.03 },
+    { x: cx - 75,  y: cY + 345, w: 210, h: 80,  rot: -13, color: 'rgb(100,181,246)', a: 0.025 },
+    { x: cx + 115, y: cY + 490, w: 190, h: 70,  rot: 10,  color: 'rgb(255,213,79)',  a: 0.02 },
+  ];
+  brushAreas.forEach(b => {
+    drawBrushMarks(b.x, b.y, b.w, b.h, b.rot, b.color, b.a);
+    drawDryDots(b.x, b.y, b.w, b.h, b.rot, b.color, b.a * 0.5);
+  });
+
+  // ==================== 卡片内容 ====================
+  let y = cY + 36;
+
+  // === 鲷鱼插画（60px）===
+  const fishSize = 60;
+  const fishIcon = await loadImg(IMG.taiyakiIcon);
+  if (fishIcon) {
+    ctx.drawImage(fishIcon, cx - fishSize / 2, y, fishSize, fishSize);
+  } else {
+    ctx.save(); ctx.globalAlpha = 0.4; ctx.fillStyle = '#FF8A65';
+    ctx.beginPath(); ctx.ellipse(cx, y + fishSize / 2, fishSize * 0.5, fishSize * 0.25, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  y += fishSize + 16;
+
+  // === 餐厅名称 ===
+  ctx.font = 'bold 32px sans-serif'; ctx.fillStyle = '#2D2018';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('大渔铁板烧(海岸城店)', cx, y);
+  y += 40;
+
+  // === 地址 ===
+  ctx.font = '22px sans-serif'; ctx.fillStyle = '#888888';
+  ctx.fillText('南山区海德三道  |  日本料理', cx, y);
+  y += 22;
+
+  // === 分隔线 ===
+  y += 14;
+  ctx.fillStyle = '#EDE8E2'; ctx.fillRect(cX + 50, y, cW - 100, 1);
+  y += 32;
+
+  // === 票数 ===
+  const numStr = '8';
+  ctx.font = 'bold 60px sans-serif'; ctx.fillStyle = '#FF8A65';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  const numW = ctx.measureText(numStr).width;
+  ctx.font = '30px sans-serif';
+  const unitW = ctx.measureText('票').width;
+  const totalW = numW + unitW + 3;
+  const startX = cx - totalW / 2;
+  ctx.font = 'bold 60px sans-serif';
+  ctx.fillText(numStr, startX, y + 16);
+  ctx.font = '30px sans-serif';
+  ctx.fillText('票', startX + numW + 3, y + 16);
+  y += 62;
+
+  // === 支持率 ===
+  ctx.font = '20px sans-serif'; ctx.fillStyle = '#999999';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('支持率 67%  ·  12人参与', cx, y);
+  y += 28;
+
+  // === 进度条 ===
+  const bW = cW - 100, bX = cx - bW / 2, bH = 22;
+  ctx.fillStyle = '#F0EBE4'; ctx.beginPath(); ctx.roundRect(bX, y, bW, bH, bH / 2); ctx.fill();
+  const fillW = Math.max(bH, bW * 0.67);
+  const bG = ctx.createLinearGradient(bX, 0, bX + bW, 0);
+  bG.addColorStop(0, '#FF8A65'); bG.addColorStop(1, '#FFB74D');
+  ctx.fillStyle = bG; ctx.beginPath(); ctx.roundRect(bX, y, fillW, bH, bH / 2); ctx.fill();
+  ctx.font = 'bold 13px sans-serif'; ctx.fillStyle = '#FFFFFF';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('67%', bX + fillW / 2, y + bH / 2);
+  y += 36;
+
+  // === 时间 ===
+  ctx.font = '22px sans-serif'; ctx.fillStyle = '#AAAAAA';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('时间: 2026-05-10 18:30', cx, y);
+  y += 32;
+
+  // === 分隔线 ===
+  ctx.fillStyle = '#EDE8E2'; ctx.fillRect(cX + 50, y, cW - 100, 1);
+  y += 32;
+
+  // === 小程序码 ===
+  const qrCY = y + 52;
+  ctx.save(); ctx.strokeStyle = '#F0EBE4'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(cx, qrCY, 58, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(cx, qrCY, 52, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#F8F5F2'; ctx.beginPath(); ctx.arc(cx, qrCY, 44, 0, Math.PI * 2); ctx.fill();
+  ctx.font = '14px sans-serif'; ctx.fillStyle = '#C0BAB0';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('小程序码', cx, qrCY);
+  ctx.font = '20px sans-serif'; ctx.fillStyle = '#888888';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('长按识别查看详情', cx, qrCY + 60);
+  y = qrCY + 95;
+
+  // === 分隔线 ===
+  ctx.fillStyle = '#EDE8E2'; ctx.fillRect(cX + 50, y, cW - 100, 1);
+  y += 32;
+
+  // === 底部品牌 ===
+  const brandIconR = 22;
+  const brandIconCY = y + brandIconR;
+  ctx.fillStyle = '#FF8A65';
+  ctx.beginPath(); ctx.arc(cx, brandIconCY, brandIconR, 0, Math.PI * 2); ctx.fill();
+  if (catLogo) {
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, brandIconCY, brandIconR - 2, 0, Math.PI * 2); ctx.clip();
+    ctx.drawImage(catLogo, cx - brandIconR + 2, brandIconCY - brandIconR + 2, (brandIconR - 2) * 2, (brandIconR - 2) * 2);
+    ctx.restore();
+  }
+  ctx.font = 'bold 20px sans-serif'; ctx.fillStyle = '#5D4037';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('喵了个鱼', cx, brandIconCY + brandIconR + 26);
+  ctx.font = '16px sans-serif'; ctx.fillStyle = '#B0A89E';
+  ctx.fillText('让聚餐不再纠结', cx, brandIconCY + brandIconR + 48);
+}
+
+async function init() {
+  await Promise.all([loadImg(IMG.juzeAvatar), loadImg(IMG.taiyakiIcon)]);
+  await drawResultV63();
+}
+init();
+</script>
+</body>
+</html>

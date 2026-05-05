@@ -152,6 +152,22 @@
   text-align: center;
 }
 
+.invite-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64rpx;
+  height: 64rpx;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.invite-icon {
+  font-size: 32rpx;
+}
+
 .header-tail {
   width: 100rpx;
   height: 100rpx;

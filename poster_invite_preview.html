@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>投票邀请海报 - 喵了个鱼</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  padding: 20px;
+}
+.phone-frame {
+  width: 375px;
+  background: #fff;
+  border-radius: 40px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  overflow: hidden;
+  position: relative;
+}
+.notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 30px;
+  background: #000;
+  border-radius: 0 0 20px 20px;
+  z-index: 100;
+}
+/* 海报画布区域 */
+.poster-container {
+  width: 100%;
+  aspect-ratio: 750/1280;
+  background: #FFF5E9;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== 顶部珊瑚橙渐变色带 ===== */
+.band {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 24%;
+  background: linear-gradient(135deg, #FF8A65 0%, #FF9F43 50%, #FFB74D 100%);
+}
+/* 波浪底边 */
+.band-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 40px;
+}
+.band-wave svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 装饰圆圈 */
+.deco-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+}
+.deco-1 { width: 35px; height: 35px; top: 10%; left: 8%; }
+.deco-2 { width: 25px; height: 25px; top: 15%; right: 12%; }
+.deco-3 { width: 18px; height: 18px; top: 5%; left: 30%; }
+.deco-4 { width: 22px; height: 22px; top: 20%; right: 25%; }
+
+/* 色带标题 */
+.band-title {
+  position: absolute;
+  top: 14%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 26px;
+  font-weight: bold;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.band-subtitle {
+  position: absolute;
+  top: 26%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: rgba(255,255,255,0.75);
+  font-size: 13px;
+}
+
+/* 猫头（带白边和阴影） */
+.avatar-float {
+  position: absolute;
+  top: 19%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72px;
+  height: 72px;
+  background: #fff;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+.avatar-float img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-ring {
+  position: absolute;
+  top: 18.5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 78px;
+  height: 78px;
+  border: 3px solid #FF8A65;
+  border-radius: 50%;
+  z-index: 9;
+}
+
+/* ===== 白色大卡片 ===== */
+.invite-card {
+  position: absolute;
+  top: 28%;
+  left: 4%;
+  right: 4%;
+  bottom: 5%;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* 卡片背景装饰色块 - 像素/油画风格 */
+.card-blob {
+  position: absolute;
+  border-radius: 40% 60% 55% 45% / 55% 45% 60% 40%;
+  opacity: 0.12;
+  filter: blur(1px);
+  pointer-events: none;
+}
+.card-blob-1 {
+  width: 120px; height: 100px;
+  top: 5%; left: -10%;
+  background: #FF8A65;
+  border-radius: 35% 65% 50% 50% / 50% 50% 65% 35%;
+}
+.card-blob-2 {
+  width: 80px; height: 80px;
+  top: 20%; right: -5%;
+  background: #81D4FA;
+  border-radius: 60% 40% 45% 55% / 45% 55% 40% 60%;
+}
+.card-blob-3 {
+  width: 60px; height: 60px;
+  top: 50%; left: 5%;
+  background: #FFD54F;
+  border-radius: 45% 55% 60% 40% / 55% 45% 40% 60%;
+}
+.card-blob-4 {
+  width: 100px; height: 70px;
+  bottom: 15%; right: -8%;
+  background: #A5D6A7;
+  border-radius: 50% 50% 35% 65% / 40% 60% 50% 50%;
+}
+.card-blob-5 {
+  width: 50px; height: 50px;
+  bottom: 30%; left: 15%;
+  background: #FFAB91;
+  border-radius: 55% 45% 50% 50% / 50% 50% 45% 55%;
+}
+
+/* 像素点装饰 */
+.pixel-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  opacity: 0.2;
+  pointer-events: none;
+}
+.pixel-1 { top: 12%; left: 20%; background: #FF8A65; }
+.pixel-2 { top: 30%; right: 18%; background: #81D4FA; width: 8px; height: 8px; }
+.pixel-3 { top: 48%; left: 35%; background: #FFD54F; }
+.pixel-4 { bottom: 25%; right: 25%; background: #A5D6A7; width: 5px; height: 5px; }
+.pixel-5 { bottom: 12%; left: 45%; background: #FFAB91; width: 7px; height: 7px; }
+.pixel-6 { top: 18%; left: 55%; background: #CE93D8; }
+.pixel-7 { bottom: 35%; left: 8%; background: #80CBC4; width: 4px; height: 4px; }
+.pixel-8 { top: 60%; right: 10%; background: #FFCC80; width: 6px; height: 6px; }
+
+/* 房间号标签 */
+.room-label {
+  font-size: 14px;
+  color: #999488;
+  margin-top: 10px;
+  margin-bottom: 6px;
+  letter-spacing: 4px;
+}
+
+/* 房间号数字 */
+.room-number {
+  font-size: 52px;
+  font-weight: bold;
+  color: #2D2018;
+  letter-spacing: 6px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+/* 密码标签 */
+.password-badge {
+  background: #FFF3E0;
+  color: #FF8A65;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 18px;
+}
+
+/* 分隔线 */
+.divider {
+  width: 85%;
+  height: 1.5px;
+  background: #EDE8E2;
+  margin: 8px 0;
+}
+
+/* 信息项 */
+.info-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 8px 0;
+}
+.info-label {
+  font-size: 13px;
+  color: #999488;
+  margin-bottom: 4px;
+}
+.info-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #2D2018;
+}
+
+/* ===== 小程序码 ===== */
+.qr-section {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0 5px;
+}
+.qr-circle {
+  width: 90px;
+  height: 90px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.qr-placeholder {
+  width: 75px;
+  height: 75px;
+  background: #F5F0EA;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #C0BAB0;
+}
+.qr-hint {
+  font-size: 12px;
+  color: #999488;
+}
+
+/* ===== 底部品牌 ===== */
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #EDE8E2;
+  width: 85%;
+}
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  background: #FF8A65;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+.brand-name {
+  font-size: 15px;
+  font-weight: bold;
+  color: #2D2018;
+}
+.brand-slogan {
+  font-size: 11px;
+  color: #999488;
+}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="notch"></div>
+  
+  <div class="poster-container">
+    <!-- 顶部色带 -->
+    <div class="band">
+      <div class="deco-circle deco-1"></div>
+      <div class="deco-circle deco-2"></div>
+      <div class="deco-circle deco-3"></div>
+      <div class="deco-circle deco-4"></div>
+      
+      <!-- 波浪底边 -->
+      <div class="band-wave">
+        <svg viewBox="0 0 375 40" preserveAspectRatio="none">
+          <path d="M0,20 Q56,5 140,25 Q187,35 234,20 Q300,5 375,25 L375,40 L0,40Z" fill="#FFF5E9"/>
+        </svg>
+      </div>
+    </div>
+    
+    <!-- 色带文字 -->
+    <div class="band-title">一起来投票选餐厅</div>
+    <div class="band-subtitle">喵了个鱼 · 邀请你加入</div>
+    
+    <!-- 猫头 -->
+    <div class="avatar-ring"></div>
+    <div class="avatar-float">
+      <img src="https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/icons/juze_avatar.png?sign=bcd3eecc5c843821345b7165824624d0&t=1777984201" alt="橘仔头像" />
+    </div>
+    
+    <!-- 白色邀请卡片 -->
+    <div class="invite-card">
+      <!-- 油画风格装饰色块 -->
+      <div class="card-blob card-blob-1"></div>
+      <div class="card-blob card-blob-2"></div>
+      <div class="card-blob card-blob-3"></div>
+      <div class="card-blob card-blob-4"></div>
+      <div class="card-blob card-blob-5"></div>
+      <div class="pixel-dot pixel-1"></div>
+      <div class="pixel-dot pixel-2"></div>
+      <div class="pixel-dot pixel-3"></div>
+      <div class="pixel-dot pixel-4"></div>
+      <div class="pixel-dot pixel-5"></div>
+      <div class="pixel-dot pixel-6"></div>
+      <div class="pixel-dot pixel-7"></div>
+      <div class="pixel-dot pixel-8"></div>
+      
+      <!-- 房间号 -->
+      <div class="room-label">房 间 号</div>
+      <div class="room-number">731286</div>
+      <div class="password-badge">密码: 123456</div>
+      
+      <div class="divider"></div>
+      
+      <!-- 时间 -->
+      <div class="info-section">
+        <div class="info-label">时 间</div>
+        <div class="info-value">4月28日 18:00</div>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <!-- 地点 -->
+      <div class="info-section">
+        <div class="info-label">地 点</div>
+        <div class="info-value">建设北路</div>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <!-- 小程序码 -->
+      <div class="qr-section">
+        <div class="qr-circle">
+          <div class="qr-placeholder">小程序码</div>
+        </div>
+        <span class="qr-hint">长按识别加入投票</span>
+      </div>
+      
+      <!-- 底部品牌 -->
+      <div class="brand-section">
+        <div class="brand-logo">🐱</div>
+        <div class="brand-text">
+          <span class="brand-name">喵了个鱼</span>
+          <span class="brand-slogan">让聚餐不再纠结</span>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  
+</div>
+</body>
+</html>

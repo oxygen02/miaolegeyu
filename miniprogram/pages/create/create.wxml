@@ -56,15 +56,6 @@
 
   </view>
 
-  <!-- 模拟投票场景 -->
-  <view class="preview-section">
-    <view class="preview-title">模拟投票场景</view>
-    <view class="preview-buttons">
-      <button class="btn-preview btn-mode-a" bindtap="previewVoteModeA">模式A：选饭店</button>
-      <button class="btn-preview btn-mode-b" bindtap="previewVoteModeB">模式B：选偏好</button>
-    </view>
-  </view>
-
   <!-- 底部装饰 -->
   <view class="bottom-decoration">
     <image class="paw-print paw1" src="{{imagePaths.misc.singleclaw}}" mode="aspectFit" />

@@ -7,8 +7,10 @@ Page({
     room: {},
     loading: true,
     isCreator: false,
-    voteStats: null, // 投票统计结果
+    voteStats: null,
     imagePaths: imagePaths,
+    showPosterModal: false,
+    posterData: null,
     platformAppIds: {
       meituan: 'wxde8ac0a21135c07d',
       dianping: 'wxc0d6fdfa1c166f6c',
@@ -341,307 +343,53 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
     return '';
   },
 
-  // 生成分享海报（西部通缉令风格 - 严格按照用户规格）
-  async generatePoster() {
-    try {
-      wx.showLoading({ title: '生成海报中...' });
+  // 生成结果海报（使用 poster-modal 组件）
+  showResultPoster() {
+    const { room } = this.data;
+    const winner = room.finalPoster || {};
+    const posterData = {
+      type: 'result',
+      mode: room.mode || 'a',
+      winner: {
+        name: winner.name || room.shopName || '饭店待定',
+        image: winner.imageUrl || '',
+        address: winner.address || room.location?.name || room.location || '',
+        category: winner.category || '美食',
+        price: winner.price || '',
+        voteCount: room.totalVoters || 0,
+        votePercent: winner.votePercent || 0
+      },
+      finalPoster: winner.imageUrl ? { imageUrl: winner.imageUrl } : null,
+      roomTitle: room.title || '聚餐投票',
+      roomTime: room.activityTime || winner.time || '',
+      roomAddress: room.location?.name || room.location || '',
+      participants: room.participants || [],
+      isAnonymous: room.isAnonymous || false
+    };
 
-      const { room, voteStats } = this.data;
-      const posterData = {
-        title: room.title || '神秘聚餐',
-        date: room.activityDate || '',
-        time: room.activityTime || '',
-        location: room.location?.name || room.location || '待定',
-        restaurantName: room.finalPoster?.name || room.shopName || '饭店待定',
-        roomName: room.finalPoster?.roomName || '',
-        mode: room.mode,
-        bestMatch: voteStats?.bestMatches?.[0] || null,
-        totalVoters: voteStats?.totalVoters || 0
-      };
-
-      // 并行获取：云存储图片临时URL + 小程序码
-      const cloudImages = [
-        imagePaths.misc.juzeAvatar,
-        imagePaths.banners.posterBg
-      ];
-      let tempUrls = {};
-      let qrCodeUrl = '';
-      try {
-        const [{ result: urlResult }, qrResult] = await Promise.all([
-          wx.cloud.callFunction({
-            name: 'getTempFileURL',
-            data: { fileList: cloudImages }
-          }),
-          this.generateQRCodeForPoster()
-        ]);
-        qrCodeUrl = qrResult;
-        if (urlResult.code === 0 && urlResult.fileList) {
-          urlResult.fileList.forEach((item, index) => {
-            if (item.tempFileURL) {
-              tempUrls[cloudImages[index]] = item.tempFileURL;
-            }
-          });
-        }
-      } catch (err) {
-        console.error('获取资源失败:', err);
-      }
-
-      // 创建离屏画布
-      const query = wx.createSelectorQuery();
-      query.select('#posterCanvas')
-        .fields({ node: true, size: true })
-        .exec(async (res) => {
-          if (!res[0]) {
-            this.showPosterPreview(posterData);
-            return;
-          }
-
-          const canvas = res[0].node;
-          const ctx = canvas.getContext('2d');
-          const dpr = wx.getSystemInfoSync().pixelRatio;
-
-          canvas.width = 750 * dpr;
-          canvas.height = 1200 * dpr;
-          ctx.scale(dpr, dpr);
-
-          // ========== 1. 绘制海报底板（使用 juze_avatar 作为背景图） ==========
-          const bgUrl = tempUrls[imagePaths.misc.juzeAvatar];
-          const bgImg = bgUrl ? await this.loadImage(canvas, bgUrl) : null;
-          if (bgImg) {
-            // 保持比例覆盖整个画布
-            const imgRatio = bgImg.width / bgImg.height;
-            const canvasRatio = 750 / 1200;
-            let drawW, drawH, drawX, drawY;
-            if (imgRatio > canvasRatio) {
-              drawH = 1200;
-              drawW = drawH * imgRatio;
-              drawX = (750 - drawW) / 2;
-              drawY = 0;
-            } else {
-              drawW = 750;
-              drawH = drawW / imgRatio;
-              drawX = 0;
-              drawY = (1200 - drawH) / 2;
-            }
-            ctx.drawImage(bgImg, drawX, drawY, drawW, drawH);
-            // 添加半透明遮罩，使文字更清晰
-            ctx.fillStyle = 'rgba(255, 248, 240, 0.75)';
-            ctx.fillRect(0, 0, 750, 1200);
-          } else {
-            // 底图加载失败，使用牛皮纸色背景
-            ctx.fillStyle = '#D4A574';
-            ctx.fillRect(0, 0, 750, 1200);
-          }
-
-          // ========== 2. 绘制橘猫头像（居中，400x400像素区域） ==========
-          const catUrl = tempUrls[imagePaths.misc.juzeAvatar];
-          const catImg = catUrl ? await this.loadImage(canvas, catUrl) : null;
-          if (catImg) {
-            // 深棕色矩形框背景
-            ctx.fillStyle = '#3D2914';
-            ctx.fillRect(175, 200, 400, 400);
-            // 绘制橘猫头像
-            ctx.drawImage(catImg, 175, 200, 400, 400);
-          }
-
-          // ========== 3. 文字绘制（严格按照用户规格） ==========
-          // 1) 固定标题：YOU ARE WANTED（最顶部，距离顶部80px，海报最大字号）
-          ctx.fillStyle = '#2C1810'; // 深棕色
-          ctx.font = 'bold 72px "PingFang SC"'; // 西部复古粗体，最大字号
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-          this.drawStrokeText(ctx, 'YOU ARE WANTED', 375, 80, 600, 1);
-
-          // 2) 聚餐标题（橘猫头像框正下方，距离顶部650px，猫下方40px空白）
-          ctx.fillStyle = '#2C1810';
-          ctx.font = 'bold 48px "PingFang SC"'; // 仅次于顶部标题
-          this.drawStrokeText(ctx, posterData.title.toUpperCase(), 375, 650, 525, 2);
-
-          // 3) 饭店名称（聚餐标题正下方，距离顶部750px）
-          ctx.fillStyle = '#2C1810';
-          ctx.font = 'bold 40px "PingFang SC"';
-          this.drawStrokeText(ctx, posterData.restaurantName.toUpperCase(), 375, 750, 450, 2);
-
-          // 4) 时间 + 地点（横向并排，距离顶部820px，左右分布，中间100px空白）
-          // 聚餐时间（左，距离左侧100px）
-          ctx.fillStyle = '#5D3A1A'; // 稍浅的深褐色
-          ctx.font = 'bold 28px "PingFang SC"'; // 简洁无衬线
-          ctx.textAlign = 'left';
-          const timeText = posterData.date && posterData.time
-            ? `${posterData.date} ${posterData.time}`
-            : '时间待定';
-          this.drawStrokeText(ctx, timeText, 100, 820, 250, 1, 'left');
-
-          // 聚餐地点（右，距离右侧100px）
-          ctx.font = 'bold 28px "PingFang SC"';
-          ctx.textAlign = 'right';
-          const locationText = posterData.location || '地点待定';
-          this.drawStrokeText(ctx, locationText, 650, 820, 250, 1, 'right');
-
-          // 5) 备注信息（时间地点正下方，距离顶部900px）
-          ctx.textAlign = 'center';
-          
-          // 小标题 DETAILS
-          ctx.fillStyle = '#2C1810';
-          ctx.font = 'bold 26px "PingFang SC"';
-          this.drawStrokeText(ctx, 'DETAILS', 375, 900, 500, 1);
-
-          // 具体备注内容（包间信息或最佳匹配）
-          ctx.fillStyle = '#5D3A1A';
-          ctx.font = '22px "PingFang SC"';
-          let detailsText = '';
-          if (posterData.roomName) {
-            detailsText = `包间：${posterData.roomName}`;
-          } else if (posterData.bestMatch) {
-            const matchType = posterData.bestMatch.matchType === 'perfect' ? '完美匹配' : '部分匹配';
-            detailsText = `${posterData.bestMatch.categoryName}·${posterData.bestMatch.subCategoryName} · ${posterData.bestMatch.voterCount}人${matchType}`;
-          } else {
-            detailsText = '来自喵了个鱼小程序';
-          }
-          this.drawStrokeText(ctx, detailsText, 375, 940, 525, 2);
-
-          // ========== 6. 绘制小程序码 ==========
-          const qrY = 1120;
-          if (qrCodeUrl) {
-            try {
-              const qrImg = await this.loadImage(canvas, qrCodeUrl);
-              if (qrImg) {
-                ctx.save();
-                // 白色圆形背景
-                ctx.fillStyle = '#FFFFFF';
-                ctx.beginPath();
-                ctx.arc(375, qrY, 70, 0, Math.PI * 2);
-                ctx.fill();
-                // 裁剪圆形绘制小程序码
-                ctx.beginPath();
-                ctx.arc(375, qrY, 60, 0, Math.PI * 2);
-                ctx.clip();
-                ctx.drawImage(qrImg, 375 - 60, qrY - 60, 120, 120);
-                ctx.restore();
-              }
-            } catch (e) {
-              console.error('小程序码绘制失败:', e);
-            }
-          }
-
-          // ========== 7. 底部提示文字 ==========
-          ctx.save();
-          ctx.font = '20px "PingFang SC"';
-          ctx.fillStyle = '#8A8A8A';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-          ctx.fillText('长按识别小程序码进入投票', 375, 1200);
-          ctx.restore();
-
-          // ========== 8. 保存图片 ==========
-          setTimeout(() => {
-            wx.canvasToTempFilePath({
-              canvas: canvas,
-              x: 0,
-              y: 0,
-              width: 750,
-              height: 1200,
-              destWidth: 750 * dpr,
-              destHeight: 1200 * dpr,
-              fileType: 'png',
-              quality: 1,
-              success: (res) => {
-                wx.hideLoading();
-                wx.previewImage({
-                  urls: [res.tempFilePath],
-                  current: res.tempFilePath
-                });
-              },
-              fail: (err) => {
-                console.error('生成海报失败:', err);
-                wx.hideLoading();
-                this.showPosterPreview(posterData);
-              }
-            });
-          }, 800);
-        });
-    } catch (err) {
-      console.error('生成海报失败:', err);
-      wx.hideLoading();
-      wx.showToast({ title: '生成海报失败', icon: 'none' });
-    }
+    this.setData({
+      posterData,
+      showPosterModal: true
+    });
+    console.log('[result] 显示结果海报弹窗, mode:', room.mode);
   },
 
-  // 加载图片（返回 Promise）
-  loadImage(canvas, src) {
-    return new Promise((resolve) => {
-      const img = canvas.createImage();
-      img.onload = () => resolve(img);
-      img.onerror = () => resolve(null);
-      img.src = src;
+  // 海报弹窗事件
+  onPosterClose() {
+    this.setData({
+      showPosterModal: false,
+      posterData: null
     });
   },
 
-  // 绘制带描边的文字（支持多行+超长省略）
-  drawStrokeText(ctx, text, x, y, maxWidth, maxLines = 1, align = 'center') {
-    const chars = String(text).split('');
-    let line = '';
-    let lines = [];
-
-    // 先计算所有行
-    for (let i = 0; i < chars.length; i++) {
-      const testLine = line + chars[i];
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && line !== '') {
-        lines.push(line);
-        line = chars[i];
-        if (lines.length >= maxLines) break;
-      } else {
-        line = testLine;
-      }
-    }
-
-    if (lines.length < maxLines) {
-      lines.push(line);
-    }
-
-    // 如果超出最大行数，最后一行加省略号
-    if (chars.length > line.length && lines.length >= maxLines) {
-      const lastLine = lines[lines.length - 1];
-      if (lastLine.length > 3) {
-        lines[lines.length - 1] = lastLine.slice(0, -3) + '...';
-      }
-    }
-
-    // 设置对齐方式
-    ctx.textAlign = align;
-    ctx.textBaseline = 'top';
-
-    // 绘制每一行（先描边再填充）
-    const lineHeight = parseInt(ctx.font) * 1.4;
-    lines.forEach((lineText, index) => {
-      const lineY = y + index * lineHeight;
-      // 白色描边
-      ctx.strokeStyle = 'rgba(255, 248, 240, 0.95)';
-      ctx.lineWidth = 5;
-      ctx.strokeText(lineText, x, lineY);
-      // 填充文字
-      ctx.fillText(lineText, x, lineY);
-    });
+  onPosterSave(e) {
+    // poster-modal 组件内部已处理保存逻辑
+    console.log('[result] 海报已保存');
   },
 
-  // 简单的海报预览（备用方案）
-  showPosterPreview(posterData) {
-    const text = `🍽️ ${posterData.title}\n📅 ${posterData.date} ${posterData.time}\n📍 ${posterData.location}\n\n🎯 最佳匹配：${posterData.bestMatch?.categoryName || ''} · ${posterData.bestMatch?.subCategoryName || ''}\n\n—— 来自喵了个鱼小程序 ——`;
-
-    wx.showModal({
-      title: '聚餐结果',
-      content: text,
-      confirmText: '复制分享',
-      success: (res) => {
-        if (res.confirm) {
-          wx.setClipboardData({
-            data: text,
-            success: () => wx.showToast({ title: '已复制', icon: 'success' })
-          });
-        }
-      }
-    });
+  onPosterShareFriend(e) {
+    // poster-modal 组件内部已触发分享，此处可做额外处理
+    console.log('[result] 海报已分享');
   },
 
   // 分享

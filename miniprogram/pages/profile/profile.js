@@ -5,6 +5,7 @@
  */
 const audioManager = require('../../utils/audioManager');
 const auth = require('../../utils/auth');
+const { imagePaths } = require('../../config/imageConfig');
 
 Page({
   data: {
@@ -808,7 +809,7 @@ Page({
         .find(r => r.roomId === roomId);
       return {
         title: room ? `「${room.title || '聚餐投票'}」快来一起选餐厅！` : '快来一起选餐厅！',
-        path: `/pages/room/join?roomCode=${roomId}`,
+        path: `/pages/vote/vote?roomId=${roomId}`,
         imageUrl: room?.finalPoster || (room?.candidatePosters?.[0]?.imageUrl) || ''
       };
     }

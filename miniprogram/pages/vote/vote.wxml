@@ -30,6 +30,10 @@
         <text class="progress-text" wx:if="{{currentStep === 'subcategory'}}">{{subCategoryCurrentIndex + 1}} / {{subCategoryCards.length}} (每个大类选1个)</text>
       </block>
     </view>
+    <!-- 邀请好友按钮 -->
+    <view class="invite-btn" bindtap="showSharePoster">
+      <text class="invite-icon">+</text>
+    </view>
     <image class="header-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit" />
   </view>
 
@@ -288,4 +292,14 @@
       <button class="btn-submit {{canSubmit ? 'active' : ''}}" bindtap="submitVote">提交</button>
     </view>
   </view>
+
+  <!-- 海报分享弹窗 -->
+  <poster-modal
+    visible="{{showPosterModal}}"
+    title="邀请好友投票"
+    poster-data="{{posterData}}"
+    bind:close="onPosterClose"
+    bind:save="onPosterSave"
+    bind:shareFriend="onPosterShareFriend"
+  />
 </view>

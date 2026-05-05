@@ -1,7 +1,4 @@
 <view class="result-page">
-  <!-- 画布，用于生成海报 -->
-  <canvas type="2d" id="posterCanvas" style="position: fixed; left: -750px; top: 0; width: 750px; height: 1200px; z-index: -1;"></canvas>
-
   <!-- 加载状态 -->
   <view class="loading-container" wx:if="{{loading}}">
     <image class="loading-icon" src="{{imagePaths.misc.fishIcon}}" mode="aspectFit"/>
@@ -174,7 +171,7 @@
           <text class="share-label">分享给好友</text>
         </button>
         <view class="share-divider"></view>
-        <view class="share-btn poster" bindtap="generatePoster">
+        <view class="share-btn poster" bindtap="showResultPoster">
           <image class="share-icon-img" src="/assets/images/generatorposter.png" mode="aspectFit"/>
           <text class="share-label">生成海报</text>
         </view>
@@ -186,4 +183,13 @@
       <text class="back-link" bindtap="goHome">返回首页</text>
     </view>
   </block>
+
+  <!-- 海报分享弹窗 -->
+  <poster-modal 
+    visible="{{showPosterModal}}"
+    poster-data="{{posterData}}"
+    bind:close="onPosterClose"
+    bind:save="onPosterSave"
+    bind:shareFriend="onPosterShareFriend"
+  />
 </view>

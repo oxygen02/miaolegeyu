@@ -37,7 +37,7 @@
 .modal-content {
   position: relative;
   width: 680rpx;
-  max-height: 90vh;
+  max-height: 95vh;
   background: #FFFFFF;
   border-radius: 32rpx;
   padding: 40rpx;
@@ -95,11 +95,11 @@
   color: #8A8A8A;
 }
 
-/* 画布容器 */
+/* 画布容器 - 适配 750x1250 画布比例 */
 .canvas-wrapper {
   position: relative;
   width: 600rpx;
-  height: 768rpx; /* 按比例缩放：750 * (600/750) = 768 */
+  height: 1000rpx; /* 按比例缩放：1250 * (600/750) = 1000 */
   margin: 0 auto 30rpx;
   background: #F5F5F5;
   border-radius: 16rpx;

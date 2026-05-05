@@ -46,7 +46,7 @@ Component({
   data: {
     isLoading: true,
     canvasWidth: 750,
-    canvasHeight: 960,
+    canvasHeight: 1250,
     posterImagePath: ''
   },
 

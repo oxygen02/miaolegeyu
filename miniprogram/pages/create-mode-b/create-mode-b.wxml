@@ -146,7 +146,7 @@
 
   <!-- 底部按钮 -->
   <view class="bottom-panel safe-bottom">
-    <button class="btn btn-primary submit-btn {{canSubmit ? '' : 'btn-disabled'}}" bindtap="createRoom">
+    <button class="btn btn-primary submit-btn {{canSubmit ? '' : 'btn-disabled'}}" bindtap="_lockedCreateRoom">
       生成房间
     </button>
   </view>

@@ -113,7 +113,7 @@
               <text class="stats-text">已凑 ¥{{item.currentAmount}}/¥{{item.targetAmount}}</text>
             </view>
             <view class="spacer" wx:else></view>
-            <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{!isEditMode}}">立即参加</button>
+            <button class="btn btn-primary btn-small" catchtap="_lockedJoinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{!isEditMode}}">立即参加</button>
           </view>
         </view>
       </view>

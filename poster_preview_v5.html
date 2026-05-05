@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海报 V5 预览 - 庆祝获胜者风格</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #F0EBE4;
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+    padding: 30px 16px;
+  }
+  .page-title { text-align: center; color: #2D2018; font-size: 22px; font-weight: bold; margin-bottom: 8px; }
+  .page-sub { text-align: center; color: #999488; font-size: 13px; margin-bottom: 36px; }
+  .section { display: flex; flex-direction: column; align-items: center; gap: 50px; }
+  .label { font-size: 16px; font-weight: bold; color: #5D4037; margin-bottom: 10px; }
+  canvas { box-shadow: 0 16px 48px rgba(0,0,0,0.12); border-radius: 8px; }
+</style>
+</head>
+<body>
+<div class="page-title">海报 V5 预览</div>
+<div class="page-sub">加大间距 / 加大字号 / 加大小程序码 / 全海报装饰点缀 / 画布 750x1500</div>
+<div class="section">
+  <div>
+    <div class="label">结果海报 V5 - 聚餐地点已定</div>
+    <canvas id="result" width="750" height="1500" style="width:375px;height:750px;"></canvas>
+  </div>
+</div>
+
+<script>
+const CDN = 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la';
+const IMG = { catFishLogo: `${CDN}/decorations/cat-fish-logo.png` };
+
+function loadImg(src) {
+  return new Promise(r => {
+    const i = new Image(); i.crossOrigin = 'anonymous';
+    i.onload = () => r(i); i.onerror = () => r(null); i.src = src;
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r, fill) {
+  ctx.save(); ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  ctx.restore();
+}
+
+function drawTrophy(ctx, x, y, size) {
+  ctx.save(); ctx.fillStyle = '#FFD54F'; ctx.strokeStyle = '#F9A825'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x-size*0.35,y+size*0.2); ctx.lineTo(x+size*0.35,y+size*0.2);
+  ctx.lineTo(x+size*0.25,y+size*0.65); ctx.lineTo(x-size*0.25,y+size*0.65);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#FFD54F';
+  roundRect(ctx, x-size*0.4,y+size*0.1,size*0.8,size*0.15,3,'#FFD54F'); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x-size*0.55,y+size*0.4,size*0.18,-0.5,0.5*Math.PI); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x+size*0.55,y+size*0.4,size*0.18,Math.PI-0.5,Math.PI+0.5); ctx.stroke();
+  roundRect(ctx, x-size*0.4,y+size*0.65,size*0.8,size*0.15,2,'#FFD54F'); ctx.stroke();
+  roundRect(ctx, x-size*0.5,y+size*0.8,size,size*0.12,2,'#FFD54F'); ctx.stroke();
+  ctx.restore();
+}
+
+function drawStar(ctx, cx, cy, r, color) {
+  ctx.save(); ctx.fillStyle = color; ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = (i*2*Math.PI)/5 - Math.PI/2;
+    const x = cx+r*Math.cos(a), y = cy+r*Math.sin(a);
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    const ia = a + Math.PI/5;
+    ctx.lineTo(cx+r*0.4*Math.cos(ia), cy+r*0.4*Math.sin(ia));
+  }
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+async function drawResultV5() {
+  const c = document.getElementById('result');
+  const ctx = c.getContext('2d');
+  const W = 750, H = 1500, cx = W/2;
+
+  // 背景
+  ctx.fillStyle = '#FFF8F0';
+  ctx.fillRect(0, 0, W, H);
+
+  // 背景装饰：金色圆点+星星散布卡片外
+  const bgDecos = [
+    {t:'dot',x:40,y:1420,r:5,a:0.15},{t:'dot',x:90,y:1460,r:3,a:0.1},
+    {t:'star',x:120,y:1390,r:8,a:0.12},
+    {t:'dot',x:W-60,y:1430,r:4,a:0.15},{t:'star',x:W-100,y:1470,r:6,a:0.1},
+    {t:'dot',x:W-140,y:1400,r:3,a:0.12},
+    {t:'dot',x:30,y:320,r:4,a:0.12},{t:'star',x:70,y:350,r:7,a:0.1},
+    {t:'dot',x:W-40,y:330,r:5,a:0.12},{t:'star',x:W-80,y:310,r:6,a:0.1},
+    {t:'dot',x:20,y:750,r:3,a:0.08},{t:'dot',x:W-25,y:700,r:4,a:0.08},
+    {t:'star',x:15,y:900,r:5,a:0.06},{t:'dot',x:W-30,y:950,r:3,a:0.06},
+  ];
+  bgDecos.forEach(d => {
+    ctx.save(); ctx.globalAlpha = d.a;
+    if (d.t==='dot') { ctx.fillStyle='#FFD54F'; ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill(); }
+    else drawStar(ctx, d.x, d.y, d.r, '#FFD54F');
+    ctx.restore();
+  });
+
+  // 色带 300px
+  const grad = ctx.createLinearGradient(0,0,W,0);
+  grad.addColorStop(0,'#FF8A65'); grad.addColorStop(0.5,'#FF9F43'); grad.addColorStop(1,'#FFB74D');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,W,300);
+
+  // 色带装饰圆点
+  ctx.save(); ctx.globalAlpha = 0.12; ctx.fillStyle = '#FFFFFF';
+  [{x:80,y:60,r:25},{x:W-90,y:80,r:18},{x:150,y:250,r:12},{x:W-130,y:230,r:15},{x:50,y:180,r:8},{x:W-50,y:160,r:10}]
+    .forEach(d => { ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill(); });
+  ctx.restore();
+
+  // 波浪
+  ctx.beginPath();
+  ctx.moveTo(0,270); ctx.bezierCurveTo(W*0.15,250,W*0.35,310,cx,285);
+  ctx.bezierCurveTo(W*0.65,260,W*0.85,300,W,270); ctx.lineTo(W,300); ctx.lineTo(0,300);
+  ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+
+  ctx.save(); ctx.globalAlpha = 0.3;
+  ctx.beginPath();
+  ctx.moveTo(0,285); ctx.bezierCurveTo(W*0.2,270,W*0.45,310,cx,290);
+  ctx.bezierCurveTo(W*0.6,270,W*0.85,310,W,285); ctx.lineTo(W,320); ctx.lineTo(0,320);
+  ctx.closePath(); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+  ctx.restore();
+
+  // 标题 40px
+  ctx.font = 'bold 40px sans-serif'; ctx.fillStyle = '#FFFFFF';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('聚餐地点已定', cx, 110);
+
+  // 副标题 26px
+  ctx.font = '26px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillText('周末聚餐大作战', cx, 165);
+
+  // 猫头像
+  const ay = 280, ar = 50;
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,0.1)'; ctx.shadowBlur=16; ctx.shadowOffsetY=6;
+  ctx.fillStyle='#FFFFFF'; ctx.beginPath(); ctx.arc(cx,ay,ar+6,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+  const catLogo = await loadImg(IMG.catFishLogo);
+  if (catLogo) {
+    ctx.save(); ctx.beginPath(); ctx.arc(cx,ay,ar,0,Math.PI*2); ctx.clip();
+    ctx.drawImage(catLogo, cx-ar, ay-ar, ar*2, ar*2); ctx.restore();
+  }
+
+  // 白色卡片
+  const cX=40, cY=345, cW=W-80, cH=1030;
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,0.06)'; ctx.shadowBlur=32; ctx.shadowOffsetY=8;
+  roundRect(ctx, cX, cY, cW, cH, 24, '#FFFFFF');
+  ctx.restore();
+
+  // 庆祝元素
+  let y = cY + 40;
+  const celebY = y;
+  drawTrophy(ctx, cx-20, celebY, 42);
+  [[cX+50,celebY+8,12],[cX+cW-60,celebY+5,10],[cX+80,celebY+40,7],
+   [cX+cW-90,celebY+35,9],[cx-90,celebY+2,10],[cx+70,celebY+15,8],
+   [cX+130,celebY+55,6],[cX+cW-140,celebY+60,7]]
+    .forEach(([sx,sy,sr]) => drawStar(ctx,sx,sy,sr,'#FFD54F'));
+
+  const cc = ['#FF8A65','#FFB74D','#FFD54F','#FF9F43','#FFCC80'];
+  for (let i = 0; i < 22; i++) {
+    const cx2 = cX+30+Math.random()*(cW-60), cy2 = celebY+10+Math.random()*55;
+    const cw = 4+Math.random()*8, ch = 12+Math.random()*18;
+    ctx.save(); ctx.translate(cx2,cy2); ctx.rotate((Math.random()-0.5)*60*Math.PI/180);
+    ctx.globalAlpha = 0.5+Math.random()*0.4; ctx.fillStyle = cc[i%cc.length];
+    roundRect(ctx, -cw/2,-ch/2,cw,ch,2,cc[i%cc.length]); ctx.restore();
+  }
+
+  y = celebY + 90;
+
+  // 餐厅名 38px
+  ctx.font = 'bold 38px sans-serif'; ctx.fillStyle = '#2D2018';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('大渔铁板烧(海岸城店)', cx, y); y += 48;
+
+  // 地址 24px
+  ctx.font = '24px sans-serif'; ctx.fillStyle = '#666666';
+  ctx.fillText('南山区海德三道  |  日本料理', cx, y); y += 50;
+
+  // 时间 38px
+  ctx.font = 'bold 38px sans-serif'; ctx.fillStyle = '#2D2018';
+  ctx.fillText('时间: 2026-05-10 18:30', cx, y); y += 55;
+
+  // 分隔线
+  ctx.fillStyle = '#EDE8E2'; ctx.fillRect(cX+55, y, cW-110, 1); y += 45;
+
+  // 票数 80px
+  ctx.font = 'bold 80px sans-serif'; ctx.fillStyle = '#FF8A65';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('8 票', cx, y+20); y += 90;
+
+  // 支持率 22px
+  ctx.font = '22px sans-serif'; ctx.fillStyle = '#999999';
+  ctx.fillText('支持率 67%  ·  12人参与', cx, y); y += 35;
+
+  // 进度条 24px
+  const bW=cW-140, bX=cx-bW/2, bH=24;
+  ctx.fillStyle='#F0EBE4'; ctx.beginPath(); ctx.roundRect(bX,y,bW,bH,bH/2); ctx.fill();
+  const bG = ctx.createLinearGradient(bX,0,bX+bW,0);
+  bG.addColorStop(0,'#FF8A65'); bG.addColorStop(1,'#FFB74D');
+  ctx.fillStyle = bG; ctx.beginPath(); ctx.roundRect(bX,y,Math.max(bH,bW*0.67),bH,bH/2); ctx.fill();
+  ctx.font='bold 14px sans-serif'; ctx.fillStyle='#FFFFFF';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('67%', bX+bW*0.67/2, y+bH/2); y += 55;
+
+  // 分隔线
+  ctx.fillStyle='#EDE8E2'; ctx.fillRect(cX+55, y, cW-110, 1); y += 50;
+
+  // 小程序码 r=60（大幅放大）
+  const qrCY = y + 65;
+  ctx.save(); ctx.strokeStyle='#F0EBE4'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(cx,qrCY,68,0,Math.PI*2); ctx.stroke(); ctx.restore();
+  ctx.fillStyle='#F8F5F2'; ctx.beginPath(); ctx.arc(cx,qrCY,60,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#E0DAD2'; ctx.beginPath(); ctx.arc(cx,qrCY,50,0,Math.PI*2); ctx.fill();
+  ctx.font='16px sans-serif'; ctx.fillStyle='#C0BAB0';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('小程序码', cx, qrCY);
+  ctx.font='22px sans-serif'; ctx.fillStyle='#999999';
+  ctx.textBaseline='top';
+  ctx.fillText('长按识别查看详情', cx, qrCY+72);
+
+  // 底部品牌
+  ctx.font='bold 20px sans-serif'; ctx.fillStyle='#C0BAB0';
+  ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  ctx.fillText('喵了个鱼', cx, H-60);
+  ctx.font='18px sans-serif'; ctx.fillStyle='#D0C8BE';
+  ctx.fillText('一起吃饭，一起快乐', cx, H-32);
+}
+
+async function init() { await loadImg(IMG.catFishLogo); await drawResultV5(); }
+init();
+</script>
+</body>
+</html>

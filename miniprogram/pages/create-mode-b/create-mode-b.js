@@ -1,6 +1,7 @@
 // pages/create-mode-b/create-mode-b.js
 const { generateRoomId } = require('../../utils/uuid.js');
 const { imagePaths } = require('../../config/imageConfig');
+const { withLock } = require('../../utils/debounce');
 
 Page({
   data: {
@@ -34,6 +35,8 @@ Page({
   },
 
   onLoad(options) {
+    // 防抖：创建房间
+    this._lockedCreateRoom = withLock(this.createRoom.bind(this));
     // 检查是否是编辑模式
     if (options.edit && options.roomId) {
       this.setData({ isEditMode: true, editRoomId: options.roomId });

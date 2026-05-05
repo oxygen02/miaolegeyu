@@ -4,6 +4,7 @@
  */
 const audioManager = require('../../utils/audioManager');
 const auth = require('../../utils/auth');
+const { imagePaths } = require('../../config/imageConfig');
 
 Page({
   data: {

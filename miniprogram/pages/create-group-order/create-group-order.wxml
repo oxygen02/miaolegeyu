@@ -107,7 +107,7 @@
 
   <!-- 底部按钮 -->
   <view class="bottom-panel safe-bottom">
-    <button class="btn btn-primary submit-btn {{canSubmitFlag ? '' : 'btn-disabled'}}" bindtap="createGroupOrder">
+    <button class="btn btn-primary submit-btn {{canSubmitFlag ? '' : 'btn-disabled'}}" bindtap="_lockedCreateGroupOrder">
       发起拼单
     </button>
   </view>
