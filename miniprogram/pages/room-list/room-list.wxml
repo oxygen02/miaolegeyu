@@ -150,6 +150,10 @@
         <image class="action-icon" src="/assets/icon-share-w.png" mode="aspectFit" />
         <text>分享房间</text>
       </view>
+      <view class="action-item" bindtap="onViewPoster">
+        <image class="action-icon" src="/assets/images/generatorposter.png" mode="aspectFit" />
+        <text>查看海报</text>
+      </view>
       <view class="action-item delete" bindtap="onDelete">
         <image class="action-icon" src="/assets/icon-delete.png" mode="aspectFit" />
         <text>删除房间</text>
@@ -158,3 +162,13 @@
     <view class="action-cancel" bindtap="onCloseActionSheet">取消</view>
   </view>
 </view>
+
+<!-- 海报分享弹窗 -->
+<poster-modal 
+  visible="{{showPosterModal}}"
+  title="{{posterTitle}}"
+  poster-data="{{posterData}}"
+  bind:close="onPosterClose"
+  bind:save="onPosterSave"
+  bind:shareFriend="onPosterShareFriend"
+/>

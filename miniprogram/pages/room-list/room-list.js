@@ -12,7 +12,10 @@ Page({
     inputFocused: false,
     showActionSheet: false,
     selectedRoomId: null,
-    deadlineTimer: null
+    deadlineTimer: null,
+    showPosterModal: false,
+    posterData: null,
+    posterTitle: '分享海报'
   },
 
   onLoad() {
@@ -330,6 +333,106 @@ Page({
         }
         this.onCloseActionSheet();
       }
+    });
+  },
+
+  // 查看海报
+  async onViewPoster() {
+    const roomId = this.data.selectedRoomId;
+    const room = this.data.allRooms.find(r => r.roomId === roomId);
+    this.onCloseActionSheet();
+
+    if (!room) {
+      wx.showToast({ title: '房间信息不存在', icon: 'none' });
+      return;
+    }
+
+    // 生成小程序码
+    let qrCodeUrl = '';
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'generateQRCode',
+        data: {
+          scene: `roomId=${roomId}`,
+          page: 'pages/vote/vote',
+          width: 280
+        }
+      });
+      if (result.code === 0 && result.data) {
+        qrCodeUrl = result.data;
+      }
+    } catch (err) {
+      console.error('[room-list] 生成小程序码失败:', err);
+    }
+
+    const winner = room.finalPoster || {};
+    const isLocked = room.status === 'locked' || room.status === 'completed';
+
+    if (isLocked && winner.name) {
+      // 显示结果海报
+      const posterData = {
+        type: 'result',
+        mode: room.mode || 'a',
+        winner: {
+          name: winner.name || room.shopName || '饭店待定',
+          image: winner.imageUrl || '',
+          address: winner.address || room.location?.name || room.location || '',
+          category: winner.category || '美食',
+          price: winner.price || '',
+          voteCount: room.totalVoters || 0,
+          votePercent: winner.votePercent || 0
+        },
+        finalPoster: winner.imageUrl ? { imageUrl: winner.imageUrl } : null,
+        roomTitle: room.title || '聚餐投票',
+        roomTime: room.activityTime || winner.time || '',
+        roomAddress: room.location?.name || room.location || '',
+        participants: room.participants || [],
+        isAnonymous: room.isAnonymous || false,
+        qrCodeUrl: qrCodeUrl
+      };
+
+      this.setData({
+        posterData,
+        posterTitle: '分享投票结果',
+        showPosterModal: true
+      });
+    } else {
+      // 显示邀请海报
+      const posterData = {
+        type: 'share',
+        roomTitle: room.title || '聚餐投票',
+        roomCode: room.roomId,
+        roomPassword: room.password || '',
+        needPassword: !!room.password,
+        roomTime: room.activityTime || room.time || '待定',
+        roomAddress: room.location?.name || room.location || '待定',
+        qrCodeUrl: qrCodeUrl
+      };
+
+      this.setData({
+        posterData,
+        posterTitle: '邀请好友投票',
+        showPosterModal: true
+      });
+    }
+  },
+
+  onPosterClose() {
+    this.setData({
+      showPosterModal: false,
+      posterData: null
+    });
+  },
+
+  onPosterSave(e) {
+    console.log('[room-list] 海报已保存:', e.detail.imagePath);
+  },
+
+  onPosterShareFriend(e) {
+    wx.showToast({
+      title: '请点击右上角 ··· 分享',
+      icon: 'none',
+      duration: 2000
     });
   }
 });

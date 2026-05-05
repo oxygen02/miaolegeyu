@@ -4,5 +4,8 @@
   "navigationBarTextStyle": "black",
   "backgroundColor": "#F5F0E8",
   "navigationStyle": "default",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "poster-modal": "../../components/poster-modal/poster-modal"
+  }
 }
