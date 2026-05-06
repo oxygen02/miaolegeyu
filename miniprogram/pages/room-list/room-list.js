@@ -445,22 +445,32 @@ Page({
         showPosterModal: true
       });
     } else {
-      // 显示邀请海报
+      // 投票进行中也显示结果海报样式（统一使用结果海报）
       const posterData = {
-        type: 'share',
+        type: 'result',
+        mode: room.mode || 'a',
+        winner: {
+          name: room.title || '聚餐投票',
+          image: '',
+          address: room.location?.name || room.location || '待定',
+          category: '美食',
+          price: '',
+          voteCount: room.totalVoters || 0,
+          votePercent: 0
+        },
+        finalPoster: null,
         roomTitle: room.title || '聚餐投票',
-        roomCode: room.roomId,
-        roomPassword: room.password || '',
-        needPassword: !!room.password,
         roomTime: timeDisplay,
-        roomAddress: room.location?.name || room.location || '待定',
+        roomAddress: room.location?.name || room.location || '',
+        participants: room.participants || [],
+        isAnonymous: room.isAnonymous || false,
         qrCodeUrl: qrCodeUrl,
         creatorAvatar: creatorAvatar
       };
 
       this.setData({
         posterData,
-        posterTitle: '邀请好友投票',
+        posterTitle: '分享投票结果',
         showPosterModal: true
       });
     }

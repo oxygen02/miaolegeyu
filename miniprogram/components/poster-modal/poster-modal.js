@@ -84,15 +84,8 @@ Component({
         await poster.initCanvas('posterCanvas', this);
         console.log('[海报] 画布初始化完成');
         
-        // 根据类型选择绘制方法
-        const { type } = this.properties.posterData;
-        console.log('[海报] 海报类型:', type || '(无type，使用result)');
-        
-        if (type === 'share') {
-          await poster.drawSharePoster(this.properties.posterData);
-        } else {
-          await poster.drawResultPoster(this.properties.posterData);
-        }
+        // 统一使用结果海报绘制方法
+        await poster.drawResultPoster(this.properties.posterData);
 
         // 延迟导出，确保所有绘制操作完成（图片异步加载需要时间）
         console.log('[海报] 等待渲染完成...');

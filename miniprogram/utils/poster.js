@@ -236,264 +236,6 @@ class PosterGenerator {
     return lineY + lineHeight;
   }
 
-  // ========== 邀请海报 V9 ==========
-  /**
-   * V9 重构：
-   * - 头像放在色带下方，不遮挡标题
-   * - 标题字体加大
-   * - 房间号、时间、地点标签字体加大
-   * - 底部品牌区域字体加大
-   * - 整体布局更均衡
-   */
-  async drawSharePoster(data) {
-    const { ctx, width, height, canvas } = this;
-    const { roomTitle, roomCode, roomPassword, needPassword, roomTime, roomAddress, qrCodeUrl, creatorAvatar } = data;
-    const cx = width / 2;
-
-    // ==================== 1. 背景 ====================
-    ctx.fillStyle = '#FFF5E9';
-    ctx.fillRect(0, 0, width, height);
-
-    // ==================== 2. 顶部色带（180px）====================
-    const bandH = 180;
-    const grad = ctx.createLinearGradient(0, 0, width, 0);
-    grad.addColorStop(0, '#FF8A65');
-    grad.addColorStop(0.5, '#FF9F43');
-    grad.addColorStop(1, '#FFB74D');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, width, bandH);
-
-    // 色带装饰圆圈
-    ctx.save();
-    ctx.globalAlpha = 0.08;
-    ctx.fillStyle = '#FFFFFF';
-    [
-      { x: 60, y: 45, r: 28 }, { x: width - 70, y: 60, r: 20 },
-      { x: 140, y: 140, r: 14 }, { x: width - 120, y: 115, r: 16 },
-      { x: cx - 160, y: 65, r: 10 },
-    ].forEach(d => {
-      ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
-    });
-    ctx.restore();
-
-    // 波浪底边
-    ctx.beginPath();
-    ctx.moveTo(0, 150);
-    ctx.bezierCurveTo(width * 0.15, 130, width * 0.38, 185, cx, 158);
-    ctx.bezierCurveTo(width * 0.65, 135, width * 0.85, 180, width, 150);
-    ctx.lineTo(width, bandH); ctx.lineTo(0, bandH);
-    ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
-
-    // 白色波浪过渡层
-    ctx.save(); ctx.globalAlpha = 0.25;
-    ctx.beginPath();
-    ctx.moveTo(0, 165);
-    ctx.bezierCurveTo(width * 0.18, 148, width * 0.42, 195, cx, 170);
-    ctx.bezierCurveTo(width * 0.65, 152, width * 0.88, 190, width, 165);
-    ctx.lineTo(width, 200); ctx.lineTo(0, 200);
-    ctx.closePath(); ctx.fillStyle = '#FFFFFF'; ctx.fill();
-    ctx.restore();
-
-    // --- 色带标题 ---
-    ctx.font = 'bold 48px sans-serif';
-    ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('一起来投票选餐厅', cx, 70);
-
-    // --- 色带副标题 ---
-    ctx.font = '24px sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.fillText(roomTitle || '喵了个鱼 · 邀请你加入', cx, 115);
-
-    // ==================== 3. 创建者头像（放在色带下方）====================
-    let avatarImg = null;
-    if (creatorAvatar) {
-      try { avatarImg = await this.loadImage(canvas, creatorAvatar); } catch (e) {}
-    }
-    if (!avatarImg) {
-      try { avatarImg = await this.loadImage(canvas, this.IMAGES.juzeAvatar); } catch (e) {}
-    }
-    
-    const avatarCY = 215;
-    const avatarR = 50;
-    
-    // 白底圆+阴影
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.12)';
-    ctx.shadowBlur = 16; ctx.shadowOffsetY = 6;
-    ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath(); ctx.arc(cx, avatarCY, avatarR + 5, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-    
-    // 描边
-    ctx.strokeStyle = '#FF8A65';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(cx, avatarCY, avatarR + 5, 0, Math.PI * 2); ctx.stroke();
-    
-    // 图片（加载失败时绘制默认猫脸）
-    if (avatarImg) {
-      ctx.save();
-      ctx.beginPath(); ctx.arc(cx, avatarCY, avatarR, 0, Math.PI * 2); ctx.clip();
-      ctx.drawImage(avatarImg, cx - avatarR, avatarCY - avatarR, avatarR * 2, avatarR * 2);
-      ctx.restore();
-    } else {
-      this._drawCatIcon(ctx, cx, avatarCY + 2, 20);
-    }
-
-    // ==================== 4. 白色大卡片 ====================
-    const cardX = 32;
-    const cardY = 280;
-    const cardW = width - 64;
-    const cardH = 820;
-    const cardR = 28;
-
-    // 卡片阴影
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.06)';
-    ctx.shadowBlur = 30; ctx.shadowOffsetY = 10;
-    this.drawRoundRect(cardX, cardY, cardW, cardH, cardR, '#FFFFFF');
-    ctx.restore();
-
-    // 油画风格背景色块
-    this._drawOilPaintBackground(ctx, cx, cardY, cardW, cardH);
-
-    // 像素点装饰
-    this._drawPixelDots(ctx, cardX, cardY, cardW, cardH);
-
-    let cy = cardY + 50;
-
-    // === 房间号 ===
-    ctx.font = '28px sans-serif';
-    ctx.fillStyle = '#999488';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText('房 间 号', cx, cy);
-    cy += 22;
-
-    ctx.font = 'bold 72px sans-serif';
-    ctx.fillStyle = '#2D2018';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(roomCode || '000000', cx, cy + 36);
-    cy += 95;
-
-    // === 密码（可选） ===
-    if (needPassword && roomPassword) {
-      const pwdText = '密码: ' + roomPassword;
-      ctx.font = 'bold 26px sans-serif';
-      const pwdW = ctx.measureText(pwdText).width + 48;
-      this.drawRoundRect(cx - pwdW / 2, cy, pwdW, 48, 24, '#FFF3E0');
-      ctx.fillStyle = '#FF8A65';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(pwdText, cx, cy + 24);
-      cy += 65;
-    }
-
-    // --- 分隔线 ---
-    cy += 10;
-    ctx.fillStyle = '#EDE8E2';
-    ctx.fillRect(cardX + 40, cy, cardW - 80, 1.5);
-    cy += 40;
-
-    // === 时间 ===
-    ctx.font = '28px sans-serif';
-    ctx.fillStyle = '#999488';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText('时 间', cx, cy);
-    cy += 10;
-    ctx.font = 'bold 36px sans-serif';
-    ctx.fillStyle = '#2D2018';
-    const timeText = roomTime && roomTime.trim() !== '' && roomTime !== '待定' ? roomTime : '待定';
-    ctx.fillText(timeText, cx, cy + 36);
-    cy += 80;
-
-    // === 地点 ===
-    ctx.font = '28px sans-serif';
-    ctx.fillStyle = '#999488';
-    ctx.fillText('地 点', cx, cy);
-    cy += 10;
-    ctx.font = 'bold 36px sans-serif';
-    ctx.fillStyle = '#2D2018';
-    const addressText = roomAddress && roomAddress !== '待定' ? roomAddress : '待定';
-    ctx.fillText(addressText, cx, cy + 36);
-    cy += 80;
-
-    // --- 分隔线 ---
-    ctx.fillStyle = '#EDE8E2';
-    ctx.fillRect(cardX + 40, cy, cardW - 80, 1.5);
-    cy += 40;
-
-    // ==================== 5. 小程序码 ====================
-    const qrR = 80;
-    const qrCY = cy + qrR;
-    // 白底圆+阴影
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.06)';
-    ctx.shadowBlur = 16; ctx.shadowOffsetY = 4;
-    ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath(); ctx.arc(cx, qrCY, qrR, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-
-    // 二维码
-    if (qrCodeUrl) {
-      try {
-        const qrImg = await this.loadImage(canvas, qrCodeUrl);
-        if (qrImg) {
-          ctx.save();
-          ctx.beginPath(); ctx.arc(cx, qrCY, qrR - 8, 0, Math.PI * 2); ctx.clip();
-          ctx.drawImage(qrImg, cx - qrR + 8, qrCY - qrR + 8, (qrR - 8) * 2, (qrR - 8) * 2);
-          ctx.restore();
-        }
-      } catch (e) {}
-    } else {
-      // 绘制虚拟小程序码（圆角矩形网格图案）
-      this._drawVirtualQRCode(ctx, cx, qrCY, qrR - 8);
-    }
-
-    ctx.font = '24px sans-serif';
-    ctx.fillStyle = '#999488';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText('长按识别加入投票', cx, qrCY + qrR + 20);
-    cy = qrCY + qrR + 60;
-
-    // ==================== 6. 底部品牌 ====================
-    ctx.fillStyle = '#EDE8E2';
-    ctx.fillRect(cardX + 40, cy, cardW - 80, 1);
-    cy += 35;
-
-    const logoSize = 56;
-    const logoX = cx - 80;
-    const logoY = cy;
-
-    // 尝试加载并绘制Logo图片
-    let logoImg = null;
-    try { logoImg = await this.loadImage(canvas, this.IMAGES.catFishLogo); } catch (e) {}
-
-    if (logoImg) {
-      // 使用图片作为Logo
-      ctx.save();
-      this._roundRect(ctx, logoX, logoY, logoSize, logoSize, 12);
-      ctx.clip();
-      ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
-      ctx.restore();
-    } else {
-      // 降级：方形圆角Logo底 + 猫脸简化图标
-      this.drawRoundRect(logoX, logoY, logoSize, logoSize, 12, '#FF8A65');
-      this._drawCatIcon(ctx, logoX + logoSize / 2, logoY + logoSize / 2 + 2, 16);
-    }
-
-    // 品牌名
-    ctx.font = 'bold 28px sans-serif';
-    ctx.fillStyle = '#2D2018';
-    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText('喵了个鱼', logoX + logoSize + 16, logoY + logoSize / 2 + 8);
-
-    // slogan
-    ctx.font = '20px sans-serif';
-    ctx.fillStyle = '#999488';
-    ctx.fillText('让聚餐不再纠结', logoX + logoSize + 16, logoY + logoSize / 2 + 36);
-
-    return this.canvas;
-  }
-
   // ========== 结果海报 V10 ==========
   async drawResultPoster(data) {
     const { ctx, width, height, canvas } = this;
@@ -747,10 +489,10 @@ class PosterGenerator {
     // 分隔线
     ctx.fillStyle = '#EDE8E2';
     ctx.fillRect(cardX + 40, cy, cardW - 80, 1);
-    cy += 30;
+    cy += 20;
 
-    const logoSize = 48;
-    const logoX = cx - 75;
+    const logoSize = 44;
+    const logoX = cx - 70;
     const logoY = cy;
 
     // 尝试加载并绘制Logo图片
@@ -760,26 +502,26 @@ class PosterGenerator {
     if (logoImg) {
       // 使用橘仔头像作为Logo
       ctx.save();
-      this._roundRect(ctx, logoX, logoY, logoSize, logoSize, 12);
+      this._roundRect(ctx, logoX, logoY, logoSize, logoSize, 10);
       ctx.clip();
       ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
       ctx.restore();
     } else {
       // 降级：方形圆角Logo底 + 猫脸简化图标
-      this.drawRoundRect(logoX, logoY, logoSize, logoSize, 12, '#FF8A65');
-      this._drawCatIcon(ctx, logoX + logoSize / 2, logoY + logoSize / 2 + 2, 14);
+      this.drawRoundRect(logoX, logoY, logoSize, logoSize, 10, '#FF8A65');
+      this._drawCatIcon(ctx, logoX + logoSize / 2, logoY + logoSize / 2 + 2, 12);
     }
 
     // 品牌名
-    ctx.font = 'bold 26px sans-serif';
+    ctx.font = 'bold 24px sans-serif';
     ctx.fillStyle = '#2D2018';
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText('喵了个鱼', logoX + logoSize + 14, logoY + logoSize / 2 + 6);
+    ctx.fillText('喵了个鱼', logoX + logoSize + 12, logoY + logoSize / 2 + 4);
 
     // slogan
-    ctx.font = '20px sans-serif';
+    ctx.font = '18px sans-serif';
     ctx.fillStyle = '#999488';
-    ctx.fillText('让聚餐不再纠结', logoX + logoSize + 14, logoY + logoSize / 2 + 32);
+    ctx.fillText('让聚餐不再纠结', logoX + logoSize + 12, logoY + logoSize / 2 + 28);
 
     return this.canvas;
   }
