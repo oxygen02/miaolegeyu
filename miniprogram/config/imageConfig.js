@@ -57,6 +57,9 @@ const imagePaths = {
   banners: {
     faqijucan: `${BASE_URL}/banners/faqijucan.png`,
     nimenlaiding2: `${BASE_URL}/banners/nimenlaiding2.png`,
+    jucanfaqi1: `${BASE_URL}/banners/jucanfaqi1.png`,     // 聚餐发起-约个时间
+    jucanfaqi2: `${BASE_URL}/banners/jucanfaqi2.png`,     // 聚餐发起-我选好了
+    jucanfaqi3: `${BASE_URL}/banners/jucanfaqi3.png`,     // 聚餐发起-你们来定
     yutangpindan: `${BASE_URL}/banners/yutangpindan.png`,
     taiyakiIcon: `${BASE_URL}/banners/taiyaki-icon.png`,
     maoweiba: `${BASE_URL}/banners/maoweiba.png`,

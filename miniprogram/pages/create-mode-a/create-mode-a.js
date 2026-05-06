@@ -45,6 +45,45 @@ Page({
       this.setData({ isEditMode: true, editRoomId: options.roomId });
       this.loadRoomData(options.roomId);
     }
+    // 检查是否来自时间投票确认
+    if (options.fromScheduleVote === 'true' && options.scheduleDate) {
+      this.fillFromScheduleVote(options);
+    }
+  },
+
+  // 从时间投票预填数据
+  fillFromScheduleVote(options) {
+    const scheduleDate = decodeURIComponent(options.scheduleDate || '');
+    const schedulePeriod = decodeURIComponent(options.schedulePeriod || 'dinner');
+    const voteTitle = decodeURIComponent(options.voteTitle || '');
+
+    // 格式化日期显示
+    let activityDate = '';
+    let activityDateRaw = '';
+    if (scheduleDate) {
+      const d = new Date(scheduleDate);
+      if (!isNaN(d.getTime())) {
+        const month = d.getMonth() + 1;
+        const day = d.getDate();
+        const weekDay = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+        activityDate = `${month}月${day}日 周${weekDay}`;
+        activityDateRaw = scheduleDate;
+      }
+    }
+
+    // 根据时间段设置默认时间
+    const dinnerTime = schedulePeriod === 'lunch' ? '12:00' : '18:00';
+    const title = voteTitle ? `${voteTitle}聚餐` : '';
+
+    this.setData({
+      title,
+      activityDate,
+      activityDateRaw,
+      dinnerDate: scheduleDate,
+      dinnerTime,
+      activityTime: dinnerTime,
+      activityTimeRaw: dinnerTime
+    });
   },
 
   // 加载房间数据（编辑模式）

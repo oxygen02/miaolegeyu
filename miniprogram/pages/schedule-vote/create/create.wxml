@@ -1,0 +1,98 @@
+<view class="page schedule-create-page anim-page-enter">
+  <!-- 顶部标题区 -->
+  <view class="header-section">
+    <view class="header-content">
+      <text class="page-title">发起时间投票</text>
+      <text class="page-subtitle">选出大家都有空的时间</text>
+    </view>
+    <view class="header-decoration">
+      <image class="decoration-icon" src="{{imagePaths.decorations.catDecoration}}" mode="aspectFit"/>
+    </view>
+  </view>
+
+  <!-- 中间内容区 -->
+  <view class="form-content">
+    <!-- 活动主题 -->
+    <view class="form-card card anim-slide-up delay-1">
+      <view class="form-item">
+        <text class="form-label">活动主题</text>
+        <input class="form-input input" placeholder="例如：周末聚餐" value="{{title}}" bindinput="onTitleInput" maxlength="30"/>
+      </view>
+      <view class="form-item">
+        <text class="form-label">补充说明（选填）</text>
+        <textarea class="form-textarea" placeholder="有什么想跟大家说的..." value="{{description}}" bindinput="onDescInput" maxlength="100"/>
+      </view>
+    </view>
+
+    <!-- 选择候选日期 -->
+    <view class="form-card card anim-slide-up delay-2">
+      <view class="form-header">
+        <text class="form-label">选择候选日期</text>
+        <text class="form-hint">已选 {{selectedDates.length}} 天（最多7天）</text>
+      </view>
+      <view class="date-grid">
+        <view class="date-item {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}} {{item.dateType}}"
+              wx:for="{{candidateDates}}" wx:key="fullDate"
+              bindtap="toggleDate" data-date="{{item.fullDate}}">
+          <text class="date-week">{{item.isToday ? '今天' : '周' + item.weekDay}}</text>
+          <view class="date-day-wrap">
+            <text class="date-day">{{item.monthDay}}</text>
+            <text class="date-tag" wx:if="{{item.dateTag}}">{{item.dateTag}}</text>
+          </view>
+          <view class="date-check" wx:if="{{item.isSelected}}">
+            <text class="check-icon">✓</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 时间设置 -->
+    <view class="form-card card anim-slide-up delay-3">
+      <view class="form-item flex-between">
+        <text class="form-label">时段选择</text>
+        <view class="granularity-toggle" bindtap="togglePeriod">
+          <text class="toggle-option {{timePeriod === 'lunch' ? 'active' : ''}}">中午</text>
+          <text class="toggle-option {{timePeriod === 'dinner' ? 'active' : ''}}">晚上</text>
+        </view>
+      </view>
+      <view class="form-item flex-between">
+        <text class="form-label">截止时间</text>
+        <view class="deadline-picker">
+          <picker mode="date" value="{{deadlineDate}}" bindchange="onDeadlineDateChange">
+            <text class="picker-value">{{deadlineDate}}</text>
+          </picker>
+          <picker mode="time" value="{{deadlineTime}}" bindchange="onDeadlineTimeChange">
+            <text class="picker-value">{{deadlineTime}}</text>
+          </picker>
+        </view>
+      </view>
+      <view class="form-item flex-between">
+        <text class="form-label">最低参与人数</text>
+        <view class="stepper">
+          <view class="stepper-btn {{minParticipants <= 2 ? 'disabled' : ''}}" bindtap="onMinParticipantsMinus">-</view>
+          <text class="stepper-value">{{minParticipants}}</text>
+          <view class="stepper-btn {{minParticipants >= 20 ? 'disabled' : ''}}" bindtap="onMinParticipantsPlus">+</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 匿名投票开关 -->
+    <view class="form-card card anim-slide-up delay-4">
+      <view class="form-item flex-between">
+        <view class="switch-label">
+          <text class="form-label">匿名投票</text>
+          <text class="switch-desc">开启后仅发起人可见参与者身份</text>
+        </view>
+        <switch class="custom-switch" checked="{{anonymous}}" bindchange="toggleAnonymous" color="#FF9F43"/>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-actions">
+    <button class="btn btn-primary {{loading || !title || selectedDates.length === 0 ? 'btn-disabled' : ''}}"
+            bindtap="createVote" disabled="{{loading || !title || selectedDates.length === 0}}">
+      {{loading ? '创建中...' : '创建投票'}}
+    </button>
+  </view>
+</view>

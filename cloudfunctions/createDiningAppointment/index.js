@@ -41,6 +41,7 @@ exports.main = async (event, context) => {
         initiatorAvatar: '',
         appointmentTime: new Date(appointmentTime),
         deadline: new Date(deadline),
+        tzFixed: true,
         note: note || '',
         maxParticipants: maxParticipants || 0,
         requirements: requirements || [],

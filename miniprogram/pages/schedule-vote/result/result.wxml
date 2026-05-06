@@ -1,0 +1,125 @@
+<view class="page schedule-result-page">
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <image class="loading-icon anim-breathe" src="{{imagePaths.decorations.loadingCat}}" mode="aspectFit"/>
+    <text class="loading-text">分析中...</text>
+  </view>
+
+  <block wx:if="{{!loading && vote}}">
+    <!-- 顶部 -->
+    <view class="header-section anim-slide-up">
+      <text class="vote-title">{{vote.title}}</text>
+      <view class="vote-status-bar">
+        <text class="status-tag {{vote.isExpired ? 'expired' : 'active'}}">{{vote.isExpired ? '已截止' : '进行中'}}</text>
+        <text class="participant-count">{{participants.length}} 人已参与</text>
+        <text class="time-tag">{{vote.timePeriod === 'lunch' ? '中午' : '晚上'}}</text>
+      </view>
+    </view>
+
+    <!-- 视图切换 -->
+    <view class="view-tabs anim-slide-up delay-1">
+      <view class="tab {{viewMode === 'summary' ? 'active' : ''}}" bindtap="switchView" data-mode="summary">
+        汇总统计
+      </view>
+      <view class="tab {{viewMode === 'detail' ? 'active' : ''}}" bindtap="switchView" data-mode="detail">
+        成员明细
+      </view>
+    </view>
+
+    <!-- ====== 汇总视图 ====== -->
+    <block wx:if="{{viewMode === 'summary'}}">
+      <!-- 推荐日期 -->
+      <view class="recommend-section anim-slide-up delay-2" wx:if="{{recommendations.length > 0}}">
+        <view class="section-title">🏆 推荐日期</view>
+        <view class="recommend-list">
+          <view class="recommend-card {{index === 0 ? 'top' : ''}}" wx:for="{{recommendations}}" wx:key="date">
+            <view class="rec-rank">{{index + 1}}</view>
+            <view class="rec-info">
+              <text class="rec-date">{{item.date}}</text>
+              <view class="rec-stats">
+                <text class="rec-stat preferred" wx:if="{{item.preferred > 0}}">首选 {{item.preferred}}</text>
+                <text class="rec-stat ok" wx:if="{{item.ok > 0}}">可以 {{item.ok}}</text>
+                <text class="rec-stat uncertain" wx:if="{{item.uncertain > 0}}">不定 {{item.uncertain}}</text>
+                <text class="rec-stat conflict" wx:if="{{item.conflict > 0}}">冲突 {{item.conflict}}</text>
+              </view>
+            </view>
+            <view class="rec-score">{{item.okRate * 100}}%</view>
+            <!-- 发起人确认按钮 -->
+            <button class="confirm-btn" wx:if="{{vote.isCreator && !vote.isExpired && index === 0}}"
+                    bindtap="confirmDate" data-date="{{item.date}}">确认选这个</button>
+          </view>
+        </view>
+      </view>
+
+      <!-- 日期汇总矩阵 -->
+      <view class="summary-matrix anim-slide-up delay-3">
+        <view class="section-title">📊 日期汇总</view>
+        <view class="matrix-wrap">
+          <view class="matrix-header">
+            <view class="m-header-cell">日期</view>
+            <view class="m-header-cell level-best">首选</view>
+            <view class="m-header-cell level-ok">可以</view>
+            <view class="m-header-cell level-uncertain">不定</view>
+            <view class="m-header-cell level-conflict">冲突</view>
+          </view>
+          <view class="matrix-row {{weeks[index].dateType}}" wx:for="{{vote.candidateDates}}" wx:for-index="index" wx:for-item="date" wx:key="*this">
+            <view class="m-cell m-date">
+              <text class="m-weekday">{{weeks[index].weekDay}}</text>
+              <text class="m-monthday">{{weeks[index].monthDay}}</text>
+              <text class="m-tag" wx:if="{{weeks[index].dateTag}}">{{weeks[index].dateTag}}</text>
+            </view>
+            <view class="m-cell m-num level-best">{{summary[date].preferred || 0}}</view>
+            <view class="m-cell m-num level-ok">{{summary[date].ok || 0}}</view>
+            <view class="m-cell m-num level-uncertain">{{summary[date].uncertain || 0}}</view>
+            <view class="m-cell m-num level-conflict">{{summary[date].conflict || 0}}</view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- ====== 成员明细视图 ====== -->
+    <block wx:if="{{viewMode === 'detail'}}">
+      <view class="participant-list anim-slide-up delay-2">
+        <view class="section-title">👥 成员填写明细</view>
+
+        <view class="participant-card {{expandedParticipant === index ? 'expanded' : ''}}"
+              wx:for="{{participants}}" wx:key="openId" wx:for-index="index">
+          <view class="p-header" bindtap="toggleParticipant" data-index="{{index}}">
+            <image class="p-avatar" src="{{item.avatar || imagePaths.decorations.catAvatarIcon}}" mode="aspectFill"/>
+            <view class="p-info">
+              <text class="p-name">{{item.name}}</text>
+              <text class="p-time" wx:if="{{item.submitTime}}">{{item.submitTime}}</text>
+            </view>
+            <view class="p-summary">
+              <text class="p-count preferred" wx:if="{{item.preferredCount > 0}}">★{{item.preferredCount}}</text>
+              <text class="p-count ok" wx:if="{{item.okCount > 0}}">○{{item.okCount}}</text>
+            </view>
+            <text class="expand-icon {{expandedParticipant === index ? 'open' : ''}}">▼</text>
+          </view>
+
+          <!-- 展开的详细矩阵 -->
+          <view class="p-detail" wx:if="{{expandedParticipant === index}}">
+            <view class="p-matrix-row" wx:for="{{vote.candidateDates}}" wx:for-item="date" wx:key="*this">
+              <text class="p-matrix-date">{{weeks[index].monthDay}} 周{{weeks[index].weekDay}}</text>
+              <view class="p-matrix-level {{LEVEL_CONFIG[item.matrix[date]].class}}">
+                {{LEVEL_CONFIG[item.matrix[date]].label}}
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 未参与提示 -->
+    <view class="notice-card anim-slide-up delay-3" wx:if="{{!vote.isExpired}}">
+      <text class="notice-text">还没填写？快来选择你的可用时间</text>
+      <button class="btn btn-small btn-primary" bindtap="goFill">去填写</button>
+    </view>
+
+    <!-- 底部 -->
+    <view class="bottom-actions safe-bottom">
+      <button class="btn btn-outline" bindtap="goMyScheduleVotes">查看我的时间投票</button>
+      <button class="btn btn-secondary" open-type="share">邀请更多人</button>
+    </view>
+  </block>
+</view>

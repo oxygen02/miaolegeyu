@@ -5,26 +5,35 @@
       <text class="page-title">聚餐发起</text>
       <text class="page-subtitle">选择一种方式开始</text>
     </view>
-    
-    <!-- 装饰猫爪 -->
-    <view class="paw-decoration">
-      <view class="paw p1">🐾</view>
-      <view class="paw p2">🐾</view>
-    </view>
-  </view>
 
-  <!-- 波浪分割线 -->
-  <view class="wave-divider">
-    <view class="wave"></view>
+    <!-- 猫尾巴装饰 -->
+    <image class="header-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit" />
   </view>
 
   <!-- 模式选择卡片 - 蜡笔风格 -->
   <view class="mode-list">
+    <!-- 约个时间 -->
+    <view class="mode-card crayon-card anim-fade-in-up delay-50" bindtap="goScheduleVote">
+      <view class="card-bg icon-schedule"></view>
+      <view class="mode-icon">
+        <image class="mode-icon-image" src="{{imagePaths.banners.jucanfaqi1}}" mode="aspectFit" />
+      </view>
+      <view class="mode-content">
+        <text class="mode-title">约个时间</text>
+        <view class="mode-desc">
+          <text class="mode-desc-line">大家时间不确定？</text>
+          <text class="mode-desc-line">先投票选出公共时间</text>
+        </view>
+      </view>
+      <image class="mode-arrow" src="{{imagePaths.icons.daohang}}" mode="aspectFit"/>
+      <view class="crayon-border"></view>
+    </view>
+
     <!-- 模式A -->
     <view class="mode-card crayon-card anim-fade-in-up delay-100" bindtap="goModeA">
       <view class="card-bg icon-a"></view>
       <view class="mode-icon">
-        <image class="mode-icon-image" src="{{imagePaths.banners.wotiaohaole1}}" mode="aspectFit" />
+        <image class="mode-icon-image" src="{{imagePaths.banners.jucanfaqi2}}" mode="aspectFit" />
       </view>
       <view class="mode-content">
         <text class="mode-title">我选好了</text>
@@ -41,7 +50,7 @@
     <view class="mode-card crayon-card anim-fade-in-up delay-200" bindtap="goModeB">
       <view class="card-bg icon-b"></view>
       <view class="mode-icon">
-        <image class="mode-icon-image" src="{{imagePaths.banners.nimenlaiding2}}" mode="aspectFit" />
+        <image class="mode-icon-image" src="{{imagePaths.banners.jucanfaqi3}}" mode="aspectFit" />
       </view>
       <view class="mode-content">
         <text class="mode-title">你们来定</text>
@@ -56,10 +65,27 @@
 
   </view>
 
-  <!-- 底部装饰 -->
-  <view class="bottom-decoration">
-    <image class="paw-print paw1" src="{{imagePaths.misc.singleclaw}}" mode="aspectFit" />
-    <image class="paw-print paw2" src="{{imagePaths.misc.singleclaw}}" mode="aspectFit" />
-    <image class="paw-print paw3" src="{{imagePaths.misc.singleclaw}}" mode="aspectFit" />
+  <!-- 底部导航栏 -->
+  <view class="page-tab-bar">
+    <view class="page-tab-bar-container">
+      <view class="page-tab-bar-item" data-index="0" bindtap="switchTab">
+        <view class="page-icon-wrapper">
+          <image class="page-tab-icon" src="{{imagePaths.misc.pawHomeIcon}}" mode="aspectFit" />
+        </view>
+        <text class="page-tab-text">首页</text>
+      </view>
+      <view class="page-tab-bar-item" data-index="1" bindtap="switchTab">
+        <view class="page-icon-wrapper">
+          <image class="page-tab-icon" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
+        </view>
+        <text class="page-tab-text">喵不喵</text>
+      </view>
+      <view class="page-tab-bar-item" data-index="2" bindtap="switchTab">
+        <view class="page-icon-wrapper">
+          <image class="page-tab-icon" src="{{imagePaths.misc.fishIcon}}" mode="aspectFit" />
+        </view>
+        <text class="page-tab-text">我的</text>
+      </view>
+    </view>
   </view>
 </view>

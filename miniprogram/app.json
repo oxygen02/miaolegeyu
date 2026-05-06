@@ -23,7 +23,10 @@
     "pages/history/history",
     "pages/about/about",
     "pages/roomConsole/console",
-    "pages/recommend-restaurant/recommend-restaurant"
+    "pages/recommend-restaurant/recommend-restaurant",
+    "pages/schedule-vote/create/create",
+    "pages/schedule-vote/fill/fill",
+    "pages/schedule-vote/result/result"
   ],
   "window": {
     "backgroundTextStyle": "light",

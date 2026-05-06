@@ -183,11 +183,20 @@ Page({
 
   formatAppointmentTime(dateStr) {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+
+    let date;
+    if (dateStr instanceof Date) {
+      date = dateStr;
+    } else if (typeof dateStr === 'string') {
+      date = new Date(dateStr);
+    } else {
+      date = new Date(dateStr);
+    }
+
     if (isNaN(date.getTime())) return '';
-    const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-    const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
-    const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
+
+    const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
+    const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
     return `${month}/${day}`;
   },
 
@@ -282,9 +291,14 @@ Page({
   },
 
   onBannerTap(e) {
-    const { type, appointmentId } = e.currentTarget.dataset;
+    const { type, appointmentId, shopId } = e.currentTarget.dataset;
     if (appointmentId) {
-      wx.navigateTo({ url: `/pages/vote/vote?roomId=${appointmentId}` });
+      if (shopId) {
+        // 约饭活动 - 跳转到店铺详情页
+        wx.navigateTo({ url: `/pages/shop-detail/shop-detail?id=${shopId}` });
+      } else {
+        wx.navigateTo({ url: `/pages/vote/vote?roomId=${appointmentId}` });
+      }
       return;
     }
     switch(type) {

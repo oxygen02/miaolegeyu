@@ -1,0 +1,381 @@
+/* === 创建时间投票页面 - 紧凑版 === */
+
+.schedule-create-page {
+  height: 100vh;
+  background: var(--bg);
+  padding: 0 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部 */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0 16rpx;
+  flex-shrink: 0;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.page-title {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: var(--text);
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.page-subtitle {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.header-decoration {
+  width: 100rpx;
+  height: 100rpx;
+}
+
+.decoration-icon {
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+}
+
+/* 中间内容区 - flex 均匀分布 */
+.form-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12rpx;
+  padding: 8rpx 0;
+  min-height: 0;
+}
+
+/* 表单卡片 */
+.form-card {
+  padding: 20rpx 24rpx;
+  flex-shrink: 0;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.form-label {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.form-hint {
+  font-size: 24rpx;
+  color: var(--text-light);
+}
+
+.form-item {
+  margin-bottom: 12rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
+}
+
+.form-input {
+  margin-top: 10rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-textarea {
+  margin-top: 10rpx;
+  width: 100%;
+  min-height: 56rpx;
+  max-height: 80rpx;
+  height: auto;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  padding: 10rpx 16rpx;
+  font-size: 28rpx;
+  color: var(--text);
+  border: 2rpx solid transparent;
+  box-sizing: border-box;
+  line-height: 1.4;
+}
+
+.form-textarea:focus {
+  border-color: var(--primary);
+}
+
+/* 日期网格 */
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8rpx;
+}
+
+.date-item {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10rpx 2rpx;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s;
+  border: 2rpx solid transparent;
+  min-width: 0;
+}
+
+.date-item:active {
+  transform: scale(0.95);
+}
+
+/* 今天 - 底部小圆点标记 */
+.date-item.today::after {
+  content: '';
+  position: absolute;
+  bottom: 2rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5rpx;
+  height: 5rpx;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
+.date-week {
+  font-size: 20rpx;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 2rpx;
+  white-space: nowrap;
+}
+
+.date-day-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rpx;
+}
+
+.date-day {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.date-tag {
+  font-size: 16rpx;
+  font-weight: 600;
+  padding: 0 4rpx;
+  border-radius: 4rpx;
+  line-height: 1.3;
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.06);
+}
+
+/* 周六 - 蓝色文字区分 */
+.date-item.saturday .date-week,
+.date-item.saturday .date-day {
+  color: #2980B9;
+}
+
+/* 周日 - 红色文字区分 */
+.date-item.sunday .date-week,
+.date-item.sunday .date-day {
+  color: #E74C3C;
+}
+
+/* 节假日 - 绿色文字区分 */
+.date-item.holiday .date-week,
+.date-item.holiday .date-day {
+  color: #27AE60;
+}
+.date-item.holiday .date-tag {
+  color: #fff;
+  background: #27AE60;
+}
+
+/* 调休上班 - 红色标注 */
+.date-item.workday .date-week,
+.date-item.workday .date-day {
+  color: #E74C3C;
+}
+.date-item.workday .date-tag {
+  color: #fff;
+  background: #E74C3C;
+}
+
+/* 选中状态 - 强烈视觉反馈 */
+.date-item.selected {
+  background: var(--primary-gradient) !important;
+  box-shadow: 0 4rpx 16rpx rgba(255, 159, 67, 0.4);
+  border-color: transparent !important;
+  transform: scale(1.05);
+}
+
+.date-item.selected .date-week,
+.date-item.selected .date-day,
+.date-item.selected .date-tag {
+  color: #fff !important;
+}
+
+/* 选中对勾标记 - 更大更醒目 */
+.date-check {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  width: 36rpx;
+  height: 36rpx;
+  background: var(--success);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #fff;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.2);
+}
+
+.check-icon {
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: bold;
+}
+
+/* 时间粒度切换 */
+.granularity-toggle {
+  display: flex;
+  background: var(--bg);
+  border-radius: var(--radius-xl);
+  padding: 4rpx;
+}
+
+.toggle-option {
+  padding: 10rpx 24rpx;
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  border-radius: 24rpx;
+  transition: all 0.2s;
+}
+
+.toggle-option.active {
+  background: var(--primary-gradient);
+  color: #fff;
+  box-shadow: 0 4rpx 12rpx rgba(255, 159, 67, 0.3);
+}
+
+/* 截止时间选择 */
+.deadline-picker {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.picker-value {
+  background: var(--bg);
+  padding: 10rpx 16rpx;
+  border-radius: var(--radius-md);
+  font-size: 28rpx;
+  color: var(--text);
+}
+
+/* 步进器 */
+.stepper {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border-radius: var(--radius-xl);
+  padding: 4rpx;
+}
+
+.stepper-btn {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: var(--radius-md);
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--primary);
+  transition: all 0.15s;
+}
+
+.stepper-btn:active {
+  transform: scale(0.9);
+  background: var(--primary);
+  color: #fff;
+}
+
+.stepper-btn.disabled {
+  color: #ccc;
+  background: transparent;
+}
+
+.stepper-value {
+  min-width: 60rpx;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* 匿名开关 */
+.switch-label {
+  flex: 1;
+}
+
+.switch-desc {
+  font-size: 24rpx;
+  color: var(--text-light);
+  display: block;
+  margin-top: 4rpx;
+}
+
+.custom-switch {
+  transform: scale(0.8);
+}
+
+/* 底部按钮 */
+.bottom-actions {
+  padding: 16rpx 0;
+  padding-bottom: calc(8rpx + env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+
+.bottom-actions .btn {
+  display: block !important;
+  width: fit-content !important;
+  height: auto !important;
+  line-height: 1 !important;
+  border-radius: 36rpx !important;
+  background: #FF9F43 !important;
+  color: #fff !important;
+  font-size: 28rpx !important;
+  font-weight: 600 !important;
+  border: 4rpx solid #3D3D3D !important;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D !important;
+  padding: 18rpx 48rpx !important;
+  margin: 0 auto !important;
+}
+
+.bottom-actions .btn.btn-disabled {
+  background: #CCC !important;
+  color: #888 !important;
+  border-color: #999 !important;
+  box-shadow: 4rpx 4rpx 0 #999 !important;
+}
+
+.bottom-actions .btn::after {
+  display: none !important;
+}

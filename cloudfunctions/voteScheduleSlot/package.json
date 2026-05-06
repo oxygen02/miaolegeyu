@@ -1,0 +1,9 @@
+{
+  "name": "voteScheduleSlot",
+  "version": "1.0.0",
+  "description": "对推荐时段投票",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

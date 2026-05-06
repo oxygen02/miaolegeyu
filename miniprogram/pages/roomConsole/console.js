@@ -384,10 +384,8 @@ Page({
     if (!ts) return '';
     const d = new Date(ts);
     if (isNaN(d.getTime())) return '';
-    // 转换为北京时间 UTC+8
-    const beijingDate = new Date(d.getTime() + 8 * 60 * 60 * 1000);
     const pad = n => n < 10 ? '0' + n : n;
-    return `${pad(beijingDate.getUTCMonth() + 1)}月${pad(beijingDate.getUTCDate())}日 ${pad(beijingDate.getUTCHours())}:${pad(beijingDate.getUTCMinutes())}`;
+    return `${pad(d.getMonth() + 1)}月${pad(d.getDate())}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   },
 
   getStatusText(status) {

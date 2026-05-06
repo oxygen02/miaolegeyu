@@ -384,17 +384,25 @@ Page({
     }
   },
 
-  // 格式化约饭时间（转换为北京时间 UTC+8）
+  // 格式化约饭时间
   formatAppointmentTime(dateStr) {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+
+    let date;
+    if (dateStr instanceof Date) {
+      date = dateStr;
+    } else if (typeof dateStr === 'string') {
+      date = new Date(dateStr);
+    } else {
+      date = new Date(dateStr);
+    }
+
     if (isNaN(date.getTime())) return '';
 
-    const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-    const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
-    const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
-    const hour = (beijingDate.getUTCHours() < 10 ? '0' : '') + beijingDate.getUTCHours();
-    const minute = (beijingDate.getUTCMinutes() < 10 ? '0' : '') + beijingDate.getUTCMinutes();
+    const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
+    const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
+    const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
+    const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
     return `${month}/${day} ${hour}:${minute}`;
   },
 

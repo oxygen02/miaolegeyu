@@ -566,6 +566,9 @@ Page({
         const remainingTime = deadline.getTime() - now.getTime();
         appointment.remainingTime = remainingTime > 0 ? remainingTime : 0;
 
+        console.log('约饭时间原始值:', appointment.appointmentTime, '类型:', typeof appointment.appointmentTime, 'JSON:', JSON.stringify(appointment.appointmentTime));
+        console.log('格式化后:', this.formatDateTime(appointment.appointmentTime));
+
         this.setData({
           appointment: {
             ...appointment,
@@ -652,30 +655,37 @@ Page({
   },
 
   formatDateTime(dateStr) {
-    // 处理 ISO 格式时间字符串，确保正确解析本地时间
+    if (!dateStr) return '';
+
     let date;
-    if (typeof dateStr === 'string' && dateStr.includes('T')) {
-      // 将 ISO 格式转换为本地时间
-      const parts = dateStr.split('T');
-      const dateParts = parts[0].split('-');
-      const timeParts = parts[1] ? parts[1].split(':') : ['00', '00', '00'];
-      date = new Date(
-        parseInt(dateParts[0]),
-        parseInt(dateParts[1]) - 1,
-        parseInt(dateParts[2]),
-        parseInt(timeParts[0]),
-        parseInt(timeParts[1]),
-        parseInt(timeParts[2]) || 0
-      );
+    if (dateStr instanceof Date) {
+      date = dateStr;
+    } else if (typeof dateStr === 'string') {
+      date = new Date(dateStr);
+    } else if (typeof dateStr === 'number') {
+      date = new Date(dateStr);
+    } else if (typeof dateStr === 'object' && dateStr !== null) {
+      // 云数据库 Date 类型序列化后的格式
+      if (dateStr.$date) {
+        date = new Date(dateStr.$date);
+      } else if (dateStr._date) {
+        date = new Date(dateStr._date);
+      } else {
+        date = new Date(dateStr);
+      }
     } else {
       date = new Date(dateStr);
     }
-    // 转换为北京时间 UTC+8
-    const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-    const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
-    const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
-    const hour = (beijingDate.getUTCHours() < 10 ? '0' : '') + beijingDate.getUTCHours();
-    const minute = (beijingDate.getUTCMinutes() < 10 ? '0' : '') + beijingDate.getUTCMinutes();
+
+    if (isNaN(date.getTime())) {
+      console.warn('formatDateTime: 无法解析日期', dateStr);
+      return '';
+    }
+
+    const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
+    const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
+    const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
+    const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
     return `${month}月${day}日 ${hour}:${minute}`;
   },
 
@@ -862,29 +872,29 @@ Page({
   onTimeBlur(e) {
     const value = e.detail.value;
     if (!value) return;
-    
+
     // 验证格式 yyyy-MM-dd HH:mm
     const regex = /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/;
     const match = value.match(regex);
-    
+
     if (!match) {
       wx.showToast({ title: '格式错误，请使用: 2026-04-21 18:30', icon: 'none' });
       return;
     }
-    
+
     const [_, year, month, day, hour, minute] = match;
-    const inputDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`);
+    const inputDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00+08:00`);
     const now = new Date();
-    
+
     // 检查是否早于当前时间
     if (inputDate <= now) {
       wx.showToast({ title: '约饭时间必须晚于当前时间', icon: 'none' });
       return;
     }
-    
-    // 保存标准格式
-    this.setData({ 
-      appointmentTime: `${year}-${month}-${day}T${hour}:${minute}:00`,
+
+    // 保存标准格式（带东八区时区）
+    this.setData({
+      appointmentTime: `${year}-${month}-${day}T${hour}:${minute}:00+08:00`,
       appointmentTimeDisplay: value
     });
   },
@@ -898,26 +908,26 @@ Page({
   onDeadlineBlur(e) {
     const value = e.detail.value;
     if (!value) return;
-    
+
     // 验证格式 yyyy-MM-dd HH:mm
     const regex = /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/;
     const match = value.match(regex);
-    
+
     if (!match) {
       wx.showToast({ title: '格式错误，请使用: 2026-04-21 17:00', icon: 'none' });
       return;
     }
-    
+
     const [_, year, month, day, hour, minute] = match;
-    const inputDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`);
+    const inputDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00+08:00`);
     const now = new Date();
-    
+
     // 检查是否早于当前时间
     if (inputDate <= now) {
       wx.showToast({ title: '截止时间必须晚于当前时间', icon: 'none' });
       return;
     }
-    
+
     // 检查是否在约饭时间之前
     if (this.data.appointmentTime) {
       const appointmentDate = new Date(this.data.appointmentTime);
@@ -926,10 +936,10 @@ Page({
         return;
       }
     }
-    
-    // 保存标准格式
-    this.setData({ 
-      deadlineTime: `${year}-${month}-${day}T${hour}:${minute}:00`,
+
+    // 保存标准格式（带东八区时区）
+    this.setData({
+      deadlineTime: `${year}-${month}-${day}T${hour}:${minute}:00+08:00`,
       deadlineTimeDisplay: value
     });
   },
@@ -979,18 +989,18 @@ Page({
     const formattedAppointmentDate = appointmentDate.length === 3 ? '0' + appointmentDate : appointmentDate;
     const formattedDeadlineDate = deadlineDate.length === 3 ? '0' + deadlineDate : deadlineDate;
 
-    // 构建完整时间字符串
+    // 构建完整时间字符串（明确指定东八区时区，避免服务端当作 UTC 解析）
     const appointmentMonth = formattedAppointmentDate.substring(0, 2);
     const appointmentDay = formattedAppointmentDate.substring(2, 4);
     const appointmentHour = appointmentTime.substring(0, 2);
     const appointmentMinute = appointmentTime.substring(2, 4);
-    const fullAppointmentTime = `${appointmentYear}-${appointmentMonth}-${appointmentDay}T${appointmentHour}:${appointmentMinute}:00`;
+    const fullAppointmentTime = `${appointmentYear}-${appointmentMonth}-${appointmentDay}T${appointmentHour}:${appointmentMinute}:00+08:00`;
 
     const deadlineMonth = formattedDeadlineDate.substring(0, 2);
     const deadlineDay = formattedDeadlineDate.substring(2, 4);
     const deadlineHour = deadlineTime.substring(0, 2);
     const deadlineMinute = deadlineTime.substring(2, 4);
-    const fullDeadlineTime = `${deadlineYear}-${deadlineMonth}-${deadlineDay}T${deadlineHour}:${deadlineMinute}:00`;
+    const fullDeadlineTime = `${deadlineYear}-${deadlineMonth}-${deadlineDay}T${deadlineHour}:${deadlineMinute}:00+08:00`;
 
     // 验证截止时间不能早于当前时间
     const now = new Date();

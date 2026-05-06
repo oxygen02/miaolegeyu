@@ -20,7 +20,8 @@ Page({
       myShops: 0,
       myAppointments: 0,
       myRooms: 0,
-      myParticipated: 0
+      myParticipated: 0,
+      myScheduleVotes: 0
     },
     // 游戏化积分系统
     userPoints: {
@@ -35,6 +36,7 @@ Page({
     myAppointments: [],
     myRooms: [],
     myParticipated: [],
+    myScheduleVotes: [],
     currentList: '',
     loading: false,
     imagePaths: imagePaths
@@ -96,6 +98,10 @@ Page({
       // 如果当前显示的是我发起的聚餐列表，刷新数据
       if (this.data.currentList === 'myRooms') {
         this.loadMyRooms();
+      }
+      // 如果当前显示的是时间投票列表，刷新数据
+      if (this.data.currentList === 'myScheduleVotes') {
+        this.showMyScheduleVotes();
       }
     }
   },
@@ -362,8 +368,11 @@ Page({
           favorites: 0,
           myShops: 0,
           myAppointments: 0,
-          myRooms: 0
-        }
+          myRooms: 0,
+          myParticipated: 0,
+          myScheduleVotes: 0
+        },
+        myScheduleVotes: []
       });
     });
   },
@@ -387,7 +396,8 @@ Page({
         wx.cloud.callFunction({ name: 'getMyShops' }),
         wx.cloud.callFunction({ name: 'getMyAppointments' }),
         wx.cloud.callFunction({ name: 'getMyRooms' }),
-        wx.cloud.callFunction({ name: 'getMyParticipatedRooms' })
+        wx.cloud.callFunction({ name: 'getMyParticipatedRooms' }),
+        wx.cloud.callFunction({ name: 'getMyScheduleVotes', data: { mode: 'all', limit: 100 } })
       ]);
 
       console.log('云函数返回结果:', results);
@@ -421,7 +431,8 @@ Page({
         myShops: getCount(results[1], 'shops'),
         myAppointments: getCount(results[2], 'appointments'),
         myRooms: getCount(results[3], 'data'),
-        myParticipated: getCount(results[4], 'data')
+        myParticipated: getCount(results[4], 'data'),
+        myScheduleVotes: getCount(results[5], 'votes')
       };
       
       console.log('最终 stats:', stats);
@@ -530,6 +541,59 @@ Page({
     }
   },
 
+  async showMyScheduleVotes() {
+    if (!this.checkLogin()) return;
+    audioManager.playPawTap();
+    this.setData({ currentList: 'myScheduleVotes', loading: true });
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getMyScheduleVotes',
+        data: { mode: 'all', limit: 100 }
+      });
+      if (result.success) {
+        const votes = result.votes.map(vote => {
+          const dateStr = vote.candidateDates?.length > 0
+            ? vote.candidateDates.map(d => {
+                const parts = d.split('-');
+                return `${parts[1]}/${parts[2]}`;
+              }).join('、')
+            : '时间待定';
+
+          let deadlineStr = '';
+          if (vote.deadline) {
+            const d = new Date(vote.deadline);
+            if (!isNaN(d.getTime())) {
+              const month = (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1);
+              const day = (d.getDate() < 10 ? '0' : '') + d.getDate();
+              const hour = (d.getHours() < 10 ? '0' : '') + d.getHours();
+              const minute = (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
+              deadlineStr = `${month}-${day} ${hour}:${minute}`;
+            }
+          }
+
+          return {
+            ...vote,
+            dateStr,
+            deadlineStr,
+            roleText: vote.isCreator ? '发起人' : '参与者',
+            statusText: vote.isExpired ? '已截止' : '进行中'
+          };
+        });
+        this.setData({ myScheduleVotes: votes, loading: false });
+      }
+    } catch (err) {
+      console.error('获取时间投票失败:', err);
+      this.setData({ loading: false });
+    }
+  },
+
+  goToScheduleVoteDetail(e) {
+    const { id } = e.currentTarget.dataset;
+    wx.navigateTo({
+      url: `/pages/schedule-vote/result/result?id=${id}`
+    });
+  },
+
   async showMyRooms() {
     if (!this.checkLogin()) return;
     audioManager.playPawTap();
@@ -553,16 +617,15 @@ Page({
       if (result.code === 0) {
         // 处理数据，添加格式化字段
         const participated = result.data.map(item => {
-          // 格式化 voteDeadline（转换为北京时间 UTC+8）
+          // 格式化 voteDeadline
           let voteDeadlineStr = '';
           if (item.voteDeadline) {
             const date = new Date(item.voteDeadline);
             if (!isNaN(date.getTime())) {
-              const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-              const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
-              const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
-              const hour = (beijingDate.getUTCHours() < 10 ? '0' : '') + beijingDate.getUTCHours();
-              const minute = (beijingDate.getUTCMinutes() < 10 ? '0' : '') + beijingDate.getUTCMinutes();
+              const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
+              const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
+              const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
+              const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
               voteDeadlineStr = `${month}-${day} ${hour}:${minute}`;
             }
           }
@@ -589,20 +652,15 @@ Page({
     try {
       const { result } = await wx.cloud.callFunction({ name: 'getMyRooms' });
       if (result.code === 0) {
-        // 前端再次格式化时间，确保北京时间显示正确
         const formattedRooms = (result.data || []).map(room => {
           if (room.voteDeadline) {
-            console.log('voteDeadline 原始值:', room.voteDeadline, '类型:', typeof room.voteDeadline);
             const date = new Date(room.voteDeadline);
-            console.log('voteDeadline 解析后:', date.toISOString(), '小时:', date.getHours());
             if (!isNaN(date.getTime())) {
-              const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-              const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
-              const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
-              const hour = (beijingDate.getUTCHours() < 10 ? '0' : '') + beijingDate.getUTCHours();
-              const minute = (beijingDate.getUTCMinutes() < 10 ? '0' : '') + beijingDate.getUTCMinutes();
+              const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
+              const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
+              const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
+              const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
               room.voteDeadlineStr = `${month}-${day} ${hour}:${minute}`;
-              console.log('格式化后:', room.voteDeadlineStr);
             }
           }
           // 打印字段信息用于调试模式判断
@@ -1050,14 +1108,22 @@ Page({
 
   formatDateTime(dateStr) {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+
+    let date;
+    if (dateStr instanceof Date) {
+      date = dateStr;
+    } else if (typeof dateStr === 'string') {
+      date = new Date(dateStr);
+    } else {
+      date = new Date(dateStr);
+    }
+
     if (isNaN(date.getTime())) return '';
-    // 转换为北京时间 UTC+8
-    const beijingDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-    const month = (beijingDate.getUTCMonth() + 1 < 10 ? '0' : '') + (beijingDate.getUTCMonth() + 1);
-    const day = (beijingDate.getUTCDate() < 10 ? '0' : '') + beijingDate.getUTCDate();
-    const hour = (beijingDate.getUTCHours() < 10 ? '0' : '') + beijingDate.getUTCHours();
-    const minute = (beijingDate.getUTCMinutes() < 10 ? '0' : '') + beijingDate.getUTCMinutes();
+
+    const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
+    const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
+    const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
+    const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
     return `${month}月${day}日 ${hour}:${minute}`;
   },
 

@@ -51,13 +51,13 @@
     </view>
   </view>
 
-  <!-- 数据统计 - 四个并列一排 -->
+  <!-- 数据统计 - 五个并列一排 -->
   <view class="stats-section">
     <view class="stats-grid">
       <view class="stat-item" bindtap="showMyRooms">
         <text class="stat-num">{{stats.myRooms}}</text>
         <text class="stat-label">我发起的</text>
-        <text class="stat-sublabel">聚餐投票/拼单</text>
+        <text class="stat-sublabel">聚餐/拼单</text>
       </view>
       <view class="stat-item" bindtap="showMyParticipated">
         <text class="stat-num">{{stats.myParticipated || 0}}</text>
@@ -73,6 +73,11 @@
         <text class="stat-num">{{stats.myAppointments}}</text>
         <text class="stat-label">我的约饭</text>
         <text class="stat-sublabel">发起的约饭</text>
+      </view>
+      <view class="stat-item" bindtap="showMyScheduleVotes">
+        <text class="stat-num">{{stats.myScheduleVotes || 0}}</text>
+        <text class="stat-label">时间投票</text>
+        <text class="stat-sublabel">发起/参与</text>
       </view>
     </view>
   </view>
@@ -107,7 +112,8 @@
             currentList === 'myShops' ? '我的店铺' :
             currentList === 'myAppointments' ? '我的约饭' :
             currentList === 'myRooms' ? '我发起的聚餐' :
-            currentList === 'myParticipated' ? '我参与的聚餐' : ''}}
+            currentList === 'myParticipated' ? '我参与的聚餐' :
+            currentList === 'myScheduleVotes' ? '我的时间投票' : ''}}
         </text>
         <view class="close-btn" bindtap="closeList">×</view>
       </view>
@@ -326,6 +332,63 @@
         </view>
         <view class="empty-tip" wx:if="{{myAppointments.length === 0}}">
           <text>还没有发起过活动</text>
+        </view>
+      </scroll-view>
+
+      <!-- 我的时间投票列表 -->
+      <scroll-view class="list-content" scroll-y wx:elif="{{currentList === 'myScheduleVotes'}}">
+        <view class="room-list">
+          <view class="room-card" wx:for="{{myScheduleVotes}}" wx:key="_id" bindtap="goToScheduleVoteDetail" data-id="{{item._id}}">
+            <!-- 左侧图片区域 -->
+            <view class="room-poster">
+              <image src="{{imagePaths.banners.taiyakiIcon}}" mode="aspectFill"/>
+              <!-- 状态标签 -->
+              <view class="room-status {{item.isExpired ? 'ended' : 'voting'}}">
+                {{item.isExpired ? '已截止' : '进行中'}}
+              </view>
+              <view class="room-role-badge">{{item.isCreator ? '发起人' : '参与者'}}</view>
+            </view>
+
+            <!-- 右侧信息区 -->
+            <view class="room-info">
+              <!-- 第一行：标题 -->
+              <view class="info-row title-row">
+                <text class="room-title">{{item.title}}</text>
+              </view>
+
+              <!-- 第二行：候选日期 -->
+              <view class="info-row meta-row">
+                <view class="meta-item">
+                  <image class="meta-icon" src="{{imagePaths.icons.calendar || '/assets/images/calendar-icon.svg'}}" mode="aspectFit" />
+                  <text>{{item.dateStr}}</text>
+                </view>
+                <view class="meta-item" wx:if="{{item.timePeriod}}">
+                  <text>{{item.timePeriod === 'lunch' ? '中午' : '晚上'}}</text>
+                </view>
+              </view>
+
+              <!-- 第三行：截止 -->
+              <view class="info-row deadline-row">
+                <view class="meta-item deadline" wx:if="{{item.deadlineStr}}">
+                  <image class="meta-icon" src="{{imagePaths.icons.deadline || '/assets/images/deadline-icon.svg'}}" mode="aspectFit" />
+                  <text>截止: {{item.deadlineStr}}</text>
+                </view>
+              </view>
+
+              <!-- 第四行：参与人数 -->
+              <view class="info-row creator-row">
+                <view class="creator-info">
+                  <text class="participant-count">{{item.participantCount || 0}}人参与</text>
+                </view>
+                <view class="action-group" wx:if="{{item.isCreator && !item.isExpired}}">
+                  <text class="manage-btn">管理</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view class="empty-tip" wx:if="{{myScheduleVotes.length === 0}}">
+          <text>还没有时间投票</text>
         </view>
       </scroll-view>
 

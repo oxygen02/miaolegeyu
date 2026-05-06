@@ -917,3 +917,77 @@
   box-shadow: none;
   opacity: 0.6;
 }
+
+/* ===== 时间投票专属卡片样式 ===== */
+
+/* 时间投票卡片整体 */
+.schedule-vote-card {
+  background: linear-gradient(135deg, #FFFAF0 0%, #FFF5E6 100%);
+  border-color: #666;
+  box-shadow: 3rpx 4rpx 0 rgba(102, 102, 102, 0.2);
+}
+
+.schedule-vote-card:active {
+  box-shadow: 1rpx 2rpx 0 rgba(102, 102, 102, 0.2);
+}
+
+/* 时间投票左侧图标区域 */
+.schedule-vote-image {
+  width: 172rpx;
+  height: 172rpx;
+  border-radius: 16rpx;
+  background: #FFF8F0;
+  border: 4rpx solid #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* 鲷鱼烧图标 */
+.sv-taiyaki-icon {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+}
+
+/* 时间投票标签 */
+.activity-type-tag.scheduleVote {
+  background: #E8F5E9;
+  color: #4CAF50;
+}
+
+/* 候选日期展示 */
+.schedule-vote-dates {
+  flex: 1;
+  margin-left: 12rpx;
+  min-width: 0;
+}
+
+.sv-date-text {
+  font-size: 22rpx;
+  color: #FF9800;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 参与人数 */
+.schedule-vote-participants {
+  margin-top: 8rpx;
+}
+
+.sv-participant-count {
+  font-size: 24rpx;
+  color: #FF9800;
+  font-weight: 600;
+}
+
+/* 时间投票按钮 */
+.btn-schedule {
+  background: #FF9F43;
+  color: #fff;
+  border: 3rpx solid #666;
+  box-shadow: 2rpx 2rpx 0 #666;
+}

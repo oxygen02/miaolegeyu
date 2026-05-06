@@ -20,7 +20,7 @@
   <view class="middle-section" wx:if="{{appointmentBanners.length > 0 || pageReady}}">
     <swiper class="banner-swiper" indicator-dots autoplay circular interval="4000" duration="600">
       <swiper-item wx:for="{{appointmentBanners}}" wx:key="_id">
-        <view class="banner-card appointment-banner" bindtap="onBannerTap" data-appointment-id="{{item._id}}">
+        <view class="banner-card appointment-banner" bindtap="onBannerTap" data-appointment-id="{{item._id}}" data-shop-id="{{item.shopId}}">
           <view class="banner-left-brand">
             <view class="brand-vertical">
               <view class="brand-title-art">

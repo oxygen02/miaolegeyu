@@ -1,0 +1,9 @@
+{
+  "name": "submitAvailability",
+  "version": "1.0.0",
+  "description": "提交可用时间",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

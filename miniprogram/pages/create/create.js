@@ -38,5 +38,20 @@ Page({
     wx.navigateTo({
       url: '/pages/create-group-order/create-group-order'
     });
+  },
+
+  // 约个时间（时间投票）
+  goScheduleVote() {
+    audioManager.playMeowShort();
+    wx.navigateTo({
+      url: '/pages/schedule-vote/create/create'
+    });
+  },
+
+  // 底部导航切换
+  switchTab(e) {
+    const index = parseInt(e.currentTarget.dataset.index);
+    const urls = ['/pages/index/index', '/pages/fish-tank/fish-tank', '/pages/profile/profile'];
+    wx.switchTab({ url: urls[index] });
   }
 });

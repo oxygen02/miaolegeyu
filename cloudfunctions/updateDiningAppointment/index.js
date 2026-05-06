@@ -40,6 +40,7 @@ exports.main = async (event, context) => {
     if (requirements !== undefined) updateData.requirements = requirements;
     if (customRequirement !== undefined) updateData.customRequirement = customRequirement;
     if (paymentMode !== undefined) updateData.paymentMode = paymentMode;
+    updateData.tzFixed = true;
     updateData.updateTime = new Date();
     
     // 更新活动

@@ -1,0 +1,9 @@
+{
+  "name": "getMyScheduleVotes",
+  "version": "1.0.0",
+  "description": "获取我的时间投票列表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

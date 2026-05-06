@@ -1,0 +1,87 @@
+<view class="page schedule-fill-page">
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <image class="loading-icon anim-breathe" src="{{imagePaths.decorations.loadingCat}}" mode="aspectFit"/>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <block wx:if="{{!loading && voteData}}">
+    <!-- 顶部信息 -->
+    <view class="header-section anim-slide-up">
+      <text class="vote-title">{{voteData.title}}</text>
+      <text class="vote-desc" wx:if="{{voteData.description}}">{{voteData.description}}</text>
+      <view class="vote-creator">
+        <image class="creator-avatar" src="{{voteData.creatorAvatar || imagePaths.decorations.catAvatarIcon}}" mode="aspectFill"/>
+        <text class="creator-name">{{voteData.creatorName || '神秘喵友'}} 发起</text>
+      </view>
+      <view class="vote-meta">
+        <text class="meta-tag">{{voteData.timePeriod === 'lunch' ? '中午' : '晚上'}}</text>
+        <text class="meta-tag {{voteData.anonymous ? 'tag-anonymous' : ''}}">{{voteData.anonymous ? '匿名' : '实名'}}</text>
+      </view>
+    </view>
+
+    <!-- 级别矩阵 -->
+    <view class="matrix-section anim-slide-up delay-1">
+      <!-- 表头 -->
+      <view class="matrix-header">
+        <view class="header-cell header-date">
+          <text class="header-main">日期</text>
+          <text class="header-sub">{{voteData.timePeriod === 'lunch' ? '中午' : '晚上'}}</text>
+        </view>
+        <view class="header-cell {{item.class}}" wx:for="{{levels}}" wx:key="value">{{item.label}}</view>
+      </view>
+
+      <!-- 日期行 -->
+      <view class="matrix-row {{item.dateType}}" wx:for="{{weeks}}" wx:key="date">
+        <!-- 日期列 -->
+        <view class="matrix-cell cell-date {{item.dateType}} {{dateConflicts[item.date] ? 'has-conflict' : ''}}">
+          <text class="date-tag" wx:if="{{item.dateTag}}">{{item.dateTag}}</text>
+          <text class="conflict-badge" wx:if="{{dateConflicts[item.date]}}">!</text>
+          <text class="date-weekday">周{{item.weekDay}}</text>
+          <text class="date-monthday">{{item.monthDay}}</text>
+        </view>
+        <!-- 级别列 -->
+        <view class="matrix-cell cell-level {{lv.class}} {{dateStates[item.date] === lv.value ? 'active' : ''}}"
+              wx:for="{{levels}}" wx:for-item="lv" wx:key="value"
+              bindtap="selectLevel" data-date="{{item.date}}" data-level="{{lv.value}}">
+          <block wx:if="{{dateStates[item.date] === lv.value}}">
+            <image class="claw-icon" src="{{imagePaths.misc.singleclaw}}" mode="aspectFit"/>
+          </block>
+        </view>
+      </view>
+    </view>
+
+    <!-- 图例 -->
+    <view class="legend-bar anim-slide-up delay-2">
+      <view class="legend-item" wx:for="{{levels}}" wx:key="value">
+        <view class="legend-box {{item.class}} active"></view>
+        <text class="legend-text">{{item.label}}</text>
+      </view>
+    </view>
+
+    <!-- 提示 -->
+    <view class="hint-text anim-slide-up delay-3">
+      <text wx:if="{{filledCount < MIN_REQUIRED_DATES}}">
+        已选 <text class="hint-num">{{filledCount}}</text> 天，至少还需选 <text class="hint-num">{{MIN_REQUIRED_DATES - filledCount}}</text> 天
+      </text>
+      <text wx:else>
+        已选 <text class="hint-num">{{filledCount}}</text> 天，点击已选方块可取消
+      </text>
+    </view>
+
+    <!-- 底部装饰背景图 -->
+    <view class="bottom-decoration">
+      <image class="deco-bg-img" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit"/>
+    </view>
+
+    <!-- 底部按钮 -->
+    <view class="bottom-actions safe-bottom">
+      <button class="btn btn-primary {{submitting || filledCount < MIN_REQUIRED_DATES ? 'btn-disabled' : ''}}"
+              bindtap="submitAvailability"
+              disabled="{{submitting || filledCount < MIN_REQUIRED_DATES}}">
+        {{submitting ? '提交中...' : '提交我的时间'}}
+      </button>
+      <button class="btn btn-secondary" bindtap="viewResult">先不填，看看结果</button>
+    </view>
+  </block>
+</view>

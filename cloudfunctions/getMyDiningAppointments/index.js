@@ -35,11 +35,28 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 补充店铺图片
+    // 补充店铺图片，并转换日期格式
     const formattedAppointments = appointments.map(apt => {
       const shop = shopMap[apt.shopId] || {};
+
+      // 旧数据（没有 tzFixed 标记）被服务端当作 UTC 存储，实际应为东八区，需减 8 小时修正
+      let appointmentTimeStr = '';
+      if (apt.appointmentTime) {
+        const d = new Date(apt.appointmentTime);
+        if (!apt.tzFixed) { d.setHours(d.getHours() - 8); }
+        appointmentTimeStr = d.toISOString();
+      }
+      let deadlineStr = '';
+      if (apt.deadline) {
+        const d = new Date(apt.deadline);
+        if (!apt.tzFixed) { d.setHours(d.getHours() - 8); }
+        deadlineStr = d.toISOString();
+      }
+
       return {
         ...apt,
+        appointmentTime: appointmentTimeStr,
+        deadline: deadlineStr,
         shopImage: shop.image || shop.coverImage || shop.posterImage || ''
       };
     });

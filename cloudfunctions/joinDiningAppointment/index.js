@@ -20,9 +20,13 @@ exports.main = async (event, context) => {
     }
     
     const data = appointment.data;
-    
-    // 检查是否已截止
-    if (new Date(data.deadline) < new Date()) {
+
+    // 检查是否已截止（旧数据需减8小时修正时区偏差）
+    let deadline = new Date(data.deadline);
+    if (!data.tzFixed) {
+      deadline = new Date(deadline.getTime() - 8 * 60 * 60 * 1000);
+    }
+    if (deadline < new Date()) {
       return { success: false, error: '报名已截止' };
     }
     

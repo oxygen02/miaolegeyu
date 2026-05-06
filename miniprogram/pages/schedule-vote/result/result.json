@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "投票结果",
+  "navigationBarBackgroundColor": "#FFF8F0",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#FFF8F0",
+  "enablePullDownRefresh": true,
+  "usingComponents": {}
+}

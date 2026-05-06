@@ -25,6 +25,9 @@
     <view class="mode-item {{viewMode === 'group' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="group">
       <text>拼单</text>
     </view>
+    <view class="mode-item {{viewMode === 'scheduleVote' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="scheduleVote">
+      <text>时间投票</text>
+    </view>
   </view>
 
   <!-- 标签切换 -->
@@ -70,7 +73,7 @@
   <scroll-view class="activity-list" scroll-y="true" enhanced="true" show-scrollbar="false">
     <!-- 正在进行的活动 -->
     <block wx:if="{{activeTab === 'ongoing'}}">
-      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}}" wx:for="{{ongoingActivities}}" wx:key="id" data-index="{{index}}" data-type="ongoing" bindtap="onCardTap" data-id="{{item.id}}">
+      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}} {{item.type === 'scheduleVote' ? 'schedule-vote-card' : ''}}" wx:for="{{ongoingActivities}}" wx:key="id" data-index="{{index}}" data-type="ongoing" bindtap="onCardTap" data-id="{{item.id}}">
         <!-- 左上角复选框 -->
         <view class="checkbox-top-left" wx:if="{{isEditMode}}" catchtap="toggleSelect" data-index="{{index}}" data-type="ongoing">
           <view class="checkbox {{item.selected ? 'checked' : ''}}">
@@ -78,33 +81,43 @@
           </view>
         </view>
         <view class="activity-main">
-          <image class="activity-image" src="{{item.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.image}}" binderror="onImageError" data-index="{{index}}" data-type="ongoing" />
+          <!-- 时间投票左侧图标区域 -->
+          <view class="activity-image schedule-vote-image" wx:if="{{item.type === 'scheduleVote'}}">
+            <image class="sv-taiyaki-icon" src="/images/taiyaki-icon.png" mode="aspectFit" />
+          </view>
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.image}}" binderror="onImageError" data-index="{{index}}" data-type="ongoing" wx:else/>
           <view class="activity-info">
             <view class="activity-header-row">
               <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
-              <view class="creator-info">
+              <view class="creator-info" wx:if="{{item.type !== 'scheduleVote'}}">
                 <image class="creator-avatar" src="{{item.creatorAvatarUrl}}" mode="aspectFill" />
                 <text class="creator-name">{{item.creatorNickName}}</text>
               </view>
+              <view class="schedule-vote-dates" wx:if="{{item.type === 'scheduleVote'}}">
+                <text class="sv-date-text">{{item.shopName}}</text>
+              </view>
             </view>
             <text class="activity-title">{{item.title}}</text>
-            <text class="activity-shop">{{item.shopNameStr || item.shopName}}</text>
+            <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{item.shopNameStr || item.shopName}}</text>
             <view class="activity-meta">
               <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{item.time}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
             </view>
             <!-- 参与用户头像 -->
-            <view class="participant-avatars" wx:if="{{item.participantAvatars.length > 0}}">
+            <view class="participant-avatars" wx:if="{{item.participantAvatars.length > 0 && item.type !== 'scheduleVote'}}">
               <view class="avatar-list">
-                <image 
-                  wx:for="{{item.participantAvatars}}" 
+                <image
+                  wx:for="{{item.participantAvatars}}"
                   wx:key="index"
-                  class="participant-avatar {{index > 0 ? 'avatar-overlap' : ''}}" 
-                  src="{{item.avatarUrl}}" 
+                  class="participant-avatar {{index > 0 ? 'avatar-overlap' : ''}}"
+                  src="{{item.avatarUrl}}"
                   mode="aspectFill"
                   style="z-index: {{item.participantAvatars.length - index}};"
                 />
               </view>
               <text class="participant-count">{{item.participantCount}}人参与</text>
+            </view>
+            <view class="schedule-vote-participants" wx:if="{{item.type === 'scheduleVote'}}">
+              <text class="sv-participant-count">{{item.participantCount}}人已填写</text>
             </view>
           </view>
           <view class="activity-right" catchtap="onRightAreaTap">
@@ -113,7 +126,8 @@
               <text class="stats-text">已凑 ¥{{item.currentAmount}}/¥{{item.targetAmount}}</text>
             </view>
             <view class="spacer" wx:else></view>
-            <button class="btn btn-primary btn-small" catchtap="_lockedJoinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{!isEditMode}}">立即参加</button>
+            <button class="btn btn-primary btn-small" catchtap="_lockedJoinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{!isEditMode && item.type !== 'scheduleVote'}}">立即参加</button>
+            <button class="btn btn-schedule btn-small" catchtap="_lockedJoinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{!isEditMode && item.type === 'scheduleVote'}}">去填写</button>
           </view>
         </view>
       </view>
@@ -121,7 +135,7 @@
 
     <!-- 我发起的活动 -->
     <block wx:if="{{activeTab === 'my'}}">
-      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}}" wx:for="{{myActivities}}" wx:key="id" data-index="{{index}}" data-type="my" bindtap="onCardTap" data-id="{{item.id}}">
+      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}} {{item.type === 'scheduleVote' ? 'schedule-vote-card' : ''}}" wx:for="{{myActivities}}" wx:key="id" data-index="{{index}}" data-type="my" bindtap="onCardTap" data-id="{{item.id}}">
         <!-- 左上角复选框 -->
         <view class="checkbox-top-left" wx:if="{{isEditMode}}" catchtap="toggleSelect" data-index="{{index}}" data-type="my">
           <view class="checkbox {{item.selected ? 'checked' : ''}}">
@@ -129,22 +143,31 @@
           </view>
         </view>
         <view class="activity-main">
-          <image class="activity-image" src="{{item.image}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}" data-type="my" />
+          <!-- 时间投票左侧图标区域 -->
+          <view class="activity-image schedule-vote-image" wx:if="{{item.type === 'scheduleVote'}}">
+            <image class="sv-taiyaki-icon" src="/images/taiyaki-icon.png" mode="aspectFit" />
+          </view>
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}" data-type="my" wx:else/>
           <view class="activity-info">
             <view class="activity-header-row">
               <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
+              <view class="schedule-vote-dates" wx:if="{{item.type === 'scheduleVote'}}">
+                <text class="sv-date-text">{{item.shopName}}</text>
+              </view>
             </view>
             <text class="activity-title">{{item.title}}</text>
-            <text class="activity-shop">{{item.shopName}}</text>
+            <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{item.shopName}}</text>
             <view class="activity-meta">
               <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{item.time}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
-              <text class="activity-participants">{{item.participantCount}}人参与</text>
+              <text class="activity-participants" wx:if="{{item.type !== 'scheduleVote'}}">{{item.participantCount}}人参与</text>
+              <text class="activity-participants sv-participant-count" wx:if="{{item.type === 'scheduleVote'}}">{{item.participantCount}}人已填写</text>
             </view>
           </view>
           <view class="activity-right" catchtap="onRightAreaTap">
             <text class="activity-status {{item.status}}">{{item.statusName}}</text>
             <view class="spacer"></view>
-            <button class="btn btn-secondary btn-small" catchtap="goToManage" data-id="{{item.id}}" wx:if="{{!isEditMode}}">管理</button>
+            <button class="btn btn-secondary btn-small" catchtap="goToManage" data-id="{{item.id}}" wx:if="{{!isEditMode && item.type !== 'scheduleVote'}}">管理</button>
+            <button class="btn btn-schedule btn-small" catchtap="goToManage" data-id="{{item.id}}" wx:if="{{!isEditMode && item.type === 'scheduleVote'}}">查看结果</button>
           </view>
         </view>
       </view>
@@ -152,7 +175,7 @@
 
     <!-- 我参与的活动 -->
     <block wx:if="{{activeTab === 'participated'}}">
-      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}}" wx:for="{{participatedActivities}}" wx:key="id" data-index="{{index}}" data-type="participated" bindtap="onCardTap" data-id="{{item.id}}">
+      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}} {{item.type === 'scheduleVote' ? 'schedule-vote-card' : ''}}" wx:for="{{participatedActivities}}" wx:key="id" data-index="{{index}}" data-type="participated" bindtap="onCardTap" data-id="{{item.id}}">
         <!-- 左上角复选框 -->
         <view class="checkbox-top-left" wx:if="{{isEditMode}}" catchtap="toggleSelect" data-index="{{index}}" data-type="participated">
           <view class="checkbox {{item.selected ? 'checked' : ''}}">
@@ -160,16 +183,24 @@
           </view>
         </view>
         <view class="activity-main">
-          <image class="activity-image" src="{{item.image}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}" data-type="participated" />
+          <!-- 时间投票左侧图标区域 -->
+          <view class="activity-image schedule-vote-image" wx:if="{{item.type === 'scheduleVote'}}">
+            <image class="sv-taiyaki-icon" src="/images/taiyaki-icon.png" mode="aspectFit" />
+          </view>
+          <image class="activity-image" src="{{item.image}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}" data-type="participated" wx:else/>
           <view class="activity-info">
             <view class="activity-header-row">
               <view class="activity-type-tag {{item.type}}">{{item.typeName}}</view>
+              <view class="schedule-vote-dates" wx:if="{{item.type === 'scheduleVote'}}">
+                <text class="sv-date-text">{{item.shopName}}</text>
+              </view>
             </view>
             <text class="activity-title">{{item.title}}</text>
-            <text class="activity-shop">{{item.shopName}}</text>
+            <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{item.shopName}}</text>
             <view class="activity-meta">
               <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{item.time}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
-              <text class="activity-participants">{{item.participantCount}}人参与</text>
+              <text class="activity-participants" wx:if="{{item.type !== 'scheduleVote'}}">{{item.participantCount}}人参与</text>
+              <text class="activity-participants sv-participant-count" wx:if="{{item.type === 'scheduleVote'}}">{{item.participantCount}}人已填写</text>
             </view>
           </view>
           <view class="activity-right">

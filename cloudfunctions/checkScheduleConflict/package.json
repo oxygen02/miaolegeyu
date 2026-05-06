@@ -1,0 +1,9 @@
+{
+  "name": "checkScheduleConflict",
+  "version": "1.0.0",
+  "description": "检查用户选择的时间是否与已有活动冲突",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~3.0.1"
+  }
+}
