@@ -499,19 +499,26 @@ class PosterGenerator {
     let logoImg = null;
     try { logoImg = await this.loadImage(canvas, this.IMAGES.juzeAvatar); } catch (e) {}
 
-        // 绘制橘色圆角矩形底
-    this.drawRoundRect(logoX, logoY, logoSize, logoSize, 10, '#FF8A65');
+        // 绘制橘色圆形底
+    ctx.fillStyle = '#FF8A65';
+    ctx.beginPath();
+    ctx.arc(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
+    ctx.fill();
 
     if (logoImg) {
-      // 在橘色底上绘制头像（缩小一点，露出橘色边框）
+      // 在橘色圆形底上绘制圆形头像（缩小一点，露出橘色边框）
       const padding = 3;
+      const avatarR = (logoSize - padding * 2) / 2;
+      const centerX = logoX + logoSize / 2;
+      const centerY = logoY + logoSize / 2;
       ctx.save();
-      this._roundRect(ctx, logoX + padding, logoY + padding, logoSize - padding * 2, logoSize - padding * 2, 8);
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, avatarR, 0, Math.PI * 2);
       ctx.clip();
-      ctx.drawImage(logoImg, logoX + padding, logoY + padding, logoSize - padding * 2, logoSize - padding * 2);
+      ctx.drawImage(logoImg, centerX - avatarR, centerY - avatarR, avatarR * 2, avatarR * 2);
       ctx.restore();
     } else {
-      // 降级：绘制猫脸简化图标
+      // 降级：在橘色圆形底上绘制猫脸简化图标
       this._drawCatIcon(ctx, logoX + logoSize / 2, logoY + logoSize / 2 + 2, 12);
     }
 
