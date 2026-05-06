@@ -380,7 +380,7 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
       },
       finalPoster: winner.imageUrl ? { imageUrl: winner.imageUrl } : null,
       roomTitle: room.title || '聚餐投票',
-      roomTime: room.activityTime || winner.time || '',
+      roomTime: (room.activityDate && room.activityTime) ? (room.activityDate + ' ' + room.activityTime) : (room.activityDate || room.activityTime || winner.time || ''),
       roomAddress: room.location?.name || room.location || '',
       participants: room.participants || [],
       isAnonymous: room.isAnonymous || false,
