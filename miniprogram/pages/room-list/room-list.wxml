@@ -1,4 +1,9 @@
 <view class="room-list-page">
+  <!-- 模拟结果海报按钮（仅用于预览） -->
+  <view style="position: fixed; top: 200rpx; right: 20rpx; z-index: 999; background: #FF8A65; color: white; padding: 16rpx 24rpx; border-radius: 32rpx; font-size: 24rpx; box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.15);" bindtap="onMockResultPoster">
+    预览结果海报
+  </view>
+
   <!-- 页面标题和房间号输入合并 -->
   <view class="page-header">
     <view class="header-left">
@@ -149,10 +154,6 @@
       <view class="action-item" bindtap="onShare">
         <image class="action-icon" src="/assets/icon-share-w.png" mode="aspectFit" />
         <text>分享房间</text>
-      </view>
-      <view class="action-item" bindtap="onViewPoster">
-        <image class="action-icon" src="/assets/images/generatorposter.png" mode="aspectFit" />
-        <text>查看海报</text>
       </view>
       <view class="action-item delete" bindtap="onDelete">
         <image class="action-icon" src="/assets/icon-delete.png" mode="aspectFit" />

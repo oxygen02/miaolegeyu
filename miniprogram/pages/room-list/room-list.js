@@ -83,38 +83,64 @@ Page({
 
     try {
       const { currentFilter } = this.data;
-      let allRooms = [];
+      let createdRooms = [];
+      let participatedRooms = [];
 
-      // 根据筛选类型调用不同的云函数
-      if (currentFilter === 'participated') {
-        // 获取我参与的房间
+      // 并行获取我创建的房间和我参与的房间
+      const fetchCreated = async () => {
+        try {
+          const res = await wx.cloud.callFunction({
+            name: 'getRoomsByCreator',
+            data: { status: '' }
+          });
+          if (res.result.code === 0) {
+            const creatorGroups = res.result.data || [];
+            return this.flattenRooms(creatorGroups);
+          }
+        } catch (cloudErr) {
+          console.log('获取创建的房间失败:', cloudErr);
+        }
+        return [];
+      };
+
+      const fetchParticipated = async () => {
         try {
           const res = await wx.cloud.callFunction({
             name: 'getMyParticipatedRooms',
             data: { status: '' }
           });
-
           if (res.result.code === 0) {
-            allRooms = res.result.data || [];
+            return res.result.data || [];
           }
         } catch (cloudErr) {
           console.log('获取参与的房间失败:', cloudErr);
         }
-      } else {
-        // 获取我创建的房间
-        try {
-          const res = await wx.cloud.callFunction({
-            name: 'getRoomsByCreator',
-            data: { status: currentFilter === 'all' || currentFilter === 'created' ? '' : currentFilter }
-          });
+        return [];
+      };
 
-          if (res.result.code === 0) {
-            const creatorGroups = res.result.data || [];
-            allRooms = this.flattenRooms(creatorGroups);
-          }
-        } catch (cloudErr) {
-          console.log('云函数加载失败:', cloudErr);
+      if (currentFilter === 'all') {
+        // 全部：同时获取创建的和参与的
+        [createdRooms, participatedRooms] = await Promise.all([fetchCreated(), fetchParticipated()]);
+      } else if (currentFilter === 'created') {
+        // 我创建的
+        createdRooms = await fetchCreated();
+      } else if (currentFilter === 'participated') {
+        // 我参与的
+        participatedRooms = await fetchParticipated();
+      }
+
+      // 合并并去重（根据 roomId）
+      const roomMap = new Map();
+      [...createdRooms, ...participatedRooms].forEach(room => {
+        if (room.roomId && !roomMap.has(room.roomId)) {
+          roomMap.set(room.roomId, room);
         }
+      });
+      let allRooms = Array.from(roomMap.values());
+      
+      // 调试日志
+      if (allRooms.length > 0) {
+        console.log('[room-list调试] 第一个房间数据:', JSON.stringify(allRooms[0]));
       }
 
       // 根据筛选条件过滤
@@ -214,6 +240,7 @@ Page({
             ...room,
             creatorName: group.creatorName,
             creatorAvatar: group.creatorAvatar,
+            creatorAvatarUrl: group.creatorAvatar,
             creatorId: group.creatorId
           });
         });
@@ -372,6 +399,22 @@ Page({
     const winner = room.finalPoster || {};
     const isLocked = room.status === 'locked' || room.status === 'completed';
 
+    // 组合时间显示：日期 + 时间
+    let timeDisplay = '待定';
+    console.log('[海报调试] room.activityDate:', room.activityDate, 'room.activityTime:', room.activityTime);
+    if (room.activityDate && room.activityTime) {
+      timeDisplay = room.activityDate + ' ' + room.activityTime;
+    } else if (room.activityDate) {
+      timeDisplay = room.activityDate;
+    } else if (room.activityTime) {
+      timeDisplay = room.activityTime;
+    }
+    console.log('[海报调试] timeDisplay:', timeDisplay);
+
+    // 获取创建者头像（兼容两种字段名）
+    const creatorAvatar = room.creatorAvatar || room.creatorAvatarUrl || '';
+    console.log('[海报调试] creatorAvatar:', creatorAvatar);
+
     if (isLocked && winner.name) {
       // 显示结果海报
       const posterData = {
@@ -388,11 +431,12 @@ Page({
         },
         finalPoster: winner.imageUrl ? { imageUrl: winner.imageUrl } : null,
         roomTitle: room.title || '聚餐投票',
-        roomTime: room.activityTime || winner.time || '',
+        roomTime: timeDisplay,
         roomAddress: room.location?.name || room.location || '',
         participants: room.participants || [],
         isAnonymous: room.isAnonymous || false,
-        qrCodeUrl: qrCodeUrl
+        qrCodeUrl: qrCodeUrl,
+        creatorAvatar: creatorAvatar
       };
 
       this.setData({
@@ -408,9 +452,10 @@ Page({
         roomCode: room.roomId,
         roomPassword: room.password || '',
         needPassword: !!room.password,
-        roomTime: room.activityTime || room.time || '待定',
+        roomTime: timeDisplay,
         roomAddress: room.location?.name || room.location || '待定',
-        qrCodeUrl: qrCodeUrl
+        qrCodeUrl: qrCodeUrl,
+        creatorAvatar: creatorAvatar
       };
 
       this.setData({
@@ -419,6 +464,46 @@ Page({
         showPosterModal: true
       });
     }
+  },
+
+  // 模拟结果海报（用于预览效果）
+  async onMockResultPoster() {
+    const mockPosterData = {
+      type: 'result',
+      mode: 'a',
+      winner: {
+        name: '海底捞火锅（春熙路店）',
+        image: '',
+        address: '春熙路东段168号',
+        category: '火锅',
+        price: '¥120/人',
+        voteCount: 8,
+        votePercent: 72.7
+      },
+      finalPoster: null,
+      roomTitle: '五一后小聚',
+      roomTime: '2026-05-09 18:00',
+      roomAddress: '石油苑附近',
+      participants: [
+        { nickName: '小明', avatarUrl: '' },
+        { nickName: '小红', avatarUrl: '' },
+        { nickName: '小李', avatarUrl: '' },
+        { nickName: '小张', avatarUrl: '' },
+        { nickName: '小王', avatarUrl: '' },
+        { nickName: '小陈', avatarUrl: '' },
+        { nickName: '小刘', avatarUrl: '' },
+        { nickName: '小赵', avatarUrl: '' }
+      ],
+      isAnonymous: false,
+      qrCodeUrl: '',
+      creatorAvatar: ''
+    };
+
+    this.setData({
+      posterData: mockPosterData,
+      posterTitle: '分享投票结果',
+      showPosterModal: true
+    });
   },
 
   onPosterClose() {

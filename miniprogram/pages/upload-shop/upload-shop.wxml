@@ -63,11 +63,6 @@
       </view>
     </view>
 
-    <!-- 装饰Logo - 喵了个鱼 -->
-    <view class="decoration-logo">
-      <image class="logo-image" src="{{imagePaths.decorations.catFishLogo}}" mode="aspectFit" />
-    </view>
-
     <!-- 人均消费 -->
     <view class="form-item required">
       <text class="form-label">人均消费</text>

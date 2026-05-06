@@ -10,11 +10,8 @@
   <block wx:else>
     <!-- 顶部提示 -->
     <view class="header-section">
-      <view class="cat-hint">
-        <image class="cat-img" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFit" />
-        <view class="speech-bubble">
-          <text class="bubble-text">根据大家的口味，为你推荐这些店</text>
-        </view>
+      <view class="speech-bubble">
+        <text class="bubble-text">根据大家的口味，为你推荐这些店</text>
       </view>
       <view class="location-info" wx:if="{{room.location}}">
         <image class="location-icon" src="{{imagePaths.icons.location}}" mode="aspectFit" />

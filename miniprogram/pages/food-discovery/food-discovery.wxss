@@ -590,14 +590,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
+  gap: 24rpx;
   flex-shrink: 0;
   padding: 0 12rpx;
 }
 
 /* 我想被约按钮 - 缩小版 */
 .interest-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: fit-content;
   background: #E8F8F5;
   padding: 10rpx 24rpx;
@@ -612,6 +614,7 @@
   font-size: 22rpx;
   color: #4ECDC4;
   font-weight: 600;
+  line-height: 1;
 }
 
 /* 已标记状态 */
@@ -631,7 +634,9 @@
 
 /* 发起约饭按钮 - 缩小版 */
 .create-btn-wide {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: fit-content;
   background: #FF9F43;
   padding: 10rpx 24rpx;
@@ -645,6 +650,7 @@
   font-size: 22rpx;
   color: #fff;
   font-weight: 600;
+  line-height: 1;
 }
 
 .create-btn-wide:active {
