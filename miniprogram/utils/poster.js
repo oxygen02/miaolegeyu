@@ -499,16 +499,19 @@ class PosterGenerator {
     let logoImg = null;
     try { logoImg = await this.loadImage(canvas, this.IMAGES.juzeAvatar); } catch (e) {}
 
+        // 绘制橘色圆角矩形底
+    this.drawRoundRect(logoX, logoY, logoSize, logoSize, 10, '#FF8A65');
+
     if (logoImg) {
-      // 使用橘仔头像作为Logo
+      // 在橘色底上绘制头像（缩小一点，露出橘色边框）
+      const padding = 3;
       ctx.save();
-      this._roundRect(ctx, logoX, logoY, logoSize, logoSize, 10);
+      this._roundRect(ctx, logoX + padding, logoY + padding, logoSize - padding * 2, logoSize - padding * 2, 8);
       ctx.clip();
-      ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+      ctx.drawImage(logoImg, logoX + padding, logoY + padding, logoSize - padding * 2, logoSize - padding * 2);
       ctx.restore();
     } else {
-      // 降级：方形圆角Logo底 + 猫脸简化图标
-      this.drawRoundRect(logoX, logoY, logoSize, logoSize, 10, '#FF8A65');
+      // 降级：绘制猫脸简化图标
       this._drawCatIcon(ctx, logoX + logoSize / 2, logoY + logoSize / 2 + 2, 12);
     }
 
