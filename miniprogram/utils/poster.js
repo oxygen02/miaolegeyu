@@ -352,7 +352,7 @@ class PosterGenerator {
     // 像素点装饰
     this._drawPixelDots(ctx, cardX, cardY, cardW, cardH);
 
-    let cy = cardY + 45;
+    let cy = cardY + 55;
 
     // === 餐厅名 ===
     const shopName = winner?.name || '饭店待定';
@@ -360,15 +360,15 @@ class PosterGenerator {
     ctx.fillStyle = '#2D2018';
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     ctx.fillText(shopName, cx, cy);
-    cy += 55;
+    cy += 60;
 
     // === 地址分类 ===
     const category = winner?.category || '美食';
     const addrText = (winner?.address || roomAddress || '地址待定') + ' | ' + category;
-    ctx.font = '26px sans-serif';
+    ctx.font = 'bold 28px sans-serif';
     ctx.fillStyle = '#999488';
     ctx.fillText(addrText, cx, cy);
-    cy += 50;
+    cy += 55;
 
     // --- 时间 ---
     ctx.font = 'bold 28px sans-serif';
@@ -376,7 +376,7 @@ class PosterGenerator {
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     const timeDisplay = roomTime && roomTime.trim() !== '' && roomTime !== '待定' ? roomTime : '待定';
     ctx.fillText('时间: ' + timeDisplay, cx, cy);
-    cy += 50;
+    cy += 55;
 
     // --- 分隔线 ---
     ctx.fillStyle = '#EDE8E2';
