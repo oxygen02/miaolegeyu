@@ -353,21 +353,6 @@ class PosterGenerator {
     // 像素点装饰
     this._drawPixelDots(ctx, cardX, cardY, cardW, cardH);
 
-    // ==================== 猫爪印装饰（盖章效果）====================
-    let clawImg = null;
-    try { clawImg = await this.loadImage(canvas, this.IMAGES.singleClaw); } catch (e) {}
-    if (clawImg) {
-      const clawSize = 160;
-      const clawX = cardX + cardW - clawSize + 20;
-      const clawY = cardY + cardH - clawSize + 20;
-      ctx.save();
-      ctx.globalAlpha = 0.25;
-      ctx.translate(clawX + clawSize / 2, clawY + clawSize / 2);
-      ctx.rotate(-15 * Math.PI / 180);
-      ctx.drawImage(clawImg, -clawSize / 2, -clawSize / 2, clawSize, clawSize);
-      ctx.restore();
-    }
-
     let cy = cardY + 55;
 
     // === 餐厅名 ===
@@ -468,6 +453,22 @@ class PosterGenerator {
     ctx.fillStyle = '#EDE8E2';
     ctx.fillRect(cardX + 40, cy, cardW - 80, 1.5);
     cy += 40;
+
+    // ==================== 猫爪印装饰（文字下方居中）====================
+    let clawImg = null;
+    try { clawImg = await this.loadImage(canvas, this.IMAGES.singleClaw); } catch (e) {}
+    if (clawImg) {
+      const clawSize = 220;
+      const clawX = cx - clawSize / 2;
+      const clawY = cy;
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.translate(cx, clawY + clawSize / 2);
+      ctx.rotate(-12 * Math.PI / 180);
+      ctx.drawImage(clawImg, -clawSize / 2, -clawSize / 2, clawSize, clawSize);
+      ctx.restore();
+      cy += clawSize + 10;
+    }
 
     // ==================== 6. 小程序码 ====================
     const qrSize = 140;
