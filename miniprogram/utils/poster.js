@@ -336,7 +336,7 @@ class PosterGenerator {
     const cardX = 32;
     const cardY = 300;
     const cardW = width - 64;
-    const cardH = 780;
+    const cardH = 820;
     const cardR = 28;
 
     // 卡片阴影
