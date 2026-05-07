@@ -24,7 +24,6 @@ function setUserInfo(userInfo) {
   try {
     wx.setStorageSync('userInfo', userInfo);
   } catch (e) {
-    console.error('保存用户信息失败:', e);
   }
 }
 

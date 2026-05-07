@@ -68,32 +68,25 @@ Component({
 
     async generatePoster() {
       if (!this.properties.posterData) {
-        console.error('[海报] 海报数据为空');
         return;
       }
 
-      console.log('[海报] ========== 弹窗开始生成海报 ==========');
-      console.log('[海报] posterData:', JSON.stringify(this.properties.posterData));
 
       this.setData({ isLoading: true });
 
       try {
         const poster = new PosterGenerator();
         
-        console.log('[海报] 初始化画布...');
         await poster.initCanvas('posterCanvas', this);
-        console.log('[海报] 画布初始化完成');
         
         // 统一使用结果海报绘制方法
         await poster.drawResultPoster(this.properties.posterData);
 
         // 延迟导出，确保所有绘制操作完成（图片异步加载需要时间）
-        console.log('[海报] 等待渲染完成...');
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const imagePath = await poster.generateImage();
         
-        console.log('[海报] 海报生成成功! 路径:', imagePath);
         
         this.setData({
           posterImagePath: imagePath,
@@ -102,7 +95,6 @@ Component({
 
         this.triggerEvent('generated', { imagePath });
       } catch (err) {
-        console.error('[海报] 生成海报失败:', err);
         wx.showToast({
           title: '海报生成失败: ' + (err.message || '未知错误'),
           icon: 'none',
@@ -130,7 +122,6 @@ Component({
         });
         this.triggerEvent('save', { imagePath: this.data.posterImagePath });
       } catch (err) {
-        console.error('[海报] 保存失败:', err);
       }
     },
 

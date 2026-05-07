@@ -105,9 +105,7 @@ Page({
   async onLoad() {
     // 先加载店铺，再加载约饭数据
     await this.loadShops();
-    console.log('店铺加载完成，数量:', this.data.shops.length);
     await this.loadAppointments();
-    console.log('约饭数据加载完成');
     // 加载用户的约饭意向
     await this.loadMyInterests();
   },
@@ -177,7 +175,6 @@ Page({
         });
       }
     } catch (err) {
-      console.error('加载店铺失败:', err);
       wx.showToast({ title: '加载失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
@@ -220,7 +217,6 @@ Page({
         });
       }
     } catch (err) {
-      console.error('加载更多失败:', err);
     } finally {
       this.setData({ loading: false });
     }
@@ -254,7 +250,6 @@ Page({
   // 加载约饭报名
   async loadAppointments() {
     try {
-      console.log('开始加载约饭数据，当前店铺数:', this.data.shops.length);
 
       // 添加超时处理
       const callFunctionPromise = wx.cloud.callFunction({
@@ -268,7 +263,6 @@ Page({
 
       const { result } = await Promise.race([callFunctionPromise, timeoutPromise]);
 
-      console.log('约饭数据返回:', result);
 
       if (result.success) {
         // 将约饭信息按店铺ID分组
@@ -276,7 +270,6 @@ Page({
         result.appointments.forEach(app => {
           // 确保 shopId 是字符串类型
           const shopId = app.shopId ? String(app.shopId) : '';
-          console.log('处理约饭数据:', shopId, app);
           if (!appointmentsMap[shopId]) {
             appointmentsMap[shopId] = [];
           }
@@ -287,29 +280,26 @@ Page({
           });
         });
 
-        console.log('appointmentsMap:', appointmentsMap);
 
         const updatedShops = this.data.shops.map(shop => {
           // 处理 _id 可能是对象或字符串的情况
           const shopId = shop._id ? String(shop._id) : '';
           const appointments = appointmentsMap[shopId] || [];
-          console.log('店铺:', shopId, shop.name, '关联约饭:', appointments.length, '个活动');
           return {
             ...shop,
             appointments: appointments,
             hasAppointment: appointments.length > 0,
-            currentAppointmentIndex: 1
+            currentAppointmentIndex: 1,
+            isInterested: shop.isInterested || false
           };
         });
 
-        console.log('更新店铺数据:', updatedShops.length, '个店铺');
         this.setData({ shops: updatedShops });
 
         // 启动倒计时
         this.startCountdowns(result.appointments);
       }
     } catch (err) {
-      console.error('加载约饭报名失败:', err);
     }
   },
 
@@ -580,7 +570,6 @@ Page({
         });
       }
     } catch (err) {
-      console.error('查询意向用户失败:', err);
       // 查询失败，直接跳转
       wx.navigateTo({
         url: `/pages/shop-detail/shop-detail?id=${shop._id}&openAppointment=1`
@@ -620,7 +609,6 @@ Page({
         wx.showToast({ title: result.error || '参加失败', icon: 'none' });
       }
     } catch (err) {
-      console.error('参加约饭失败:', err);
       wx.showToast({ title: '参加失败', icon: 'none' });
     } finally {
       wx.hideLoading();
@@ -750,7 +738,6 @@ Page({
 
   // 位置图标加载失败
   onLocationIconError(e) {
-    console.error('位置图标加载失败:', e);
     this.setData({ locationIconError: true });
   },
 
@@ -771,7 +758,6 @@ Page({
         this.setData({ shops });
       }
     } catch (err) {
-      console.error('加载约饭意向失败:', err);
     }
   },
 
@@ -811,7 +797,6 @@ Page({
         wx.showToast({ title: result.error || '操作失败', icon: 'none' });
       }
     } catch (err) {
-      console.error('切换约饭意向失败:', err);
       wx.showToast({ title: '操作失败', icon: 'none' });
     } finally {
       wx.hideLoading();

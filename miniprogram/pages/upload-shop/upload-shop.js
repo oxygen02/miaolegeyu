@@ -336,7 +336,6 @@ Page({
       const results = await Promise.all(uploadTasks);
       return results.map(res => res.fileID);
     } catch (err) {
-      console.error('上传图片失败:', err);
       throw new Error('上传图片失败');
     }
   },
@@ -385,7 +384,6 @@ Page({
       }
     } catch (err) {
       wx.hideLoading();
-      console.error('提交失败:', err);
       wx.showModal({
         title: '发布失败',
         content: err.message || '提交失败，请检查网络或稍后重试',

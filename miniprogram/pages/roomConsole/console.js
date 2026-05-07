@@ -99,7 +99,6 @@ Page({
         }
       }
     }).catch(err => {
-      console.error('获取房间详情失败:', err);
     });
   },
 
@@ -138,7 +137,6 @@ Page({
       wx.showToast({ title: newVal ? '已开启匿名投票' : '已关闭匿名投票', icon: 'success' });
     }).catch(err => {
       wx.hideLoading();
-      console.error('设置匿名模式失败:', err);
       wx.showToast({ title: '设置失败', icon: 'none' });
     });
   },
@@ -167,7 +165,6 @@ Page({
         });
       }
     }).catch(err => {
-      console.error('获取投票统计失败:', err);
     });
   },
 
@@ -347,7 +344,6 @@ Page({
       }
     }).catch(err => {
       wx.hideLoading();
-      console.error('锁定失败:', err);
       wx.showToast({ title: '锁定失败，请重试', icon: 'none' });
     });
   },
@@ -363,7 +359,6 @@ Page({
         this.setData({ winner: res.result.winner });
       }
     }).catch(err => {
-      console.error('加载锁定结果失败:', err);
     });
   },
 

@@ -6,9 +6,7 @@ App({
 
   onLaunch: function () {
     // 初始化云开发
-    if (!wx.cloud) {
-      console.error('请使用 2.2.3 或以上的基础库以使用云能力')
-    } else {
+    if (wx.cloud) {
       wx.cloud.init({
         env: cloudConfig.env,
         traceUser: true,
@@ -73,7 +71,6 @@ App({
           }
         },
         fail: () => {
-          console.log('隐私设置检查失败');
         }
       });
     }
@@ -139,11 +136,9 @@ App({
 
   // 全局错误处理
   onError(msg) {
-    console.error('小程序错误:', msg);
   },
 
   // 全局未捕获Promise错误处理
   onUnhandledRejection(res) {
-    console.error('未处理的Promise错误:', res);
   }
 })

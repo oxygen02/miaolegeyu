@@ -27,6 +27,8 @@ Page({
   // 鱼的动画实例和状态（由 wx.createAnimation 驱动）
   _fishAnims: [],
   _fishStates: [],
+  // 记录每条鱼的定时器，用于清理
+  _fishTimers: [],
 
   touchStartX: 0,
   touchStartY: 0,
@@ -100,7 +102,6 @@ Page({
         this.setData({ recentRooms: rooms });
       }
     } catch (err) {
-      console.log('加载最近活动失败', err);
     }
   },
 
@@ -372,10 +373,12 @@ Page({
     const fishes = [];
     this._fishAnims = [];
     this._fishStates = [];
+    this._fishTimers = [];
 
     for (let i = 0; i < FISH_COUNT; i++) {
       const state = this._createFishState(i);
       this._fishStates.push(state);
+      this._fishTimers.push([]);
 
       // 创建动画实例
       const anim = wx.createAnimation({
@@ -475,7 +478,7 @@ Page({
     this._updateFishAnim(index);
 
     // 延迟后开始游泳
-    setTimeout(() => {
+    const swimDelayTimer = setTimeout(() => {
       if (this._fishStates[index] && !this._fishStates[index].escaping) {
         anim.left(endX + '%').scaleX(scaleX).step({
           duration: state.swimDuration,
@@ -484,19 +487,27 @@ Page({
         this._updateFishAnim(index);
 
         // 游完后重新初始化
-        setTimeout(() => {
+        const resetTimer = setTimeout(() => {
           if (this._fishStates[index] && !this._fishStates[index].escaping) {
             this._resetFish(index);
           }
         }, state.swimDuration);
+        if (this._fishTimers[index]) this._fishTimers[index].push(resetTimer);
       }
     }, state.swimDelay);
+    if (this._fishTimers[index]) this._fishTimers[index].push(swimDelayTimer);
   },
 
   // 播放逃逸动画
   _playEscapeAnimation(index, direction) {
     const anim = this._fishAnims[index];
     if (!anim) return;
+
+    // 清除旧的逃逸定时器
+    if (this._fishTimers[index]) {
+      this._fishTimers[index].forEach(t => clearTimeout(t));
+      this._fishTimers[index] = [];
+    }
 
     // 获取鱼的当前位置（从 data 中读取）
     const currentFish = this.data.fishes[index];
@@ -506,6 +517,12 @@ Page({
     const targetX = isRight ? 130 : -30;
     const escapeScaleX = isRight ? -1 : 1; // 向右逃→翻转头朝右，向左逃→不翻头朝左
 
+    const addTimer = (fn, delay) => {
+      const t = setTimeout(fn, delay);
+      if (this._fishTimers[index]) this._fishTimers[index].push(t);
+      return t;
+    };
+
     // 阶段1：受惊僵直（0.3s，几乎不动）+ 立即转向
     anim.left(currentLeft + '%').scaleX(escapeScaleX).step({
       duration: 300,
@@ -514,7 +531,7 @@ Page({
     this._updateFishAnim(index);
 
     // 阶段2：犹豫缓游（0.7s，移动少量）
-    setTimeout(() => {
+    addTimer(() => {
       const hesitateX = isRight ? currentLeft + 5 : currentLeft - 5;
       anim.left(hesitateX + '%').scaleX(escapeScaleX).step({
         duration: 700,
@@ -524,7 +541,7 @@ Page({
     }, 300);
 
     // 阶段3：缓游起步（1.5s）
-    setTimeout(() => {
+    addTimer(() => {
       const swimX = isRight ? currentLeft + 20 : currentLeft - 20;
       anim.left(swimX + '%').scaleX(escapeScaleX).step({
         duration: 1500,
@@ -534,7 +551,7 @@ Page({
     }, 1000);
 
     // 阶段4：逐渐加速（1.5s）
-    setTimeout(() => {
+    addTimer(() => {
       const rushX = isRight ? currentLeft + 50 : currentLeft - 50;
       anim.left(rushX + '%').scaleX(escapeScaleX).step({
         duration: 1500,
@@ -544,7 +561,7 @@ Page({
     }, 2500);
 
     // 阶段5：全速冲刺（1.2s）
-    setTimeout(() => {
+    addTimer(() => {
       anim.left(targetX + '%').scaleX(escapeScaleX).step({
         duration: 1200,
         timingFunction: 'ease-in'
@@ -566,25 +583,37 @@ Page({
 
   // 重置单条鱼
   _resetFish(index) {
+    // 清除所有旧定时器，防止逃逸动画或游泳动画的回调干扰新动画
+    if (this._fishTimers[index]) {
+      this._fishTimers[index].forEach(t => clearTimeout(t));
+      this._fishTimers[index] = [];
+    }
+
     const state = this._createFishState(index);
     this._fishStates[index] = state;
 
+    // 重新创建动画实例，清除旧的动画队列，防止倒着游
+    this._fishAnims[index] = wx.createAnimation({
+      duration: 0,
+      timingFunction: 'linear',
+      delay: 0
+    });
     const anim = this._fishAnims[index];
-    if (anim) {
-      // 根据新方向立即设置正确朝向，避免重置后出现倒着游
-      const isLTR = state.direction === 'right';
-      const scaleX = isLTR ? -1 : 1;
-      anim.scaleX(scaleX).step({ duration: 0 });
-    }
+
+    // 根据新方向立即设置正确朝向
+    const isLTR = state.direction === 'right';
+    const scaleX = isLTR ? -1 : 1;
+    anim.scaleX(scaleX).step({ duration: 0 });
 
     const newData = this._stateToData(state, index, anim);
     this.setData({
       [`fishes[${index}]`]: newData
     }, () => {
-      // 重置后立即启动新的游泳动画
-      setTimeout(() => {
+      // 重置后延迟启动新的游泳动画
+      const startTimer = setTimeout(() => {
         this._startSwimAnimation(index);
       }, 100);
+      if (this._fishTimers[index]) this._fishTimers[index].push(startTimer);
     });
   }
 });

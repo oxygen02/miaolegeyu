@@ -58,7 +58,6 @@ async function callCloudFunction(name, data = {}, options = {}) {
       code: result.code || 0
     };
   } catch (err) {
-    console.error(`云函数[${name}]调用失败:`, err);
     
     const errorMsg = err.message || '网络异常，请稍后重试';
     

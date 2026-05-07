@@ -82,10 +82,8 @@ Page({
         });
 
         this.setData({ imagePaths: newImagePaths });
-        console.log('Cloud images loaded:', newImagePaths.icons);
       }
     } catch (err) {
-      console.error('获取云存储图片 URL 失败:', err);
     }
   },
 
@@ -179,7 +177,6 @@ Page({
             },
             fail: (err) => {
               wx.hideLoading();
-              console.log('获取用户信息失败:', err);
               // 用户拒绝授权，降级为快速体验
               wx.showModal({
                 title: '提示',
@@ -239,7 +236,6 @@ Page({
       }
     } catch (err) {
       wx.hideLoading();
-      console.error('登录失败:', err);
       wx.showToast({ title: '登录失败', icon: 'none' });
     }
   },
@@ -284,7 +280,6 @@ Page({
       }
     } catch (err) {
       wx.hideLoading();
-      console.error('登录失败:', err);
       wx.showToast({ title: '登录失败', icon: 'none' });
     }
   },
@@ -388,7 +383,6 @@ Page({
     if (!this.data.userInfo.isLogin) return;
 
     try {
-      console.log('开始加载统计数据...');
       
       // 使用 Promise.allSettled 避免一个失败影响其他
       const results = await Promise.allSettled([
@@ -400,21 +394,17 @@ Page({
         wx.cloud.callFunction({ name: 'getMyScheduleVotes', data: { mode: 'all', limit: 100 } })
       ]);
 
-      console.log('云函数返回结果:', results);
 
       // 安全获取数据长度
       const getCount = (result, dataKey = 'data') => {
         if (result.status !== 'fulfilled') {
-          console.log(`  -> ${dataKey} rejected:`, result.reason);
           return 0;
         }
         const res = result.value;
         if (!res || !res.result) {
-          console.log(`  -> ${dataKey} no result`);
           return 0;
         }
         if (res.result.code !== undefined && res.result.code !== 0) {
-          console.log(`  -> ${dataKey} code error:`, res.result.code);
           return 0;
         }
         if (res.result.count !== undefined) {
@@ -435,11 +425,9 @@ Page({
         myScheduleVotes: getCount(results[5], 'votes')
       };
       
-      console.log('最终 stats:', stats);
       
       this.setData({ stats });
     } catch (err) {
-      console.error('加载统计数据失败:', err);
     }
   },
 
@@ -487,7 +475,6 @@ Page({
         this.setData({ favorites, loading: false });
       }
     } catch (err) {
-      console.error('获取收藏失败:', err);
       this.setData({ loading: false });
     }
   },
@@ -502,7 +489,6 @@ Page({
         this.setData({ myShops: result.shops, loading: false });
       }
     } catch (err) {
-      console.error('获取我的店铺失败:', err);
       this.setData({ loading: false });
     }
   },
@@ -536,7 +522,6 @@ Page({
         this.setData({ myAppointments: appointments, loading: false });
       }
     } catch (err) {
-      console.error('获取我的活动失败:', err);
       this.setData({ loading: false });
     }
   },
@@ -582,7 +567,6 @@ Page({
         this.setData({ myScheduleVotes: votes, loading: false });
       }
     } catch (err) {
-      console.error('获取时间投票失败:', err);
       this.setData({ loading: false });
     }
   },
@@ -641,7 +625,6 @@ Page({
         this.startProfileDeadlineTimer('myParticipated');
       }
     } catch (err) {
-      console.error('获取我参与的聚餐失败:', err);
       this.setData({ loading: false });
     }
   },
@@ -664,7 +647,6 @@ Page({
             }
           }
           // 打印字段信息用于调试模式判断
-          console.log('房间字段:', room.roomId, 'dinnerTime:', room.dinnerTime, 'candidatePosters:', room.candidatePosters);
           return {
             ...room,
             ...this.calcDeadlineUrgent(room.voteDeadline)
@@ -675,7 +657,6 @@ Page({
         this.startProfileDeadlineTimer('myRooms');
       }
     } catch (err) {
-      console.error('获取我发起的聚餐失败:', err);
       this.setData({ loading: false });
     }
   },
@@ -926,7 +907,6 @@ Page({
     const room = this.data.myRooms.find(r => r.roomId === roomId);
     const mode = room ? room.mode : '';
 
-    console.log('编辑房间:', roomId, '找到房间:', room, 'mode:', mode);
 
     // 将房间数据存储到本地，供编辑页面使用
     if (room) {
@@ -950,13 +930,11 @@ Page({
 
     if (isModeB || (hasDinnerTime && !hasPosters)) {
       // 模式B：你们来定
-      console.log('跳转到模式B编辑页面（mode:', mode, '）');
       wx.navigateTo({
         url: `/pages/create-mode-b/create-mode-b?edit=true&roomId=${roomId}`
       });
     } else {
       // 模式A：我选好了
-      console.log('跳转到模式A编辑页面（mode:', mode, '）');
       wx.navigateTo({
         url: `/pages/create-mode-a/create-mode-a?edit=true&roomId=${roomId}`
       });

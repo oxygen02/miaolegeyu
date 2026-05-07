@@ -127,7 +127,7 @@ exports.main = async (event) => {
     // 支持 'b' 和 'pick_for_them' 两种 mode 值
     if (mode === 'b' || mode === 'pick_for_them') {
       roomData.cuisineOptions = cuisineOptions || [];
-      roomData.paymentMode = paymentMode || 'AA';
+      roomData.paymentMode = paymentMode || '';
       roomData.isAnonymous = isAnonymous || false;
       roomData.needPassword = needPassword || false;
       // 密码使用md5哈希存储，避免明文

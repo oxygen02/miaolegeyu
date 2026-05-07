@@ -29,7 +29,7 @@ Page({
     needPassword: false,
     roomPassword: '',
     // 付费方式和匿名投票
-    paymentMode: 'AA',
+    paymentMode: '',
     isAnonymous: false,
     // 时间和地点
     locationText: '',
@@ -94,7 +94,6 @@ Page({
       // 优先从本地存储读取
       let room = wx.getStorageSync('editRoomData');
       if (room && room.roomId === roomId) {
-        console.log('从本地存储读取房间数据:', room);
         wx.removeStorageSync('editRoomData');
       } else {
         // 本地没有，尝试调用云函数
@@ -106,7 +105,6 @@ Page({
           });
           result = res.result;
         } catch (err) {
-          console.log('getRoom 失败，尝试 getRoomDetail:', err);
           const res = await wx.cloud.callFunction({
             name: 'getRoomDetail',
             data: { roomId }
@@ -119,7 +117,6 @@ Page({
         room = result.data || result.room;
       }
 
-      console.log('编辑模式加载房间数据:', room);
 
       // 处理 location 字段
       let locationText = '';
@@ -227,7 +224,6 @@ Page({
       wx.hideLoading();
     } catch (err) {
       wx.hideLoading();
-      console.error('加载房间数据失败:', err);
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
     }
   },
@@ -782,14 +778,11 @@ Page({
     // 兼容旧字段：如果activityDateRaw为空，尝试使用dinnerDateRaw
     const finalActivityDateRaw = activityDateRaw || dinnerDateRaw || '';
     const finalActivityTimeRaw = activityTimeRaw || dinnerTimeRaw || '';
-    console.log('字段映射:', { activityDateRaw, dinnerDateRaw, finalActivityDateRaw, activityTimeRaw, dinnerTimeRaw, finalActivityTimeRaw });
 
     // 使用 locationText 作为地点（用户输入的值）
     const finalLocation = locationText || location;
-    console.log('提交时地点值:', finalLocation, 'location:', location, 'locationText:', locationText);
 
     // 使用 Validator 进行详细校验
-    console.log('校验前数据:', { finalActivityDateRaw, finalActivityTimeRaw, deadlineDateRaw, deadlineTimeRaw });
     const validations = [
       { valid: posters.length >= 1, msg: '请至少上传1张海报' },
       { valid: Validator.string(title, { required: true, minLength: 2, maxLength: 50 }).valid, msg: '标题长度需在2-50个字符之间' },
@@ -800,7 +793,6 @@ Page({
 
     for (const validation of validations) {
       if (!validation.valid) {
-        console.log('校验失败:', validation.msg);
         wx.showToast({ title: validation.msg, icon: 'none' });
         return;
       }
@@ -819,7 +811,6 @@ Page({
     } else if (finalActivityDateRaw.length === 3) {
       formattedActivityDate = '0' + finalActivityDateRaw;
     }
-    console.log('活动日期格式化:', finalActivityDateRaw, '->', formattedActivityDate);
 
     let formattedDeadlineDate = deadlineDateRaw;
     if (deadlineDateRaw) {
@@ -830,7 +821,6 @@ Page({
       } else if (deadlineDateRaw.length === 3) {
         formattedDeadlineDate = '0' + deadlineDateRaw;
       }
-      console.log('截止日期格式化:', deadlineDateRaw, '->', formattedDeadlineDate);
     }
 
     // 构建截止时间
@@ -892,34 +882,35 @@ Page({
                 cloudPath: `posters/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`,
                 filePath: compressedRes.tempFilePath
               });
-              console.log(`海报${idx + 1}上传成功:`, fileID);
               return { imageUrl: fileID, platformSource: p.platformSource || '' };
             } catch (uploadErr) {
-              console.error(`海报${idx + 1}上传失败:`, uploadErr);
               throw new Error(`第${idx + 1}张海报上传失败，请重试`);
             }
           })
         );
       }
       
-      console.log('准备创建房间，海报数据:', uploadedPosters);
 
       let result;
       
+      // 处理付款方式：空或 hidden 表示不显示，后端默认 treat
+      const finalPaymentMode = this.data.paymentMode === 'hidden' ? '' : this.data.paymentMode;
+      
       if (this.data.isEditMode) {
         // 编辑模式：调用更新接口
-      wx.cloud.callFunction({
-        name: 'updateRoom',
-        data: {
-          roomId: this.data.editRoomId,
-          title,
-          location: finalLocation,
-          peopleCount: parseInt(peopleCount) || 0,
-          activityDate: fullActivityDate,
-          activityTime: fullActivityTime,
+        result = await wx.cloud.callFunction({
+          name: 'updateRoom',
+          data: {
+            roomId: this.data.editRoomId,
+            title,
+            location: finalLocation,
+            peopleCount: parseInt(peopleCount) || 0,
+            activityDate: fullActivityDate,
+            activityTime: fullActivityTime,
             candidatePosters: uploadedPosters,
             voteDeadline: voteDeadline.toISOString(),
-            timeAuxiliary
+            timeAuxiliary,
+            paymentMode: finalPaymentMode
           }
         });
       } else {
@@ -940,7 +931,8 @@ Page({
             voteDeadline: voteDeadline.toISOString(),
             timeAuxiliary,
             creatorNickName: userInfo.nickName || '',
-            creatorAvatarUrl: userInfo.avatarUrl || ''
+            creatorAvatarUrl: userInfo.avatarUrl || '',
+            paymentMode: finalPaymentMode
           }
         });
       }
@@ -979,7 +971,6 @@ Page({
         tmplIds: tmplIds
       });
 
-      console.log('订阅消息授权结果:', res);
 
       if (res[tmplIds[0]] === 'accept' || res[tmplIds[1]] === 'accept' || res[tmplIds[2]] === 'accept') {
         await wx.cloud.callFunction({
@@ -990,7 +981,6 @@ Page({
         });
       }
     } catch (err) {
-      console.error('订阅消息授权失败:', err);
     }
   },
 });

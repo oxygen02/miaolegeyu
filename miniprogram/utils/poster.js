@@ -180,7 +180,6 @@ class PosterGenerator {
       });
       return img;
     } catch (e) {
-      console.error('[海报] 图片加载失败:', e.message);
       return null;
     }
   }

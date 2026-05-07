@@ -28,7 +28,6 @@ Page({
   },
 
   onLoad(options) {
-    console.log('喵不喵页面加载', options);
     
     // 设置导航栏颜色
     wx.setNavigationBarColor({
@@ -84,13 +83,6 @@ Page({
       ]);
       
       // 调试日志
-      console.log('数据加载完成:', {
-        ongoing: this.data.ongoingCount,
-        my: this.data.myCount,
-        participated: this.data.participatedCount
-      });
-    } catch (err) {
-      console.error('加载数据失败:', err);
     } finally {
       this.setData({ loading: false });
     }
@@ -165,7 +157,6 @@ Page({
       }
       return [];
     } catch (err) {
-      console.error('加载时间投票失败:', err);
       return [];
     }
   },
@@ -204,7 +195,6 @@ Page({
 
       if (roomsResult.success && roomsResult.rooms) {
         allRooms = [...roomsResult.rooms];
-        console.log('rooms 集合返回:', allRooms.length, '条', allRooms.map(r => ({id: r.roomId, title: r.title, mode: r.mode})));
       }
       
       // 如果是全部模式，再查询 dining_appointments
@@ -216,7 +206,6 @@ Page({
           });
           
           if (diningResult.success && diningResult.appointments) {
-            console.log('dining_appointments 返回:', diningResult.appointments.length, '条');
             // 将约饭活动转换为统一格式
             const diningRooms = diningResult.appointments.map(apt => ({
               _id: apt._id,
@@ -236,7 +225,6 @@ Page({
             allRooms = [...allRooms, ...diningRooms];
           }
         } catch (diningErr) {
-          console.error('加载约饭活动失败:', diningErr);
         }
       }
 
@@ -247,7 +235,6 @@ Page({
           const ongoingVotes = scheduleVotes.filter(v => v.status === 'voting');
           allRooms = [...allRooms, ...ongoingVotes];
         } catch (svErr) {
-          console.error('加载时间投票失败:', svErr);
         }
       }
 
@@ -256,14 +243,6 @@ Page({
       const diningCount = allRooms.filter(r => r.mode === 'pick_for_them').length;
       const mealCount = allRooms.filter(r => r.mode === 'meal').length;
       const otherCount = allRooms.filter(r => r.mode !== 'group' && r.mode !== 'pick_for_them' && r.mode !== 'meal').length;
-      console.log('合并后数据:', allRooms.length, '条', {
-        group: groupCount,
-        dining: diningCount,
-        meal: mealCount,
-        other: otherCount,
-        details: allRooms.map(r => ({id: r.roomId, title: r.title, mode: r.mode}))
-      });
-
       const rooms = allRooms.map(room => {
         // 根据 mode 确定类型
         let type = 'dining';
@@ -298,7 +277,6 @@ Page({
               timeStr = `${month}月${day}日 ${hours}:${minutes}`;
             }
           } catch (e) {
-            console.error('时间格式化失败:', e);
           }
         }
         // 拼单显示平台信息
@@ -340,7 +318,6 @@ Page({
         ongoingCount: rooms.length
       });
     } catch (err) {
-      console.error('加载进行中的房间失败:', err);
       this.setData({
         ongoingActivities: [],
         ongoingCount: 0
@@ -406,7 +383,6 @@ Page({
       });
       }
     } catch (err) {
-      console.error('加载约饭活动失败:', err);
       this.setData({
         ongoingActivities: [],
         ongoingCount: 0
@@ -473,7 +449,6 @@ Page({
             allMyRooms = [...allMyRooms, ...diningRooms];
           }
         } catch (diningErr) {
-          console.error('加载我的约饭活动失败:', diningErr);
         }
       }
 
@@ -483,11 +458,9 @@ Page({
           const scheduleVotes = await this.loadScheduleVotes('created');
           allMyRooms = [...allMyRooms, ...scheduleVotes];
         } catch (svErr) {
-          console.error('加载我的时间投票失败:', svErr);
         }
       }
 
-      console.log('合并后我的活动:', allMyRooms.length, '条');
       
       const rooms = allMyRooms.map(room => {
         // 根据 mode 确定类型
@@ -523,7 +496,6 @@ Page({
               timeStr = `${month}月${day}日 ${hours}:${minutes}`;
             }
           } catch (e) {
-            console.error('时间格式化失败:', e);
           }
         }
         return {
@@ -552,7 +524,6 @@ Page({
         myCount: rooms.length
       });
     } catch (err) {
-      console.error('加载我的房间失败:', err);
       this.setData({
         myActivities: [],
         myCount: 0
@@ -613,7 +584,6 @@ Page({
       });
       }
     } catch (err) {
-      console.error('加载我的约饭活动失败:', err);
       this.setData({
         myActivities: [],
         myCount: 0
@@ -651,10 +621,8 @@ Page({
         }
       });
       
-      console.log('getRecentRooms 请求参数:', { mode: this.data.viewMode === 'all' ? '' : this.data.viewMode });
 
       if (result.success && result.rooms) {
-        console.log('getRecentRooms 返回:', result.rooms.length, '条', result.rooms.map(r => ({id: r.roomId, title: r.title, mode: r.mode})));
         // 根据 viewMode 过滤房间
         let filteredRooms = result.rooms;
         if (this.data.viewMode !== 'all') {
@@ -699,7 +667,6 @@ Page({
             allParticipatedRooms = [...allParticipatedRooms, ...diningRooms];
           }
         } catch (diningErr) {
-          console.error('加载参与的约饭活动失败:', diningErr);
         }
       }
 
@@ -709,11 +676,9 @@ Page({
           const scheduleVotes = await this.loadScheduleVotes('participated');
           allParticipatedRooms = [...allParticipatedRooms, ...scheduleVotes];
         } catch (svErr) {
-          console.error('加载参与的时间投票失败:', svErr);
         }
       }
 
-      console.log('合并后参与的活动:', allParticipatedRooms.length, '条');
 
       const rooms = allParticipatedRooms.map(room => {
         // 根据 mode 确定类型
@@ -748,7 +713,6 @@ Page({
               timeStr = `${month}月${day}日 ${hours}:${minutes}`;
             }
           } catch (e) {
-            console.error('时间格式化失败:', e);
           }
         }
         return {
@@ -775,7 +739,6 @@ Page({
         participatedCount: rooms.length
       });
     } catch (err) {
-      console.error('加载参与的房间失败:', err);
       this.setData({
         participatedActivities: [],
         participatedCount: 0
@@ -843,7 +806,6 @@ Page({
       });
       }
     } catch (err) {
-      console.error('加载参与的约饭活动失败:', err);
       this.setData({
         participatedActivities: [],
         participatedCount: 0
@@ -992,7 +954,6 @@ Page({
       this.loadData();
 
     } catch (err) {
-      console.error('参与拼单失败:', err);
       wx.showToast({
         title: '网络异常，请重试',
         icon: 'none'
@@ -1026,10 +987,8 @@ Page({
                      this.data.myActivities.find(a => a.id === roomId) ||
                      this.data.participatedActivities.find(a => a.id === roomId);
     
-    console.log('点击活动，roomId:', roomId, 'type:', activity?.type);
     
     if (!roomId) {
-      console.error('roomId 为空');
       wx.showToast({ title: '房间ID无效', icon: 'none' });
       return;
     }
@@ -1040,7 +999,6 @@ Page({
       wx.navigateTo({
         url: `/pages/schedule-vote/result/result?id=${roomId}`,
         fail: (err) => {
-          console.error('跳转失败:', err);
           wx.showToast({ title: '页面跳转失败', icon: 'none' });
         }
       });
@@ -1049,7 +1007,6 @@ Page({
       wx.navigateTo({
         url: `/pages/group-detail/group-detail?roomId=${roomId}`,
         fail: (err) => {
-          console.error('跳转失败:', err);
           wx.showToast({ title: '页面跳转失败', icon: 'none' });
         }
       });
@@ -1060,7 +1017,6 @@ Page({
         wx.navigateTo({
           url: `/pages/shop-detail/shop-detail?id=${shopId}`,
           fail: (err) => {
-            console.error('跳转失败:', err);
             wx.showToast({ title: '页面跳转失败', icon: 'none' });
           }
         });
@@ -1072,7 +1028,6 @@ Page({
       wx.navigateTo({
         url: `/pages/vote/vote?roomId=${roomId}`,
         fail: (err) => {
-          console.error('跳转失败:', err);
           wx.showToast({ title: '跳转失败', icon: 'none' });
         }
       });
@@ -1325,12 +1280,10 @@ Page({
       
       for (const item of selectedItems) {
         try {
-          console.log('处理项目:', { id: item.id, type: item.type, roomId: item.roomId, isCreator: item.isCreator, title: item.title });
           
           // 检查 ID 是否为空
           const itemId = item.id || item.roomId;
           if (!itemId) {
-            console.error('项目 ID 为空，跳过:', item);
             failCount++;
             continue;
           }
@@ -1340,10 +1293,8 @@ Page({
             let result;
             // 判断是否是约饭活动：type === 'meal' 或 mode === 'meal' 或 isAppointment === true
             const isMealActivity = item.type === 'meal' || item.mode === 'meal' || item.isAppointment === true;
-            console.log('是否约饭活动:', isMealActivity, 'item.type:', item.type, 'item.mode:', item.mode);
             if (isMealActivity) {
               // 约饭活动使用 deleteDiningAppointment
-              console.log('调用 deleteDiningAppointment, appointmentId:', item.id);
               const { result: deleteResult } = await wx.cloud.callFunction({
                 name: 'deleteDiningAppointment',
                 data: { appointmentId: item.id || item.roomId }
@@ -1351,19 +1302,16 @@ Page({
               result = deleteResult;
             } else {
               // 其他活动使用 deleteRoom
-              console.log('调用 deleteRoom, roomId:', item.id);
               const { result: deleteResult } = await wx.cloud.callFunction({
                 name: 'deleteRoom',
                 data: { roomId: item.id || item.roomId }
               });
               result = deleteResult;
             }
-            console.log('删除结果:', result);
             if (result.code === 0) {
               successCount++;
             } else {
               failCount++;
-              console.error('删除失败:', result.msg);
             }
           } else {
             // 退出参与的活动
@@ -1371,17 +1319,14 @@ Page({
               name: 'quitRoom',
               data: { roomId: item.id }
             });
-            console.log('退出结果:', result);
             if (result.code === 0) {
               successCount++;
             } else {
               failCount++;
-              console.error('退出失败:', result.msg);
             }
           }
         } catch (itemErr) {
           failCount++;
-          console.error('处理项目失败:', itemErr);
         }
       }
       
@@ -1398,7 +1343,6 @@ Page({
       await this.loadData();
     } catch (err) {
       wx.hideLoading();
-      console.error('批量操作失败:', err);
       wx.showToast({ title: '操作失败', icon: 'none' });
     }
   },

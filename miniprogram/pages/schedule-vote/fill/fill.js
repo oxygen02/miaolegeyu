@@ -76,7 +76,6 @@ Page({
         wx.showToast({ title: result.error || '加载失败', icon: 'none' });
       }
     } catch (err) {
-      console.error('加载失败:', err);
       wx.showToast({ title: '加载失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
@@ -109,7 +108,6 @@ Page({
         this.setData({ dateConflicts });
       }
     } catch (err) {
-      console.error('冲突检查失败:', err);
       // 冲突检查失败不影响正常使用
     }
   },
@@ -322,7 +320,6 @@ Page({
         wx.showToast({ title: result.error || '提交失败', icon: 'none' });
       }
     } catch (err) {
-      console.error('提交失败:', err);
       wx.showToast({ title: '提交失败', icon: 'none' });
     } finally {
       this.setData({ submitting: false });

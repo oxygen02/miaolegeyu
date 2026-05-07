@@ -17,7 +17,6 @@ const storage = {
     try {
       return wx.getStorageSync(KEYS.USER_INFO) || null;
     } catch (e) {
-      console.error('读取用户信息失败:', e);
       return null;
     }
   },
@@ -27,7 +26,6 @@ const storage = {
       wx.setStorageSync(KEYS.USER_INFO, userInfo);
       return true;
     } catch (e) {
-      console.error('保存用户信息失败:', e);
       return false;
     }
   },
@@ -37,7 +35,6 @@ const storage = {
       wx.removeStorageSync(KEYS.USER_INFO);
       return true;
     } catch (e) {
-      console.error('清除用户信息失败:', e);
       return false;
     }
   },
@@ -55,7 +52,6 @@ const storage = {
     try {
       wx.setStorageSync(KEYS.PRIVACY_AUTHORIZED, val);
     } catch (e) {
-      console.error('保存隐私协议状态失败:', e);
     }
   },
   
@@ -73,7 +69,6 @@ const storage = {
       wx.setStorageSync(key, value);
       return true;
     } catch (e) {
-      console.error('存储失败:', e);
       return false;
     }
   },

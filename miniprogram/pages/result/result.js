@@ -102,10 +102,8 @@ Page({
       path: 'pages/index/index',
       extraData: { from: 'miaolegeyu' },
       success: () => {
-        console.log('跳转成功');
       },
       fail: (err) => {
-        console.log('跳转失败', err);
         wx.showToast({ title: '跳转失败，请手动打开', icon: 'none' });
       }
     });
@@ -209,7 +207,6 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
         wx.showToast({ title: '已添加到日历', icon: 'success' });
       },
       fail: (err) => {
-        console.error('添加日历失败:', err);
         // 如果系统 API 失败，提供备选方案
         this.showCalendarFallback(eventData);
       }
@@ -338,7 +335,6 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
         return result.data;
       }
     } catch (err) {
-      console.error('生成小程序码失败:', err);
     }
     return '';
   },
@@ -363,7 +359,6 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
         qrCodeUrl = result.data;
       }
     } catch (err) {
-      console.error('[result] 生成小程序码失败:', err);
     }
 
     const posterData = {
@@ -391,7 +386,6 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
       posterData,
       showPosterModal: true
     });
-    console.log('[result] 显示结果海报弹窗, mode:', room.mode);
   },
 
   // 海报弹窗事件
@@ -404,12 +398,10 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
 
   onPosterSave(e) {
     // poster-modal 组件内部已处理保存逻辑
-    console.log('[result] 海报已保存');
   },
 
   onPosterShareFriend(e) {
     // poster-modal 组件内部已触发分享，此处可做额外处理
-    console.log('[result] 海报已分享');
   },
 
   // 分享

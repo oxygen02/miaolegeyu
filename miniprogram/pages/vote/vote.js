@@ -78,8 +78,6 @@ Page({
     });
 
     const { roomId } = options;
-    console.log('=== vote onLoad ===');
-    console.log('options:', options);
     this.setData({ roomId });
 
     // 获取屏幕宽度
@@ -96,12 +94,9 @@ Page({
 
     // 先尝试恢复本地状态
     const hasRestored = this.restoreVoteState(roomId);
-    console.log('restoreVoteState 结果:', hasRestored);
     if (!hasRestored) {
-      console.log('未恢复本地状态，调用 loadRoomData');
       this.loadRoomData(roomId);
     } else {
-      console.log('已恢复本地状态，跳过 loadRoomData');
     }
     this._timers = [];
   },
@@ -166,7 +161,6 @@ Page({
     };
 
     wx.setStorageSync(`vote_state_${roomId}`, stateToSave);
-    console.log('投票状态已保存');
   },
 
   // 恢复投票状态
@@ -175,13 +169,11 @@ Page({
 
     // 暂时禁用自动恢复功能，每次进入都重新开始
     // 这样可以避免显示"已筛选完毕"的状态
-    console.log('禁用自动恢复，重新开始投票');
     return false;
 
     /* 以下是原来的恢复逻辑，暂时注释掉
     const savedState = wx.getStorageSync(`vote_state_${roomId}`);
     if (!savedState) {
-      console.log('没有找到保存的投票状态');
       return false;
     }
 
@@ -189,12 +181,10 @@ Page({
     const now = Date.now();
     const saveTime = savedState.saveTime || 0;
     if (now - saveTime > 24 * 60 * 60 * 1000) {
-      console.log('投票状态已过期');
       wx.removeStorageSync(`vote_state_${roomId}`);
       return false;
     }
 
-    console.log('恢复投票状态:', savedState.mode, savedState.currentStep);
 
     // 恢复状态
     this.setData({
@@ -239,7 +229,6 @@ Page({
   clearVoteState(roomId) {
     if (!roomId) return;
     wx.removeStorageSync(`vote_state_${roomId}`);
-    console.log('投票状态已清除');
   },
 
   onUnload() {
@@ -251,31 +240,21 @@ Page({
   },
 
   async loadRoomData(roomId) {
-    console.log('=== loadRoomData 开始 === roomId:', roomId);
     try {
       wx.showLoading({ title: '加载中' });
-      console.log('调用 getRoom 云函数...');
       const { result } = await wx.cloud.callFunction({
         name: 'getRoom',
         data: { roomId }
       });
-      console.log('getRoom 返回结果:', result);
 
       if (result.code !== 0) {
-        console.error('getRoom 返回错误:', result.msg);
         throw new Error(result.msg);
       }
 
       const room = result.data;
-      console.log('房间数据 room:', room);
-      console.log('房间 mode:', room.mode);
-      console.log('房间 candidatePosters:', room.candidatePosters);
-      console.log('房间 candidatePosters 长度:', room.candidatePosters ? room.candidatePosters.length : 'undefined');
-      console.log('房间 isParticipant:', room.isParticipant, 'isCreator:', room.isCreator);
 
       // 检查是否需要密码且未加入
       if (room.needPassword && !room.isParticipant && !room.isCreator) {
-        console.log('需要密码且未加入，显示密码弹窗');
         this.setData({
           showPasswordModal: true,
           needPassword: true,
@@ -287,10 +266,8 @@ Page({
       }
 
       const mode = room.mode || 'a';
-      console.log('判断 mode:', mode);
 
       if (mode === 'b') {
-        console.log('进入 mode B 分支');
         const categoryCards = cuisineCategories.map((cat, index) => ({
           ...cat,
           index,
@@ -311,14 +288,9 @@ Page({
           categoryCurrentIndex: 0,
           subCategoryCurrentIndex: 0
         });
-        console.log('mode B 数据设置完成');
       } else {
-        console.log('进入 mode A 分支');
         const candidatePosters = room.candidatePosters || [];
-        console.log('从房间获取的candidatePosters:', candidatePosters);
-        console.log('candidatePosters长度:', candidatePosters.length);
         if (candidatePosters.length > 0) {
-          console.log('第一张海报数据:', candidatePosters[0]);
         }
 
         const posters = candidatePosters.map((p, index) => ({
@@ -330,8 +302,6 @@ Page({
           isFav: false
         }));
 
-        console.log('处理后的posters:', posters);
-        console.log('准备 setData，posters长度:', posters.length);
 
         this.setData({
           room,
@@ -341,15 +311,11 @@ Page({
           categoryCurrentIndex: 0,
           subCategoryCurrentIndex: 0
         }, () => {
-          console.log('setData 完成，当前 posters:', this.data.posters);
-          console.log('当前 currentIndex:', this.data.currentIndex);
         });
       }
 
       wx.hideLoading();
-      console.log('=== loadRoomData 结束 ===');
     } catch (err) {
-      console.error('loadRoomData 出错:', err);
       wx.hideLoading();
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
     }
@@ -413,23 +379,18 @@ Page({
   onCardChange(e) {
     const newIndex = e.detail.current;
     const oldIndex = this.data.currentIndex;
-    console.log('=== onCardChange === newIndex:', newIndex, 'oldIndex:', oldIndex);
-    console.log('当前 posters 长度:', this.data.posters.length);
 
     // 记录滑动历史
     if (newIndex > oldIndex) {
       // 上滑 - 跳过/不喜欢（只在未选择状态下）
       const { posters } = this.data;
-      console.log('上滑，posters 长度:', posters.length, 'oldIndex:', oldIndex);
 
       if (oldIndex >= posters.length) {
-        console.log('oldIndex 超出范围，不处理');
         this.setData({ currentIndex: newIndex });
         return;
       }
 
       const oldPoster = posters[oldIndex];
-      console.log('oldPoster:', oldPoster);
 
       // 如果之前没有选择过（既不喜欢也不否决），才标记为否决
       if (oldPoster && !oldPoster.isLiked && !oldPoster.isVetoed) {
@@ -962,7 +923,6 @@ Page({
       }
     });
 
-    console.log('选择细类:', sub.name, 'categoryId:', categoryId, '所有已选:', newSelectedSubCategories, '标签列表:', selectedSubCategoryNames);
 
     // 更新可见列表
     const newVisibleSubCategoryCards = newSubCategoryCards.filter(s => !s.isHidden);
@@ -1363,7 +1323,6 @@ Page({
     // 获取可见的细类列表
     const visibleSubCategoryCards = allSubCategories.filter(s => !s.isHidden);
 
-    console.log('初始化已选细类:', selectedSubCategories, selectedSubCategoryNames);
 
     this.setData({
       currentStep: 'subcategory',
@@ -1573,7 +1532,6 @@ Page({
       this.generateVoteQRCode();
     }
 
-    console.log('[vote] 显示邀请投票海报');
   },
 
   // 生成小程序码（用于海报）
@@ -1594,7 +1552,6 @@ Page({
         });
       }
     } catch (err) {
-      console.error('[vote] 生成小程序码失败:', err);
     }
   },
 
@@ -1608,11 +1565,9 @@ Page({
 
   // 海报保存成功
   onPosterSave(e) {
-    console.log('[vote] 海报已保存');
   },
 
   // 海报分享给好友
   onPosterShareFriend(e) {
-    console.log('[vote] 海报已分享');
   }
 });

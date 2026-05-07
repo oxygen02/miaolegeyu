@@ -86,7 +86,6 @@ Page({
         this.updateStatus(i, 'success', fileID);
         
       } catch (err) {
-        console.error(`上传失败 ${img.local}:`, err);
         this.updateStatus(i, 'error', err.message);
       }
       

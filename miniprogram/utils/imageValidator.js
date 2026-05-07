@@ -93,7 +93,6 @@ function compressImage(tempFilePath, quality = 80) {
         resolve(res.tempFilePath);
       },
       fail: (err) => {
-        console.warn('图片压缩失败，使用原图:', err);
         resolve(tempFilePath); // 压缩失败使用原图
       }
     });

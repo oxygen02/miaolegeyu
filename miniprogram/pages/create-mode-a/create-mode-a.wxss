@@ -395,6 +395,14 @@
   font-weight: 500;
 }
 
+.payment-hint {
+  display: block;
+  font-size: 22rpx;
+  color: #999999;
+  margin-top: 12rpx;
+  line-height: 1.5;
+}
+
 /* 房间密码 */
 .password-input-section {
   margin-top: -8rpx;

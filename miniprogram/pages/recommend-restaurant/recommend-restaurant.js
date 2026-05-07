@@ -27,7 +27,6 @@ Page({
       // 腾讯地图WebService API需要在云函数中调用（避免暴露key）
       this.setData({ mapSdkReady: true });
     } catch (err) {
-      console.error('地图SDK初始化失败:', err);
       this.setData({ mapSdkReady: false });
     }
   },
@@ -73,7 +72,6 @@ Page({
       await this.loadRestaurants(room, topMatches);
 
     } catch (err) {
-      console.error('加载数据失败:', err);
       wx.showToast({ title: '加载失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
@@ -98,7 +96,6 @@ Page({
 
       this.setData({ restaurants });
     } catch (err) {
-      console.error('加载餐厅失败:', err);
       this.setData({ restaurants: [] });
     }
   },
@@ -122,10 +119,8 @@ Page({
       }
 
       // 如果API调用失败，返回模拟数据
-      console.log('腾讯地图API未返回数据，使用模拟数据');
       return this.generateMockRestaurants(location, keyword);
     } catch (err) {
-      console.error('搜索餐厅失败:', err);
       return this.generateMockRestaurants(location, keyword);
     }
   },
@@ -194,7 +189,6 @@ Page({
         address: restaurant.address || '',
         scale: 16,
         fail: (err) => {
-          console.error('打开地图失败:', err);
           this.fallbackNavigate(restaurant);
         }
       });

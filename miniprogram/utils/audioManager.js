@@ -70,7 +70,6 @@ class AudioManager {
           this.synthesizePawTap(volume);
       }
     } catch (err) {
-      console.warn('播放合成音效失败:', err);
     }
   }
 
@@ -174,7 +173,6 @@ class AudioManager {
         audio.destroy();
       }, duration + 50);
     } catch (err) {
-      console.warn('beep 播放失败:', err);
     }
   }
 

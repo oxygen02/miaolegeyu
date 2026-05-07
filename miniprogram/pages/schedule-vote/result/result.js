@@ -162,7 +162,6 @@ Page({
         wx.showToast({ title: result.error || '加载失败', icon: 'none' });
       }
     } catch (err) {
-      console.error('加载失败:', err);
       wx.showToast({ title: '加载失败', icon: 'none' });
     } finally {
       this.setData({ loading: false, refreshing: false });
@@ -347,7 +346,6 @@ Page({
             });
           } catch (err) {
             wx.hideLoading();
-            console.error('确认失败:', err);
             wx.showToast({ title: '确认失败', icon: 'none' });
           }
         }

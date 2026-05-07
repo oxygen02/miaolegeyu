@@ -62,7 +62,6 @@ Page({
         this.setData({ imagePaths: newImagePaths });
       }
     } catch (err) {
-      console.error('获取云存储图片 URL 失败:', err);
     }
   },
 
@@ -98,7 +97,6 @@ Page({
             return this.flattenRooms(creatorGroups);
           }
         } catch (cloudErr) {
-          console.log('获取创建的房间失败:', cloudErr);
         }
         return [];
       };
@@ -113,7 +111,6 @@ Page({
             return res.result.data || [];
           }
         } catch (cloudErr) {
-          console.log('获取参与的房间失败:', cloudErr);
         }
         return [];
       };
@@ -140,7 +137,6 @@ Page({
       
       // 调试日志
       if (allRooms.length > 0) {
-        console.log('[room-list调试] 第一个房间数据:', JSON.stringify(allRooms[0]));
       }
 
       // 根据筛选条件过滤
@@ -158,7 +154,6 @@ Page({
       this.startDeadlineTimer();
 
     } catch (err) {
-      console.error('加载失败:', err);
       this.setData({
         allRooms: [],
         loading: false
@@ -393,7 +388,6 @@ Page({
         qrCodeUrl = result.data;
       }
     } catch (err) {
-      console.error('[room-list] 生成小程序码失败:', err);
     }
 
     const winner = room.finalPoster || {};
@@ -401,7 +395,6 @@ Page({
 
     // 组合时间显示：日期 + 时间
     let timeDisplay = '待定';
-    console.log('[海报调试] room.activityDate:', room.activityDate, 'room.activityTime:', room.activityTime);
     if (room.activityDate && room.activityTime) {
       timeDisplay = room.activityDate + ' ' + room.activityTime;
     } else if (room.activityDate) {
@@ -409,11 +402,9 @@ Page({
     } else if (room.activityTime) {
       timeDisplay = room.activityTime;
     }
-    console.log('[海报调试] timeDisplay:', timeDisplay);
 
     // 获取创建者头像（兼容两种字段名）
     const creatorAvatar = room.creatorAvatar || room.creatorAvatarUrl || '';
-    console.log('[海报调试] creatorAvatar:', creatorAvatar);
 
     if (isLocked && winner.name) {
       // 显示结果海报
@@ -476,46 +467,6 @@ Page({
     }
   },
 
-  // 模拟结果海报（用于预览效果）
-  async onMockResultPoster() {
-    const mockPosterData = {
-      type: 'result',
-      mode: 'a',
-      winner: {
-        name: '海底捞火锅（春熙路店）',
-        image: '',
-        address: '春熙路东段168号',
-        category: '火锅',
-        price: '¥120/人',
-        voteCount: 8,
-        votePercent: 72.7
-      },
-      finalPoster: null,
-      roomTitle: '五一后小聚',
-      roomTime: '2026-05-09 18:00',
-      roomAddress: '石油苑附近',
-      participants: [
-        { nickName: '小明', avatarUrl: '' },
-        { nickName: '小红', avatarUrl: '' },
-        { nickName: '小李', avatarUrl: '' },
-        { nickName: '小张', avatarUrl: '' },
-        { nickName: '小王', avatarUrl: '' },
-        { nickName: '小陈', avatarUrl: '' },
-        { nickName: '小刘', avatarUrl: '' },
-        { nickName: '小赵', avatarUrl: '' }
-      ],
-      isAnonymous: false,
-      qrCodeUrl: '',
-      creatorAvatar: ''
-    };
-
-    this.setData({
-      posterData: mockPosterData,
-      posterTitle: '分享投票结果',
-      showPosterModal: true
-    });
-  },
-
   onPosterClose() {
     this.setData({
       showPosterModal: false,
@@ -524,7 +475,6 @@ Page({
   },
 
   onPosterSave(e) {
-    console.log('[room-list] 海报已保存:', e.detail.imagePath);
   },
 
   onPosterShareFriend(e) {

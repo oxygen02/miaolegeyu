@@ -45,7 +45,6 @@ Page({
       });
 
     } catch (err) {
-      console.error('选择文件失败:', err);
       wx.showToast({ title: '选择失败', icon: 'none' });
     }
   },
@@ -144,7 +143,6 @@ Page({
       this.updateItemStatus(index, 'success', { fileID, imageUrl });
 
     } catch (err) {
-      console.error(`上传失败 [${item.name}]:`, err);
       this.updateItemStatus(index, 'error', { error: err.message });
     }
   },

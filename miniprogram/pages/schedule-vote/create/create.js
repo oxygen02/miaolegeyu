@@ -213,7 +213,6 @@ Page({
         wx.showToast({ title: result.error || '创建失败', icon: 'none' });
       }
     } catch (err) {
-      console.error('创建失败:', err);
       wx.showToast({ title: '创建失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });

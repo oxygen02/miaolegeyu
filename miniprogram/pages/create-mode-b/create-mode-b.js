@@ -21,8 +21,8 @@ Page({
     deadlineTime: '',
     deadlineTimeRaw: '',
     deadline: null,
-    // 付费方式
-    paymentMode: 'AA',
+    // 付费方式（空表示未选择，默认发起人请客）
+    paymentMode: '',
     // 匿名投票
     isAnonymous: false,
     // 房间密码
@@ -59,7 +59,6 @@ Page({
       // 优先从本地存储读取
       let room = wx.getStorageSync('editRoomData');
       if (room && room.roomId === roomId) {
-        console.log('从本地存储读取房间数据:', room);
         wx.removeStorageSync('editRoomData');
       } else {
         // 本地没有，尝试调用云函数
@@ -71,7 +70,6 @@ Page({
           });
           result = res.result;
         } catch (err) {
-          console.log('getRoom 失败，尝试 getRoomDetail:', err);
           const res = await wx.cloud.callFunction({
             name: 'getRoomDetail',
             data: { roomId }
@@ -84,7 +82,6 @@ Page({
         room = result.data || result.room;
       }
 
-      console.log('编辑模式加载房间数据:', room);
 
       // 填充表单数据
       // 处理 location 字段，可能是对象或字符串
@@ -196,7 +193,7 @@ Page({
         title: room.title || '',
         location: locationObj,
         locationText: locationText,
-        paymentMode: room.paymentMode || 'AA',
+        paymentMode: room.paymentMode || '',
         isAnonymous: room.isAnonymous || false,
         needPassword: room.needPassword || false,
         roomPassword: room.roomPassword || '',
@@ -220,7 +217,6 @@ Page({
       wx.hideLoading();
     } catch (err) {
       wx.hideLoading();
-      console.error('加载房间数据失败:', err);
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
     }
   },
@@ -606,6 +602,9 @@ this.markAsModified();
     try {
       let result;
       
+      // 处理付款方式：空或 hidden 表示不显示，后端默认 treat
+      const finalPaymentMode = this.data.paymentMode === 'hidden' ? '' : this.data.paymentMode;
+      
       if (this.data.isEditMode) {
         // 编辑模式：调用更新接口
         result = await wx.cloud.callFunction({
@@ -616,7 +615,7 @@ this.markAsModified();
             location: this.data.location,
             dinnerTime: this.data.dinnerTimeValue,
             voteDeadline: this.data.deadline,
-            paymentMode: this.data.paymentMode,
+            paymentMode: finalPaymentMode,
             isAnonymous: this.data.isAnonymous,
             needPassword: this.data.needPassword,
             roomPassword: this.data.needPassword ? this.data.roomPassword : '',
@@ -635,7 +634,7 @@ this.markAsModified();
             location: this.data.location,
             dinnerTime: this.data.dinnerTimeValue,
             voteDeadline: this.data.deadline,
-            paymentMode: this.data.paymentMode,
+            paymentMode: finalPaymentMode,
             isAnonymous: this.data.isAnonymous,
             needPassword: this.data.needPassword,
             roomPassword: this.data.needPassword ? this.data.roomPassword : '',

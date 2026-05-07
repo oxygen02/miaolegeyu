@@ -220,7 +220,7 @@ exports.main = async (event) => {
         peopleCount: room.peopleCount || 0,
         timeAuxiliary: room.timeAuxiliary !== false,
         isAnonymous: room.isAnonymous || false,
-        paymentMode: room.paymentMode || 'AA',
+        paymentMode: room.paymentMode || '',
         dinnerTime: room.appointmentDate || room.dinnerTime || null,
         appointmentDate: room.appointmentDate || room.dinnerTime || null,
         enableRestaurantRecommend: room.enableRestaurantRecommend || false

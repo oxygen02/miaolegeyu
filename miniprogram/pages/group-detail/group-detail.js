@@ -53,9 +53,6 @@ Page({
       }
 
       const room = result.data;
-      console.log('拼单房间数据:', room);
-      console.log('拼单选项数量:', (room.options || []).length);
-      console.log('拼单选项详情:', JSON.stringify(room.options));
 
       // 计算总参与人数
       const totalParticipants = (room.groupOrderParticipants && room.groupOrderParticipants.length) || 0;
@@ -88,7 +85,6 @@ Page({
         totalParticipants
       });
     } catch (err) {
-      console.error('加载失败:', err);
       wx.showToast({ title: '加载失败', icon: 'none' });
       this.setData({ loading: false });
     }
@@ -162,7 +158,6 @@ Page({
       this.loadRoomData();
 
     } catch (err) {
-      console.error('参与拼单失败:', err);
       wx.showToast({
         title: err.message || '参与失败',
         icon: 'none'

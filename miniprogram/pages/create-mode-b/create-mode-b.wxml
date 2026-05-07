@@ -72,7 +72,11 @@
         <view class="payment-option {{paymentMode === 'treat' ? 'selected' : ''}}" data-mode="treat" bindtap="onPaymentModeChange">
           <text class="option-text">喵大佬请客</text>
         </view>
+        <view class="payment-option {{paymentMode === 'hidden' ? 'selected' : ''}}" data-mode="hidden" bindtap="onPaymentModeChange">
+          <text class="option-text">空白，不显示</text>
+        </view>
       </view>
+      <text class="payment-hint" wx:if="{{paymentMode === 'hidden'}}">选中后成员投票时不会看到付款方式，默认发起人请客</text>
     </view>
 
     <!-- 匿名投票、房间密码、餐厅推荐 - 同一行对齐 -->

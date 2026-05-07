@@ -49,7 +49,6 @@ Component({
 
       const url = this.data.list[index].pagePath;
 
-      console.log('Switching to:', url);
 
       // 先跳转页面，再更新状态
       wx.switchTab({
@@ -59,7 +58,6 @@ Component({
           this.setData({ selected: index });
         },
         fail: (err) => {
-          console.error('switchTab fail:', err);
         }
       });
     }

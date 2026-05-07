@@ -11,7 +11,7 @@ exports.main = async (event, context) => {
     maxParticipants,
     requirements = [],
     customRequirement,
-    paymentMode = 'AA',
+    paymentMode = '',
     isAnonymous = false,
     notifyInterested = false // 是否通知感兴趣的用户
   } = event;
@@ -46,7 +46,7 @@ exports.main = async (event, context) => {
         maxParticipants: maxParticipants || 0,
         requirements: requirements || [],
         customRequirement: customRequirement || '',
-        paymentMode: paymentMode || 'AA',
+        paymentMode: paymentMode || '',
         isAnonymous: isAnonymous || false,
         participants: [{
           openId: OPENID,

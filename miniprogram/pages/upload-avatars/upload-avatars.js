@@ -54,7 +54,6 @@ Page({
       });
       
     } catch (err) {
-      console.error('上传失败:', err);
       wx.showToast({
         title: '上传失败',
         icon: 'none'
@@ -95,10 +94,8 @@ Page({
           filePath: tempFiles[0].path
         });
         
-        console.log('上传成功:', fileID);
         
       } catch (err) {
-        console.error('上传失败:', item.name, err);
       }
     }
   }

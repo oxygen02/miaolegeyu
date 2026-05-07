@@ -179,7 +179,7 @@
       <view class="shop-right-empty" wx:elif="{{!item.appointments || item.appointments.length === 0}}">
         <!-- 我想被约按钮 -->
         <view class="interest-btn {{item.isInterested ? 'interested' : ''}}" catchtap="onToggleInterest" data-shop="{{item}}">
-          <text class="interest-text">{{item.isInterested ? '已标记' : '等约'}}</text>
+          <text class="interest-text">{{item.isInterested ? '等待被召唤' : '等约'}}</text>
         </view>
         <!-- 发起约饭按钮 -->
         <view class="create-btn-wide" catchtap="onCreateAppointmentTap" data-shop="{{item}}">

@@ -340,12 +340,8 @@ Page({
 
   // 创建拼单
   async createGroupOrder() {
-    console.log('点击发起拼单按钮');
-    console.log('canSubmitFlag:', this.data.canSubmitFlag);
-    console.log('shopOptions:', this.data.shopOptions);
     
     if (!this.canSubmit()) {
-      console.log('canSubmit返回false，无法提交');
       wx.showToast({ title: '请至少完成一个选项（标题、图片、时间、平台）', icon: 'none' });
       return;
     }
@@ -361,8 +357,6 @@ Page({
         option.title && option.title.trim() !== ''
       );
       
-      console.log('有效选项数量:', validOptions.length);
-      console.log('有效选项:', validOptions);
 
       // 检查是否有不完整的选项，给出提示
       const incompleteOptions = validOptions.filter(opt => !this.isOptionComplete(opt));
@@ -393,7 +387,6 @@ Page({
               });
               data.shopImage = uploadRes.fileID;
             } catch (uploadErr) {
-              console.error('图片上传失败:', uploadErr);
             }
           }
 
@@ -401,10 +394,6 @@ Page({
         })
       );
 
-      console.log('====== 准备传入云函数的 optionsWithImages ======');
-      console.log('optionsWithImages 数量:', optionsWithImages.length);
-      console.log('optionsWithImages 详情:', JSON.stringify(optionsWithImages));
-      console.log('================================================');
 
       // 创建拼单房间
       await wx.cloud.callFunction({
@@ -433,7 +422,6 @@ Page({
       }, 1500);
 
     } catch (err) {
-      console.error('创建拼单失败:', err);
       wx.hideLoading();
       wx.showToast({ title: '创建失败: ' + (err.message || '未知错误'), icon: 'none' });
     }

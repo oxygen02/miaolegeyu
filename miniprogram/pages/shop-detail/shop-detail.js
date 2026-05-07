@@ -272,7 +272,6 @@ Page({
         throw new Error(result.error || '加载失败');
       }
     } catch (err) {
-      console.error('加载店铺详情失败:', err);
       wx.showToast({ title: '加载失败', icon: 'none' });
       this.setData({ loading: false });
     }
@@ -289,7 +288,6 @@ Page({
         this.setData({ isFavorited: result.isFavorited });
       }
     } catch (err) {
-      console.error('检查收藏状态失败:', err);
     }
   },
 
@@ -315,7 +313,6 @@ Page({
       }
     } catch (err) {
       wx.hideLoading();
-      console.error('收藏操作失败:', err);
       wx.showToast({ title: '操作失败', icon: 'none' });
     }
   },
@@ -506,7 +503,6 @@ Page({
         wx.showToast({ title: result.error || '修改失败', icon: 'none' });
       }
     } catch (err) {
-      console.error('修改店铺失败:', err);
       wx.showToast({ title: '修改失败', icon: 'none' });
     } finally {
       wx.hideLoading();
@@ -540,7 +536,6 @@ Page({
           wx.showToast({ title: result.error || '删除失败', icon: 'none' });
         }
       } catch (err) {
-        console.error('删除店铺失败:', err);
         wx.showToast({ title: '删除失败', icon: 'none' });
       } finally {
         wx.hideLoading();
@@ -566,8 +561,6 @@ Page({
         const remainingTime = deadline.getTime() - now.getTime();
         appointment.remainingTime = remainingTime > 0 ? remainingTime : 0;
 
-        console.log('约饭时间原始值:', appointment.appointmentTime, '类型:', typeof appointment.appointmentTime, 'JSON:', JSON.stringify(appointment.appointmentTime));
-        console.log('格式化后:', this.formatDateTime(appointment.appointmentTime));
 
         this.setData({
           appointment: {
@@ -591,7 +584,6 @@ Page({
         });
       }
     } catch (err) {
-      console.error('加载约饭报名失败:', err);
       // 出错时设置加载完成标志，显示发起约饭按钮
       this.setData({
         appointment: null,
@@ -622,7 +614,6 @@ Page({
         this.setData({ historyAppointments: history });
       }
     } catch (err) {
-      console.error('加载历史组团失败:', err);
     }
   },
 
@@ -678,7 +669,6 @@ Page({
     }
 
     if (isNaN(date.getTime())) {
-      console.warn('formatDateTime: 无法解析日期', dateStr);
       return '';
     }
 
@@ -1044,7 +1034,6 @@ Page({
         wx.showToast({ title: result.error || '发起失败', icon: 'none' });
       }
     } catch (err) {
-      console.error('发起约饭失败:', err);
       wx.showToast({ title: '发起失败', icon: 'none' });
     } finally {
       wx.hideLoading();
@@ -1167,10 +1156,8 @@ Page({
         appId: 'wxde8ac0a21135c07d', // 美团外卖小程序 appid
         path: url.replace('https://', ''),
         success: () => {
-          console.log('跳转美团小程序成功');
         },
         fail: (err) => {
-          console.error('跳转美团小程序失败:', err);
           // 失败时复制链接
           this.copyAndOpenLink(url, '美团');
         }
@@ -1181,10 +1168,8 @@ Page({
         appId: 'wx734c1ad7b3562129', // 大众点评小程序 appid
         path: url.replace('https://', ''),
         success: () => {
-          console.log('跳转大众点评小程序成功');
         },
         fail: (err) => {
-          console.error('跳转大众点评小程序失败:', err);
           this.copyAndOpenLink(url, '大众点评');
         }
       });
@@ -1194,10 +1179,8 @@ Page({
         appId: 'wx91d27dbf599dff74', // 京东小程序 appid
         path: url.replace('https://', ''),
         success: () => {
-          console.log('跳转京东小程序成功');
         },
         fail: (err) => {
-          console.error('跳转京东小程序失败:', err);
           this.copyAndOpenLink(url, '京东');
         }
       });
@@ -1304,7 +1287,6 @@ Page({
         throw new Error(result.result.error || '评价失败');
       }
     } catch (err) {
-      console.error('评价失败:', err);
       wx.showToast({ title: err.message || '评价失败', icon: 'none' });
     } finally {
       wx.hideLoading();

@@ -81,10 +81,13 @@ exports.main = async (event) => {
         appointmentTimeStr = d.toISOString();
       }
       let deadlineStr = '';
+      let remainingTime = 0;
       if (apt.deadline) {
         const d = new Date(apt.deadline);
         if (!apt.tzFixed) { d.setHours(d.getHours() - 8); }
         deadlineStr = d.toISOString();
+        remainingTime = d.getTime() - new Date().getTime();
+        if (remainingTime < 0) remainingTime = 0;
       }
 
       return {
@@ -100,10 +103,11 @@ exports.main = async (event) => {
         appointmentTime: appointmentTimeStr,
         activityTime: appointmentTimeStr ? new Date(appointmentTimeStr).toLocaleString() : '时间待定',
         deadline: deadlineStr,
+        remainingTime: remainingTime,
         participantCount: participants.length,
         maxParticipants: apt.maxParticipants || 0,
         note: apt.note || '',
-        paymentMode: apt.paymentMode || 'AA',
+        paymentMode: apt.paymentMode || '',
         createdAt: apt.createTime,
         creatorNickName: apt.initiatorName || '神秘喵友',
         creatorAvatarUrl: apt.initiatorAvatar || '',
