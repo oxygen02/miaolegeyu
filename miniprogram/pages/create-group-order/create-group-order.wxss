@@ -346,7 +346,8 @@
 }
 
 .platform-item {
-  flex: 0 0 52rpx;
+  width: 52rpx;
+  height: 52rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -355,6 +356,7 @@
   border: 3rpx solid transparent;
   transition: all 0.2s;
   padding: 2rpx;
+  box-sizing: border-box;
 }
 
 .platform-item.active {

@@ -1,9 +1,7 @@
-const { imagePaths } = require('../../config/imageConfig');
+const { imagePaths, BASE_URL } = require('../../config/imageConfig');
 
-// 云存储配置
-const CLOUD_ENV = 'cloud1-d5ggnf5wh2d872f3c';
-const STORAGE_NAME = '636c-cloud1-d5ggnf5wh2d872f3c-1423896909';
-const BASE_CLOUD_URL = `cloud://${CLOUD_ENV}.${STORAGE_NAME}`;
+// 云存储头像基础URL（使用HTTPS地址）
+const AVATAR_BASE_URL = `${BASE_URL}/avatars/cat`;
 
 // 默认头像列表（作为回退）
 const DEFAULT_AVATARS = [
@@ -88,13 +86,23 @@ Page({
     this.loadAvatars();
   },
 
+  // 图片加载失败处理
+  onImageError(e) {
+    const index = e.currentTarget.dataset.index;
+    const avatars = this.data.avatars;
+    if (avatars[index]) {
+      avatars[index].imageUrl = imagePaths.decorations.catAvatarIcon;
+      this.setData({ avatars });
+    }
+  },
+
   loadAvatars() {
     this.setData({ loading: true });
 
     try {
       const avatars = AVATAR_FILES.map((fileName, index) => {
         const name = fileName.replace(/\.[^/.]+$/, '').replace(/^\d{2}_/, '');
-        const imageUrl = `${BASE_CLOUD_URL}/avatars/cat/${fileName}`;
+        const imageUrl = `${AVATAR_BASE_URL}/${fileName}`;
 
         return {
           _id: `avatar_cat_${index}`,
@@ -131,7 +139,7 @@ Page({
   filterAvatars() {
     let filtered = AVATAR_FILES.map((fileName, index) => {
       const name = fileName.replace(/\.[^/.]+$/, '').replace(/^\d{2}_/, '');
-      const imageUrl = `${BASE_CLOUD_URL}/avatars/cat/${fileName}`;
+      const imageUrl = `${AVATAR_BASE_URL}/${fileName}`;
       return {
         _id: `avatar_cat_${index}`,
         name: name || `头像${index + 1}`,

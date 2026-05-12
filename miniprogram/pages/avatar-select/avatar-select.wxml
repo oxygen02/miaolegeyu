@@ -42,7 +42,7 @@
         data-id="{{item._id}}"
         data-url="{{item.imageUrl}}"
       >
-        <image class="avatar-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load="true"/>
+        <image class="avatar-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load="true" binderror="onImageError" data-index="{{index}}"/>
         <view class="avatar-name">{{item.name}}</view>
         <view class="selected-icon" wx:if="{{selectedAvatar === item._id}}">✓</view>
       </view>

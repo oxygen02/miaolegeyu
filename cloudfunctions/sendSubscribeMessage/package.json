@@ -4,6 +4,6 @@
   "description": "发送订阅消息",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "latest"
+    "wx-server-sdk": "3.0.0"
   }
 }

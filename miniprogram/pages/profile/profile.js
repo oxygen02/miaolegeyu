@@ -435,11 +435,20 @@ Page({
     if (!this.checkLogin()) return;
     audioManager.playPawTap();
     this.setData({ currentList: 'favorites', loading: true });
+    
+    // 创建超时 Promise
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('请求超时')), 10000);
+    });
+    
     try {
-      const { result } = await wx.cloud.callFunction({ name: 'getFavorites' });
-      if (result.success) {
+      const { result } = await Promise.race([
+        wx.cloud.callFunction({ name: 'getFavorites' }),
+        timeoutPromise
+      ]);
+      
+      if (result && result.success) {
         const favorites = result.favorites.map(item => {
-          // 根据类型提取展示数据
           if (item.type === 'shop' && item.shop) {
             return {
               ...item,
@@ -461,7 +470,6 @@ Page({
               createTimeStr: this.formatDateTime(item.createTime)
             };
           }
-          // 兜底处理
           return {
             ...item,
             displayName: item.name || '未知项目',
@@ -473,9 +481,17 @@ Page({
           };
         });
         this.setData({ favorites, loading: false });
+      } else {
+        this.setData({ favorites: [], loading: false });
+        wx.showToast({ title: result?.msg || '获取失败', icon: 'none' });
       }
     } catch (err) {
-      this.setData({ loading: false });
+      this.setData({ favorites: [], loading: false });
+      if (err.message === '请求超时') {
+        wx.showToast({ title: '网络请求超时，请稍后重试', icon: 'none', duration: 2000 });
+      } else {
+        wx.showToast({ title: '获取收藏失败', icon: 'none' });
+      }
     }
   },
 
@@ -497,11 +513,19 @@ Page({
     if (!this.checkLogin()) return;
     audioManager.playPawTap();
     this.setData({ currentList: 'myAppointments', loading: true });
+    
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('请求超时')), 10000);
+    });
+    
     try {
-      const { result } = await wx.cloud.callFunction({ name: 'getMyAppointments' });
-      if (result.success) {
+      const { result } = await Promise.race([
+        wx.cloud.callFunction({ name: 'getMyAppointments' }),
+        timeoutPromise
+      ]);
+      
+      if (result && result.success) {
         const appointments = result.appointments.map(item => {
-          // 解析预约时间
           const appointmentDate = item.appointmentTime ? new Date(item.appointmentTime) : null;
           const deadlineDate = item.deadline ? new Date(item.deadline) : null;
 
@@ -510,19 +534,24 @@ Page({
             appointmentTimeStr: this.formatDateTime(item.appointmentTime),
             deadlineStr: this.formatDateTime(item.deadline),
             participantCount: item.participants ? item.participants.length : 0,
-            // 分离日期和时间
             appointmentDate: appointmentDate ? this.formatDate(appointmentDate) : '',
             appointmentTime: appointmentDate ? this.formatTime(appointmentDate) : '',
-            // 地点信息
             location: item.location || item.address || '',
-            // 店铺图片
             shopImage: item.shopImage || item.imageUrl || ''
           };
         });
         this.setData({ myAppointments: appointments, loading: false });
+      } else {
+        this.setData({ myAppointments: [], loading: false });
+        wx.showToast({ title: result?.msg || '获取失败', icon: 'none' });
       }
     } catch (err) {
-      this.setData({ loading: false });
+      this.setData({ myAppointments: [], loading: false });
+      if (err.message === '请求超时') {
+        wx.showToast({ title: '网络请求超时，请稍后重试', icon: 'none', duration: 2000 });
+      } else {
+        wx.showToast({ title: '获取失败', icon: 'none' });
+      }
     }
   },
 
@@ -530,12 +559,18 @@ Page({
     if (!this.checkLogin()) return;
     audioManager.playPawTap();
     this.setData({ currentList: 'myScheduleVotes', loading: true });
+    
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('请求超时')), 10000);
+    });
+    
     try {
-      const { result } = await wx.cloud.callFunction({
-        name: 'getMyScheduleVotes',
-        data: { mode: 'all', limit: 100 }
-      });
-      if (result.success) {
+      const { result } = await Promise.race([
+        wx.cloud.callFunction({ name: 'getMyScheduleVotes', data: { mode: 'all', limit: 100 } }),
+        timeoutPromise
+      ]);
+      
+      if (result && result.success) {
         const votes = result.votes.map(vote => {
           const dateStr = vote.candidateDates?.length > 0
             ? vote.candidateDates.map(d => {
@@ -565,9 +600,17 @@ Page({
           };
         });
         this.setData({ myScheduleVotes: votes, loading: false });
+      } else {
+        this.setData({ myScheduleVotes: [], loading: false });
+        wx.showToast({ title: result?.msg || '获取失败', icon: 'none' });
       }
     } catch (err) {
-      this.setData({ loading: false });
+      this.setData({ myScheduleVotes: [], loading: false });
+      if (err.message === '请求超时') {
+        wx.showToast({ title: '网络请求超时，请稍后重试', icon: 'none', duration: 2000 });
+      } else {
+        wx.showToast({ title: '获取失败', icon: 'none' });
+      }
     }
   },
 
@@ -596,12 +639,19 @@ Page({
   // 加载我参与的聚餐列表
   async loadMyParticipated() {
     this.setData({ loading: true });
+    
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('请求超时')), 10000);
+    });
+    
     try {
-      const { result } = await wx.cloud.callFunction({ name: 'getMyParticipatedRooms' });
-      if (result.code === 0) {
-        // 处理数据，添加格式化字段
+      const { result } = await Promise.race([
+        wx.cloud.callFunction({ name: 'getMyParticipatedRooms' }),
+        timeoutPromise
+      ]);
+      
+      if (result && result.code === 0) {
         const participated = result.data.map(item => {
-          // 格式化 voteDeadline
           let voteDeadlineStr = '';
           if (item.voteDeadline) {
             const date = new Date(item.voteDeadline);
@@ -621,20 +671,36 @@ Page({
           };
         });
         this.setData({ myParticipated: participated, loading: false });
-        // 启动倒计时定时器
         this.startProfileDeadlineTimer('myParticipated');
+      } else {
+        this.setData({ myParticipated: [], loading: false });
+        wx.showToast({ title: result?.msg || '获取失败', icon: 'none' });
       }
     } catch (err) {
-      this.setData({ loading: false });
+      this.setData({ myParticipated: [], loading: false });
+      if (err.message === '请求超时') {
+        wx.showToast({ title: '网络请求超时，请稍后重试', icon: 'none', duration: 2000 });
+      } else {
+        wx.showToast({ title: '获取失败', icon: 'none' });
+      }
     }
   },
 
   // 加载我发起的聚餐列表
   async loadMyRooms() {
     this.setData({ loading: true });
+    
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('请求超时')), 10000);
+    });
+    
     try {
-      const { result } = await wx.cloud.callFunction({ name: 'getMyRooms' });
-      if (result.code === 0) {
+      const { result } = await Promise.race([
+        wx.cloud.callFunction({ name: 'getMyRooms' }),
+        timeoutPromise
+      ]);
+      
+      if (result && result.code === 0) {
         const formattedRooms = (result.data || []).map(room => {
           if (room.voteDeadline) {
             const date = new Date(room.voteDeadline);
@@ -646,18 +712,24 @@ Page({
               room.voteDeadlineStr = `${month}-${day} ${hour}:${minute}`;
             }
           }
-          // 打印字段信息用于调试模式判断
           return {
             ...room,
             ...this.calcDeadlineUrgent(room.voteDeadline)
           };
         });
         this.setData({ myRooms: formattedRooms, loading: false });
-        // 启动倒计时定时器
         this.startProfileDeadlineTimer('myRooms');
+      } else {
+        this.setData({ myRooms: [], loading: false });
+        wx.showToast({ title: result?.msg || '获取失败', icon: 'none' });
       }
     } catch (err) {
-      this.setData({ loading: false });
+      this.setData({ myRooms: [], loading: false });
+      if (err.message === '请求超时') {
+        wx.showToast({ title: '网络请求超时，请稍后重试', icon: 'none', duration: 2000 });
+      } else {
+        wx.showToast({ title: '获取失败', icon: 'none' });
+      }
     }
   },
 

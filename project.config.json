@@ -46,8 +46,8 @@
     }
   },
   "compileType": "miniprogram",
-  "libVersion": "3.15.2",
-  "appid": "wx49f243f61d621845",
+  "libVersion": "3.15.1",
+  "appid": "wxf16a74d749354ff8",
   "projectname": "喵了个鱼",
   "miniprogramRoot": "miniprogram/",
   "cloudfunctionRoot": "cloudfunctions/",
@@ -58,6 +58,6 @@
   "isGameTourist": false,
   "editorSetting": {},
   "cloudfunctionRootConfig": {
-    "cloud1-d5ggnf5wh2d872f3c": "cloudfunctions/"
+    "cloud1-d4gfy27bn0f3f5346": "cloudfunctions/"
   }
 }

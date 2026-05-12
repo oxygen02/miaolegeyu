@@ -277,7 +277,7 @@ Page({
     };
     const url = urlMap[index];
     if (url && index !== '0') {
-      wx.switchTab({ url });
+      wx.navigateTo({ url });
     }
   },
 

@@ -72,6 +72,16 @@ Page({
     }
   },
 
+  // 头像加载失败处理
+  onAvatarError(e) {
+    const type = e.currentTarget.dataset.type;
+    if (type === 'header') {
+      this.setData({
+        'imagePaths.decorations.catAvatarIcon': '/assets/images/icons/juze_avatar.png'
+      });
+    }
+  },
+
   // 加载所有数据
   async loadData() {
     this.setData({ loading: true });

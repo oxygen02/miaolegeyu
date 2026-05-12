@@ -58,6 +58,7 @@ exports.main = async (event, context) => {
     await createCollection('shop_favorites');
     await createCollection('dining_appointments');
     await createCollection('users');
+    await createCollection('favorites');
 
     // ========== rooms 集合索引 ==========
     await createIndex('rooms', 'idx_roomId_unique', { roomId: 1 }, { unique: true });
@@ -102,6 +103,11 @@ exports.main = async (event, context) => {
     // ========== users 集合索引 ==========
     await createIndex('users', 'idx_openid_unique', { _openid: 1 }, { unique: true });
     await createIndex('users', 'idx_userId', { userId: 1 });
+
+    // ========== favorites 集合索引 ==========
+    await createIndex('favorites', 'idx_openId', { openId: 1 });
+    await createIndex('favorites', 'idx_targetId', { targetId: 1 });
+    await createIndex('favorites', 'idx_createTime', { createTime: -1 });
 
     return {
       code: 0,

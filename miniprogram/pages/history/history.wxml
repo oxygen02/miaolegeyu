@@ -1,2 +1,13 @@
-<!--pages/history/history.wxml-->
-<text>pages/history/history.wxml</text>
+<view class="history-page">
+  <view class="page-header">
+    <text class="page-title">历史记录</text>
+    <text class="page-subtitle">查看您的约饭历史</text>
+  </view>
+  <view class="history-list">
+    <view class="empty-state">
+      <view class="empty-icon">🐱</view>
+      <text class="empty-text">暂无历史记录</text>
+      <text class="empty-hint">快去约饭吧！</text>
+    </view>
+  </view>
+</view>

@@ -4,6 +4,6 @@
   "description": "获取投票统计（控制台用）",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "latest"
+    "wx-server-sdk": "3.0.0"
   }
 }

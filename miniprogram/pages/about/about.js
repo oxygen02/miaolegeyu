@@ -29,8 +29,8 @@ Page({
       }
     ],
     contact: {
-      email: '15510183555@163.com',
-      wechat: '15510183555oygq'
+      email: 'oygq15510183555@163.com',
+      wechat: 'oygq15510183555'
     }
   },
 

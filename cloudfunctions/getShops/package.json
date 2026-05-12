@@ -4,6 +4,6 @@
   "description": "获取店铺列表",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "latest"
+    "wx-server-sdk": "3.0.0"
   }
 }

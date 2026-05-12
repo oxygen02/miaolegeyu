@@ -5,7 +5,7 @@
 
 module.exports = {
   // 云开发环境ID（微信开发者工具中查看）
-  env: 'cloud1-d5ggnf5wh2d872f3c',
+  env: 'cloud1-d4gfy27bn0f3f5346',
   
   // 是否为生产环境（可根据编译模式或环境变量判断）
   isProd: true

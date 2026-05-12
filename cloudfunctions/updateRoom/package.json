@@ -4,6 +4,6 @@
   "description": "更新房间信息",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "latest"
+    "wx-server-sdk": "3.0.0"
   }
 }

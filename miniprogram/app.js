@@ -66,7 +66,6 @@ App({
       wx.getPrivacySetting({
         success: res => {
           if (res.needAuthorization) {
-            // 需要展示隐私协议弹窗
             this.showPrivacyModal();
           }
         },
@@ -78,20 +77,42 @@ App({
 
   // 显示隐私协议弹窗
   showPrivacyModal() {
+    const content = `感谢您使用【喵了个鱼】！
+
+为了为您提供更好的服务，我们需要获取以下权限：
+
+📍 位置信息
+用于推荐您附近的餐厅、显示聚餐地点距离
+
+👤 微信头像昵称
+用于登录、显示您的个人资料和约饭记录
+
+📷 相机权限
+用于拍摄美食照片、扫码等功能
+
+🖼️ 相册权限
+用于上传美食照片到约饭活动
+
+🔒 您的个人信息安全
+我们承诺保护您的个人信息，不会将其泄露或用于其他用途。
+
+请查阅《用户协议》和《隐私政策》了解更多详情。`;
+
     wx.showModal({
       title: '隐私保护指引',
-      content: '在使用本小程序之前，请您仔细阅读并同意《用户协议》和《隐私政策》。我们将保护您的个人信息安全。',
-      confirmText: '同意并继续',
-      cancelText: '暂不使用',
+      content: content,
+      confirmText: '同意',
+      cancelText: '拒绝',
       success: (res) => {
         if (res.confirm) {
-          // 用户同意
           wx.setStorageSync('privacyAuthorized', true);
-          wx.showToast({ title: '感谢您的信任', icon: 'success' });
         } else {
-          // 用户不同意，仅记录状态，不强制退出，允许游客模式使用
           wx.setStorageSync('privacyAuthorized', false);
-          wx.showToast({ title: '已切换至游客模式', icon: 'none', duration: 2000 });
+          wx.showToast({ 
+            title: '部分功能可能受限', 
+            icon: 'none', 
+            duration: 3000 
+          });
         }
       }
     });
@@ -99,22 +120,14 @@ App({
 
   // 初始化网络状态监听
   initNetworkListener() {
-    // 获取当前网络状态
-    wx.getNetworkType({
-      success: (res) => {
-        const networkType = res.networkType;
-        if (networkType === 'none') {
-          this.showNetworkError();
-        }
-      }
-    });
-
-    // 监听网络状态变化
     wx.onNetworkStatusChange((res) => {
       if (!res.isConnected) {
-        this.showNetworkError();
+        wx.showToast({
+          title: '网络已断开',
+          icon: 'none',
+          duration: 2000
+        });
       } else {
-        // 网络恢复
         wx.showToast({
           title: '网络已恢复',
           icon: 'success',
@@ -124,21 +137,25 @@ App({
     });
   },
 
-  // 显示网络错误提示
-  showNetworkError() {
-    wx.showModal({
-      title: '网络异常',
-      content: '当前网络不可用，请检查网络设置后重试。',
-      showCancel: false,
-      confirmText: '知道了'
+  // 获取当前网络类型
+  getNetworkType() {
+    return new Promise((resolve) => {
+      wx.getNetworkType({
+        success: (res) => {
+          resolve(res.networkType);
+        },
+        fail: () => {
+          resolve('unknown');
+        }
+      });
     });
   },
 
-  // 全局错误处理
-  onError(msg) {
-  },
-
-  // 全局未捕获Promise错误处理
-  onUnhandledRejection(res) {
+  // 检查是否有网络连接
+  hasNetwork() {
+    return new Promise(async (resolve) => {
+      const networkType = await this.getNetworkType();
+      resolve(networkType !== 'none' && networkType !== 'unknown');
+    });
   }
-})
+});

@@ -151,7 +151,7 @@ Page({
 
   // 返回首页
   goHome() {
-    wx.switchTab({ url: '/pages/index/index' });
+    wx.navigateTo({ url: '/pages/index/index' });
   },
 
 // 去结算

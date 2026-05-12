@@ -52,6 +52,6 @@ Page({
   switchTab(e) {
     const index = parseInt(e.currentTarget.dataset.index);
     const urls = ['/pages/index/index', '/pages/fish-tank/fish-tank', '/pages/profile/profile'];
-    wx.switchTab({ url: urls[index] });
+    wx.navigateTo({ url: urls[index] });
   }
 });

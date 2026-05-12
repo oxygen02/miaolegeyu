@@ -35,25 +35,15 @@
     "navigationBarTextStyle": "black",
     "backgroundColor": "#F5F0E8"
   },
-  "tabBar": {
-    "custom": true,
-    "color": "#999999",
-    "selectedColor": "#FF9F43",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "white",
-    "list": [
-      { "pagePath": "pages/index/index", "text": "首页" },
-      { "pagePath": "pages/fish-tank/fish-tank", "text": "喵不喵" },
-      { "pagePath": "pages/profile/profile", "text": "我的" }
-    ]
-  },
+  
   "requiredPrivateInfos": [
     "getLocation",
-    "chooseLocation"
+    "chooseLocation",
+    "chooseAddress"
   ],
   "permission": {
     "scope.userLocation": {
-      "desc": "你的位置信息将用于推荐附近的餐厅"
+      "desc": "你的位置信息将用于推荐附近的餐厅、显示聚餐地点距离"
     }
   },
   "sitemapLocation": "sitemap.json"

@@ -3,7 +3,7 @@
   <view class="header-section">
     <view class="header-content">
       <view class="header-avatar-wrapper">
-        <image class="header-avatar" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
+        <image class="header-avatar" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" binderror="onAvatarError" data-type="header" />
       </view>
       <text class="header-title">喵不喵</text>
       <text class="header-subtitle">拼美食 · 拼奶茶 · 拼生活</text>

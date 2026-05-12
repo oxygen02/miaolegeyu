@@ -1,6 +1,6 @@
 // 图片云存储配置
-const CLOUD_ENV = 'cloud1-d5ggnf5wh2d872f3c.636c-cloud1-d5ggnf5wh2d872f3c-1423896909';
-const BASE_URL = `cloud://${CLOUD_ENV}`;
+// 使用 HTTPS 临时链接，避免 cloud:// 协议问题
+const BASE_URL = 'https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la';
 
 // 图片路径映射
 const imagePaths = {
@@ -21,22 +21,20 @@ const imagePaths = {
     sharetofriends: `${BASE_URL}/icons/sharetofriends.png`,
     location: `${BASE_URL}/icons/location.png`,
     favorite: `${BASE_URL}/icons/favorite.png`,
-    // 个人中心页面需要的图标（需要上传到云存储）
-    calendar: `${BASE_URL}/icons/calendar.png`,      // 日历图标 - 缺失
-    time: `${BASE_URL}/icons/time.png`,              // 时间图标 - 缺失  
-    deadline: `${BASE_URL}/icons/deadline.png`,      // 截止/时钟图标 - 缺失
-    roomnum: `${BASE_URL}/icons/roomnum.png`,          // 房间号图标
-    // test-recommend 页面图标
-    hint: `${BASE_URL}/icons/hint.png`,              // 提示灯泡
-    restaurant: `${BASE_URL}/icons/restaurant.png`,  // 餐厅/餐具
-    star: `${BASE_URL}/icons/star.png`,              // 评分星星
-    close: `${BASE_URL}/icons/close.png`,            // 关闭按钮
-    phone: `${BASE_URL}/icons/phone.png`,            // 电话
-    check: `${BASE_URL}/icons/check.png`,            // 选中/对勾
-    target: `${BASE_URL}/icons/target.png`,           // 目标/靶心 🎯
-    forbidden: `${BASE_URL}/icons/forbidden.png`,     // 禁止 🚫
-    refresh: `${BASE_URL}/icons/refresh.png`,         // 刷新 🔄
-    search: `${BASE_URL}/icons/search.png`,           // 搜索🔍
+    calendar: `${BASE_URL}/icons/calendar.png`,
+    time: `${BASE_URL}/icons/time.png`,
+    deadline: `${BASE_URL}/icons/deadline.png`,
+    roomnum: `${BASE_URL}/icons/roomnum.png`,
+    hint: `${BASE_URL}/icons/hint.png`,
+    restaurant: `${BASE_URL}/icons/restaurant.png`,
+    star: `${BASE_URL}/icons/star.png`,
+    close: `${BASE_URL}/icons/close.png`,
+    phone: `${BASE_URL}/icons/phone.png`,
+    check: `${BASE_URL}/icons/check.png`,
+    target: `${BASE_URL}/icons/target.png`,
+    forbidden: `${BASE_URL}/icons/forbidden.png`,
+    refresh: `${BASE_URL}/icons/refresh.png`,
+    search: `${BASE_URL}/icons/search.png`,
   },
   
   // 装饰图
@@ -57,9 +55,9 @@ const imagePaths = {
   banners: {
     faqijucan: `${BASE_URL}/banners/faqijucan.png`,
     nimenlaiding2: `${BASE_URL}/banners/nimenlaiding2.png`,
-    jucanfaqi1: `${BASE_URL}/banners/jucanfaqi1.png`,     // 聚餐发起-约个时间
-    jucanfaqi2: `${BASE_URL}/banners/jucanfaqi2.png`,     // 聚餐发起-我选好了
-    jucanfaqi3: `${BASE_URL}/banners/jucanfaqi3.png`,     // 聚餐发起-你们来定
+    jucanfaqi1: `${BASE_URL}/banners/jucanfaqi1.png`,
+    jucanfaqi2: `${BASE_URL}/banners/jucanfaqi2.png`,
+    jucanfaqi3: `${BASE_URL}/banners/jucanfaqi3.png`,
     yutangpindan: `${BASE_URL}/banners/yutangpindan.png`,
     taiyakiIcon: `${BASE_URL}/banners/taiyaki-icon.png`,
     maoweiba: `${BASE_URL}/banners/maoweiba.png`,
@@ -67,7 +65,7 @@ const imagePaths = {
     wotiaohaole1: `${BASE_URL}/banners/wotiaohaole1.png`,
     lunbozhanwei: `${BASE_URL}/banners/lunbozhanwei.png`,
     lunbozhanwei2: `${BASE_URL}/banners/lunbozhanwei2.png`,
-    posterBg: `${BASE_URL}/banners/poster-bg.png`, // 海报背景图
+    posterBg: `${BASE_URL}/banners/poster-bg.png`,
   },
   
   // 其他
@@ -80,7 +78,7 @@ const imagePaths = {
     juzeAvatar: `${BASE_URL}/misc/juze_avatar.png`,
   },
   
-  // 菜品/菜系（已配置）
+  // 菜品/菜系
   cuisine: (categoryId, subId) => {
     return `${BASE_URL}/cuisine-images/category_${categoryId}_${subId}.png`;
   }
@@ -88,6 +86,5 @@ const imagePaths = {
 
 module.exports = {
   imagePaths,
-  CLOUD_ENV,
   BASE_URL
 };

@@ -19,18 +19,6 @@
     "bigPackageSizeSupport": false,
     "useIsolateContext": true
   },
-  "condition": {
-    "miniprogram": {
-      "list": [
-        {
-          "name": "pages/schedule-vote/result/result",
-          "pathName": "pages/schedule-vote/result/result",
-          "query": "",
-          "scene": null,
-          "launchMode": "default"
-        }
-      ]
-    }
-  },
+  "condition": {},
   "cloudfunctionRoot": "cloudfunctions/"
 }

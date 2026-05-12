@@ -4,70 +4,62 @@ const db = cloud.database();
 const _ = db.command;
 
 exports.main = async (event, context) => {
-  const { type } = event; // type: 'shop' | 'appointment' | undefined(全部)
   const { OPENID } = cloud.getWXContext();
   
   try {
-    let whereCondition = { openId: OPENID };
-    if (type) {
-      whereCondition.type = type;
-    }
-    
-    // 获取收藏列表
     const favoriteRes = await db.collection('favorites')
-      .where(whereCondition)
+      .where({ openId: OPENID })
       .orderBy('createTime', 'desc')
+      .limit(50)
       .get();
     
-    const favorites = favoriteRes.data;
+    const favorites = favoriteRes.data || [];
     
-    // 获取关联的详细信息
+    if (favorites.length === 0) {
+      return { success: true, favorites: [], count: 0 };
+    }
+    
     const shopIds = favorites.filter(f => f.type === 'shop').map(f => f.targetId);
     const appointmentIds = favorites.filter(f => f.type === 'appointment').map(f => f.targetId);
     
-    // 获取店铺信息
     let shops = [];
-    if (shopIds.length > 0) {
-      const shopRes = await db.collection('shops')
-        .where({ _id: _.in(shopIds) })
-        .get();
-      shops = shopRes.data;
-    }
-    
-    // 获取约饭活动信息
     let appointments = [];
-    if (appointmentIds.length > 0) {
-      const appointmentRes = await db.collection('dining_appointments')
-        .where({ _id: _.in(appointmentIds) })
-        .get();
-      appointments = appointmentRes.data;
+    
+    if (shopIds.length > 0) {
+      try {
+        const shopRes = await db.collection('shops').where({ _id: _.in(shopIds) }).get();
+        shops = shopRes.data || [];
+      } catch (e) {
+        console.warn('获取店铺信息失败:', e.message);
+      }
     }
     
-    // 组装数据
+    if (appointmentIds.length > 0) {
+      try {
+        const appointmentRes = await db.collection('dining_appointments').where({ _id: _.in(appointmentIds) }).get();
+        appointments = appointmentRes.data || [];
+      } catch (e) {
+        console.warn('获取约饭信息失败:', e.message);
+      }
+    }
+    
+    const shopMap = {};
+    shops.forEach(s => { shopMap[s._id] = s; });
+    const appointmentMap = {};
+    appointments.forEach(a => { appointmentMap[a._id] = a; });
+    
     const result = favorites.map(f => {
       if (f.type === 'shop') {
-        const shop = shops.find(s => s._id === f.targetId);
-        return {
-          ...f,
-          shop: shop || null
-        };
+        return { ...f, shop: shopMap[f.targetId] || null };
       } else if (f.type === 'appointment') {
-        const appointment = appointments.find(a => a._id === f.targetId);
-        return {
-          ...f,
-          appointment: appointment || null
-        };
+        return { ...f, appointment: appointmentMap[f.targetId] || null };
       }
       return f;
     });
     
-    return { 
-      success: true, 
-      favorites: result,
-      count: result.length
-    };
+    return { success: true, favorites: result, count: result.length };
   } catch (err) {
-    console.error('获取收藏失败:', err);
-    return { success: false, error: err.message };
+    console.error('getFavorites error:', err);
+    return { success: true, favorites: [], count: 0, error: err.message };
   }
 };

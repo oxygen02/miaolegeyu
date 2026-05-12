@@ -4,6 +4,6 @@
   "description": "关闭时间投票并确认时间",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "latest"
+    "wx-server-sdk": "3.0.0"
   }
 }

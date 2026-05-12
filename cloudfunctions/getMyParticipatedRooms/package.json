@@ -4,6 +4,6 @@
   "description": "获取我参与的所有房间",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "latest"
+    "wx-server-sdk": "3.0.0"
   }
 }

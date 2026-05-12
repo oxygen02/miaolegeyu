@@ -355,7 +355,7 @@ Page({
 
   // 查看我的时间投票列表
   goMyScheduleVotes() {
-    wx.switchTab({
+    wx.navigateTo({
       url: '/pages/profile/profile'
     });
   },

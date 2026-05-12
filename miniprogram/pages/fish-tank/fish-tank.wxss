@@ -205,7 +205,7 @@
 .platform-icon {
   width: 88rpx;
   height: 88rpx;
-  border-radius: 20rpx;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
