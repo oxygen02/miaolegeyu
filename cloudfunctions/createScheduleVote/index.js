@@ -2,11 +2,41 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
+// 确保集合存在（自动创建）
+async function ensureCollection(collectionName) {
+  try {
+    await db.collection(collectionName).limit(1).get();
+  } catch (err) {
+    if (err.errCode === -5020 || err.message.includes('collection not exists') || err.message.includes('not exist')) {
+      console.log(`Collection ${collectionName} not exists, attempting to create...`);
+      try {
+        await db.createCollection(collectionName);
+        console.log(`Collection ${collectionName} created successfully`);
+      } catch (createErr) {
+        console.error(`Failed to create collection ${collectionName}:`, createErr);
+        // 如果创建失败，尝试通过添加一个虚拟文档来隐式创建
+        try {
+          await db.collection(collectionName).add({ data: { _init: true, createdAt: new Date() } });
+          console.log(`Collection ${collectionName} created via add`);
+        } catch (addErr) {
+          console.error(`Failed to create collection ${collectionName} via add:`, addErr);
+          throw addErr;
+        }
+      }
+    } else {
+      throw err;
+    }
+  }
+}
+
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
   const { title, description, candidateDates, timeRange, timePeriod, minParticipants, deadline, anonymous } = event;
 
   try {
+    // 确保 schedule_votes 集合存在
+    await ensureCollection('schedule_votes');
+
     // 根据时段生成所有候选时间段
     const generateTimeSlots = (dates, range, period) => {
       const slots = [];

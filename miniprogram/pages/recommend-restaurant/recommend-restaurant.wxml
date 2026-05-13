@@ -1,3 +1,20 @@
+<wxs module="utils">
+module.exports = {
+  safeString: function(value) {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'object') {
+      if (value.name) return value.name;
+      if (value.address) return value.address;
+      if (value.text) return value.text;
+      return '';
+    }
+    return String(value);
+  }
+}
+</wxs>
+
 <!-- 推荐餐厅页面 -->
 <view class="recommend-page">
   <!-- 加载状态 -->
@@ -13,9 +30,9 @@
       <view class="speech-bubble">
         <text class="bubble-text">根据大家的口味，为你推荐这些店</text>
       </view>
-      <view class="location-info" wx:if="{{room.location}}">
+      <view class="location-info" wx:if="{{utils.safeString(room.location)}}">
         <image class="location-icon" src="{{imagePaths.icons.location}}" mode="aspectFit" />
-        <text class="location-text">{{room.location.name || room.location}}</text>
+        <text class="location-text">{{utils.safeString(room.location)}}</text>
       </view>
     </view>
 
@@ -44,7 +61,7 @@
       <view class="restaurant-list" wx:if="{{restaurants.length > 0}}">
         <view class="restaurant-card" wx:for="{{restaurants}}" wx:key="index" bindtap="onRestaurantTap" data-index="{{index}}">
           <view class="card-main">
-            <image class="restaurant-image" src="{{item.image || imagePaths.cuisine(1, 1)}}" mode="aspectFill" lazy-load/>
+            <image class="restaurant-image" src="{{item.image || imagePaths.cuisine(1, 1)}}" mode="aspectFill" lazy-load catchtap="previewImage" data-src="{{item.image}}"/>
             <view class="restaurant-info">
               <view class="info-header">
                 <text class="restaurant-name">{{item.name}}</text>
@@ -57,7 +74,7 @@
                 <text class="price-text" wx:if="{{item.avgPrice}}">¥{{item.avgPrice}}/人</text>
                 <text class="cuisine-text" wx:if="{{item.cuisineType}}">{{item.cuisineType}}</text>
               </view>
-              <text class="address-text" wx:if="{{item.address}}">{{item.address}}</text>
+              <text class="address-text" wx:if="{{utils.safeString(item.address)}}">{{utils.safeString(item.address)}}</text>
             </view>
           </view>
           <view class="card-actions">

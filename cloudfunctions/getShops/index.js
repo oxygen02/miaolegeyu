@@ -14,21 +14,52 @@ exports.main = async (event, context) => {
     // 如果指定了菜系，添加筛选条件
     // 支持同义词映射：shaokao -> ['shaokao', 'bbq', 'snack'] (烧烤包含小吃)
     const cuisineSynonyms = {
-      'shaokao': ['shaokao', 'bbq', 'snack', 'meat'],
-      'bbq': ['shaokao', 'bbq', 'snack', 'meat'],
+      // 中餐大类（包含所有中式菜系）
+      'zhongcan': ['chinese', 'zhongcan', 'chuanyu', 'beifang', 'yungui', 
+                   'huazhong', 'xianggan', 'yueshi', 'jiangnan', 'xibei',
+                   'sifang', 'nongjia', 'zizhu', 'snack', 'fastfood'],
+      'chinese': ['chinese', 'zhongcan', 'chuanyu', 'beifang', 'yungui',
+                 'huazhong', 'xianggan', 'yueshi', 'jiangnan', 'xibei',
+                 'sifang', 'nongjia', 'zizhu', 'snack', 'fastfood'],
+      // 地方菜系也属于中餐
+      'chuanyu': ['chuanyu', 'chinese', 'zhongcan'],
+      'beifang': ['beifang', 'chinese', 'zhongcan'],
+      'yungui': ['yungui', 'chinese', 'zhongcan'],
+      'huazhong': ['huazhong', 'chinese', 'zhongcan'],
+      'xianggan': ['xianggan', 'chinese', 'zhongcan'],
+      'yueshi': ['yueshi', 'chinese', 'zhongcan'],
+      'jiangnan': ['jiangnan', 'chinese', 'zhongcan'],
+      'xibei': ['xibei', 'chinese', 'zhongcan'],
+      'sifang': ['sifang', 'chinese', 'zhongcan'],
+      'nongjia': ['nongjia', 'chinese', 'zhongcan'],
+      // 火锅类
       'huoguo': ['huoguo', 'hotpot'],
       'hotpot': ['huoguo', 'hotpot'],
+      'chuanchuan': ['chuanchuan', 'bbq', 'shaokao'],
+      // 烧烤类
+      'shaokao': ['shaokao', 'bbq', 'snack', 'meat'],
+      'bbq': ['shaokao', 'bbq', 'snack', 'meat'],
+      'meat': ['meat', 'bbq', 'shaokao'],
+      // 海鲜类
       'haixian': ['haixian', 'seafood'],
       'seafood': ['haixian', 'seafood'],
-      'longxia': ['longxia', 'crayfish'],
-      'crayfish': ['longxia', 'crayfish'],
-      'hanliao': ['hanliao', 'japanese', 'riliao'],
-      'japanese': ['hanliao', 'japanese', 'riliao'],
-      'riliao': ['hanliao', 'japanese', 'riliao'],
+      // 日韩料理
+      'hanliao': ['hanliao', 'korean'],
+      'riliao': ['riliao', 'japanese'],
+      'japanese': ['riliao', 'japanese'],
+      'korean': ['hanliao', 'korean'],
+      // 西式料理
       'xishi': ['xishi', 'western'],
       'western': ['xishi', 'western'],
-      'chuanchuan': ['chuanchuan', 'bbq', 'shaokao'],
-      'meat': ['meat', 'bbq', 'shaokao']
+      'dongnanya': ['dongnanya', 'thai', 'vietnamese', 'malaysian'],
+      // 其他
+      'longxia': ['longxia', 'crayfish'],
+      'crayfish': ['longxia', 'crayfish'],
+      'dessert': ['dessert'],
+      'tea': ['tea'],
+      'cafe': ['cafe'],
+      'bar': ['bar'],
+      'zizhu': ['zizhu', 'buffet']
     };
 
     if (cuisine && cuisine !== 'all') {
@@ -93,7 +124,7 @@ exports.main = async (event, context) => {
     });
 
     // 批量获取图片临时访问链接
-    const allImages = shops.flatMap(shop => shop.images).filter(url => url && url.includes('cloud1-d5ggnf5wh2d872f3c'));
+    const allImages = shops.flatMap(shop => shop.images).filter(url => url && url.includes('cloud1-d4gfy27bn0f3f5346'));
     if (allImages.length > 0) {
       try {
         const tempUrls = await cloud.getTempFileURL({

@@ -110,10 +110,16 @@
       </view>
     </block>
 
-    <!-- 未参与提示 -->
-    <view class="notice-card anim-slide-up delay-3" wx:if="{{!vote.isExpired}}">
+    <!-- 未参与提示（仅对未填写且未过期的用户显示） -->
+    <view class="notice-card anim-slide-up delay-3" wx:if="{{!vote.isExpired && !hasParticipated}}">
       <text class="notice-text">还没填写？快来选择你的可用时间</text>
       <button class="btn btn-small btn-primary" bindtap="goFill">去填写</button>
+    </view>
+
+    <!-- 已参与提示 -->
+    <view class="notice-card anim-slide-up delay-3 notice-success" wx:if="{{!vote.isExpired && hasParticipated}}">
+      <text class="notice-text">✓ 你已提交可用时间，可点击「去填写」修改</text>
+      <button class="btn btn-small btn-outline" bindtap="goFill">修改填写</button>
     </view>
 
     <!-- 底部 -->

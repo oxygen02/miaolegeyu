@@ -34,6 +34,7 @@ const cuisineMap = {
   'zizhu': '自助',
   'nongjia': '农家',
   'sifang': '私房',
+  'zhongcan': '中餐',
   // 上传店铺使用的简化分类
   'chinese': '中餐',
   'japanese': '日韩餐',
@@ -46,6 +47,8 @@ const cuisineMap = {
   'local': '地方特色',
   'dessert': '甜品',
   'tea': '奶茶',
+  'cafe': '咖啡',
+  'bar': '酒吧',
   'snack': '小吃',
   'fastfood': '快餐',
   'bread': '面包',
@@ -55,16 +58,18 @@ const cuisineMap = {
 
 Page({
   data: {
-    imagePaths: imagePaths,
+    imagePaths: {},
     shops: [],
     loading: false,
     hasMore: true,
     page: 1,
     pageSize: 10,
     selectedCuisine: 'all',
+    waitingShops: [],
     // 高频标签（始终显示）
     hotCuisines: [
       { id: 'all', name: '全部' },
+      { id: 'zhongcan', name: '中餐' },
       { id: 'chuanyu', name: '川渝' },
       { id: 'beifang', name: '北方' },
       { id: 'yungui', name: '云贵' },
@@ -103,6 +108,8 @@ Page({
   },
 
   async onLoad() {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
     // 先加载店铺，再加载约饭数据
     await this.loadShops();
     await this.loadAppointments();
@@ -173,8 +180,10 @@ Page({
           shops,
           hasMore: shops.length >= this.data.pageSize
         });
+        this.loadMyInterests();
       }
     } catch (err) {
+      console.error('加载店铺失败:', err);
       wx.showToast({ title: '加载失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
@@ -215,8 +224,10 @@ Page({
           page: nextPage,
           hasMore: newShops.length >= this.data.pageSize
         });
+        this.loadMyInterests();
       }
     } catch (err) {
+      console.error('加载更多失败:', err);
     } finally {
       this.setData({ loading: false });
     }
@@ -250,6 +261,7 @@ Page({
   // 加载约饭报名
   async loadAppointments() {
     try {
+      console.log('开始加载约饭数据，当前店铺数:', this.data.shops.length);
 
       // 添加超时处理
       const callFunctionPromise = wx.cloud.callFunction({
@@ -263,6 +275,7 @@ Page({
 
       const { result } = await Promise.race([callFunctionPromise, timeoutPromise]);
 
+      console.log('约饭数据返回:', result);
 
       if (result.success) {
         // 将约饭信息按店铺ID分组
@@ -270,6 +283,7 @@ Page({
         result.appointments.forEach(app => {
           // 确保 shopId 是字符串类型
           const shopId = app.shopId ? String(app.shopId) : '';
+          console.log('处理约饭数据:', shopId, app);
           if (!appointmentsMap[shopId]) {
             appointmentsMap[shopId] = [];
           }
@@ -280,11 +294,13 @@ Page({
           });
         });
 
+        console.log('appointmentsMap:', appointmentsMap);
 
         const updatedShops = this.data.shops.map(shop => {
           // 处理 _id 可能是对象或字符串的情况
           const shopId = shop._id ? String(shop._id) : '';
           const appointments = appointmentsMap[shopId] || [];
+          console.log('店铺:', shopId, shop.name, '关联约饭:', appointments.length, '个活动');
           return {
             ...shop,
             appointments: appointments,
@@ -294,12 +310,14 @@ Page({
           };
         });
 
+        console.log('更新店铺数据:', updatedShops.length, '个店铺');
         this.setData({ shops: updatedShops });
 
         // 启动倒计时
         this.startCountdowns(result.appointments);
       }
     } catch (err) {
+      console.error('加载约饭报名失败:', err);
     }
   },
 
@@ -377,16 +395,7 @@ Page({
   // 格式化约饭时间
   formatAppointmentTime(dateStr) {
     if (!dateStr) return '';
-
-    let date;
-    if (dateStr instanceof Date) {
-      date = dateStr;
-    } else if (typeof dateStr === 'string') {
-      date = new Date(dateStr);
-    } else {
-      date = new Date(dateStr);
-    }
-
+    const date = new Date(dateStr);
     if (isNaN(date.getTime())) return '';
 
     const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
@@ -500,7 +509,9 @@ Page({
 
   // 点击缩略图 - 预览图片
   onThumbTap(e) {
-    e.stopPropagation();
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
+    }
     const { index } = e.currentTarget.dataset;
     const shop = this.data.shops[index];
     if (!shop.images || shop.images.length === 0) {
@@ -556,7 +567,6 @@ Page({
           cancelText: '再想想',
           success: (res) => {
             if (res.confirm) {
-              // 用户确认，跳转到店铺详情页发起约饭
               wx.navigateTo({
                 url: `/pages/shop-detail/shop-detail?id=${shop._id}&openAppointment=1&notifyInterested=1`
               });
@@ -609,6 +619,7 @@ Page({
         wx.showToast({ title: result.error || '参加失败', icon: 'none' });
       }
     } catch (err) {
+      console.error('参加约饭失败:', err);
       wx.showToast({ title: '参加失败', icon: 'none' });
     } finally {
       wx.hideLoading();
@@ -704,10 +715,9 @@ Page({
       fail: () => {
         wx.hideLoading();
         wx.showModal({
-          title: '需要授权',
-          content: '开启位置权限后，可计算店铺与您的距离并排序展示',
-          confirmText: '去开启',
-          cancelText: '暂不需要',
+          title: '提示',
+          content: '需要获取您的位置才能计算距离',
+          confirmText: '去设置',
           success: (res) => {
             if (res.confirm) {
               wx.openSetting();
@@ -742,65 +752,62 @@ Page({
   },
 
   // 加载用户的约饭意向
-  async loadMyInterests() {
+  loadMyInterests() {
     try {
-      const { result } = await wx.cloud.callFunction({
-        name: 'getMyDiningInterests'
-      });
-
-      if (result.success) {
-        const interestedShopIds = result.shopIds || [];
-        // 更新店铺列表中的意向状态
-        const shops = this.data.shops.map(shop => ({
-          ...shop,
-          isInterested: interestedShopIds.includes(shop._id)
-        }));
-        this.setData({ shops });
-      }
+      const waitingShops = wx.getStorageSync('waitingShops') || [];
+      const shops = this.data.shops.map(shop => ({
+        ...shop,
+        isInterested: waitingShops.includes(shop._id)
+      }));
+      this.setData({ shops, waitingShops });
     } catch (err) {
+      console.error('加载等待召唤状态失败:', err);
     }
   },
 
-  // 切换约饭意向
-  async onToggleInterest(e) {
+  // 切换约饭意向（等约/等待被召唤）
+  onToggleInterest(e) {
     if (e && e.stopPropagation) {
       e.stopPropagation();
     }
     const { shop } = e.currentTarget.dataset;
 
-    wx.showLoading({ title: '处理中...' });
-
-    try {
-      const { result } = await wx.cloud.callFunction({
-        name: 'toggleDiningInterest',
-        data: { shopId: shop._id }
-      });
-
-      if (result.success) {
-        // 更新本地状态
-        const shops = this.data.shops.map(item => {
-          if (item._id === shop._id) {
-            return {
-              ...item,
-              isInterested: result.isInterested
-            };
-          }
-          return item;
-        });
-        this.setData({ shops });
-
-        wx.showToast({
-          title: result.message,
-          icon: 'none'
-        });
-      } else {
-        wx.showToast({ title: result.error || '操作失败', icon: 'none' });
-      }
-    } catch (err) {
-      wx.showToast({ title: '操作失败', icon: 'none' });
-    } finally {
-      wx.hideLoading();
+    if (!shop || !shop._id) {
+      wx.showToast({ title: '店铺信息异常', icon: 'none' });
+      return;
     }
+
+    let waitingShops = wx.getStorageSync('waitingShops') || [];
+    const shopId = shop._id;
+    const isCurrentlyWaiting = waitingShops.includes(shopId);
+
+    if (isCurrentlyWaiting) {
+      waitingShops = waitingShops.filter(id => id !== shopId);
+    } else {
+      waitingShops.push(shopId);
+    }
+
+    wx.setStorageSync('waitingShops', waitingShops);
+
+    const shops = this.data.shops.map(item => {
+      if (item._id === shopId) {
+        return {
+          ...item,
+          isInterested: !isCurrentlyWaiting
+        };
+      }
+      return item;
+    });
+
+    this.setData({ 
+      shops,
+      waitingShops 
+    });
+
+    wx.showToast({
+      title: !isCurrentlyWaiting ? '已标记等待召唤' : '已取消标记',
+      icon: 'none'
+    });
   },
 
   onShareAppMessage() {

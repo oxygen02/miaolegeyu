@@ -50,7 +50,7 @@
           <view class="cuisine-tag">{{shop.cuisineName}}</view>
         </view>
 
-        <!-- 推荐指数、人均消费、地点合并一行 -->
+        <!-- 推荐指数、人均消费 - 第一行 -->
         <view class="rating-info-row">
           <view class="info-col rating-col">
             <text class="info-label-small">推荐指数</text>
@@ -71,13 +71,16 @@
             <text class="info-label-small">人均</text>
             <text class="price-value">¥{{shop.avgPrice}}</text>
           </view>
-          <view class="info-col location-col">
-            <text class="info-label-small">地点</text>
-            <view class="location-content-inline">
-              <text class="location-name">{{shop.location}}</text>
-              <view class="nav-btn-inline" bindtap="openLocation" data-address="{{shop.location}}" data-name="{{shop.name}}">
-                <image class="nav-icon-inline" src="{{imagePaths.icons.location}}" mode="aspectFit"/>
-              </view>
+        </view>
+
+        <!-- 地点 + 导航 - 第二行（独立显示） -->
+        <view class="location-row" wx:if="{{shop.location}}">
+          <text class="info-label-small location-label">📍 地点</text>
+          <view class="location-content-full">
+            <text class="location-text-full">{{shop.location}}</text>
+            <view class="nav-btn-full" bindtap="openLocation" data-address="{{shop.location}}" data-name="{{shop.name}}">
+              <image class="nav-icon-full" src="{{imagePaths.icons.location}}" mode="aspectFit"/>
+              <text class="nav-text-full">导航</text>
             </view>
           </view>
         </view>

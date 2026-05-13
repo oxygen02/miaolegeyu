@@ -1,6 +1,26 @@
+<wxs module="utils">
+module.exports = {
+  safeString: function(value) {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'object') {
+      if (value.name) return value.name;
+      if (value.address) return value.address;
+      if (value.text) return value.text;
+      return '';
+    }
+    return String(value);
+  }
+}
+</wxs>
+
 <view class="fish-tank-page">
   <!-- 顶部橘红色区域 -->
   <view class="header-section">
+    <view class="home-btn" bindtap="goHome">
+      <image class="home-icon" src="{{imagePaths.misc.pawHomeIcon}}" mode="aspectFit" />
+    </view>
     <view class="header-content">
       <view class="header-avatar-wrapper">
         <image class="header-avatar" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" binderror="onAvatarError" data-type="header" />
@@ -98,9 +118,9 @@
               </view>
             </view>
             <text class="activity-title">{{item.title}}</text>
-            <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{item.shopNameStr || item.shopName}}</text>
+            <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{utils.safeString(item.shopNameStr) || utils.safeString(item.shopName)}}</text>
             <view class="activity-meta">
-              <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{item.time}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
+              <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{utils.safeString(item.time)}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
             </view>
             <!-- 参与用户头像 -->
             <view class="participant-avatars" wx:if="{{item.participantAvatars.length > 0 && item.type !== 'scheduleVote'}}">
@@ -156,9 +176,9 @@
               </view>
             </view>
             <text class="activity-title">{{item.title}}</text>
-            <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{item.shopName}}</text>
+            <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{utils.safeString(item.shopName)}}</text>
             <view class="activity-meta">
-              <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{item.time}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
+              <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{utils.safeString(item.time)}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
               <text class="activity-participants" wx:if="{{item.type !== 'scheduleVote'}}">{{item.participantCount}}人参与</text>
               <text class="activity-participants sv-participant-count" wx:if="{{item.type === 'scheduleVote'}}">{{item.participantCount}}人已填写</text>
             </view>
@@ -196,9 +216,9 @@
               </view>
             </view>
             <text class="activity-title">{{item.title}}</text>
-            <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{item.shopName}}</text>
+            <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{utils.safeString(item.shopName)}}</text>
             <view class="activity-meta">
-              <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{item.time}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
+              <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{utils.safeString(item.time)}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
               <text class="activity-participants" wx:if="{{item.type !== 'scheduleVote'}}">{{item.participantCount}}人参与</text>
               <text class="activity-participants sv-participant-count" wx:if="{{item.type === 'scheduleVote'}}">{{item.participantCount}}人已填写</text>
             </view>
@@ -257,6 +277,31 @@
             <text class="option-desc">聚餐发起投票</text>
           </view>
         </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部导航栏 -->
+  <view class="custom-tab-bar">
+    <view class="tab-bar-border"></view>
+    <view class="tab-bar-container">
+      <view class="tab-bar-item {{currentTab === 0 ? 'active' : ''}} {{animatingTab === 0 ? 'animating' : ''}}" data-index="0" bindtap="switchBottomTab">
+        <view class="icon-wrapper">
+          <image class="tab-icon" src="{{imagePaths.misc.pawHomeIcon}}" mode="aspectFit" />
+        </view>
+        <text class="tab-text">首页</text>
+      </view>
+      <view class="tab-bar-item {{currentTab === 1 ? 'active' : ''}} {{animatingTab === 1 ? 'animating' : ''}}" data-index="1" bindtap="switchBottomTab">
+        <view class="icon-wrapper">
+          <image class="tab-icon fish-icon" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
+        </view>
+        <text class="tab-text">喵不喵</text>
+      </view>
+      <view class="tab-bar-item {{currentTab === 2 ? 'active' : ''}} {{animatingTab === 2 ? 'animating' : ''}}" data-index="2" bindtap="switchBottomTab">
+        <view class="icon-wrapper">
+          <image class="tab-icon" src="{{imagePaths.misc.fishIcon}}" mode="aspectFit" />
+        </view>
+        <text class="tab-text">我的</text>
       </view>
     </view>
   </view>

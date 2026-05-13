@@ -331,5 +331,15 @@ Page({
     wx.navigateTo({
       url: `/pages/schedule-vote/result/result?voteId=${this.data.voteId}`
     });
+  },
+
+  // 分享转发
+  onShareAppMessage() {
+    const { voteData, voteId } = this.data;
+    return {
+      title: `📅 ${voteData?.title || '时间投票'} - 来选择你的可用时间`,
+      path: `/pages/schedule-vote/fill/fill?voteId=${voteId}&title=${encodeURIComponent(voteData?.title || '')}`,
+      imageUrl: imagePaths.banners.faqijucan
+    };
   }
 });

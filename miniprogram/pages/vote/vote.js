@@ -7,7 +7,7 @@ const { imagePaths } = require('../../config/imageConfig');
 
 Page({
   data: {
-    imagePaths: imagePaths,
+    imagePaths: {},
     room: {},
     posters: [],
     currentIndex: 0,
@@ -66,7 +66,9 @@ Page({
     posterData: null
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
     // 立即设置导航栏颜色，防止闪烁
     wx.setNavigationBarColor({
       frontColor: '#000000',

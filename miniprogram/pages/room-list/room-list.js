@@ -1,9 +1,10 @@
 const { imagePaths } = require('../../config/imageConfig');
 const audioManager = require('../../utils/audioManager');
+const app = getApp();
 
 Page({
   data: {
-    imagePaths: imagePaths,
+    imagePaths: {},
     allRooms: [],
     currentFilter: 'all',
     loading: true,
@@ -18,51 +19,15 @@ Page({
     posterTitle: '分享海报'
   },
 
-  onLoad() {
+  async onLoad() {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
     // 设置导航栏颜色为米色
     wx.setNavigationBarColor({
       frontColor: '#000000',
       backgroundColor: '#F5F0E8'
     });
-    // 加载云存储图片 URL
-    this.loadCloudImageUrls();
     this.loadData();
-  },
-
-  // 获取云存储图片的临时访问 URL
-  async loadCloudImageUrls() {
-    try {
-      const cloudPaths = [];
-      const pathMap = {};
-
-      // 收集 icons 路径
-      Object.keys(imagePaths.icons).forEach(key => {
-        const path = imagePaths.icons[key];
-        if (path && path.startsWith('cloud://')) {
-          cloudPaths.push(path);
-          pathMap[path] = { category: 'icons', key };
-        }
-      });
-
-      if (cloudPaths.length === 0) return;
-
-      const { result } = await wx.cloud.callFunction({
-        name: 'getTempFileURL',
-        data: { fileList: cloudPaths }
-      });
-
-      if (result && result.fileList) {
-        const newImagePaths = { ...this.data.imagePaths };
-        result.fileList.forEach(item => {
-          const mapping = pathMap[item.fileID];
-          if (mapping && item.tempFileURL) {
-            newImagePaths[mapping.category][mapping.key] = item.tempFileURL;
-          }
-        });
-        this.setData({ imagePaths: newImagePaths });
-      }
-    } catch (err) {
-    }
   },
 
   onShow() {
@@ -115,8 +80,8 @@ Page({
         return [];
       };
 
-      if (currentFilter === 'all') {
-        // 全部：同时获取创建的和参与的
+      if (currentFilter === 'all' || currentFilter === 'active' || currentFilter === 'locked') {
+        // 全部、进行中、已结束：同时获取创建的和参与的
         [createdRooms, participatedRooms] = await Promise.all([fetchCreated(), fetchParticipated()]);
       } else if (currentFilter === 'created') {
         // 我创建的
@@ -236,7 +201,10 @@ Page({
             creatorName: group.creatorName,
             creatorAvatar: group.creatorAvatar,
             creatorAvatarUrl: group.creatorAvatar,
-            creatorId: group.creatorId
+            creatorId: group.creatorId,
+            location: typeof room.location === 'object' ? room.location.name || room.location.address || '' : (room.location || ''),
+            activityDate: typeof room.activityDate === 'object' ? '' : (room.activityDate || ''),
+            activityTime: typeof room.activityTime === 'object' ? '' : (room.activityTime || '')
           });
         });
       }
@@ -263,6 +231,16 @@ Page({
     const filter = e.currentTarget.dataset.filter;
     this.setData({ currentFilter: filter });
     this.loadData();
+  },
+
+  previewImage(e) {
+    const { src } = e.currentTarget.dataset;
+    if (!src) return;
+
+    wx.previewImage({
+      current: src,
+      urls: [src]
+    });
   },
 
   // 房间号输入

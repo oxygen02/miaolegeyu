@@ -88,7 +88,7 @@
     <view class="top3" wx:if="{{topOptions.length > 0}}">
       <text class="sub-title">当前热门</text>
       <view class="opt-item" wx:for="{{topOptions}}" wx:key="id">
-        <image class="opt-img" src="{{item.image}}" mode="aspectFill" />
+        <image class="opt-img" src="{{item.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.image}}"/>
         <view class="opt-info">
           <text class="opt-name">{{item.name}}</text>
           <view class="opt-bar-box">
@@ -171,7 +171,7 @@
       <text>已锁定最终结果</text>
     </view>
     <view class="winner">
-      <image class="win-img" src="{{winner.image}}" mode="aspectFill" />
+      <image class="win-img" src="{{winner.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{winner.image}}"/>
       <view class="win-info">
         <text class="win-name">{{winner.name}}</text>
         <text class="win-addr">{{winner.address}}</text>

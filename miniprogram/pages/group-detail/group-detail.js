@@ -26,6 +26,16 @@ Page({
     PLATFORM_NAMES: PLATFORM_NAMES
   },
 
+  previewImage(e) {
+    const { src } = e.currentTarget.dataset;
+    if (!src) return;
+
+    wx.previewImage({
+      current: src,
+      urls: [src]
+    });
+  },
+
   onLoad(options) {
     const { roomId } = options;
     this.setData({ roomId });

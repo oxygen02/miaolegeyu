@@ -28,7 +28,7 @@
           data-index="{{index}}"
         >
           <view class="option-image-wrap" wx:if="{{item.shopImage}}">
-            <image class="option-image" src="{{item.shopImage}}" mode="aspectFill" />
+            <image class="option-image" src="{{item.shopImage}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.shopImage}}"/>
           </view>
           <view class="option-info">
             <view class="option-header">

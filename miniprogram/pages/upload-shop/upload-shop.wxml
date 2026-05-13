@@ -8,23 +8,54 @@
   <!-- 表单区域 -->
   <view class="form-section">
     <!-- 店铺图片 -->
-    <view class="form-item required">
-      <text class="form-label">店铺图片</text>
-      <view class="image-upload-section" bindtap="onChooseImage">
-        <view class="image-list">
-          <view class="image-item" wx:for="{{images}}" wx:key="*this" catchtap="onPreviewImage" data-index="{{index}}">
-            <image class="uploaded-image" src="{{item}}" mode="aspectFill" />
-            <view class="delete-btn" catchtap="onDeleteImage" data-index="{{index}}">
-              <text class="delete-icon">×</text>
+      <view class="form-item required">
+        <text class="form-label">店铺图片</text>
+        <view class="image-upload-wrapper">
+          <!-- 图片上传区域 -->
+          <view class="image-upload-section">
+            <view class="image-list">
+              <view class="image-item" wx:for="{{images}}" wx:key="*this" catchtap="onPreviewImage" data-index="{{index}}">
+                <image class="uploaded-image" src="{{item}}" mode="aspectFill" />
+                <view class="delete-btn" catchtap="onDeleteImage" data-index="{{index}}">
+                  <text class="delete-icon">×</text>
+                </view>
+              </view>
+              <view class="add-image-item" wx:if="{{images.length < maxImages}}" bindtap="onChooseImage">
+                <text class="add-icon">+</text>
+                <text class="add-text">{{images.length === 0 ? '点击上传' : '添加'}}</text>
+              </view>
             </view>
+
+            <!-- AI识别进度 - 在图片区域内 -->
+            <view class="ai-progress-inline" wx:if="{{isRecognizing}}">
+              <view class="ai-loading-mini">
+                <view class="loading-spinner-small"></view>
+                <text class="loading-text-mini">{{recognitionStatus || '正在识别...'}}</text>
+              </view>
+              <view class="progress-bar-mini">
+                <view class="progress-fill-mini" style="width: {{recognitionProgress}}%"></view>
+              </view>
+            </view>
+
+            <text class="image-hint" wx:if="{{images.length === 0 && !isRecognizing}}">至少1张，最多6张（需包含店铺名称）</text>
           </view>
-          <view class="add-image-item" wx:if="{{images.length < maxImages}}">
-            <text class="add-icon">+</text>
-            <text class="add-text">{{images.length === 0 ? '点击上传' : '添加'}}</text>
+
+          <!-- AI智能识别按钮 - 固定在图片框右上角外部 -->
+          <view 
+            class="ai-recognize-float-btn" 
+            wx:if="{{images.length > 0 && !isRecognizing}}"
+            bindlongpress="onAIRecognize"
+            bindtap="onAIShowHint"
+          >
+            <text class="ai-text">AI</text>
+            <text class="ai-star-icon">✦</text>
+          </view>
+
+          <!-- AI提示文字 - 短按时显示 -->
+          <view class="ai-hint-bubble" wx:if="{{showAIHint && !isRecognizing}}">
+            <text>自动提取店名地址菜系</text>
           </view>
         </view>
-        <text class="image-hint" wx:if="{{images.length === 0}}">至少1张，最多6张（需包含店铺名称）</text>
-      </view>
     </view>
 
     <!-- 店铺名称 + 推荐指数 并列 -->
@@ -63,27 +94,27 @@
       </view>
     </view>
 
-    <!-- 人均消费 -->
-    <view class="form-item required">
-      <text class="form-label">人均消费</text>
-      <view class="price-input-wrapper">
-        <text class="price-symbol">¥</text>
-        <input class="price-input" placeholder="价格" type="digit" value="{{avgPrice}}" bindinput="onPriceInput" />
+    <!-- 人均消费 + 地点 + 导航 合并一行 -->
+    <view class="form-item required price-location-row">
+      <view class="price-location-left">
+        <text class="form-label inline-label">人均消费</text>
+        <view class="price-input-wrapper compact">
+          <text class="price-symbol">¥</text>
+          <input class="price-input" placeholder="价格" type="digit" value="{{avgPrice}}" bindinput="onPriceInput" />
+        </view>
       </view>
-    </view>
-
-    <!-- 地点 - 支持文字输入和地图选择 -->
-    <view class="form-item required location-group">
-      <text class="form-label">地点</text>
-      <view class="location-content">
-        <input 
-          class="form-input location-input" 
-          placeholder="输入地址或点击地图图标" 
-          value="{{location}}"
-          bindinput="onLocationInput"
-        />
-        <view class="location-map-btn" bindtap="chooseLocation">
-          <image class="location-icon" src="{{imagePaths.icons.location}}" mode="aspectFit"/>
+      <view class="price-location-right">
+        <text class="form-label inline-label">地点</text>
+        <view class="location-content compact">
+          <input
+            class="location-input"
+            placeholder="地址"
+            value="{{location}}"
+            bindinput="onLocationInput"
+          />
+          <view class="location-map-btn" bindtap="chooseLocation">
+            <image class="location-icon" src="{{imagePaths.icons.location}}" mode="aspectFit"/>
+          </view>
         </view>
       </view>
     </view>
@@ -119,8 +150,8 @@
   <!-- 底部按钮 -->
   <view class="button-section">
     <button class="cancel-btn" bindtap="onCancel">取消</button>
-    <button class="submit-btn {{submitting || !isValid ? 'disabled' : ''}}" bindtap="onSubmit" disabled="{{submitting || !isValid}}">
-      {{submitting ? '提交中...' : '发布推荐'}}
+<button class="submit-btn {{submitting || !isValid ? 'disabled' : ''}}" bindtap="onSubmit" disabled="{{submitting || !isValid}}">
+{{submitting ? '提交中...' : (isEditMode ? '保存修改' : '发布推荐')}}
     </button>
   </view>
 </view>

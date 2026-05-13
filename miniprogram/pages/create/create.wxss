@@ -6,7 +6,6 @@
   min-height: 100vh;
   background: var(--color-bg);
   position: relative;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -255,6 +254,7 @@
   padding: 0 0 calc(20rpx + constant(safe-area-inset-bottom)) 0;
   padding: 0 0 calc(20rpx + env(safe-area-inset-bottom)) 0;
   z-index: 99999;
+  pointer-events: auto;
 }
 
 .page-tab-bar-container {
@@ -284,6 +284,7 @@
   justify-content: flex-end;
   height: 100rpx;
   padding-bottom: 8rpx;
+  pointer-events: auto;
 }
 
 .page-icon-wrapper {

@@ -277,24 +277,51 @@
 .deadline-picker {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 16rpx;
+  z-index: 1;
 }
 
-.picker-value {
-  background: var(--bg);
-  padding: 10rpx 16rpx;
+.picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 20rpx;
+  background: #fff;
   border-radius: var(--radius-md);
+  border: 2rpx solid var(--border);
+  min-width: 180rpx;
   font-size: 28rpx;
   color: var(--text);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.picker-btn::after {
+  display: none;
+}
+
+.picker-btn:active {
+  border-color: var(--primary);
+  background: rgba(255, 159, 67, 0.08);
+}
+
+.deadline-picker .picker-value {
+  font-size: 28rpx;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.picker-arrow {
+  font-size: 20rpx;
+  color: var(--text-secondary);
+  transform: scale(0.8);
 }
 
 /* 步进器 */
 .stepper {
   display: flex;
   align-items: center;
-  background: var(--bg);
-  border-radius: var(--radius-xl);
-  padding: 4rpx;
+  gap: 20rpx;
 }
 
 .stepper-btn {
@@ -303,18 +330,150 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border-radius: var(--radius-md);
-  font-size: 32rpx;
-  font-weight: 700;
-  color: var(--primary);
-  transition: all 0.15s;
+  background: var(--bg);
+  border-radius: 50%;
+  font-size: 36rpx;
+  color: var(--text);
 }
 
-.stepper-btn:active {
-  transform: scale(0.9);
-  background: var(--primary);
+.stepper-btn.disabled {
+  color: var(--text-light);
+}
+
+.stepper-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 60rpx;
+  text-align: center;
+}
+
+/* 弹窗遮罩 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+/* 弹窗内容 */
+.modal-content {
+  width: 100%;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* 弹窗头部 */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 2rpx solid var(--border);
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modal-close {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: var(--text-secondary);
+}
+
+/* 弹窗内容区 */
+.modal-body {
+  flex: 1;
+  padding: 20rpx 24rpx;
+  max-height: 60vh;
+  box-sizing: border-box;
+}
+
+/* 日期列表 */
+.date-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12rpx;
+}
+
+.date-item-modal {
+  padding: 18rpx 4rpx;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 88rpx;
+  overflow: hidden;
+}
+
+.date-item-modal.today {
+  background: rgba(255, 159, 67, 0.1);
+}
+
+.date-item-modal.selected {
+  background: var(--primary-gradient);
+}
+
+.date-item-modal.selected .date-label {
   color: #fff;
+}
+
+.date-label {
+  font-size: 26rpx;
+  color: var(--text);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 时间网格 */
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12rpx;
+}
+
+.time-item {
+  padding: 14rpx 4rpx;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  text-align: center;
+  box-sizing: border-box;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.time-item.selected {
+  background: var(--primary-gradient);
+}
+
+.time-item.selected .time-label {
+  color: #fff;
+}
+
+.time-label {
+  font-size: 28rpx;
+  color: var(--text);
 }
 
 .stepper-btn.disabled {

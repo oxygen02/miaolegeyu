@@ -200,7 +200,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  min-width: 0;
+  min-width: 0;  /* 允许收缩 */
+  max-width: 100%;  /* 不超过父容器 */
+  overflow: hidden;  /* 防止内容溢出 */
   gap: 6rpx;
 }
 
@@ -244,6 +246,8 @@
   display: flex;
   align-items: center;
   gap: 10rpx;
+  width: 100%;  /* 占满父容器宽度 */
+  overflow: hidden;  /* 防止内容溢出 */
 }
 
 .shop-name {
@@ -272,6 +276,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  min-width: 0;  /* 关键：允许收缩到0 */
+  max-width: 100%;  /* 不超过父容器 */
+  line-height: 1.4;
 }
 
 /* 地址行：导航图标 + 地址（单独一行） */
@@ -279,6 +286,9 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
+  width: 100%;  /* 占满整行 */
+  overflow: hidden;  /* 防止内容溢出 */
+  flex-shrink: 0;  /* 不允许被压缩 */
 }
 
 /* 小导航按钮 */

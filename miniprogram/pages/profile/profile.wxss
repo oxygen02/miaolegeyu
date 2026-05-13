@@ -3,6 +3,8 @@
   background: var(--bg);
   display: flex;
   flex-direction: column;
+  padding-bottom: calc(180rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
 /* 用户信息头部 - 橙色渐变背景 */
@@ -769,6 +771,11 @@
   background: rgba(255,107,107,0.1);
 }
 
+.shop-actions .action-btn.edit {
+  color: #4CAF50;
+  background: rgba(76,175,80,0.1);
+}
+
 /* 活动列表 */
 .appointment-list {
   display: flex;
@@ -955,4 +962,129 @@
   padding: 4rpx 12rpx;
   background: rgba(76, 175, 80, 0.1);
   border-radius: 12rpx;
+}
+
+/* 自定义底部导航栏 - 蜡笔像素风 */
+.custom-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: -10rpx;
+  right: -10rpx;
+  height: 160rpx;
+  background: #FFF8F0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  box-sizing: border-box;
+  border: none;
+  padding: 0 20rpx calc(8rpx + constant(safe-area-inset-bottom)) 20rpx;
+  padding: 0 20rpx calc(8rpx + env(safe-area-inset-bottom)) 20rpx;
+  z-index: 9999;
+}
+
+.tab-bar-border {
+  display: none;
+}
+
+.tab-bar-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  height: 120rpx;
+  background: #fff;
+  border-top: 4rpx solid #3D3D3D;
+  border-left: 4rpx solid #3D3D3D;
+  border-bottom: 8rpx solid #3D3D3D;
+  border-right: 8rpx solid #3D3D3D;
+  border-radius: 24rpx;
+  box-shadow:
+    4rpx 6rpx 0 rgba(61, 61, 61, 0.15),
+    8rpx 12rpx 20rpx rgba(61, 61, 61, 0.1);
+  padding: 0 20rpx;
+  box-sizing: border-box;
+}
+
+.tab-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100rpx;
+  padding-bottom: 8rpx;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.icon-wrapper {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6rpx;
+}
+
+.tab-icon {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.fish-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 0;
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.tab-text {
+  font-size: 22rpx;
+  color: #999;
+  font-weight: 500;
+}
+
+.tab-bar-item.active .icon-wrapper,
+.tab-bar-item.animating .icon-wrapper {
+  transform: scale(1.25);
+  transition: transform 0.2s ease;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: scale(1.25) rotate(0deg); }
+  10% { transform: scale(1.25) rotate(-8deg); }
+  20% { transform: scale(1.25) rotate(8deg); }
+  30% { transform: scale(1.25) rotate(-6deg); }
+  40% { transform: scale(1.25) rotate(6deg); }
+  50% { transform: scale(1.25) rotate(-4deg); }
+  60% { transform: scale(1.25) rotate(4deg); }
+  70% { transform: scale(1.25) rotate(-2deg); }
+  80% { transform: scale(1.25) rotate(2deg); }
+  90% { transform: scale(1.25) rotate(0deg); }
+}
+
+.tab-bar-item.active .tab-icon,
+.tab-bar-item.animating .tab-icon {
+  filter: grayscale(0%) !important;
+  opacity: 1 !important;
+}
+
+.tab-bar-item.active .fish-icon,
+.tab-bar-item.animating .fish-icon {
+  filter: grayscale(0%) !important;
+  opacity: 1 !important;
+}
+
+.tab-bar-item.active .tab-text,
+.tab-bar-item.animating .tab-text {
+  color: #FF9F43 !important;
+  font-weight: 600;
+  font-size: 24rpx;
 }

@@ -1,15 +1,18 @@
 // 批量上传图片到云存储
 const { imagePaths } = require('../../config/imageConfig');
+const app = getApp();
 
 Page({
   data: {
-    imagePaths: imagePaths,
+    imagePaths: {},
     uploadStatus: [],
     isUploading: false,
     progress: 0
   },
 
-  onLoad() {
+  async onLoad() {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
     // 定义要上传的图片列表
     this.imageList = [
       // 图标

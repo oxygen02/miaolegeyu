@@ -195,7 +195,7 @@
 /* ---------- 全屏swiper ---------- */
 .full-swiper {
   flex: 1;
-  height: calc(100vh - 680rpx);
+  height: calc(100vh - 520rpx);
   width: 100%;
 }
 
@@ -293,25 +293,25 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 180rpx;
-  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  height: 120rpx;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 20rpx 40rpx 60rpx;
+  padding: 16rpx 32rpx 20rpx;
 }
 
 .card-title {
-  font-size: 48rpx;
+  font-size: 40rpx;
   font-weight: bold;
   color: #fff;
-  text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+  text-shadow: 0 2rpx 6rpx rgba(0,0,0,0.8);
 }
 
 .card-desc {
-  font-size: 26rpx;
-  color: rgba(255,255,255,0.7);
-  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: rgba(255,255,255,0.75);
+  margin-top: 8rpx;
 }
 
 /* ---------- 操作栏 - 抖音风格（固定在wrapper右侧，不随卡片切换移动） ---------- */
@@ -1085,24 +1085,24 @@
 /* ---------- 底部操作区 ---------- */
 .bottom-section {
   background: #fff;
-  border-radius: 0;
-  padding: 0 16rpx 30rpx;
-  box-shadow: none;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 16rpx 24rpx 30rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
   z-index: 10;
   flex-shrink: 0;
-  margin-top: -10rpx;
+  margin-top: -20rpx;
 }
 
 /* 禁忌区域 */
 .taboo-section {
-  margin-bottom: 4rpx;
+  margin-bottom: 8rpx;
 }
 
 .taboo-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2rpx 0;
+  padding: 4rpx 0;
 }
 
 .taboo-title {
@@ -1162,8 +1162,8 @@
 
 /* 时间选择 */
 .time-section {
-  margin-top: 4rpx;
-  margin-bottom: 4rpx;
+  margin-top: 8rpx;
+  margin-bottom: 8rpx;
 }
 
 .time-row {
@@ -1237,7 +1237,7 @@
   display: flex;
   justify-content: center;
   gap: 32rpx;
-  padding: 32rpx 0;
+  padding: 24rpx 0 16rpx;
   flex-shrink: 0;
   margin-top: auto;
   border-top: none;

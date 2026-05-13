@@ -22,7 +22,7 @@ Page({
       { id: 'o002', nickName: '吃货小王', avatarUrl: '/assets/cat-avatar2.png', isVoted: true, isHost: false, anonName: '馋嘴猫', choices: ['重庆火锅'] },
       { id: 'o003', nickName: '美食家小李', avatarUrl: '/assets/cat-avatar3.png', isVoted: true, isHost: false, anonName: '干饭喵', choices: ['经典川菜', '麻辣香锅'] },
       { id: 'o004', nickName: '橘仔', avatarUrl: '/assets/cat-avatar4.png', isVoted: false, isHost: false, anonName: '探店喵', choices: [] },
-      { id: 'o005', nickName: '匿名喵友', avatarUrl: 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/decorations/juze_avatar.png', isVoted: false, isHost: false, anonName: '觅食喵', choices: [] }
+      { id: 'o005', nickName: '匿名喵友', avatarUrl: 'https://636c-cloud1-d4gfy27bn0f3f5346.tcb.qcloud.la/decorations/juze_avatar.png', isVoted: false, isHost: false, anonName: '觅食喵', choices: [] }
     ],
     topOptions: [
       { id: 'sub_01_01', name: '经典川菜', image: '/images/category_01_01.jpg', count: 3, percent: 75 },
@@ -38,6 +38,16 @@ Page({
       voteCount: 4,
       votePercent: 80
     }
+  },
+
+  previewImage(e) {
+    const { src } = e.currentTarget.dataset;
+    if (!src) return;
+
+    wx.previewImage({
+      current: src,
+      urls: [src]
+    });
   },
 
   onLoad(options) {

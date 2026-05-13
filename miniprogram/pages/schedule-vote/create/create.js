@@ -16,6 +16,17 @@ Page({
     // 截止时间（默认3天后）
     deadlineDate: '',
     deadlineTime: '12:00',
+    // 弹窗状态
+    showDateModal: false,
+    showTimeModal: false,
+    // 时间选项
+    timeOptions: [
+      '09:00', '10:00', '11:00', '12:00', '13:00', '14:00',
+      '15:00', '16:00', '17:00', '18:00', '19:00', '20:00',
+      '21:00', '22:00', '23:00'
+    ],
+    // 截止日期选项
+    deadlineDateOptions: [],
     // 匿名投票
     anonymous: true,
     loading: false
@@ -27,7 +38,9 @@ Page({
       selectedDates: [],
       title: '',
       description: '',
-      minParticipants: 2
+      minParticipants: 2,
+      deadlineDate: '',
+      deadlineTime: '12:00'
     });
     this.initDates();
     this.initDeadline();
@@ -82,7 +95,9 @@ Page({
     const year = d.getFullYear();
     const month = (d.getMonth() + 1).toString().padStart(2, '0');
     const day = d.getDate().toString().padStart(2, '0');
-    this.setData({ deadlineDate: `${year}-${month}-${day}` });
+    const deadline = `${year}-${month}-${day}`;
+    console.log('initDeadline:', deadline);
+    this.setData({ deadlineDate: deadline });
   },
 
   // 输入活动主题
@@ -139,12 +154,82 @@ Page({
     this.setData({ anonymous: !this.data.anonymous });
   },
 
-  // 截止时间日期变化
+  // 显示日期选择器
+  showDatePicker() {
+    console.log('showDatePicker called, deadlineDate:', this.data.deadlineDate);
+    const options = this.generateDateOptions();
+    console.log('date options:', options);
+    this.setData({ 
+      showDateModal: true,
+      deadlineDateOptions: options
+    });
+  },
+
+  // 选择日期
+  selectDate(e) {
+    const date = e.currentTarget.dataset.date;
+    this.setData({ 
+      deadlineDate: date,
+      showDateModal: false 
+    });
+  },
+
+  // 关闭日期弹窗
+  closeDateModal() {
+    this.setData({ showDateModal: false });
+  },
+
+  // 显示时间选择器
+  showTimePicker() {
+    console.log('showTimePicker called');
+    this.setData({ showTimeModal: true });
+  },
+
+  // 选择时间
+  selectTime(e) {
+    const time = e.currentTarget.dataset.time;
+    this.setData({ 
+      deadlineTime: time,
+      showTimeModal: false 
+    });
+  },
+
+  // 关闭时间弹窗
+  closeTimeModal() {
+    this.setData({ showTimeModal: false });
+  },
+
+  // 弹窗内部点击（阻止事件冒泡）
+  onModalTap() {
+    // 空函数，用于阻止点击事件冒泡到遮罩层
+  },
+
+  // 生成日期选项列表
+  generateDateOptions() {
+    const options = [];
+    const today = new Date();
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const year = d.getFullYear();
+      const month = (d.getMonth() + 1).toString().padStart(2, '0');
+      const day = d.getDate().toString().padStart(2, '0');
+      const dayOfWeek = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()];
+      options.push({
+        value: `${year}-${month}-${day}`,
+        label: `${month}/${day} ${dayOfWeek}`,
+        isToday: i === 0
+      });
+    }
+    return options;
+  },
+
+  // 截止时间日期变化（兼容旧版）
   onDeadlineDateChange(e) {
     this.setData({ deadlineDate: e.detail.value });
   },
 
-  // 截止时间时间变化
+  // 截止时间时间变化（兼容旧版）
   onDeadlineTimeChange(e) {
     this.setData({ deadlineTime: e.detail.value });
   },

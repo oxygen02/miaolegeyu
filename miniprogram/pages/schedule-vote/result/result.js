@@ -94,7 +94,9 @@ Page({
     // 展开的成员
     expandedParticipant: null,
     // 级别配置
-    LEVEL_CONFIG
+    LEVEL_CONFIG,
+    // 当前用户是否已参与
+    hasParticipated: false
   },
 
   onLoad(options) {
@@ -151,12 +153,16 @@ Page({
         const summary = this.calcSummary(participants, vote.candidateDates);
         const recommendations = this.calcRecommendations(summary, vote.candidateDates);
 
+        // 检查当前用户是否已参与
+        const hasParticipated = participants.some(p => p.openId === vote.creatorOpenId || p.name !== '匿名用户');
+        
         this.setData({
           vote,
           weeks,
           participants,
           summary,
-          recommendations
+          recommendations,
+          hasParticipated: result.myParticipation ? true : false
         });
       } else {
         wx.showToast({ title: result.error || '加载失败', icon: 'none' });

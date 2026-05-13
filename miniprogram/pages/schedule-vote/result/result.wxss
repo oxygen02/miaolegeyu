@@ -427,6 +427,15 @@
   border: 3rpx solid #E0E0E0;
 }
 
+.notice-card.notice-success {
+  background: #F0FFF0;
+  border-color: #90EE90;
+}
+
+.notice-card.notice-success .notice-text {
+  color: #228B22;
+}
+
 .notice-text {
   font-size: 28rpx;
   color: var(--text-secondary);
@@ -435,8 +444,12 @@
 /* 按钮 */
 .btn-small {
   font-size: 24rpx;
-  padding: 10rpx 24rpx !important;
+  padding: 12rpx 28rpx !important;
   border-radius: 24rpx !important;
+  white-space: nowrap !important;
+  min-width: 120rpx !important;
+  border: 3rpx solid #3D3D3D !important;
+  box-shadow: 2rpx 2px 0 #3D3D3D !important;
 }
 
 .btn-primary {
@@ -447,6 +460,18 @@
 }
 
 .btn-primary::after {
+  display: none !important;
+}
+
+.btn-outline {
+  background: #fff !important;
+  color: #FF9F43 !important;
+  border: 3rpx solid #3D3D3D !important;
+  font-weight: 600 !important;
+  box-shadow: 2rpx 2px 0 #3D3D3D !important;
+}
+
+.btn-outline::after {
   display: none !important;
 }
 

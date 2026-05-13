@@ -1,5 +1,6 @@
 const { imagePaths } = require('../../config/imageConfig');
 const audioManager = require('../../utils/audioManager');
+const app = getApp();
 
 // 鱼的配置
 const FISH_COUNT = 5;
@@ -20,8 +21,10 @@ Page({
     countdownTimers: {},
     pageReady: false,
     _dataLoaded: false,
-    imagePaths: imagePaths,
-    fishes: []
+    imagePaths: {},
+    fishes: [],
+    currentTab: 0,
+    animatingTab: -1
   },
 
   // 鱼的动画实例和状态（由 wx.createAnimation 驱动）
@@ -34,14 +37,17 @@ Page({
   touchStartY: 0,
   isTouchMoved: false,
 
-  onLoad(options) {
+  async onLoad(options) {
+    // 等待全局图片路径解析完成（cloud:// → https://）
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
+
     setTimeout(() => {
       this.setData({ pageReady: true });
       this._loadDataAsync();
       this._initFishes();
     }, 200);
   },
-
   updateTabBarSelected() {
     const tabBar = this.getTabBar();
     if (tabBar) {
@@ -270,15 +276,27 @@ Page({
 
   switchTab(e) {
     const { index } = e.currentTarget.dataset;
+    const tabIndex = parseInt(index);
+
+    this.setData({ animatingTab: tabIndex });
+
+    setTimeout(() => {
+      this.setData({ animatingTab: -1 });
+    }, 500);
+
     const urlMap = {
-      '0': '/pages/index/index',
-      '1': '/pages/fish-tank/fish-tank',
-      '2': '/pages/profile/profile'
+      0: '/pages/index/index',
+      1: '/pages/fish-tank/fish-tank',
+      2: '/pages/profile/profile'
     };
-    const url = urlMap[index];
-    if (url && index !== '0') {
-      wx.navigateTo({ url });
+    const url = urlMap[tabIndex];
+    if (!url) return;
+
+    if (tabIndex === 0) {
+      return;
     }
+
+    wx.switchTab({ url });
   },
 
   enterRoom(e) {

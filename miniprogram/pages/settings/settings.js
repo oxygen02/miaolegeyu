@@ -5,10 +5,11 @@
 const audioManager = require('../../utils/audioManager');
 const auth = require('../../utils/auth');
 const { imagePaths } = require('../../config/imageConfig');
+const app = getApp();
 
 Page({
   data: {
-    imagePaths: imagePaths,
+    imagePaths: {},
     userInfo: {
       nickName: '',
       avatarUrl: '',
@@ -22,7 +23,9 @@ Page({
     }
   },
 
-  onLoad() {
+  async onLoad() {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
     auth.refreshUserInfo(this);
     this.loadSettings();
   },

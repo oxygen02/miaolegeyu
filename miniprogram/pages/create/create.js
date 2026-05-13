@@ -1,14 +1,16 @@
 const { imagePaths } = require('../../config/imageConfig');
 const audioManager = require('../../utils/audioManager');
+const app = getApp();
 
 // 发起者选择页
 Page({
   data: {
-    imagePaths: imagePaths
+    imagePaths: {}
   },
 
-  onLoad() {
-    // 页面加载
+  async onLoad() {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
   },
 
   // 返回上一页
@@ -50,8 +52,9 @@ Page({
 
   // 底部导航切换
   switchTab(e) {
+    console.log('[Create] switchTab 被点击, index:', e.currentTarget.dataset.index);
     const index = parseInt(e.currentTarget.dataset.index);
     const urls = ['/pages/index/index', '/pages/fish-tank/fish-tank', '/pages/profile/profile'];
-    wx.navigateTo({ url: urls[index] });
+    wx.reLaunch({ url: urls[index] });
   }
 });

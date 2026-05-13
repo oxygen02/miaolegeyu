@@ -1,21 +1,30 @@
 const { imagePaths } = require('../../config/imageConfig');
+const app = getApp();
 
 Page({
   data: {
-    imagePaths: imagePaths,
+    imagePaths: {},
     totalAmount: 268,
     peopleCount: 4,
     perPerson: 67,
-    members: [
-      { id: 1, name: '我', paid: true, avatar: imagePaths.icons.juzeAvatar },
-      { id: 2, name: '张三', paid: false, avatar: imagePaths.icons.juzeAvatar },
-      { id: 3, name: '李四', paid: false, avatar: imagePaths.icons.juzeAvatar },
-      { id: 4, name: '王五', paid: true, avatar: imagePaths.icons.juzeAvatar }
-    ],
+    members: [],
     paidCount: 2,
     allPaid: false
   },
-  onLoad() {
+  async onLoad() {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
+    // 使用已解析的路径初始化成员头像（避免 cloud:// 泄漏到渲染层）
+    const resolved = this.data.imagePaths;
+    const defaultAvatar = (resolved.icons && resolved.icons.juzeAvatar) || '';
+    this.setData({
+      members: [
+        { id: 1, name: '我', paid: true, avatar: defaultAvatar },
+        { id: 2, name: '张三', paid: false, avatar: defaultAvatar },
+        { id: 3, name: '李四', paid: false, avatar: defaultAvatar },
+        { id: 4, name: '王五', paid: true, avatar: defaultAvatar }
+      ]
+    });
     this.updateStatus();
   },
   updateStatus() {

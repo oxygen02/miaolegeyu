@@ -29,7 +29,7 @@ const { years, months, days, hours, minutes } = generateDateTimeData();
 
 Page({
   data: {
-    imagePaths: imagePaths,
+    imagePaths: {},
     shop: null,
     loading: true,
     currentImageIndex: 0,
@@ -96,7 +96,9 @@ Page({
     isAnonymousInitiator: false
   },
 
-  async onLoad(options) {
+async onLoad(options) {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
     const { id, openAppointment } = options;
     if (id) {
       this.initTimePicker();

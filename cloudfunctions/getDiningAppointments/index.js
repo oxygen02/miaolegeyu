@@ -72,42 +72,21 @@ exports.main = async (event) => {
       const shop = shopMap[apt.shopId] || {};
       const shopImage = shop.image || shop.coverImage || shop.posterImage || '';
 
-      // 将云数据库 Date 类型转换为 ISO 字符串，确保前端能正确解析
-      // 旧数据（没有 tzFixed 标记）被服务端当作 UTC 存储，实际应为东八区，需减 8 小时修正
-      let appointmentTimeStr = '';
-      if (apt.appointmentTime) {
-        const d = new Date(apt.appointmentTime);
-        if (!apt.tzFixed) { d.setHours(d.getHours() - 8); }
-        appointmentTimeStr = d.toISOString();
-      }
-      let deadlineStr = '';
-      let remainingTime = 0;
-      if (apt.deadline) {
-        const d = new Date(apt.deadline);
-        if (!apt.tzFixed) { d.setHours(d.getHours() - 8); }
-        deadlineStr = d.toISOString();
-        remainingTime = d.getTime() - new Date().getTime();
-        if (remainingTime < 0) remainingTime = 0;
-      }
-
       return {
         _id: apt._id,
         roomId: apt._id,
         title: apt.shopName || '约饭活动',
         status: 'voting',
         mode: 'meal',
-        shopId: apt.shopId || '',
         shopName: apt.shopName || '未知店铺',
         shopImage: shopImage,
         location: apt.shopName || '',
-        appointmentTime: appointmentTimeStr,
-        activityTime: appointmentTimeStr ? new Date(appointmentTimeStr).toLocaleString() : '时间待定',
-        deadline: deadlineStr,
-        remainingTime: remainingTime,
+        activityTime: apt.appointmentTime ? new Date(apt.appointmentTime).toLocaleString() : '时间待定',
+        deadline: apt.deadline ? new Date(apt.deadline).toLocaleString() : '',
         participantCount: participants.length,
         maxParticipants: apt.maxParticipants || 0,
         note: apt.note || '',
-        paymentMode: apt.paymentMode || '',
+        paymentMode: apt.paymentMode || 'AA',
         createdAt: apt.createTime,
         creatorNickName: apt.initiatorName || '神秘喵友',
         creatorAvatarUrl: apt.initiatorAvatar || '',

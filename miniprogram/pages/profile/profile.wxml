@@ -1,3 +1,20 @@
+<wxs module="utils">
+module.exports = {
+  safeString: function(value) {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'object') {
+      if (value.name) return value.name;
+      if (value.address) return value.address;
+      if (value.text) return value.text;
+      return '';
+    }
+    return String(value);
+  }
+}
+</wxs>
+
 <view class="profile-page">
   <!-- 用户信息 -->
   <view class="user-header">
@@ -130,7 +147,7 @@
           <view class="room-card" wx:for="{{myParticipated}}" wx:key="roomId" bindtap="goToRoomDetail" data-roomid="{{item.roomId}}">
             <!-- 左侧图片区域 -->
             <view class="room-poster">
-              <image src="{{item.finalPoster || (item.candidatePosters && item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || imagePaths.banners.taiyakiIcon}}" mode="aspectFill"/>
+              <image src="{{item.finalPoster || (item.candidatePosters && item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || imagePaths.banners.taiyakiIcon}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.finalPoster || (item.candidatePosters && item.candidatePosters[0] && item.candidatePosters[0].imageUrl)}}"/>
               <!-- 状态标签（毛玻璃效果） -->
               <view class="room-status {{item.status}}">
                 {{item.status === 'voting' ? '进行中' : (item.status === 'locked' ? '已锁定' : '已结束')}}
@@ -147,17 +164,17 @@
 
               <!-- 第二行：日期+时间+地点 -->
               <view class="info-row meta-row">
-                <view class="meta-item" wx:if="{{item.activityDate}}">
+                <view class="meta-item" wx:if="{{utils.safeString(item.activityDate)}}">
                   <image class="meta-icon" src="{{imagePaths.icons.calendar || '/assets/images/calendar-icon.svg'}}" mode="aspectFit" />
-                  <text>{{item.activityDate}}</text>
+                  <text>{{utils.safeString(item.activityDate)}}</text>
                 </view>
-                <view class="meta-item" wx:if="{{item.activityTime}}">
+                <view class="meta-item" wx:if="{{utils.safeString(item.activityTime)}}">
                   <image class="meta-icon" src="{{imagePaths.icons.time || '/assets/images/time-icon.svg'}}" mode="aspectFit" />
-                  <text>{{item.activityTime}}</text>
+                  <text>{{utils.safeString(item.activityTime)}}</text>
                 </view>
-                <view class="meta-item" wx:if="{{item.location}}">
+                <view class="meta-item" wx:if="{{utils.safeString(item.location)}}">
                   <image class="meta-icon" src="{{imagePaths.icons.location || '/assets/images/location.png'}}" mode="aspectFit" />
-                  <text>{{item.location}}</text>
+                  <text>{{utils.safeString(item.location)}}</text>
                 </view>
               </view>
 
@@ -194,7 +211,7 @@
           <view class="room-card" wx:for="{{myRooms}}" wx:key="roomId" bindtap="goToRoomDetail" data-roomid="{{item.roomId}}" bindlongpress="onRoomLongPress" data-iscreator="{{item.isCreator}}">
             <!-- 左侧图片区域 -->
             <view class="room-poster">
-              <image src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || imagePaths.banners.taiyakiIcon}}" mode="aspectFill"/>
+              <image src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || imagePaths.banners.taiyakiIcon}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl)}}"/>
               <!-- 状态标签（毛玻璃效果） -->
               <view class="room-status {{item.status}}">
                 {{item.status === 'voting' ? '进行中' : (item.status === 'locked' ? '已锁定' : '已结束')}}
@@ -211,17 +228,17 @@
 
               <!-- 第二行：日期+时间+地点 -->
               <view class="info-row meta-row">
-                <view class="meta-item" wx:if="{{item.activityDate}}">
+                <view class="meta-item" wx:if="{{utils.safeString(item.activityDate)}}">
                   <image class="meta-icon" src="{{imagePaths.icons.calendar || '/assets/images/calendar-icon.svg'}}" mode="aspectFit" />
-                  <text>{{item.activityDate}}</text>
+                  <text>{{utils.safeString(item.activityDate)}}</text>
                 </view>
-                <view class="meta-item" wx:if="{{item.activityTime}}">
+                <view class="meta-item" wx:if="{{utils.safeString(item.activityTime)}}">
                   <image class="meta-icon" src="{{imagePaths.icons.time || '/assets/images/time-icon.svg'}}" mode="aspectFit" />
-                  <text>{{item.activityTime}}</text>
+                  <text>{{utils.safeString(item.activityTime)}}</text>
                 </view>
-                <view class="meta-item" wx:if="{{item.location}}">
+                <view class="meta-item" wx:if="{{utils.safeString(item.location)}}">
                   <image class="meta-icon" src="{{imagePaths.icons.location || '/assets/images/location.png'}}" mode="aspectFit" />
-                  <text>{{item.location}}</text>
+                  <text>{{utils.safeString(item.location)}}</text>
                 </view>
               </view>
 
@@ -257,12 +274,13 @@
       <scroll-view class="list-content" scroll-y wx:elif="{{currentList === 'myShops'}}">
         <view class="shop-list">
           <view class="shop-card" wx:for="{{myShops}}" wx:key="_id">
-            <image class="shop-image" src="{{item.images[0] || imagePaths.banners.taiyakiIcon}}" mode="aspectFill" bindtap="goToShopDetail" data-id="{{item._id}}"/>
+            <image class="shop-image" src="{{item.images[0] || imagePaths.banners.taiyakiIcon}}" mode="aspectFill" bindtap="goToShopDetail" data-id="{{item._id}}" catchtap="previewImage" data-src="{{item.images[0]}}" data-urls="{{item.images}}"/>
             <view class="shop-info">
               <text class="shop-name">{{item.name}}</text>
-              <text class="shop-location">{{item.location}}</text>
+              <text class="shop-location">{{utils.safeString(item.location)}}</text>
             </view>
             <view class="shop-actions">
+              <text class="action-btn edit" bindtap="editShop" data-item="{{item}}">编辑</text>
               <text class="action-btn delete" bindtap="deleteShop" data-id="{{item._id}}">删除</text>
             </view>
           </view>
@@ -278,7 +296,7 @@
           <view class="room-card" wx:for="{{myAppointments}}" wx:key="_id" bindtap="goToAppointmentDetail" data-shopid="{{item.shopId}}">
             <!-- 左侧图片区域 -->
             <view class="room-poster">
-              <image src="{{item.shopImage || item.imageUrl || imagePaths.banners.taiyakiIcon}}" mode="aspectFill"/>
+              <image src="{{item.shopImage || item.imageUrl || imagePaths.banners.taiyakiIcon}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.shopImage || item.imageUrl}}"/>
               <!-- 状态标签（毛玻璃效果） -->
               <view class="room-status {{item.status}}">
                 {{item.status === 'active' ? '进行中' : (item.status === 'ended' ? '已结束' : '进行中')}}
@@ -289,7 +307,7 @@
             <view class="room-info">
               <!-- 第一行：标题 -->
               <view class="info-row title-row">
-                <text class="room-title">{{item.shopName}}</text>
+                <text class="room-title">{{utils.safeString(item.shopName)}}</text>
               </view>
 
               <!-- 第二行：日期+时间+地点 -->
@@ -298,13 +316,13 @@
                   <image class="meta-icon" src="{{imagePaths.icons.calendar || '/assets/images/calendar-icon.svg'}}" mode="aspectFit" />
                   <text>{{item.appointmentDate}}</text>
                 </view>
-                <view class="meta-item" wx:if="{{item.appointmentTime}}">
+                <view class="meta-item" wx:if="{{utils.safeString(item.appointmentTime)}}">
                   <image class="meta-icon" src="{{imagePaths.icons.time || '/assets/images/time-icon.svg'}}" mode="aspectFit" />
-                  <text>{{item.appointmentTime}}</text>
+                  <text>{{utils.safeString(item.appointmentTime)}}</text>
                 </view>
-                <view class="meta-item" wx:if="{{item.location}}">
+                <view class="meta-item" wx:if="{{utils.safeString(item.location)}}">
                   <image class="meta-icon" src="{{imagePaths.icons.location || '/assets/images/location.png'}}" mode="aspectFit" />
-                  <text>{{item.location}}</text>
+                  <text>{{utils.safeString(item.location)}}</text>
                 </view>
               </view>
 
@@ -341,7 +359,7 @@
           <view class="room-card" wx:for="{{myScheduleVotes}}" wx:key="_id" bindtap="goToScheduleVoteDetail" data-id="{{item._id}}">
             <!-- 左侧图片区域 -->
             <view class="room-poster">
-              <image src="{{imagePaths.banners.taiyakiIcon}}" mode="aspectFill"/>
+              <image src="{{imagePaths.banners.taiyakiIcon}}" mode="aspectFill" catchtap="previewImage" data-src="{{imagePaths.banners.taiyakiIcon}}"/>
               <!-- 状态标签 -->
               <view class="room-status {{item.isExpired ? 'ended' : 'voting'}}">
                 {{item.isExpired ? '已截止' : '进行中'}}
@@ -399,7 +417,7 @@
           <view class="room-card favorite-card" wx:for="{{favorites}}" wx:key="_id" bindtap="goToFavoriteDetail" data-item="{{item}}">
             <!-- 左侧图片区域 -->
             <view class="room-poster">
-              <image src="{{item.displayImage || imagePaths.banners.taiyakiIcon}}" mode="aspectFill"/>
+              <image src="{{item.displayImage || imagePaths.banners.taiyakiIcon}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.displayImage}}"/>
               <!-- 类型标签 -->
               <view class="favorite-type-tag {{item.type}}">
                 {{item.type === 'shop' ? '店铺' : '活动'}}
@@ -414,9 +432,9 @@
               </view>
 
               <!-- 第二行：描述/地址 -->
-              <view class="info-row desc-row" wx:if="{{item.displayDesc}}">
+              <view class="info-row desc-row" wx:if="{{utils.safeString(item.displayDesc)}}">
                 <image class="meta-icon" src="{{imagePaths.icons.location || '/assets/images/location.png'}}" mode="aspectFit" />
-                <text class="desc-text">{{item.displayDesc}}</text>
+                <text class="desc-text">{{utils.safeString(item.displayDesc)}}</text>
               </view>
 
               <!-- 第三行：评分和人均 -->
@@ -442,6 +460,31 @@
           <text>还没有收藏</text>
         </view>
       </scroll-view>
+    </view>
+  </view>
+
+  <!-- 底部导航栏 -->
+  <view class="custom-tab-bar">
+    <view class="tab-bar-border"></view>
+    <view class="tab-bar-container">
+      <view class="tab-bar-item {{currentTab === 0 ? 'active' : ''}} {{animatingTab === 0 ? 'animating' : ''}}" data-index="0" bindtap="switchTab">
+        <view class="icon-wrapper">
+          <image class="tab-icon" src="{{imagePaths.misc.pawHomeIcon}}" mode="aspectFit" />
+        </view>
+        <text class="tab-text">首页</text>
+      </view>
+      <view class="tab-bar-item {{currentTab === 1 ? 'active' : ''}} {{animatingTab === 1 ? 'animating' : ''}}" data-index="1" bindtap="switchTab">
+        <view class="icon-wrapper">
+          <image class="tab-icon fish-icon" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
+        </view>
+        <text class="tab-text">喵不喵</text>
+      </view>
+      <view class="tab-bar-item {{currentTab === 2 ? 'active' : ''}} {{animatingTab === 2 ? 'animating' : ''}}" data-index="2" bindtap="switchTab">
+        <view class="icon-wrapper">
+          <image class="tab-icon" src="{{imagePaths.misc.fishIcon}}" mode="aspectFit" />
+        </view>
+        <text class="tab-text">我的</text>
+      </view>
     </view>
   </view>
 </view>

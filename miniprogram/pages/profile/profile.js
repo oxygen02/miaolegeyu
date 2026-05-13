@@ -6,6 +6,7 @@
 const audioManager = require('../../utils/audioManager');
 const auth = require('../../utils/auth');
 const { imagePaths } = require('../../config/imageConfig');
+const app = getApp();
 
 Page({
   data: {
@@ -39,69 +40,78 @@ Page({
     myScheduleVotes: [],
     currentList: '',
     loading: false,
-    imagePaths: imagePaths
+    imagePaths: {},
+    currentTab: 2,
+    animatingTab: -1
   },
 
-  onLoad() {
-    this.loadCloudImageUrls();
+  async onLoad() {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
     this.checkLoginStatus();
   },
 
-  // 获取云存储图片的临时访问 URL
-  async loadCloudImageUrls() {
-    try {
-      // 收集所有需要转换的云存储路径
-      const cloudPaths = [];
-      const pathMap = {};
-
-      // 收集 icons 路径
-      Object.keys(imagePaths.icons).forEach(key => {
-        const path = imagePaths.icons[key];
-        if (path && path.startsWith('cloud://')) {
-          cloudPaths.push(path);
-          pathMap[path] = { category: 'icons', key };
-        }
-      });
-
-      if (cloudPaths.length === 0) return;
-
-      // 调用云函数获取临时 URL
-      const { result } = await wx.cloud.callFunction({
-        name: 'getTempFileURL',
-        data: { fileList: cloudPaths }
-      });
-
-      if (result && result.fileList) {
-        const newImagePaths = { ...this.data.imagePaths };
-
-        result.fileList.forEach(item => {
-          const mapping = pathMap[item.fileID];
-          if (mapping && item.tempFileURL) {
-            newImagePaths[mapping.category][mapping.key] = item.tempFileURL;
-          }
-        });
-
-        this.setData({ imagePaths: newImagePaths });
-      }
-    } catch (err) {
-    }
-  },
-
   onShow() {
-    // 每次页面显示时，重新检查登录状态（解决从设置页面退出登录后返回不刷新的问题）
     this.checkLoginStatus();
     this.updateTabBarSelected();
     if (this.data.userInfo.isLogin) {
       this.loadStats();
-      // 如果当前显示的是我发起的聚餐列表，刷新数据
       if (this.data.currentList === 'myRooms') {
         this.loadMyRooms();
       }
-      // 如果当前显示的是时间投票列表，刷新数据
       if (this.data.currentList === 'myScheduleVotes') {
         this.showMyScheduleVotes();
       }
     }
+  },
+
+  updateTabBarSelected() {
+    const tabBar = this.getTabBar();
+    if (tabBar) {
+      tabBar.setData({ selected: 2 });
+    }
+  },
+
+  switchTab(e) {
+    const { index } = e.currentTarget.dataset;
+    const tabIndex = parseInt(index);
+
+    this.setData({ animatingTab: tabIndex });
+
+    setTimeout(() => {
+      this.setData({ animatingTab: -1 });
+    }, 500);
+
+    const urlMap = {
+      0: '/pages/index/index',
+      1: '/pages/fish-tank/fish-tank',
+      2: '/pages/profile/profile'
+    };
+    const url = urlMap[tabIndex];
+    if (!url) return;
+
+    if (tabIndex === 2) {
+      return;
+    }
+
+    wx.switchTab({ url });
+  },
+
+  previewImage(e) {
+    const { src, urls } = e.currentTarget.dataset;
+    if (!src) return;
+
+    let imageUrls = [];
+    if (urls && Array.isArray(urls)) {
+      imageUrls = urls.filter(url => url);
+    } else {
+      imageUrls = [src];
+    }
+
+    wx.previewImage({
+      current: src,
+      urls: imageUrls
+    });
   },
 
   // 检查登录状态
@@ -454,7 +464,7 @@ Page({
               ...item,
               displayName: item.shop.name || '未知店铺',
               displayImage: item.shop.images && item.shop.images[0] || item.imageUrl || '',
-              displayDesc: item.shop.address || item.shop.location || '暂无地址',
+              displayDesc: typeof (item.shop.address || item.shop.location) === 'object' ? '' : (item.shop.address || item.shop.location || '暂无地址'),
               displayRating: item.shop.rating || '',
               displayPrice: item.shop.averagePrice || item.shop.price || '',
               createTimeStr: this.formatDateTime(item.createTime)
@@ -464,7 +474,7 @@ Page({
               ...item,
               displayName: item.appointment.shopName || '未知活动',
               displayImage: item.appointment.shopImage || item.appointment.imageUrl || item.imageUrl || '',
-              displayDesc: item.appointment.location || item.appointment.address || '暂无地点',
+              displayDesc: typeof (item.appointment.location || item.appointment.address) === 'object' ? '' : (item.appointment.location || item.appointment.address || '暂无地点'),
               displayRating: '',
               displayPrice: '',
               createTimeStr: this.formatDateTime(item.createTime)
@@ -536,7 +546,7 @@ Page({
             participantCount: item.participants ? item.participants.length : 0,
             appointmentDate: appointmentDate ? this.formatDate(appointmentDate) : '',
             appointmentTime: appointmentDate ? this.formatTime(appointmentDate) : '',
-            location: item.location || item.address || '',
+            location: typeof (item.location || item.address) === 'object' ? (item.location || item.address).name || (item.location || item.location).address || '' : (item.location || item.address || ''),
             shopImage: item.shopImage || item.imageUrl || ''
           };
         });
@@ -617,7 +627,7 @@ Page({
   goToScheduleVoteDetail(e) {
     const { id } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/pages/schedule-vote/result/result?id=${id}`
+      url: `/pages/schedule-vote/result/result?voteId=${id}`
     });
   },
 
@@ -639,17 +649,17 @@ Page({
   // 加载我参与的聚餐列表
   async loadMyParticipated() {
     this.setData({ loading: true });
-    
+
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('请求超时')), 10000);
     });
-    
+
     try {
       const { result } = await Promise.race([
         wx.cloud.callFunction({ name: 'getMyParticipatedRooms' }),
         timeoutPromise
       ]);
-      
+
       if (result && result.code === 0) {
         const participated = result.data.map(item => {
           let voteDeadlineStr = '';
@@ -667,6 +677,9 @@ Page({
           return {
             ...item,
             voteDeadlineStr,
+            location: typeof item.location === 'object' ? item.location.name || item.location.address || '' : (item.location || ''),
+            activityDate: typeof item.activityDate === 'object' ? '' : (item.activityDate || ''),
+            activityTime: typeof item.activityTime === 'object' ? '' : (item.activityTime || ''),
             ...this.calcDeadlineUrgent(item.voteDeadline)
           };
         });
@@ -689,17 +702,17 @@ Page({
   // 加载我发起的聚餐列表
   async loadMyRooms() {
     this.setData({ loading: true });
-    
+
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('请求超时')), 10000);
     });
-    
+
     try {
       const { result } = await Promise.race([
         wx.cloud.callFunction({ name: 'getMyRooms' }),
         timeoutPromise
       ]);
-      
+
       if (result && result.code === 0) {
         const formattedRooms = (result.data || []).map(room => {
           if (room.voteDeadline) {
@@ -707,13 +720,16 @@ Page({
             if (!isNaN(date.getTime())) {
               const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
               const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
-              const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
-              const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+              const hour = (room.getHours() < 10 ? '0' : '') + room.getHours();
+              const minute = (room.getMinutes() < 10 ? '0' : '') + room.getMinutes();
               room.voteDeadlineStr = `${month}-${day} ${hour}:${minute}`;
             }
           }
           return {
             ...room,
+            location: typeof room.location === 'object' ? room.location.name || room.location.address || '' : (room.location || ''),
+            activityDate: typeof room.activityDate === 'object' ? '' : (room.activityDate || ''),
+            activityTime: typeof room.activityTime === 'object' ? '' : (room.activityTime || ''),
             ...this.calcDeadlineUrgent(room.voteDeadline)
           };
         });
@@ -1074,6 +1090,16 @@ Page({
         wx.hideLoading();
       }
     }
+  },
+
+  editShop(e) {
+    const item = e.currentTarget.dataset.item;
+    if (!item || !item._id) return;
+
+    // 跳转到推荐店铺页（upload-shop），携带编辑数据
+    wx.reLaunch({
+      url: `/pages/upload-shop/upload-shop?mode=edit&shopId=${item._id}`
+    });
   },
 
   async deleteShop(e) {

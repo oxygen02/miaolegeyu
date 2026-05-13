@@ -1,8 +1,9 @@
 const { imagePaths } = require('../../config/imageConfig');
+const app = getApp();
 
 Page({
   data: {
-    imagePaths: imagePaths,
+    imagePaths: {},
     roomId: '',
     room: {},
     voteStats: null,
@@ -13,7 +14,9 @@ Page({
     mapSdkReady: false
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
     const { roomId, cuisineType } = options;
     this.setData({ roomId });
     this.initMapSdk();
@@ -148,6 +151,16 @@ Page({
     });
 
     return filtered.length >= 2 ? filtered : mockData.slice(0, 3);
+  },
+
+  previewImage(e) {
+    const { src } = e.currentTarget.dataset;
+    if (!src) return;
+
+    wx.previewImage({
+      current: src,
+      urls: [src]
+    });
   },
 
   // 点击餐厅卡片

@@ -1,0 +1,1 @@
+{"name": "recognizeShop", "version": "1.0.0", "description": "AI智能识别店铺信息（OCR）", "main": "index.js", "scripts": {"test": "echo \"Error: no test specified\" && exit 1"}, "author": "", "license": "ISC", "dependencies": {"wx-server-sdk": "~2.6.3", "tencentcloud-sdk-nodejs": "^4.0.0"}}

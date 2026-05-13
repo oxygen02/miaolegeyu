@@ -7,7 +7,7 @@ exports.main = async (event, context) => {
   
   try {
     const shopRes = await db.collection('shops')
-      .where({ recommenderOpenId: OPENID })
+      .where({ openid: OPENID })
       .orderBy('createTime', 'desc')
       .get();
     

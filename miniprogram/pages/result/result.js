@@ -1,5 +1,6 @@
 const { imagePaths } = require('../../config/imageConfig');
 const audioManager = require('../../utils/audioManager');
+const app = getApp();
 
 Page({
   data: {
@@ -8,7 +9,7 @@ Page({
     loading: true,
     isCreator: false,
     voteStats: null,
-    imagePaths: imagePaths,
+    imagePaths: {},
     showPosterModal: false,
     posterData: null,
     platformAppIds: {
@@ -18,7 +19,9 @@ Page({
     }
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
     const { roomId } = options;
     this.setData({ roomId });
     this.loadRoomData();

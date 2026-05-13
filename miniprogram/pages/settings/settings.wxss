@@ -121,7 +121,7 @@
 }
 
 .logout-btn {
-  width: 100%;
+  width: 60%;
   height: 88rpx;
   line-height: 88rpx;
   background: #FF6B6B;
@@ -130,6 +130,8 @@
   font-weight: 600;
   border-radius: 44rpx;
   border: none;
+  margin: 0 auto;
+  display: block;
 }
 
 .logout-btn::after {

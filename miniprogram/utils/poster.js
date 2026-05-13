@@ -26,7 +26,7 @@ class PosterGenerator {
     this.ctx = null;
     this.width = 750;
     this.height = 1280; // V8: 增加高度避免底部溢出
-    this.CDN = 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la';
+    this.CDN = 'https://636c-cloud1-d4gfy27bn0f3f5346.tcb.qcloud.la';
     this.IMAGES = {
       catFishLogo: `${this.CDN}/decorations/cat-fish-logo.png`,
       taiyakiIcon: `${this.CDN}/banners/taiyaki-icon.png`,

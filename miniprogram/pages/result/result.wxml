@@ -180,7 +180,9 @@
 
     <!-- 返回首页 -->
     <view class="back-section">
-      <text class="back-link" bindtap="goHome">返回首页</text>
+      <view class="home-btn" bindtap="goHome">
+        <image class="home-icon" src="{{imagePaths.misc.pawHomeIcon}}" mode="aspectFit" />
+      </view>
     </view>
   </block>
 

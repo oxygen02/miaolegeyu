@@ -7,14 +7,13 @@
         <text class="banner-sub">掌握全局 · 一锤定音</text>
       </view>
     </view>
-    <image class="banner-tail" src="https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/banners/maoweiba.png" mode="aspectFit" />
   </view>
 
   <view class="card main-card">
     <view class="room-header">
       <view class="room-info">
         <text class="room-name">{{roomTitle}}</text>
-        <text class="room-addr">{{roomAddress}} {{roomTime}}</text>
+        <text class="room-addr">{{roomAddress}} · {{roomTime}}</text>
       </view>
       <view class="status-tag {{roomStatus}}">
         <view class="dot"></view>
@@ -46,7 +45,7 @@
 
     <view class="anon-row" bindtap="toggleAnonymous">
       <view class="anon-icon {{isAnonymous ? 'active' : ''}}">
-        <text class="anon-icon-text">匿</text>
+        <image src="/assets/icon-mask.png" mode="aspectFit" />
       </view>
       <view class="anon-text">
         <text class="anon-title">匿名投票</text>
@@ -62,21 +61,20 @@
         <image src="/assets/icon-copy.png" mode="aspectFit" />
       </view>
       <view class="share-btn" bindtap="shareRoom">
-        <image class="share-btn-icon" src="https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/misc/cat-paw-icon.png" mode="aspectFit" />
+        <image src="/assets/icon-share-w.png" mode="aspectFit" />
         <text>邀请</text>
       </view>
     </view>
   </view>
 
-  <!-- 人数>2时显示独立进度卡片 -->
-  <view class="card" wx:if="{{roomStatus === 'voting' && participants.length > 2}}">
+  <view class="card" wx:if="{{roomStatus === 'voting'}}">
     <view class="sec-title">
       <image src="/assets/icon-chart.png" mode="aspectFit" />
       <text>实时投票进度</text>
     </view>
     <view class="progress-box">
       <view class="progress-bg">
-        <view class="progress-bar" style="width: {{progressPercent < 5 ? 5 : progressPercent}}%"></view>
+        <view class="progress-bar" style="width: {{progressPercent}}%"></view>
       </view>
       <view class="progress-text">
         <text>{{votedCount}}/{{participants.length}}</text>
@@ -84,13 +82,13 @@
       </view>
     </view>
     <view class="anon-hint" wx:if="{{isAnonymous}}">
-      <text class="anon-hint-icon">匿</text>
+      <image src="/assets/icon-mask.png" mode="aspectFit" />
       <text>匿名模式下仅展示票数聚合，不公开个人选择</text>
     </view>
     <view class="top3" wx:if="{{topOptions.length > 0}}">
       <text class="sub-title">当前热门</text>
       <view class="opt-item" wx:for="{{topOptions}}" wx:key="id">
-        <image class="opt-img" src="{{item.image}}" mode="aspectFill" />
+        <image class="opt-img" src="{{item.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.image}}"/>
         <view class="opt-info">
           <text class="opt-name">{{item.name}}</text>
           <view class="opt-bar-box">
@@ -104,8 +102,7 @@
     </view>
   </view>
 
-  <!-- 人数>2时显示独立参与情况卡片 -->
-  <view class="card" wx:if="{{participants.length > 2}}">
+  <view class="card">
     <view class="sec-title">
       <image src="/assets/icon-members.png" mode="aspectFit" />
       <text>参与情况</text>
@@ -118,10 +115,11 @@
             bindtap="handleMemberTap"
             data-index="{{index}}">
         <view class="avatar-box">
-          <image class="avatar {{isAnonymous && item.isVoted ? 'blur' : ''}}"
-                 src="{{isAnonymous && item.isVoted ? '/assets/cat-anonymous.png' : (item.avatarUrl || 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/decorations/juze_avatar.png')}}"
+          <image class="avatar {{isAnonymous && item.isVoted ? 'blur' : ''}}" 
+                 src="{{isAnonymous && item.isVoted ? '/assets/cat-anonymous.png' : item.avatarUrl}}" 
                  mode="aspectFill" />
           <view class="mark {{item.isVoted ? 'done' : 'wait'}}">
+            <text>{{item.isVoted ? '✓' : '···'}}</text>
           </view>
         </view>
         <view class="mem-info">
@@ -130,55 +128,7 @@
             <text class="host-label" wx:if="{{item.isHost}}">房主</text>
           </view>
           <text class="mem-status {{item.isVoted ? 'done' : ''}}">
-            {{item.isVoted ? '已完成投票' : '等待投票中'}}
-          </text>
-        </view>
-        <view class="mem-btn">
-          <view class="tag-btn view" wx:if="{{!isAnonymous && item.isVoted}}">查看</view>
-          <view class="tag-btn done" wx:if="{{isAnonymous && item.isVoted}}">已完成</view>
-          <view class="tag-btn remind" wx:if="{{!item.isVoted}}" catchtap="remindMember" data-id="{{item.id}}">催一下</view>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 人数≤2时合并显示投票状态卡片 -->
-  <view class="card vote-status-card" wx:if="{{roomStatus === 'voting' && participants.length <= 2}}">
-    <view class="sec-title">
-      <image src="/assets/icon-chart.png" mode="aspectFit" />
-      <text>投票状态</text>
-      <text class="badge">{{participants.length}}人</text>
-    </view>
-    <!-- 进度条 -->
-    <view class="progress-box compact">
-      <view class="progress-bg">
-        <view class="progress-bar" style="width: {{progressPercent < 5 ? 5 : progressPercent}}%"></view>
-      </view>
-      <view class="progress-text">
-        <text>{{votedCount}}/{{participants.length}} 已投票</text>
-        <text class="pct">{{progressPercent}}%</text>
-      </view>
-    </view>
-    <!-- 人员列表 -->
-    <view class="member-list compact">
-      <view class="member {{item.isVoted ? 'voted' : ''}}" 
-            wx:for="{{participants}}" 
-            wx:key="id"
-            bindtap="handleMemberTap"
-            data-index="{{index}}">
-        <view class="avatar-box">
-          <image class="avatar {{isAnonymous && item.isVoted ? 'blur' : ''}}"
-                 src="{{isAnonymous && item.isVoted ? '/assets/cat-anonymous.png' : (item.avatarUrl || 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/decorations/juze_avatar.png')}}"
-                 mode="aspectFill" />
-          <view class="mark {{item.isVoted ? 'done' : 'wait'}}"></view>
-        </view>
-        <view class="mem-info">
-          <view class="mem-name-row">
-            <text class="mem-name">{{isAnonymous && item.isVoted ? item.anonName : item.nickName}}</text>
-            <text class="host-label" wx:if="{{item.isHost}}">房主</text>
-          </view>
-          <text class="mem-status {{item.isVoted ? 'done' : ''}}">
-            {{item.isVoted ? '已完成投票' : '等待投票中'}}
+            {{item.isVoted ? '已完成投票' : '等待投票中 · 可催一下'}}
           </text>
         </view>
         <view class="mem-btn">
@@ -191,16 +141,11 @@
   </view>
 
   <view class="card tip-card" wx:if="{{roomStatus === 'voting'}}">
-    <view class="tip-header" bindtap="toggleTipExpand">
-      <view class="sec-title tip-title">
-        <image src="/assets/icon-bulb.png" mode="aspectFit" />
-        <text>查看投票规则</text>
-      </view>
-      <view class="tip-arrow {{isTipExpanded ? 'expanded' : ''}}">
-        <text>></text>
-      </view>
+    <view class="sec-title">
+      <image src="/assets/icon-bulb.png" mode="aspectFit" />
+      <text>决策说明</text>
     </view>
-    <view class="tip-list" wx:if="{{isTipExpanded}}">
+    <view class="tip-list">
       <view class="tip">
         <view class="tip-dot"></view>
         <text>所有人投票结束后，发起人可点击「锁定结果」</text>
@@ -226,7 +171,7 @@
       <text>已锁定最终结果</text>
     </view>
     <view class="winner">
-      <image class="win-img" src="{{winner.image}}" mode="aspectFill" />
+      <image class="win-img" src="{{winner.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{winner.image}}"/>
       <view class="win-info">
         <text class="win-name">{{winner.name}}</text>
         <text class="win-addr">{{winner.address}}</text>
@@ -254,24 +199,17 @@
   <view class="spacer"></view>
 </view>
 
-<!-- 海报分享弹窗 -->
-<poster-modal 
-  visible="{{showPosterModal}}"
-  title="分享投票结果"
-  poster-data="{{posterData}}"
-  bind:close="onPosterClose"
-  bind:save="onPosterSave"
-  bind:shareFriend="onPosterShareFriend"
-/>
-
 <view class="bottom-bar">
-  <view class="b-btn gray" bindtap="editRoom" hover-class="b-btn-hover" hover-stay-time="100">
+  <view class="b-btn gray" bindtap="editRoom">
+    <image src="/assets/icon-edit.png" mode="aspectFit" />
     <text>编辑活动</text>
   </view>
-  <view class="b-btn orange {{roomStatus === 'locked' ? 'disabled' : ''}}" bindtap="lockResult" hover-class="b-btn-hover" hover-stay-time="100">
+  <view class="b-btn orange {{roomStatus === 'locked' ? 'disabled' : ''}}" bindtap="lockResult">
+    <image src="/assets/icon-lock.png" mode="aspectFit" />
     <text>{{roomStatus === 'locked' ? '已锁定' : '锁定结果'}}</text>
   </view>
-  <view class="b-btn green" bindtap="shareToFriends" hover-class="b-btn-hover" hover-stay-time="100">
+  <view class="b-btn green" bindtap="shareToFriends">
+    <image src="/assets/icon-share-w.png" mode="aspectFit" />
     <text>邀请好友</text>
   </view>
 </view>

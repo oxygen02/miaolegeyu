@@ -4,9 +4,6 @@ Page({
   data: {
     roomId: '',
     bannerCatUrl: '',
-    isTipExpanded: false,
-    showPosterModal: false,
-    posterData: null,
     roomCode: '731286',
     roomTitle: '周二晚撸串建设北路',
     roomAddress: '建设北路',
@@ -14,18 +11,18 @@ Page({
     roomStatus: 'voting',
     statusText: '投票中',
     isAnonymous: false,
-    needPassword: false,
-    roomPassword: '',
-    qrCodeUrl: '',
-    countdown: '00:00:00',
+    countdown: '02:15:30',
     countdownTimer: null,
     pollTimer: null,
-    voteDeadline: null,
-    votedCount: 1,
-    unvotedCount: 0,
-    progressPercent: 100,
+    votedCount: 3,
+    unvotedCount: 2,
+    progressPercent: 60,
     participants: [
-      { id: 'o001', nickName: '喵友9606', avatarUrl: '', isVoted: true, isHost: true, anonName: '吃货喵', choices: [] }
+      { id: 'o001', nickName: '喵不喵', avatarUrl: '/assets/cat-avatar1.png', isVoted: true, isHost: true, anonName: '吃货喵', choices: ['经典川菜', '重庆火锅'] },
+      { id: 'o002', nickName: '吃货小王', avatarUrl: '/assets/cat-avatar2.png', isVoted: true, isHost: false, anonName: '馋嘴猫', choices: ['重庆火锅'] },
+      { id: 'o003', nickName: '美食家小李', avatarUrl: '/assets/cat-avatar3.png', isVoted: true, isHost: false, anonName: '干饭喵', choices: ['经典川菜', '麻辣香锅'] },
+      { id: 'o004', nickName: '橘仔', avatarUrl: '/assets/cat-avatar4.png', isVoted: false, isHost: false, anonName: '探店喵', choices: [] },
+      { id: 'o005', nickName: '匿名喵友', avatarUrl: '/assets/cat-default.png', isVoted: false, isHost: false, anonName: '觅食喵', choices: [] }
     ],
     topOptions: [
       { id: 'sub_01_01', name: '经典川菜', image: '/images/category_01_01.jpg', count: 3, percent: 75 },
@@ -43,6 +40,16 @@ Page({
     }
   },
 
+  previewImage(e) {
+    const { src } = e.currentTarget.dataset;
+    if (!src) return;
+
+    wx.previewImage({
+      current: src,
+      urls: [src]
+    });
+  },
+
   onLoad(options) {
     const roomId = options.roomId || '';
     this.setData({ roomId });
@@ -55,7 +62,7 @@ Page({
   },
 
   loadBannerCat() {
-    this.setData({ bannerCatUrl: 'https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/decorations/cat-fish-logo.png' });
+    this.setData({ bannerCatUrl: 'https://636c-cloud1-d4gfy27bn0f3f5346.tcb.qcloud.la/decorations/wink-cat-icon.png' });
   },
 
   onUnload() {
@@ -86,38 +93,26 @@ Page({
           ...p,
           anonName: ANON_NAMES[idx % ANON_NAMES.length] + (idx >= ANON_NAMES.length ? (idx + 1) : '')
         }));
-        // 处理 address 可能是对象的情况
-        let address = room.address || '';
-        if (address && typeof address === 'object') {
-          address = address.name || address.title || address.address || JSON.stringify(address);
-        }
-
         this.setData({
-          _id: room._id,
           roomCode: room.roomCode || '',
           roomTitle: room.title || '',
-          roomAddress: address,
+          roomAddress: room.address || '',
           roomTime: this.formatTime(room.mealTime),
           roomStatus: room.status || 'voting',
           statusText: this.getStatusText(room.status),
           isAnonymous: isAnon,
-          needPassword: room.needPassword || false,
-          roomPassword: room.roomPassword || '',
-          participants: participants,
-          voteDeadline: room.deadline || room.voteDeadline || null,
-          mode: room.mode || 'a',
-          finalPoster: room.finalPoster || null
+          participants: participants
         });
         this.calculateStats(participants);
-        this.startCountdown();
         if (room.status === 'voting') {
           this.fetchVoteStats(roomId);
         }
         if (room.status === 'locked') {
-          this.loadLockedResult();
+          this.loadLockedResult(roomId);
         }
       }
     }).catch(err => {
+      console.error('获取房间详情失败:', err);
     });
   },
 
@@ -156,6 +151,7 @@ Page({
       wx.showToast({ title: newVal ? '已开启匿名投票' : '已关闭匿名投票', icon: 'success' });
     }).catch(err => {
       wx.hideLoading();
+      console.error('设置匿名模式失败:', err);
       wx.showToast({ title: '设置失败', icon: 'none' });
     });
   },
@@ -184,17 +180,13 @@ Page({
         });
       }
     }).catch(err => {
+      console.error('获取投票统计失败:', err);
     });
   },
 
   startCountdown() {
     this.clearCountdown();
-    const deadlineTime = this.data.voteDeadline;
-    if (!deadlineTime) {
-      this.setData({ countdown: '00:00:00' });
-      return;
-    }
-    const deadline = new Date(deadlineTime).getTime();
+    const deadline = Date.now() + (2 * 60 * 60 + 15 * 60 + 30) * 1000;
     const update = () => {
       const diff = deadline - Date.now();
       if (diff <= 0) {
@@ -246,54 +238,14 @@ Page({
   },
 
   shareRoom() {
-    // 显示分享选项
-    wx.showActionSheet({
-      itemList: ['转发给好友', '生成分享海报'],
-      success: (res) => {
-        if (res.tapIndex === 0) {
-          // 转发给好友 - 设置分享数据并引导用户点击右上角转发
-          this.setShareData();
-          wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
-          wx.showToast({
-            title: '请点击右上角转发',
-            icon: 'none',
-            duration: 2000
-          });
-        } else if (res.tapIndex === 1) {
-          // 生成分享海报
-          this.generateSharePoster();
-        }
-      }
-    });
-  },
-
-  // 设置分享数据
-  setShareData() {
-    const shareData = {
-      title: `「${this.data.roomTitle}」快来一起选餐厅！`,
-      path: `/pages/room/join?roomCode=${this.data.roomCode}`,
-      imageUrl: this.data.shareImagePath || '/assets/share-cover.png'
-    };
-    // 保存到页面数据中供 onShareAppMessage 使用
-    this.setData({
-      sharePosterData: {
-        roomTitle: this.data.roomTitle,
-        roomCode: this.data.roomCode
-      }
-    });
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
   },
 
   onShareAppMessage() {
-    // 如果有海报图片，使用海报作为分享封面
-    const imageUrl = this.data.shareImagePath || '/assets/share-cover.png';
-    const title = this.data.sharePosterData ? 
-      `「${this.data.sharePosterData.roomTitle || '聚餐投票'}」快来一起选餐厅！` : 
-      `「${this.data.roomTitle}」快来一起选餐厅！`;
-    
     return {
-      title: title,
+      title: `「${this.data.roomTitle}」快来一起选餐厅！`,
       path: `/pages/room/join?roomCode=${this.data.roomCode}`,
-      imageUrl: imageUrl
+      imageUrl: '/assets/share-cover.png'
     };
   },
 
@@ -354,10 +306,7 @@ Page({
       wx.showToast({ title: '已锁定，无法编辑', icon: 'none' });
       return;
     }
-    // 跳转到编辑页面，带上房间ID
-    wx.navigateTo({
-      url: `/pages/create-mode-b/create-mode-b?edit=true&roomId=${this.data.roomId}`
-    });
+    wx.showToast({ title: '编辑功能（演示）', icon: 'none' });
   },
 
   lockResult() {
@@ -380,176 +329,68 @@ Page({
   },
 
   doLockResult() {
-    if (this.data.roomStatus === 'locked') {
+    if (!wx.cloud) {
       this.setData({ roomStatus: 'locked', statusText: '已锁定' });
-      wx.showToast({ title: '结果已锁定', icon: 'success' });
+      wx.showToast({ title: '结果已锁定（演示）', icon: 'success' });
       return;
     }
-    
-    // 检查 _id 是否存在
-    if (!this.data._id) {
-      wx.showToast({ title: '房间数据加载中，请稍候', icon: 'none' });
-      return;
-    }
-    
     wx.showLoading({ title: '计算结果中...', mask: true });
     wx.cloud.callFunction({
-      name: 'lockRoom',
-      data: { roomId: this.data._id },
+      name: 'lockResult',
+      data: { roomId: this.data.roomId },
       timeout: 10000
     }).then(res => {
       wx.hideLoading();
-      if (res.result && res.result.code === 0) {
-        this.setData({ roomStatus: 'locked', statusText: '已锁定' });
+      if (res.result && res.result.winner) {
+        const winner = res.result.winner;
+        this.setData({ roomStatus: 'locked', statusText: '已锁定', winner: winner });
         this.clearPolling();
-        // 加载锁定结果
-        this.loadLockedResult();
         wx.showModal({
           title: '结果已锁定',
-          content: '投票已结束，最终结果已确定',
+          content: `最终选定：${winner.name}，支持率 ${winner.votePercent}%`,
           showCancel: false,
           confirmText: '查看结果',
           confirmColor: '#FF9F43'
         });
-      } else {
-        wx.showToast({ title: res.result?.msg || '锁定失败', icon: 'none' });
       }
     }).catch(err => {
       wx.hideLoading();
+      console.error('锁定失败:', err);
       wx.showToast({ title: '锁定失败，请重试', icon: 'none' });
     });
   },
 
-  loadLockedResult() {
+  loadLockedResult(roomId) {
     if (!wx.cloud) return;
     wx.cloud.callFunction({
       name: 'getLockedResult',
-      data: { roomId: this.data.roomId },
+      data: { roomId },
       timeout: 5000
     }).then(res => {
       if (res.result && res.result.winner) {
         this.setData({ winner: res.result.winner });
       }
     }).catch(err => {
+      console.error('加载锁定结果失败:', err);
     });
   },
 
   shareToFriends() {
-    const itemList = ['分享到聊天', '复制房间号', '生成分享海报'];
-    if (this.data.roomStatus === 'locked' && this.data.winner) {
-      itemList.push('生成结果海报');
-    }
-
     wx.showActionSheet({
-      itemList,
+      itemList: ['分享到聊天', '生成邀请海报', '复制房间号'],
       success: (res) => {
         switch (res.tapIndex) {
           case 0: this.shareRoom(); break;
-          case 1: this.copyRoomCode(); break;
-          case 2: this.generateSharePoster(); break;
-          case 3:
-            if (this.data.roomStatus === 'locked' && this.data.winner) {
-              this.generateResultPoster();
-            }
-            break;
+          case 1: wx.showToast({ title: '海报生成（演示）', icon: 'none' }); break;
+          case 2: this.copyRoomCode(); break;
         }
       }
-    });
-  },
-
-  generateSharePoster() {
-    const posterData = {
-      type: 'share',
-      roomTitle: this.data.roomTitle,
-      roomCode: this.data.roomCode,
-      roomPassword: this.data.roomPassword,
-      needPassword: this.data.needPassword,
-      roomTime: this.data.roomTime,
-      roomAddress: this.data.roomAddress,
-      winner: this.data.winner,
-      // 小程序码URL，需要通过云函数生成
-      qrCodeUrl: this.data.qrCodeUrl || '',
-      // 餐厅图片列表（用于未选定时的层叠效果）
-      restaurantImages: this.data.topOptions ? this.data.topOptions.map(o => o.image).filter(Boolean) : []
-    };
-    this.setData({
-      posterData,
-      showPosterModal: true
-    });
-    
-    // 如果没有小程序码，尝试生成
-    if (!this.data.qrCodeUrl && this.data.roomId) {
-      this.generateQRCode();
-    }
-  },
-  
-  // 生成小程序码
-  async generateQRCode() {
-    try {
-      const { result } = await wx.cloud.callFunction({
-        name: 'generateQRCode',
-        data: {
-          scene: `roomId=${this.data.roomId}`,
-          page: 'pages/vote/vote'
-        }
-      });
-      if (result.code === 0 && result.data) {
-        this.setData({ qrCodeUrl: result.data });
-      }
-    } catch (err) {
-    }
-  },
-
-  generateResultPoster() {
-    const { winner, mode, finalPoster } = this.data;
-    const posterData = {
-      type: 'result',
-      mode: mode || 'a',
-      winner: winner,
-      finalPoster: finalPoster || null,
-      roomTitle: this.data.roomTitle,
-      roomTime: this.data.roomTime,
-      roomAddress: this.data.roomAddress,
-      participants: this.data.participants,
-      isAnonymous: this.data.isAnonymous
-    };
-    this.setData({
-      posterData,
-      showPosterModal: true
-    });
-  },
-
-  onPosterClose() {
-    // 先隐藏弹窗，清理数据防止穿透
-    this.setData({ 
-      showPosterModal: false,
-      posterData: null 
-    });
-  },
-
-  onPosterSave(e) {
-  },
-
-  onPosterShareFriend(e) {
-    // 设置分享数据，供 onShareAppMessage 使用
-    const { posterData } = e.detail;
-    this.setData({
-      sharePosterData: posterData,
-      shareImagePath: e.detail.imagePath
-    });
-
-    // 提示用户使用右上角菜单分享
-    wx.showToast({
-      title: '请点击右上角 ··· 分享',
-      icon: 'none',
-      duration: 2000
     });
   },
 
   formatTime(ts) {
     if (!ts) return '';
     const d = new Date(ts);
-    if (isNaN(d.getTime())) return '';
     const pad = n => n < 10 ? '0' + n : n;
     return `${pad(d.getMonth() + 1)}月${pad(d.getDate())}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   },
@@ -557,9 +398,5 @@ Page({
   getStatusText(status) {
     const map = { 'voting': '投票中', 'locked': '已锁定', 'ended': '已结束' };
     return map[status] || '未知';
-  },
-
-  toggleTipExpand() {
-    this.setData({ isTipExpanded: !this.data.isTipExpanded });
   }
 });

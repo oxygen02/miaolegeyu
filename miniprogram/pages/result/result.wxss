@@ -496,24 +496,32 @@ page {
 
 /* ---------- 返回首页 ---------- */
 .back-section {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  padding: 20rpx 0;
 }
 
-.back-link {
-  font-size: 28rpx;
-  color: var(--color-text-secondary);
-  padding: 16rpx 32rpx;
-  border-radius: var(--radius-full);
-  border: 2rpx solid var(--color-text-secondary);
-  background: var(--color-card);
-  font-weight: 600;
+.home-btn {
+  width: 72rpx;
+  height: 72rpx;
+  background: linear-gradient(135deg, #FFF5E9 0%, #FFECD2 100%);
+  border-radius: 50%;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 2rpx 2px 0 rgba(61, 61, 61, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
 }
 
-.back-link:active {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-  background: rgba(255, 159, 67, 0.1);
+.home-btn:active {
+  transform: scale(0.95);
+  box-shadow: 1rpx 1px 0 rgba(61, 61, 61, 0.15);
+}
+
+.home-icon {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 /* ---------- 装饰元素 ---------- */

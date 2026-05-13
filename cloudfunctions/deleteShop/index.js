@@ -18,7 +18,7 @@ exports.main = async (event, context) => {
       return { success: false, error: '店铺不存在' };
     }
     
-    if (shopRes.data.recommenderOpenId !== OPENID) {
+    if (shopRes.data.openid !== OPENID) {
       return { success: false, error: '只有发起者可以删除店铺' };
     }
     

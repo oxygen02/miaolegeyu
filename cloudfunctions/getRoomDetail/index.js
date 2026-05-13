@@ -76,27 +76,17 @@ exports.main = async (event) => {
       };
     }
 
-    // 处理 address 字段，确保返回字符串
-    let addressStr = room.location || room.address || '';
-    if (addressStr && typeof addressStr === 'object') {
-      addressStr = addressStr.name || addressStr.title || addressStr.address || JSON.stringify(addressStr);
-    }
-
     return {
       code: 0,
       data: {
-        _id: room._id,
         roomId: room.roomId,
         roomCode: room.roomCode || room.roomId,
         title: room.title,
-        address: addressStr,
-        mealTime: room.appointmentDate || room.dinnerTime || room.mealTime || null,
+        address: room.address || '',
+        mealTime: room.mealTime,
         status: room.status || 'voting',
         isAnonymous: room.isAnonymous || false,
-        needPassword: room.needPassword || false,
-        roomPassword: room.roomPassword || '',
-        deadline: room.deadline || room.voteDeadline || null,
-        voteDeadline: room.voteDeadline || room.deadline || null,
+        deadline: room.deadline || null,
         creatorOpenId: room.creatorOpenId,
         participants: enrichedParticipants,
         mode: room.mode || 'a'

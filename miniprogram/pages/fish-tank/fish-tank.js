@@ -24,7 +24,9 @@ Page({
     isEditMode: false,
     isAllSelected: false,
     selectedCount: 0,
-    batchDeleteText: '删除'
+    batchDeleteText: '删除',
+    currentTab: 1,
+    animatingTab: -1
   },
 
   onLoad(options) {
@@ -65,11 +67,40 @@ Page({
     this.clearFishTankDeadlineTimer();
   },
 
+  goHome() {
+    wx.switchTab({ url: '/pages/index/index' });
+  },
+
   updateTabBarSelected() {
     const tabBar = this.getTabBar();
     if (tabBar) {
       tabBar.setData({ selected: 1 });
     }
+  },
+
+  switchBottomTab(e) {
+    const { index } = e.currentTarget.dataset;
+    const tabIndex = parseInt(index);
+
+    this.setData({ animatingTab: tabIndex });
+
+    setTimeout(() => {
+      this.setData({ animatingTab: -1 });
+    }, 500);
+
+    const urlMap = {
+      0: '/pages/index/index',
+      1: '/pages/fish-tank/fish-tank',
+      2: '/pages/profile/profile'
+    };
+    const url = urlMap[tabIndex];
+    if (!url) return;
+
+    if (tabIndex === 1) {
+      return;
+    }
+
+    wx.switchTab({ url });
   },
 
   // 头像加载失败处理

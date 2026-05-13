@@ -58,12 +58,14 @@
       <view class="form-item flex-between">
         <text class="form-label">截止时间</text>
         <view class="deadline-picker">
-          <picker mode="date" value="{{deadlineDate}}" bindchange="onDeadlineDateChange">
+          <button class="picker-btn" open-type="none" bindtap="showDatePicker">
             <text class="picker-value">{{deadlineDate}}</text>
-          </picker>
-          <picker mode="time" value="{{deadlineTime}}" bindchange="onDeadlineTimeChange">
+            <text class="picker-arrow">▼</text>
+          </button>
+          <button class="picker-btn" open-type="none" bindtap="showTimePicker">
             <text class="picker-value">{{deadlineTime}}</text>
-          </picker>
+            <text class="picker-arrow">▼</text>
+          </button>
         </view>
       </view>
       <view class="form-item flex-between">
@@ -94,5 +96,43 @@
             bindtap="createVote" disabled="{{loading || !title || selectedDates.length === 0}}">
       {{loading ? '创建中...' : '创建投票'}}
     </button>
+  </view>
+
+  <!-- 日期选择弹窗 -->
+  <view class="modal-overlay" wx:if="{{showDateModal}}" bindtap="closeDateModal">
+    <view class="modal-content" catchtap="onModalTap">
+      <view class="modal-header">
+        <text class="modal-title">选择截止日期</text>
+        <view class="modal-close" bindtap="closeDateModal">✕</view>
+      </view>
+      <scroll-view class="modal-body" scroll-y>
+        <view class="date-list">
+          <view class="date-item-modal {{item.isToday ? 'today' : ''}} {{item.value === deadlineDate ? 'selected' : ''}}"
+                wx:for="{{deadlineDateOptions}}" wx:key="value"
+                bindtap="selectDate" data-date="{{item.value}}">
+            <text class="date-label">{{item.label}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 时间选择弹窗 -->
+  <view class="modal-overlay" wx:if="{{showTimeModal}}" bindtap="closeTimeModal">
+    <view class="modal-content" catchtap="onModalTap">
+      <view class="modal-header">
+        <text class="modal-title">选择截止时间</text>
+        <view class="modal-close" bindtap="closeTimeModal">✕</view>
+      </view>
+      <scroll-view class="modal-body" scroll-y>
+        <view class="time-grid">
+          <view class="time-item {{item === deadlineTime ? 'selected' : ''}}"
+                wx:for="{{timeOptions}}" wx:key="item"
+                bindtap="selectTime" data-time="{{item}}">
+            <text class="time-label">{{item}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
   </view>
 </view>

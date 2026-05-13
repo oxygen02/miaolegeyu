@@ -64,11 +64,11 @@
 }
 
 .speech-bubble {
-  background: var(--card);
+  background: #FFFFFF;
   padding: 16rpx 28rpx;
   border-radius: 24rpx;
   border: 2rpx solid rgba(212, 101, 42, 0.15);
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 2rpx 12rpx rgba(60, 40, 20, 0.06);
   position: relative;
 }
 
@@ -79,7 +79,7 @@
   top: 50%;
   transform: translateY(-50%);
   border: 8rpx solid transparent;
-  border-right-color: var(--card);
+  border-right-color: #FFFFFF;
 }
 
 .bubble-text {
@@ -125,23 +125,23 @@
 .form-label {
   display: block;
   font-size: 28rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
   margin-bottom: 16rpx;
 }
 
 .form-input {
   height: 88rpx;
-  background: var(--bg);
+  background: #FAF7F2;
   border-radius: 16rpx;
   padding: 0 24rpx;
   font-size: 30rpx;
-  color: var(--text);
+  color: #3D3D3D;
 }
 
 .location-picker,
 .time-picker {
   height: 88rpx;
-  background: var(--bg);
+  background: #FAF7F2;
   border-radius: 16rpx;
   padding: 0 24rpx;
   display: flex;
@@ -151,18 +151,18 @@
 
 .picker-value {
   font-size: 30rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
 }
 
 .picker-value.has-value {
-  color: var(--text);
+  color: #3D3D3D;
 }
 
 .picker-arrow {
   width: 16rpx;
   height: 16rpx;
-  border-right: 3rpx solid var(--soft);
-  border-bottom: 3rpx solid var(--soft);
+  border-right: 3rpx solid #CCCCCC;
+  border-bottom: 3rpx solid #CCCCCC;
   transform: rotate(-45deg);
 }
 
@@ -185,13 +185,13 @@
 
 .field-section .section-label {
   font-size: 28rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
   font-weight: 500;
 }
 
 .field-input {
   height: 72rpx;
-  background: var(--bg);
+  background: #FAF7F2;
   border-radius: 12rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
@@ -211,7 +211,7 @@
 .location-map-btn-compact {
   width: 64rpx;
   height: 64rpx;
-  background: var(--bg);
+  background: #FAF7F2;
   border-radius: 12rpx;
   display: flex;
   align-items: center;
@@ -238,7 +238,7 @@
 
 .date-section .section-label {
 font-size: 28rpx;
-color: var(--text-secondary);
+color: #8A8A8A;
 font-weight: 500;
 }
 
@@ -265,7 +265,7 @@ font-weight: 500;
   font-size: 26rpx;
   padding: 0 4rpx;
   text-align: center;
-  background: var(--bg);
+  background: #FAF7F2;
   border-radius: 8rpx;
 }
 
@@ -302,7 +302,7 @@ font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  background: #FAF7F2;
   border-radius: 12rpx;
   flex-shrink: 0;
 }
@@ -321,24 +321,24 @@ font-weight: 500;
 .password-input {
   width: 100%;
   height: 88rpx;
-  background: var(--bg);
+  background: #FAF7F2;
   border-radius: 16rpx;
   padding: 0 24rpx;
   font-size: 30rpx;
-  color: var(--text);
+  color: #3D3D3D;
   margin-bottom: 8rpx;
 }
 
 .password-hint {
   font-size: 24rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
   padding-left: 8rpx;
 }
 
 /* 决策说明 - 合并结果生效规则和流程说明 */
 .decision-section {
   background: rgba(255, 159, 67, 0.2);
-  border-radius: var(--radius-card);
+  border-radius: 16rpx;
   padding: 20rpx 24rpx;
   margin-bottom: 16rpx;
   flex-shrink: 0;
@@ -387,7 +387,7 @@ font-weight: 500;
 
 .cuisine-tag {
   padding: 16rpx 8rpx;
-  background: var(--bg);
+  background: #FAF7F2;
   border-radius: 28rpx;
   border: 2rpx solid transparent;
   transition: all 0.2s;
@@ -402,7 +402,7 @@ font-weight: 500;
 
 .cuisine-tag .tag-text {
   font-size: 26rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
   white-space: nowrap;
 }
 
@@ -427,7 +427,7 @@ font-weight: 500;
 
 .switch-label {
   font-size: 28rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
   font-weight: 500;
 }
 
@@ -439,7 +439,7 @@ font-weight: 500;
 
 .switch-status {
   font-size: 26rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
 }
 
 .switch-divider {
@@ -470,7 +470,7 @@ align-self: center;
 
 .recommend-switch-hint {
   font-size: 24rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
 }
 
 .payment-options-compact {
@@ -483,7 +483,7 @@ align-self: center;
 .payment-options-compact .payment-option {
   flex: 1;
   padding: 16rpx 8rpx;
-  background: var(--bg);
+  background: #FAF7F2;
   border-radius: 12rpx;
   border: 2rpx solid transparent;
   text-align: center;
@@ -505,7 +505,7 @@ align-self: center;
 
 .switch-hint-compact {
   font-size: 26rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
 }
 
 /* 付费方式 */
@@ -517,7 +517,7 @@ align-self: center;
 .payment-option {
   flex: 1;
   padding: 24rpx;
-  background: var(--bg);
+  background: #FAF7F2;
   border-radius: 16rpx;
   border: 2rpx solid transparent;
   text-align: center;
@@ -531,7 +531,7 @@ align-self: center;
 
 .payment-option .option-text {
   font-size: 28rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
 }
 
 .payment-option.selected .option-text {
@@ -556,7 +556,7 @@ align-self: center;
 
 .switch-hint {
   font-size: 24rpx;
-  color: var(--text-secondary);
+  color: #8A8A8A;
   margin-top: 12rpx;
   display: block;
 }

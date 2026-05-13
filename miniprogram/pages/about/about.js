@@ -1,8 +1,9 @@
 const { imagePaths } = require('../../config/imageConfig');
+const app = getApp();
 
 Page({
   data: {
-    imagePaths: imagePaths,
+    imagePaths: {},
     version: '1.0.0',
     appName: '喵了个鱼',
     description: '熟人聚餐决策助手',
@@ -34,7 +35,9 @@ Page({
     }
   },
 
-  onLoad() {
+  async onLoad() {
+    const resolvedPaths = await app.whenImageReady();
+    this.setData({ imagePaths: resolvedPaths });
     // 获取小程序版本信息
     const accountInfo = wx.getAccountInfoSync();
     if (accountInfo && accountInfo.miniProgram) {

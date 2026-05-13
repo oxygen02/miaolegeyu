@@ -50,7 +50,7 @@ exports.main = async (event, context) => {
     if (images.length > 0) {
       try {
         // 过滤掉非云存储链接的图片
-        const cloudImages = images.filter(url => url.includes('cloud1-d5ggnf5wh2d872f3c'));
+        const cloudImages = images.filter(url => url.includes('cloud1-d4gfy27bn0f3f5346'));
         if (cloudImages.length > 0) {
           const tempUrls = await cloud.getTempFileURL({
             fileList: cloudImages
