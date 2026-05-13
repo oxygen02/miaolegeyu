@@ -38,15 +38,16 @@
 .action-btn-circle {
   width: 80rpx;
   height: 80rpx;
-  background: rgba(255,255,255,0.95);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.15);
   padding: 0;
   margin: 0;
   border: none;
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.97) 52%, #FFB347 66%, rgba(255,159,67,0.15) 78%, transparent 82%);
+  box-shadow: 0 4rpx 14rpx rgba(0,0,0,0.12);
 }
 
 .action-btn-circle::after {
@@ -54,22 +55,25 @@
 }
 
 .share-circle-btn {
-  background: rgba(255,255,255,0.95);
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.97) 52%, #FFB347 66%, rgba(255,159,67,0.15) 78%, transparent 82%);
+  box-shadow: 0 4rpx 14rpx rgba(0,0,0,0.12);
   line-height: 1;
 }
 
 .action-btn {
   width: 72rpx;
   height: 72rpx;
-  background: rgba(255,255,255,0.95);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.15);
   padding: 0;
   margin: 0;
   border: none;
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.97) 52%, #FFB347 66%, rgba(255,159,67,0.15) 78%, transparent 82%);
+  box-shadow: 0 4rpx 14rpx rgba(0,0,0,0.12);
 }
 
 .action-btn::after {
@@ -95,15 +99,24 @@
 .image-section {
   position: relative;
   height: 660rpx;
+  margin: 24rpx;
+  border-radius: 20rpx;
+  /* 改为 visible 避免裁剪弹幕动画；圆角通过 clip-path 实现 */
+  overflow: visible;
+  border: 3rpx solid #E8D5C4;
+  box-shadow: 0 4rpx 16rpx rgba(180, 140, 100, 0.15);
 }
 
 .image-swiper {
   height: 100%;
+  border-radius: 18rpx;
+  overflow: visible;
 }
 
 .shop-image {
   width: 100%;
   height: 100%;
+  border-radius: 18rpx;
 }
 
 .image-counter {
@@ -120,10 +133,15 @@
   color: #fff;
 }
 
-/* 信息区域 */
+/* 信息区域 - 独立框体 */
 .info-section {
-  padding: 20rpx 24rpx;
+  padding: 24rpx;
   padding-bottom: 12rpx;
+  margin: 12rpx 24rpx 0;
+  background: #fff;
+  border-radius: 20rpx;
+  border: 2rpx solid #D4E5F7;
+  box-shadow: 0 3rpx 14rpx rgba(70, 130, 200, 0.08);
 }
 
 .shop-header {
@@ -246,19 +264,19 @@
   justify-content: center;
   gap: 8rpx;
   padding: 12rpx 24rpx;
-  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-  color: #fff;
+  background: #fff;
+  color: #4A90E2;
+  border: 2rpx solid #4A90E2;
   border-radius: 32rpx;
   font-size: 24rpx;
   font-weight: 600;
-  box-shadow: 0 4rpx 12rpx rgba(74, 144, 226, 0.3);
-  flex-shrink: 0;  /* 不压缩按钮 */
+  flex-shrink: 0;
   transition: all 0.2s ease;
 }
 
 .nav-btn-full:active {
   transform: scale(0.95);
-  box-shadow: 0 2rpx 8rpx rgba(74, 144, 226, 0.3);
+  background: #f0f6ff;
 }
 
 .nav-icon-full {
@@ -518,6 +536,17 @@
   font-size: 28rpx;
   color: #FF6B6B;
   line-height: 1.8;
+}
+
+/* ========== 图片内弹幕（覆盖在图片上） ========== */
+.image-danmaku-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  pointer-events: none;
 }
 
 /* 约饭报名区域 - 紧凑样式 */

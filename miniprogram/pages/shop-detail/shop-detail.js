@@ -37,6 +37,25 @@ Page({
     isFavorited: false,
     // 是否店铺发起者
     isShopOwner: false,
+    // 弹幕相关
+    danmakuPresets: [
+      '这家店味道太棒了！👍',
+      '环境不错，推荐推荐~',
+      '性价比很高！！',
+      '会再来光顾的 🐟',
+      '服务态度超好 ❤️',
+      '排队也值得！',
+      '人均消费很合理',
+      '菜品摆盘精致 ✨',
+      '适合朋友聚餐',
+      '停车方便 👍',
+      '下次带家人来',
+      '宝藏店铺发现！',
+      '辣度刚刚好 🔥',
+      '甜品必点！',
+      '拍照超出片 📸'
+    ],
+    userInfo: {},
     // 约饭相关
     appointment: null,
     isJoining: false,
@@ -99,6 +118,10 @@ Page({
 async onLoad(options) {
     const resolvedPaths = await app.whenImageReady();
     this.setData({ imagePaths: resolvedPaths });
+
+    // 获取当前用户信息（用于弹幕头像）
+    this.loadCurrentUserInfo();
+
     const { id, openAppointment } = options;
     if (id) {
       this.initTimePicker();
@@ -353,30 +376,45 @@ async onLoad(options) {
       return;
     }
 
-    // 打开地图选择导航
-    wx.showActionSheet({
-      itemList: ['使用腾讯地图导航', '复制地址'],
-      success: (res) => {
-        if (res.tapIndex === 0) {
-          // 使用腾讯地图
-          wx.openLocation({
-            name: name || '目的地',
-            address: address,
-            latitude: 0,
-            longitude: 0,
-            fail: () => {
-              wx.showToast({ title: '无法打开地图', icon: 'none' });
+    // 先获取用户当前位置作为参考点
+    wx.getLocation({
+      type: 'gcj02',
+      success: (userRes) => {
+        // 打开地图选择导航
+        wx.showActionSheet({
+          itemList: ['使用腾讯地图导航', '复制地址'],
+          success: (res) => {
+            if (res.tapIndex === 0) {
+              // 使用腾讯地图，以用户位置为起点显示地图，地址作为标注
+              wx.openLocation({
+                latitude: userRes.latitude,
+                longitude: userRes.longitude,
+                name: name || '目的地',
+                address: address,
+                scale: 16,
+                fail: () => {
+                  // 失败则复制地址
+                  this.copyAddress(address);
+                }
+              });
+            } else if (res.tapIndex === 1) {
+              this.copyAddress(address);
             }
-          });
-        } else if (res.tapIndex === 1) {
-          // 复制地址
-          wx.setClipboardData({
-            data: address,
-            success: () => {
-              wx.showToast({ title: '地址已复制', icon: 'success' });
-            }
-          });
-        }
+          }
+        });
+      },
+      fail: () => {
+        // 无法获取位置时直接复制地址
+        this.copyAddress(address);
+      }
+    });
+  },
+
+  copyAddress(address) {
+    wx.setClipboardData({
+      data: address,
+      success: () => {
+        wx.showToast({ title: '地址已复制', icon: 'success' });
       }
     });
   },
@@ -1293,5 +1331,40 @@ async onLoad(options) {
     } finally {
       wx.hideLoading();
     }
+  },
+
+  // 获取当前用户信息
+  loadCurrentUserInfo() {
+    try {
+      const userInfo = wx.getStorageSync('userInfo') || {};
+      if (userInfo.avatarUrl) {
+        this.setData({ userInfo });
+      } else {
+        // 尝试从全局获取
+        const app = getApp();
+        if (app.globalData && app.globalData.userInfo) {
+          this.setData({ userInfo: app.globalData.userInfo });
+        }
+      }
+    } catch (e) {
+      console.log('获取用户信息失败', e);
+    }
+  },
+
+  // ========== 弹幕事件处理 ==========
+  onDanmakuSend(e) {
+    const { text, style } = e.detail;
+    console.log('用户发送弹幕:', text, '风格:', style);
+  },
+
+  // 弹幕暂停/恢复切换
+  onDanmakuToggle(e) {
+    const { paused } = e.detail;
+    if (paused) {
+      console.log('[弹幕] 已暂停');
+    } else {
+      console.log('[弹幕] 已恢复');
+    }
   }
+
 });

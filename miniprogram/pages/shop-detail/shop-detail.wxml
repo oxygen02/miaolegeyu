@@ -15,7 +15,7 @@
             <image 
               class="shop-image" 
               src="{{item}}" 
-              mode="aspectFill"
+              mode="aspectFit"
               data-url="{{item}}"
               bindtap="onImageTap"
             />
@@ -40,6 +40,17 @@
         
         <view class="image-counter" wx:if="{{shop.images.length > 1}}">
           <text class="counter-text">{{currentImageIndex + 1}} / {{shop.images.length}}</text>
+        </view>
+
+        <!-- 图片内弹幕（覆盖在图片上：上半部分飘弹幕，底部输入框） -->
+        <view class="image-danmaku-wrapper">
+          <danmaku
+            visible="{{true}}"
+            preset-danmaku="{{danmakuPresets}}"
+            user-avatar="{{userInfo.avatarUrl || ''}}"
+            bind:send="onDanmakuSend"
+            bind:tappaused="onDanmakuToggle"
+          />
         </view>
       </view>
 

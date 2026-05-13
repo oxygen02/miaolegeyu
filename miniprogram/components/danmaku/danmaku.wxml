@@ -1,0 +1,47 @@
+<!-- 弹幕组件 - 简化版：3条轨道居中 + 纯CSS动画 -->
+<view class="dm-wrap" wx:if="{{visible}}">
+
+  <!-- 弹幕轨道区：垂直居中，只占中间区域 -->
+  <view class="dm-tracks" catchtap="onTrackTap">
+    <block wx:for="{{[0,1,2]}}" wx:key="*this">
+      <view
+        class="dm-item {{item.color ? 'c-' + item.color : ''}}"
+        style="animation-duration: {{item.duration || 8}}s; top: {{index * 50}}rpx;"
+        wx:for="{{danmakuList}}"
+        wx:for-item="item"
+        wx:if="{{item.trackIndex === index && item.show}}"
+        wx:key="uniqueId"
+        data-id="{{item.uniqueId}}"
+      >
+        <image wx:if="{{item.avatar}}" class="dm-avatar" src="{{item.avatar}}" mode="aspectFill" />
+        <view wx:else class="dm-avatar dm-avatar-def"></view>
+        <text>{{item.text}}</text>
+      </view>
+    </block>
+  </view>
+
+  <!-- 输入行 -->
+  <view class="dm-input-row" catchtap="stopPropagation">
+    <view class="dm-input-box" catchtap="stopPropagation">
+      <input
+        class="dm-input"
+        type="text"
+        placeholder="发条弹幕~"
+        value="{{inputValue}}"
+        bindinput="onInput"
+        bindconfirm="sendDanmaku"
+        confirm-type="send"
+        maxlength="30"
+        catchtap="stopPropagation"
+      />
+      <view
+        class="dm-btn {{btnReady ? 'active' : ''}}"
+        bindtap="sendDanmaku"
+        hover-class="dm-btn-tap"
+      >
+        发送
+      </view>
+    </view>
+  </view>
+
+</view>
