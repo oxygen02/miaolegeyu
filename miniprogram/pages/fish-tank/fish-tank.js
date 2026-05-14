@@ -281,9 +281,9 @@ Page({
 
       // 统计各类型数量
       const groupCount = allRooms.filter(r => r.mode === 'group').length;
-      const diningCount = allRooms.filter(r => r.mode === 'pick_for_them').length;
+      const diningCount = allRooms.filter(r => r.mode === 'pick_for_them' || r.mode === 'b').length;
       const mealCount = allRooms.filter(r => r.mode === 'meal').length;
-      const otherCount = allRooms.filter(r => r.mode !== 'group' && r.mode !== 'pick_for_them' && r.mode !== 'meal').length;
+      const otherCount = allRooms.filter(r => r.mode !== 'group' && r.mode !== 'pick_for_them' && r.mode !== 'b' && r.mode !== 'meal').length;
       const rooms = allRooms.map(room => {
         // 根据 mode 确定类型
         let type = 'dining';
@@ -302,7 +302,7 @@ Page({
         const isMeal = room.mode === 'meal';
         // 确保 shopName 是字符串
         let shopName = isGroup ? (room.shopName || '外卖拼单') : (room.location || room.shopName || '地点待定');
-        if (typeof shopName === 'object') {
+        if (shopName && typeof shopName === 'object') {
           shopName = shopName.name || shopName.title || JSON.stringify(shopName);
         }
         // 格式化时间（约饭显示报名截止，聚餐/拼单显示投票截止）
@@ -521,7 +521,7 @@ Page({
         const isMeal = room.mode === 'meal';
         // 确保 shopName 是字符串
         let shopName = isGroup ? (room.shopName || '外卖拼单') : (room.location || room.shopName || '地点待定');
-        if (typeof shopName === 'object') {
+        if (shopName && typeof shopName === 'object') {
           shopName = shopName.name || shopName.title || JSON.stringify(shopName);
         }
         // 格式化时间（约饭显示报名截止，聚餐/拼单显示投票截止）
@@ -669,7 +669,7 @@ Page({
         if (this.data.viewMode !== 'all') {
           filteredRooms = result.rooms.filter(room => {
             if (this.data.viewMode === 'group') return room.mode === 'group';
-            if (this.data.viewMode === 'dining') return room.mode === 'pick_for_them';
+            if (this.data.viewMode === 'dining') return room.mode === 'pick_for_them' || room.mode === 'b';
             return true;
           });
         }
@@ -738,7 +738,7 @@ Page({
         const isGroup = room.mode === 'group';
         // 确保 shopName 是字符串
         let shopName = isGroup ? (room.shopName || '外卖拼单') : (room.location || '地点待定');
-        if (typeof shopName === 'object') {
+        if (shopName && typeof shopName === 'object') {
           shopName = shopName.name || shopName.title || JSON.stringify(shopName);
         }
         // 格式化时间（约饭显示报名截止，聚餐/拼单显示投票截止）
@@ -1465,5 +1465,27 @@ Page({
       clearInterval(this._fishTankDeadlineTimer);
       this._fishTankDeadlineTimer = null;
     }
+  },
+
+  // 打开地图导航
+  openMap(e) {
+    const address = e.currentTarget.dataset.address;
+    if (!address) return;
+    
+    wx.openLocation({
+      name: address,
+      address: address,
+      success: () => {
+        audioManager.playMeowShort();
+      },
+      fail: () => {
+        wx.showToast({ title: '无法打开地图', icon: 'none' });
+      }
+    });
+  },
+
+  // 阻止事件冒泡
+  stopPropagation(e) {
+    e.stopPropagation();
   }
 });

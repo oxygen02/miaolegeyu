@@ -1,0 +1,352 @@
+@import "../../styles/variables.wxss";
+@import "../../app.wxss";
+
+/* ==================== 结果通知卡片组件 ==================== */
+
+/* 组件根元素设置min-height为视口高度 */
+.result-card {
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  min-height: 100vh;
+}
+
+.result-card.poster-mode {
+  background: transparent;
+  min-height: auto;
+}
+
+/* ---------- 顶部渐变头部 ---------- */
+.result-header {
+  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
+  padding: 24rpx 24rpx 32rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cat-tail {
+  position: absolute;
+  right: -15rpx;
+  bottom: -15rpx;
+  width: 120rpx;
+  height: 120rpx;
+  opacity: 0.5;
+}
+
+.result-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  margin-bottom: 8rpx;
+  border-radius: 50%;
+  border: 3rpx solid rgba(255, 255, 255, 0.8);
+}
+
+.result-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4rpx;
+}
+
+.result-subtitle {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ---------- 主要内容区域 ---------- */
+.result-content {
+  padding: 0 24rpx;
+  margin-top: 20rpx;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  flex: 1;
+  justify-content: flex-end;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 16rpx);
+}
+
+.poster-mode .result-content {
+  padding-bottom: 0;
+}
+
+/* ---------- 海报卡片 ---------- */
+.poster-card {
+  position: relative;
+  width: 100%;
+  height: 520rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: #fff;
+}
+
+.poster-image {
+  width: 100%;
+  height: 100%;
+  background: #F5F5F5;
+}
+
+.platform-badge {
+  position: absolute;
+  right: 16rpx;
+  bottom: 16rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  background: #FFC300;
+  color: #333;
+}
+
+/* ---------- 投票统计卡片 ---------- */
+.vote-stats-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 12rpx 16rpx;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.stats-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.stats-percent {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #FF9F43;
+}
+
+.voters-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.voters-avatars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.voter-avatar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.voter-avatar {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  border: 2rpx solid #FFE0B2;
+}
+
+.voter-name {
+  font-size: 20rpx;
+  color: #666;
+}
+
+.vote-bar-wrap {
+  padding: 0 4rpx;
+}
+
+.vote-bar {
+  height: 8rpx;
+  background: #F0F0F0;
+  border-radius: 4rpx;
+  overflow: hidden;
+}
+
+.vote-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FF9F43 0%, #FFB347 100%);
+  border-radius: 6rpx;
+}
+
+/* ---------- 信息卡片 ---------- */
+.info-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 14rpx 18rpx;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+
+.info-row:first-child {
+  padding-bottom: 10rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.info-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 12rpx;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #999;
+  width: 80rpx;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+}
+
+.info-value {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy-btn {
+  font-size: 22rpx;
+  color: #FF9F43;
+  padding: 6rpx 16rpx;
+  background: rgba(255, 159, 67, 0.1);
+  border-radius: 16rpx;
+}
+
+.shop-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.room-addition {
+  display: flex;
+  align-items: center;
+}
+
+.room-input {
+  flex: 1;
+  height: 52rpx;
+  padding: 0 18rpx;
+  border: 2rpx solid #E0E0E0;
+  border-radius: 26rpx;
+  font-size: 26rpx;
+  background: #FAFAFA;
+}
+
+.save-btn {
+  font-size: 24rpx;
+  color: #FF9F43;
+  padding: 10rpx 24rpx;
+  background: rgba(255, 159, 67, 0.1);
+  border-radius: 28rpx;
+  font-weight: 600;
+  margin-left: 12rpx;
+}
+
+.save-btn:active {
+  background: rgba(255, 159, 67, 0.2);
+}
+
+/* ---------- 内联按钮 ---------- */
+.btn-inline {
+  height: 48rpx;
+  padding: 0 18rpx;
+  border-radius: 24rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  border: none;
+  background: transparent;
+  color: #5B9BD5;
+  margin-left: 10rpx;
+}
+
+.btn-inline::after {
+  border: none;
+}
+
+.btn-inline:active {
+  opacity: 0.8;
+}
+
+/* 海报模式下的内联按钮样式 */
+.poster-mode .btn-inline {
+  color: #5B9BD5;
+}
+
+.btn-inline-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+/* ---------- 操作区域 ---------- */
+.action-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+/* ---------- 分享海报按钮区域 ---------- */
+.share-poster-section {
+  display: flex;
+  justify-content: center;
+  padding: 16rpx 0 32rpx;
+}
+
+.share-poster-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  width: fit-content;
+  height: auto;
+  line-height: 1;
+  background: #FF9F43;
+  border-radius: 36rpx;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 3rpx 3rpx 0 #3D3D3D;
+  padding: 16rpx 48rpx;
+  margin: 0;
+}
+
+.share-poster-btn::after {
+  border: none;
+}
+
+.share-poster-btn:active {
+  background: #FF8C2F;
+  transform: translateY(2rpx);
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+}
+
+.share-poster-icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.share-poster-text {
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: 600;
+}

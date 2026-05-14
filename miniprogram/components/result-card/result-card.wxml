@@ -1,0 +1,105 @@
+<view class="result-card {{isPoster ? 'poster-mode' : ''}}">
+  <!-- 顶部渐变头部 -->
+  <view class="result-header">
+    <view class="header-content">
+      <image class="result-avatar" src="{{imagePaths.icons.juzeAvatar}}" mode="aspectFill"/>
+      <text class="result-title">{{title}}</text>
+      <text class="result-subtitle">{{subtitle}}</text>
+    </view>
+    <image class="cat-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit"/>
+  </view>
+
+  <!-- 主要内容区域 -->
+  <view class="result-content">
+    <!-- 海报图片（如果有） -->
+    <view class="poster-card" wx:if="{{posterImageUrl}}" bindtap="previewPoster">
+      <image class="poster-image" src="{{posterImageUrl}}" mode="aspectFill"/>
+      <view class="platform-badge {{platformSource}}" wx:if="{{platformSource}}">
+        <text>{{platformSource === 'meituan' ? '美团' : platformSource === 'dianping' ? '点评' : '京东'}}</text>
+      </view>
+    </view>
+
+    <!-- 投票统计（如果有） -->
+    <view class="vote-stats-card" wx:if="{{showVoteStats && votePercent !== undefined}}">
+      <view class="stats-header">
+        <text class="stats-title">投票结果</text>
+        <text class="stats-percent">{{votePercent}}%</text>
+      </view>
+      <view class="voters-section">
+        <view class="voters-avatars" wx:if="{{voters && voters.length > 0}}">
+          <view class="voter-avatar-item" wx:for="{{voters}}" wx:key="nickname">
+            <image class="voter-avatar" src="{{item.avatar || imagePaths.icons.juzeAvatar}}" mode="aspectFill"/>
+            <text class="voter-name">{{item.nickname}}</text>
+          </view>
+        </view>
+        <view class="vote-bar-wrap">
+          <view class="vote-bar">
+            <view class="vote-fill" style="width: {{votePercent}}%"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 信息卡片 -->
+    <view class="info-card" wx:if="{{shopName || time || address}}">
+      <!-- 店名 -->
+      <view class="info-row" wx:if="{{shopName}}">
+        <image class="info-icon" src="{{imagePaths.icons.meituantubiao}}" mode="aspectFit"/>
+        <text class="info-label">店名</text>
+        <text class="info-value shop-name">{{shopName}}</text>
+      </view>
+      <!-- 时间 -->
+      <view class="info-row" wx:if="{{time}}">
+        <image class="info-icon" src="https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la/icons/calendar.png" mode="aspectFit"/>
+        <text class="info-label">时间</text>
+        <text class="info-value">{{time}}</text>
+        <button class="btn-inline" bindtap="addToCalendar">
+          <image class="btn-inline-icon" src="https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la/icons/calendar.png" mode="aspectFit"/>
+          <text>添加到日历提醒</text>
+        </button>
+      </view>
+      <!-- 地址 -->
+      <view class="info-row" wx:if="{{address}}">
+        <image class="info-icon" src="https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la/icons/address.png" mode="aspectFit"/>
+        <text class="info-label">地址</text>
+        <text class="info-value">{{address}}</text>
+        <button class="btn-inline" bindtap="openNavigation">
+          <image class="btn-inline-icon" src="https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la/icons/daohang.png" mode="aspectFit"/>
+          <text>导航</text>
+        </button>
+      </view>
+      <!-- 包间号（仅可编辑模式） -->
+      <view class="info-row room-addition" wx:if="{{!isPoster && showRoomAddition}}">
+        <image class="info-icon" src="https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la/icons/baojian.png" mode="aspectFit"/>
+        <text class="info-label">包间号</text>
+        <input 
+          class="room-input" 
+          placeholder="点击输入包间号" 
+          value="{{roomAddition}}" 
+          bindinput="onRoomAdditionInput"
+          confirm-type="done"
+        />
+        <text class="save-btn" bindtap="saveRoomAddition" wx:if="{{roomAddition}}">保存</text>
+      </view>
+      <!-- 包间号（仅展示模式） -->
+      <view class="info-row" wx:if="{{isPoster && roomAddition}}">
+        <image class="info-icon" src="https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la/icons/baojian.png" mode="aspectFit"/>
+        <text class="info-label">包间号</text>
+        <text class="info-value">{{roomAddition}}</text>
+      </view>
+    </view>
+
+    <!-- 操作按钮区域（仅非海报模式） -->
+    <view class="action-section" wx:if="{{!isPoster && showActions}}">
+      <slot name="actions"></slot>
+    </view>
+
+    <!-- 分享海报按钮（直接放在内容区域，无导航栏分割） -->
+    <view class="share-poster-section" wx:if="{{!isPoster && showShare}}">
+      <button class="share-poster-btn" open-type="share">
+        <image class="share-poster-icon" src="{{imagePaths.icons.sharetofriends}}" mode="aspectFit"/>
+        <text class="share-poster-text">分享海报</text>
+      </button>
+    </view>
+  </view>
+</view>

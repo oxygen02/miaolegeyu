@@ -63,7 +63,10 @@ Page({
     isJoining: false,
     // 海报分享相关
     showPosterModal: false,
-    posterData: null
+    posterData: null,
+    // 投票结果通知
+    showVoteResult: false,
+    voteResult: {}
   },
 
   async onLoad(options) {
@@ -244,6 +247,102 @@ Page({
   async loadRoomData(roomId) {
     try {
       wx.showLoading({ title: '加载中' });
+      
+      // 模拟数据处理
+      if (roomId === 'mock_ready_001') {
+        // 模拟：投票已完成，可以查看结果
+        const mockRoom = {
+          _id: 'mock_ready_001',
+          title: '🍔 我选好了',
+          mode: 'a',
+          status: 'locked',
+          isCreator: false,
+          isParticipant: true,
+          hasJoinedGroupOrder: true,
+          candidatePosters: [
+            {
+              _id: 'p1',
+              shopName: '麦当劳（人民路店）',
+              imageUrl: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=McDonalds%20restaurant%20exterior%20with%20golden%20arches%20logo%20blue%20sky&image_size=landscape_4_3',
+              platformSource: 'meituan',
+              votePercent: 67
+            },
+            {
+              _id: 'p2',
+              shopName: '肯德基（中心广场店）',
+              imageUrl: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=KFC%20restaurant%20exterior%20with%20red%20sign%20building&image_size=landscape_4_3',
+              platformSource: 'meituan',
+              votePercent: 33
+            },
+            {
+              _id: 'p3',
+              shopName: '汉堡王（商业街店）',
+              imageUrl: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=Burger%20King%20restaurant%20exterior%20with%20flame%20grill%20sign&image_size=landscape_4_3',
+              platformSource: 'meituan',
+              votePercent: 0
+            }
+          ],
+          totalVoters: 3,
+          finalPoster: {
+            name: '麦当劳（人民路店）',
+            imageUrl: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=McDonalds%20restaurant%20exterior%20with%20golden%20arches%20logo%20blue%20sky&image_size=landscape_4_3',
+            platformSource: 'meituan',
+            time: '今天 12:00',
+            votePercent: 67
+          }
+        };
+        this._handleMockRoom(mockRoom);
+        wx.hideLoading();
+        return;
+      }
+
+      if (roomId === 'mock_pending_001') {
+        // 模拟：待投票状态，可以参与投票
+        const mockRoom = {
+          _id: 'mock_pending_001',
+          title: '🍕 你们来定',
+          mode: 'a',
+          status: 'voting',
+          isCreator: false,
+          isParticipant: false,
+          hasJoinedGroupOrder: false,
+          candidatePosters: [
+            {
+              _id: 'p1',
+              shopName: '必胜客（万达店）',
+              imageUrl: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=Pizza%20Hut%20restaurant%20interior%20with%20pizza%20on%20table&image_size=landscape_4_3',
+              platformSource: 'meituan',
+              voteCount: 2
+            },
+            {
+              _id: 'p2',
+              shopName: '棒约翰（银泰店）',
+              imageUrl: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=pizza%20restaurant%20with%20delicious%20pizza%20and%20salad&image_size=landscape_4_3',
+              platformSource: 'meituan',
+              voteCount: 1
+            },
+            {
+              _id: 'p3',
+              shopName: '达美乐（凯德店）',
+              imageUrl: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=Domino%20pizza%20delivery%20box%20with%20fresh%20pizza&image_size=landscape_4_3',
+              platformSource: 'meituan',
+              voteCount: 0
+            },
+            {
+              _id: 'p4',
+              shopName: '乐凯撒（海岸城店）',
+              imageUrl: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=casual%20pizza%20restaurant%20with%20wood%20fired%20oven&image_size=landscape_4_3',
+              platformSource: 'meituan',
+              voteCount: 1
+            }
+          ],
+          totalVoters: 4
+        };
+        this._handleMockRoom(mockRoom);
+        wx.hideLoading();
+        return;
+      }
+
       const { result } = await wx.cloud.callFunction({
         name: 'getRoom',
         data: { roomId }
@@ -320,6 +419,64 @@ Page({
     } catch (err) {
       wx.hideLoading();
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
+    }
+  },
+
+  // 处理模拟房间数据
+  _handleMockRoom(room) {
+    const mode = room.mode || 'a';
+    
+    if (room.status === 'locked' && room.finalPoster) {
+      // 投票已结束，有结果，直接跳转到结果页
+      setTimeout(() => {
+        wx.redirectTo({
+          url: `/pages/result/result?roomId=${room._id}`
+        });
+      }, 500);
+      return;
+    }
+    
+    if (mode === 'b') {
+      const categoryCards = cuisineCategories.map((cat, index) => ({
+        ...cat,
+        index,
+        status: '',
+        isVetoed: false,
+        isSelected: false
+      }));
+
+      this.setData({
+        room,
+        mode: 'b',
+        categoryCards,
+        currentStep: 'category',
+        selectedCategoryIds: [],
+        selectedSubCategories: {},
+        posters: [],
+        currentIndex: 0,
+        categoryCurrentIndex: 0,
+        subCategoryCurrentIndex: 0
+      });
+    } else {
+      const candidatePosters = room.candidatePosters || [];
+      
+      const posters = candidatePosters.map((p, index) => ({
+        ...p,
+        index,
+        status: '',
+        isVetoed: false,
+        isLiked: false,
+        isFav: false
+      }));
+
+      this.setData({
+        room,
+        mode: 'a',
+        posters,
+        currentIndex: 0,
+        categoryCurrentIndex: 0,
+        subCategoryCurrentIndex: 0
+      });
     }
   },
 
@@ -1254,13 +1411,22 @@ Page({
         // 提交成功后清除本地状态
         this.clearVoteState(this.data.roomId);
 
-        const submitTimer = setTimeout(() => {
-          wx.redirectTo({
-            url: `/pages/result/result?roomId=${this.data.roomId}`
+        // 检查是否所有成员都已投票，如果是则显示结果通知
+        if (result.data && result.data.allVoted) {
+          this.setData({
+            showVoteResult: true,
+            voteResult: result.data.room || {}
           });
-        }, 1500);
-        this._timers = this._timers || [];
-        this._timers.push(submitTimer);
+        } else {
+          // 否则跳转到结果页
+          const submitTimer = setTimeout(() => {
+            wx.redirectTo({
+              url: `/pages/result/result?roomId=${this.data.roomId}`
+            });
+          }, 1500);
+          this._timers = this._timers || [];
+          this._timers.push(submitTimer);
+        }
       } else {
         throw new Error(result.error || result.msg);
       }

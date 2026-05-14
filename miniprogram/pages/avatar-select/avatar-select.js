@@ -1,7 +1,7 @@
-const { imagePaths, BASE_URL } = require('../../config/imageConfig');
+const { imagePaths, CDN_BASE } = require('../../config/imageConfig');
 
 // 云存储头像基础URL（使用HTTPS地址）
-const AVATAR_BASE_URL = `${BASE_URL}/avatars/cat`;
+const AVATAR_BASE_URL = `${CDN_BASE}/avatars/cat`;
 
 // 默认头像列表（作为回退）
 const DEFAULT_AVATARS = [

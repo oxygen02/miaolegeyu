@@ -14,14 +14,14 @@ App({
         env: cloudConfig.env,
         traceUser: true,
       });
-      console.log('[App] 云开发初始化完成, 环境:', cloudConfig.env);
     }
 
     this._initAfterCloudReady();
     this.checkPrivacySetting();
     this.initNetworkListener();
     audioManager.init();
-    this.checkUpdate();
+    // checkUpdate 可能触发网络请求，延迟执行避免阻塞
+    setTimeout(() => this.checkUpdate(), 2000);
   },
 
   _initAfterCloudReady() {
@@ -33,7 +33,6 @@ App({
     // 直接将 imagePaths 设为全局数据即可
     this.globalData.imagePaths = imagePaths;
     this.globalData._imageReady = true;
-    console.log('[App] ✅ 全局图片路径就绪（CDN 直链模式）');
   },
 
   getImagePaths() {
@@ -86,12 +85,35 @@ App({
   },
 
   checkPrivacySetting() {
+    // 隐私协议已显示过，不再重复显示
+    if (wx.getStorageSync('privacyPromptShown')) {
+      return;
+    }
+    
     if (wx.getPrivacySetting) {
-      wx.getPrivacySetting({ success: res => { if (res.needAuthorization) this.showPrivacyModal(); }, fail: () => {} });
+      wx.getPrivacySetting({ 
+        success: res => { 
+          if (res.needAuthorization) {
+            this.showPrivacyModal(); 
+          } else {
+            // 不需要授权时，标记为已处理
+            wx.setStorageSync('privacyPromptShown', true);
+          }
+        }, 
+        fail: () => {
+          // 获取设置失败时，标记为已处理避免重复尝试
+          wx.setStorageSync('privacyPromptShown', true);
+        } 
+      });
+    } else {
+      // 基础库不支持时，标记为已处理
+      wx.setStorageSync('privacyPromptShown', true);
     }
   },
 
   showPrivacyModal() {
+    wx.setStorageSync('privacyPromptShown', true);
+    
     const content = `感谢您使用【喵了个鱼】！
 
 为了为您提供更好的服务，我们需要获取以下权限：
@@ -112,10 +134,43 @@ App({
 我们承诺保护您的个人信息，不会将其泄露或用于其他用途。
 
 请查阅《用户协议》和《隐私政策》了解更多详情。`;
-    wx.showModal({ title: '隐私保护指引', content: content, confirmText: '同意', cancelText: '拒绝', success: (res) => {
-      if (res.confirm) { wx.setStorageSync('privacyAuthorized', true); }
-      else { wx.setStorageSync('privacyAuthorized', false); wx.showToast({ title: '部分功能可能受限', icon: 'none', duration: 3000 }); }
-    }});
+    
+    wx.showModal({ 
+      title: '隐私保护指引', 
+      content: content, 
+      confirmText: '同意',
+      cancelText: '暂不授权',
+      success: (res) => {
+        if (res.confirm) { 
+          wx.setStorageSync('privacyAuthorized', true);
+          wx.showToast({ 
+            title: '已授权，可正常使用', 
+            icon: 'success',
+            duration: 2000
+          });
+        }
+        else { 
+          wx.setStorageSync('privacyAuthorized', false); 
+          wx.showModal({
+            title: '提示',
+            content: '您已拒绝授权，部分功能可能无法使用。\n\n您可以在【设置】中重新授权后使用完整功能。',
+            showCancel: true,
+            confirmText: '知道了',
+            cancelText: '查看设置',
+            success: (modalRes) => {
+              if (!modalRes.confirm && modalRes.cancel) {
+                // 用户选择查看设置，跳转到设置页面
+                wx.openSetting({
+                  success: (setRes) => {
+                    console.log('用户打开设置页:', setRes);
+                  }
+                });
+              }
+            }
+          });
+        }
+      }
+    });
   },
 
   initNetworkListener() {

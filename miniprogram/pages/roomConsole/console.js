@@ -1,8 +1,11 @@
 const ANON_NAMES = ['吃货喵', '馋嘴猫', '干饭喵', '探店喵', '觅食喵', '品鉴喵', '寻味喵', '尝鲜喵', '老饕喵', '滋味喵'];
+const { imagePaths } = require('../../config/imageConfig');
 
 Page({
   data: {
+    imagePaths: imagePaths,
     roomId: '',
+    bannerCatUrl: 'https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la/misc/juze_avatar.png',
     roomCode: '731286',
     roomTitle: '周二晚撸串建设北路',
     roomAddress: '建设北路',
@@ -12,29 +15,29 @@ Page({
     isAnonymous: false,
     countdown: '00:00:00',
     countdownTimer: null,
-    voteDeadline: null,
+    voteDeadline: '2026-05-17T12:00:00+08:00',
     pollTimer: null,
     votedCount: 3,
     unvotedCount: 2,
     progressPercent: 60,
     participants: [
-      { id: 'o001', nickName: '喵不喵', avatarUrl: '/assets/cat-avatar1.png', isVoted: true, isHost: true, anonName: '吃货喵', choices: ['经典川菜', '重庆火锅'] },
-      { id: 'o002', nickName: '吃货小王', avatarUrl: '/assets/cat-avatar2.png', isVoted: true, isHost: false, anonName: '馋嘴猫', choices: ['重庆火锅'] },
-      { id: 'o003', nickName: '美食家小李', avatarUrl: '/assets/cat-avatar3.png', isVoted: true, isHost: false, anonName: '干饭喵', choices: ['经典川菜', '麻辣香锅'] },
-      { id: 'o004', nickName: '橘仔', avatarUrl: '/assets/cat-avatar4.png', isVoted: false, isHost: false, anonName: '探店喵', choices: [] },
-      { id: 'o005', nickName: '匿名喵友', avatarUrl: 'https://636c-cloud1-d4gfy27bn0f3f5346.tcb.qcloud.la/decorations/juze_avatar.png', isVoted: false, isHost: false, anonName: '觅食喵', choices: [] }
+      { id: 'o001', nickName: '喵不喵', avatarUrl: imagePaths.misc.juzeAvatar, isVoted: true, isHost: true, anonName: '吃货喵', choices: ['经典川菜', '重庆火锅'] },
+      { id: 'o002', nickName: '吃货小王', avatarUrl: imagePaths.misc.juzeAvatar, isVoted: true, isHost: false, anonName: '馋嘴猫', choices: ['重庆火锅'] },
+      { id: 'o003', nickName: '美食家小李', avatarUrl: imagePaths.misc.juzeAvatar, isVoted: true, isHost: false, anonName: '干饭喵', choices: ['经典川菜', '麻辣香锅'] },
+      { id: 'o004', nickName: '橘仔', avatarUrl: imagePaths.misc.juzeAvatar, isVoted: false, isHost: false, anonName: '探店喵', choices: [] },
+      { id: 'o005', nickName: '匿名喵友', avatarUrl: imagePaths.misc.juzeAvatar, isVoted: false, isHost: false, anonName: '觅食喵', choices: [] }
     ],
     topOptions: [
-      { id: 'sub_01_01', name: '经典川菜', image: '/images/category_01_01.jpg', count: 3, percent: 75 },
-      { id: 'sub_01_02', name: '重庆火锅', image: '/images/category_01_02.jpg', count: 2, percent: 50 },
-      { id: 'sub_10_02', name: '麻辣香锅', image: '/images/category_10_02.jpg', count: 2, percent: 50 }
+      { id: 'sub_01_01', name: '经典川菜', image: imagePaths.banners.taiyakiIcon, count: 3, percent: 75 },
+      { id: 'sub_01_02', name: '重庆火锅', image: imagePaths.banners.taiyakiIcon, count: 2, percent: 50 },
+      { id: 'sub_10_02', name: '麻辣香锅', image: imagePaths.banners.taiyakiIcon, count: 2, percent: 50 }
     ],
     winner: {
       name: '味记小渔匠肥肠鱼稻田蛙',
       address: '东郊记忆店',
       category: '川菜',
       price: 68,
-      image: '/images/shop_demo.jpg',
+      image: imagePaths.banners.taiyakiIcon,
       voteCount: 4,
       votePercent: 80
     }
@@ -52,12 +55,19 @@ Page({
 
   onLoad(options) {
     const roomId = options.roomId || '';
-    this.setData({ roomId });
+    this.setData({
+      roomId,
+      bannerCatUrl: imagePaths.misc.juzeAvatar
+    });
     this.startCountdown();
     this.calculateStats(this.data.participants);
     if (roomId && wx.cloud) {
       this.fetchRoomData(roomId);
     }
+  },
+
+  onBannerCatError() {
+    console.log('banner图片加载失败');
   },
 
   onUnload() {
@@ -185,7 +195,22 @@ Page({
       this.setData({ countdown: '00:00:00' });
       return;
     }
-    const deadline = new Date(deadlineTime).getTime();
+    // 统一按东八区解析截止时间，避免时区偏差
+    const parseDeadline = (str) => {
+      if (str instanceof Date) return str.getTime();
+      if (typeof str === 'number') return str;
+      // 显式带时区（如 +08:00）直接解析
+      if (/[+-]\d{2}:\d{2}$/.test(str)) {
+        return new Date(str).getTime();
+      }
+      // 无时区字符串，按东八区处理（补 +08:00）
+      const normalized = str.replace(' ', 'T');
+      if (!/T/.test(normalized)) {
+        return new Date(normalized + 'T00:00:00+08:00').getTime();
+      }
+      return new Date(normalized + '+08:00').getTime();
+    };
+    const deadline = parseDeadline(deadlineTime);
     const update = () => {
       const diff = deadline - Date.now();
       if (diff <= 0) {

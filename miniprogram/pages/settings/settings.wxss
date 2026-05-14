@@ -1,6 +1,6 @@
 .settings-page {
   min-height: 100vh;
-  background: #F5F0E8;
+  background: var(--bg);
 }
 
 /* 顶部导航 */
@@ -8,14 +8,8 @@
   display: flex;
   align-items: center;
   padding: 20rpx;
-  background: #fff;
-  border-bottom: 2rpx solid #E0E0E0;
-}
-
-.back-btn {
-  font-size: 48rpx;
-  color: #333;
-  padding: 0 20rpx;
+  background: var(--card);
+  border-bottom: 2rpx solid rgba(0, 0, 0, 0.06);
 }
 
 .nav-title {
@@ -23,7 +17,7 @@
   text-align: center;
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   margin-right: 88rpx;
 }
 

@@ -284,15 +284,20 @@ page {
   justify-content: center;
   padding: 16rpx;
   border-radius: 12rpx;
-  border: 3rpx solid #3D3D3D;
+  border: 3rpx solid transparent;
+  background-image:
+    linear-gradient(#fff, #fff),
+    linear-gradient(135deg, #FF9F43 0%, #FFB347 40%, rgba(255,179,71,0.3) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
 }
 
 .navigate-btn {
-  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+  /* 继承 action-btn 样式，无额外背景 */
 }
 
 .call-btn {
-  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  /* 继承 action-btn 样式，无额外背景 */
 }
 
 .btn-text {

@@ -521,36 +521,38 @@
   position: relative;
 }
 
-/* AI智能识别按钮 - 科技星空镭射风格 */
+/* AI智能识别按钮 - 科技星空镭射风格（紧凑版） */
 .ai-recognize-float-btn {
   position: absolute;
   top: -8rpx;
   right: -8rpx;
-  width: 72rpx;
-  height: 56rpx;
-  border-radius: 28rpx;
+  width: 84rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 2rpx;
-  padding-left: 14rpx;
-  padding-right: 10rpx;
+  padding-left: 16rpx;
+  padding-right: 12rpx;
   z-index: 10;
 
-  /* 浅色渐变背景 - 淡天蓝 */
+  /* 星际背景 - 深蓝渐变（调亮版本） */
   background:
-    radial-gradient(ellipse at 20% 30%, rgba(100, 180, 255, 0.2) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
-    linear-gradient(135deg, #38bdf8 0%, #60a5fa 50%, #93c5fd 100%);
+    radial-gradient(ellipse at 20% 30%, rgba(140, 170, 255, 0.35) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(190, 150, 255, 0.3) 0%, transparent 50%),
+    linear-gradient(135deg, #1a2d4d 0%, #2a4068 30%, #1e3854 60%, #253d5c 100%);
 
-  /* 轻柔阴影 */
+  /* 2D立体效果 - 轻量阴影 */
   box-shadow:
-    0 2rpx 8rpx rgba(56, 189, 248, 0.25),
-    0 4rpx 12rpx rgba(96, 165, 250, 0.15);
+    0 2rpx 8rpx rgba(20, 40, 80, 0.5),
+    0 4rpx 16rpx rgba(40, 70, 120, 0.35),
+    inset 0 1rpx 2rpx rgba(255, 255, 255, 0.18),
+    inset 0 -1rpx 2rpx rgba(0, 0, 0, 0.25);
 
-  /* 细边框 */
-  border: 1rpx solid rgba(147, 197, 253, 0.5);
+  /* 边框 - 科技感发光边缘 */
+  border: 1.5rpx solid rgba(130, 170, 255, 0.45);
 
   /* 镭射动态效果 */
   animation: laserSweep 3s ease-in-out infinite;
@@ -568,48 +570,50 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.12) 25%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0.12) 75%,
+    rgba(130, 200, 255, 0.18) 25%,
+    rgba(170, 150, 255, 0.28) 50%,
+    rgba(130, 200, 255, 0.18) 75%,
     transparent 100%
   );
   animation: laserMove 3s ease-in-out infinite;
-  border-radius: 28rpx;
+  border-radius: 32rpx;
 }
 
-/* 星际背景粒子 */
+/* 星际背景粒子（缩小） */
 .ai-recognize-float-btn::after {
   content: '✦';
   position: absolute;
-  font-size: 10rpx;
-  color: rgba(255, 255, 255, 0.5);
-  top: 4rpx;
-  right: 12rpx;
+  font-size: 11rpx;
+  color: rgba(210, 230, 255, 0.65);
+  top: 6rpx;
+  right: 14rpx;
   animation: starTwinkle 2s ease-in-out infinite;
 }
 
-/* AI文字标识 - 科技感发光 */
+/* AI文字标识 - 科技感发光（紧凑版） */
 .ai-text {
-  font-size: 22rpx;
-  color: #ffffff;
+  font-size: 24rpx;
+  color: #e0e8ff;
   font-weight: 700;
   letter-spacing: 1rpx;
   line-height: 1;
   position: relative;
   text-shadow:
-    0 0 6rpx rgba(255, 255, 255, 0.4);
+    0 0 6rpx rgba(100, 180, 255, 0.5),
+    0 0 12rpx rgba(150, 130, 255, 0.35);
 }
 
-/* 星星图标 - 绝对定位在AI文字右上角，镭射闪烁效果 */
+/* 星星图标 - 绝对定位在AI文字右上角，镭射闪烁效果（紧凑版） */
 .ai-star-icon {
   position: absolute;
-  top: -6rpx;
+  top: -8rpx;
   right: -10rpx;
-  font-size: 14rpx;
-  color: #fbbf24;
+  font-size: 16rpx;
+  color: #a0d4ff;
   font-weight: bold;
   text-shadow:
-    0 0 4rpx rgba(251, 191, 36, 0.8);
+    0 0 4rpx rgba(160, 212, 255, 0.85),
+    0 0 8rpx rgba(150, 130, 255, 0.6);
   animation: starLaserPulse 1.5s ease-in-out infinite;
 }
 

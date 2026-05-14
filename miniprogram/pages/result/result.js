@@ -12,6 +12,7 @@ Page({
     imagePaths: {},
     showPosterModal: false,
     posterData: null,
+    roomAddition: '',
     platformAppIds: {
       meituan: 'wxde8ac0a21135c07d',
       dianping: 'wxc0d6fdfa1c166f6c',
@@ -36,6 +37,41 @@ Page({
   async loadRoomData() {
     try {
       this.setData({ loading: true });
+
+      // 模拟数据处理
+      if (this.data.roomId === 'mock_ready_001') {
+        const mockRoom = {
+          _id: 'mock_ready_001',
+          title: '🍔 我选好了',
+          mode: 'a',
+          status: 'locked',
+          isCreator: false,
+          totalVoters: 3,
+          participants: [
+            { nickname: '小明' },
+            { nickname: '小红' },
+            { nickname: '小李' }
+          ],
+          isAnonymous: false,
+          finalPoster: {
+            name: '麦当劳（人民路店）',
+            shopName: '麦当劳（人民路店）',
+            imageUrl: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=McDonalds%20restaurant%20exterior%20with%20golden%20arches%20logo%20blue%20sky&image_size=landscape_4_3',
+            platformSource: 'meituan',
+            time: '今天 12:00',
+            address: '人民路123号',
+            votePercent: 67
+          }
+        };
+        this.setData({
+          room: mockRoom,
+          isCreator: mockRoom.isCreator,
+          voteStats: null,
+          loading: false
+        });
+        audioManager.playMeowSoft();
+        return;
+      }
 
       const { result } = await wx.cloud.callFunction({
         name: 'getRoom',
@@ -133,21 +169,39 @@ Page({
       return;
     }
 
-    wx.showActionSheet({
-      itemList: ['使用高德地图', '使用腾讯地图'],
+    // 先获取用户位置
+    wx.getLocation({
+      type: 'gcj02',
       success: (res) => {
-        if (res.tapIndex === 0) {
-          // 高德地图
-          wx.navigateTo({
-            url: `plugin://chooseLocation/index?key=YOUR_AMAP_KEY&referer=miaolegeyu&location=${JSON.stringify({})}&address=${address}`
-          });
-        } else {
-          // 腾讯地图
-          wx.openLocation({
-            address,
-            scale: 18
-          });
-        }
+        wx.showActionSheet({
+          itemList: ['使用腾讯地图导航', '复制地址'],
+          success: (actionRes) => {
+            if (actionRes.tapIndex === 0) {
+              wx.openLocation({
+                latitude: res.latitude,
+                longitude: res.longitude,
+                name: '目的地',
+                address: address,
+                scale: 16,
+                fail: () => {
+                  wx.setClipboardData({ data: address });
+                  wx.showToast({ title: '地址已复制', icon: 'success' });
+                }
+              });
+            } else {
+              wx.setClipboardData({
+                data: address,
+                success: () => { wx.showToast({ title: '地址已复制', icon: 'success' }); }
+              });
+            }
+          }
+        });
+      },
+      fail: () => {
+        wx.setClipboardData({
+          data: address,
+          success: () => { wx.showToast({ title: '地址已复制', icon: 'success' }); }
+        });
       }
     });
   },
@@ -155,6 +209,16 @@ Page({
   // 返回首页
   goHome() {
     wx.navigateTo({ url: '/pages/index/index' });
+  },
+
+  // 跳转喵不喵
+  goFishTank() {
+    wx.navigateTo({ url: '/pages/fish-tank/fish-tank' });
+  },
+
+  // 跳转我的
+  goProfile() {
+    wx.navigateTo({ url: '/pages/profile/profile' });
   },
 
 // 去结算
@@ -417,5 +481,46 @@ url: `/pages/recommend-restaurant/recommend-restaurant?roomId=${roomId}&cuisineT
       path: `/pages/result/result?roomId=${roomId}&sign=${sign}&t=${timestamp}`,
       imageUrl: room.finalPoster?.imageUrl || ''
     };
+  },
+
+  // 包间号输入
+  onRoomAdditionInput(e) {
+    this.setData({
+      roomAddition: e.detail.value
+    });
+  },
+
+  // 保存包间号
+  async saveRoomAddition() {
+    const { roomAddition, roomId, room } = this.data;
+    if (!roomAddition.trim()) return;
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'updateRoom',
+        data: {
+          roomId,
+          data: {
+            roomAddition: roomAddition.trim()
+          }
+        }
+      });
+
+      if (result.code === 0) {
+        wx.showToast({ title: '保存成功', icon: 'success' });
+        // 更新本地数据
+        const updatedRoom = { ...room };
+        if (!updatedRoom.finalPoster) {
+          updatedRoom.finalPoster = {};
+        }
+        updatedRoom.finalPoster.roomAddition = roomAddition.trim();
+        this.setData({ room: updatedRoom });
+      } else {
+        wx.showToast({ title: '保存失败', icon: 'none' });
+      }
+    } catch (err) {
+      console.error('保存包间号失败:', err);
+      wx.showToast({ title: '保存失败', icon: 'none' });
+    }
   }
 });

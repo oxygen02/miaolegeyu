@@ -746,16 +746,42 @@ async onLoad(options) {
 
   onImageTap(e) {
     const { url } = e.currentTarget.dataset;
+    this._previewImage(url);
+  },
+
+  _previewImage(currentUrl) {
     const { shop } = this.data;
-    
-    // 如果有平台链接，直接跳转到平台详情
-    if (shop.platformUrl) {
-      this.openPlatformLink();
-      return;
+    if (!shop || !shop.images || shop.images.length === 0) return;
+    wx.previewImage({
+      current: currentUrl || shop.images[this.data.currentImageIndex],
+      urls: shop.images
+    });
+  },
+
+  // ========== 图片区域手势：下滑进入预览 ==========
+  onImageTouchStart(e) {
+    this._touchStartY = e.touches[0].clientY;
+    this._touchStartX = e.touches[0].clientX;
+    this._isVerticalSwipe = false;
+  },
+
+  onImageTouchMove(e) {
+    const dy = e.touches[0].clientY - this._touchStartY;
+    const dx = e.touches[0].clientX - this._touchStartX;
+    // 只有当纵向位移明显大于横向位移时，才认为是垂直滑动
+    if (Math.abs(dy) > Math.abs(dx) && dy > 30) {
+      this._isVerticalSwipe = true;
     }
-    
-    // 否则预览图片
-    wx.previewImage({ current: url, urls: this.data.shop.images });
+  },
+
+  onImageTouchEnd(e) {
+    if (!this._isVerticalSwipe) return;
+    const dy = e.changedTouches[0].clientY - this._touchStartY;
+    // 向下滑动超过 80px 触发预览
+    if (dy > 80) {
+      this._previewImage();
+    }
+    this._isVerticalSwipe = false;
   },
 
   // 点击发起约饭

@@ -9,7 +9,7 @@
 }
 
 /* 恢复交互区域 */
-.dm-wrap .dm-tracks,
+.dm-wrap .dm-item,
 .dm-wrap .dm-input-row,
 .dm-wrap .dm-input-box { pointer-events: auto; }
 

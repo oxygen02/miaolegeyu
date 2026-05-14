@@ -202,9 +202,9 @@ Page({
             creatorAvatar: group.creatorAvatar,
             creatorAvatarUrl: group.creatorAvatar,
             creatorId: group.creatorId,
-            location: typeof room.location === 'object' ? room.location.name || room.location.address || '' : (room.location || ''),
-            activityDate: typeof room.activityDate === 'object' ? '' : (room.activityDate || ''),
-            activityTime: typeof room.activityTime === 'object' ? '' : (room.activityTime || '')
+            location: room.location && typeof room.location === 'object' ? room.location.name || room.location.address || '' : (room.location || ''),
+            activityDate: room.activityDate && typeof room.activityDate === 'object' ? '' : (room.activityDate || ''),
+            activityTime: room.activityTime && typeof room.activityTime === 'object' ? '' : (room.activityTime || '')
           });
         });
       }

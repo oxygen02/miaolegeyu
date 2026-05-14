@@ -210,22 +210,35 @@ Page({
     }
   },
 
-  // 备用导航方式
+  // 备用导航方式（无经纬度时）
   fallbackNavigate(restaurant) {
-    // 使用微信内置地图搜索
-    wx.getLocation({
-      type: 'gcj02',
+    const address = restaurant.address || restaurant.name || '';
+    wx.showActionSheet({
+      itemList: ['复制地址', '在地图中查看'],
       success: (res) => {
-        wx.openLocation({
-          latitude: res.latitude,
-          longitude: res.longitude,
-          name: restaurant.name || '附近',
-          address: restaurant.address || '',
-          scale: 14
-        });
-      },
-      fail: () => {
-        wx.showToast({ title: '请授权位置权限', icon: 'none' });
+        if (res.tapIndex === 0) {
+          wx.setClipboardData({
+            data: address,
+            success: () => { wx.showToast({ title: '地址已复制', icon: 'success' }); }
+          });
+        } else {
+          wx.getLocation({
+            type: 'gcj02',
+            success: (userRes) => {
+              wx.openLocation({
+                latitude: userRes.latitude,
+                longitude: userRes.longitude,
+                name: restaurant.name || '目的地',
+                address: address,
+                scale: 16
+              });
+            },
+            fail: () => {
+              wx.setClipboardData({ data: address });
+              wx.showToast({ title: '地址已复制', icon: 'success' });
+            }
+          });
+        }
       }
     });
   },

@@ -31,11 +31,11 @@ exports.main = async (event) => {
       roomId: _.in(roomIds)
     };
     
-    // 根据模式筛选
+    // 根据模式筛选（兼容旧数据：mode 'b' 也视为聚餐模式）
     if (mode === 'group') {
       roomWhereClause.mode = 'group';
     } else if (mode === 'dining') {
-      roomWhereClause.mode = 'pick_for_them';
+      roomWhereClause.mode = _.in(['pick_for_them', 'b']);
     } else if (mode === 'meal') {
       roomWhereClause.mode = 'meal';
     }

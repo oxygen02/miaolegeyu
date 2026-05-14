@@ -1,7 +1,7 @@
 <view class="about-page">
   <!-- 顶部导航 -->
   <view class="nav-header">
-    <view class="back-btn" bindtap="goBack">‹</view>
+    <view class="back-btn" bindtap="goBack"></view>
     <text class="nav-title">关于</text>
   </view>
 

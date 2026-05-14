@@ -6,6 +6,7 @@
   "disableScroll": true,
   "usingComponents": {
     "time-picker": "/components/timePicker/timePicker",
-    "poster-modal": "../../components/poster-modal/poster-modal"
+    "poster-modal": "../../components/poster-modal/poster-modal",
+    "result-card": "../../components/result-card/result-card"
   }
 }

@@ -82,7 +82,7 @@ module.exports = {
       <!-- 左侧：店铺信息 -->
       <view class="shop-left-section">
         <!-- 店铺图片 -->
-        <view class="shop-thumb" data-index="{{shopIndex}}" catchtap="onThumbTap">
+        <view class="shop-thumb" data-index="{{shopIndex}}">
           <image class="thumb-image" src="{{item.images && item.images[0] ? item.images[0] : imagePaths.banners.taiyakiIcon}}" mode="aspectFill" />
           <view class="image-count" wx:if="{{item.images && item.images.length > 1}}">{{item.images.length}}</view>
         </view>
@@ -120,9 +120,9 @@ module.exports = {
             <text class="shop-price">¥{{item.avgPrice}}/人</text>
           </view>
 
-          <!-- 第四行：地址（单独一行，不带导航图标） -->
+          <!-- 第四行：地址（可点击导航） -->
           <view class="info-row address-row" wx:if="{{utils.safeString(item.location)}}">
-            <text class="shop-address">{{utils.safeString(item.location)}}</text>
+            <text class="shop-address" catchtap="openLocation" data-address="{{item.location}}" data-name="{{item.name}}">{{utils.safeString(item.location)}}</text>
           </view>
 
           <!-- 第五行：推荐理由（填充空白） -->
@@ -229,17 +229,6 @@ module.exports = {
       <image class="floating-recommend-icon" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
     </view>
     <text class="floating-recommend-text">推荐好吃好喝哒</text>
-  </view>
-
-  <!-- 图片预览弹窗 -->
-  <view class="image-preview-mask" wx:if="{{previewVisible}}" bindtap="closePreview">
-    <swiper class="preview-swiper" current="{{previewCurrent}}" bindchange="onPreviewChange">
-      <swiper-item wx:for="{{previewImages}}" wx:key="*this">
-        <image class="preview-image" src="{{item}}" mode="aspectFit" catchtap="onPreviewImageTap" />
-      </swiper-item>
-    </swiper>
-    <view class="preview-indicator">{{previewCurrent + 1}} / {{previewImages.length}}</view>
-    <view class="preview-close" bindtap="closePreview">×</view>
   </view>
 
 </view>

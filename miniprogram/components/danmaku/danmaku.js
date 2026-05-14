@@ -1,4 +1,19 @@
 // 弹幕组件 - 简化版：纯CSS动画 + 3条轨道居中
+
+// 敏感词列表（示例，实际使用时需配置完整敏感词库）
+const SENSITIVE_WORDS = [
+  '敏感词1', '敏感词2', '测试词'
+];
+
+// HTML特殊字符转义表
+const HTML_ESCAPE_MAP = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+};
+
 Component({
   properties: {
     visible: { type: Boolean, value: true },
@@ -56,7 +71,19 @@ Component({
     sendDanmaku() {
       const t = this.data.inputValue.trim();
       if (!t) return;
-      this._add(t, true);
+      
+      // 敏感词过滤
+      for (const word of SENSITIVE_WORDS) {
+        if (t.includes(word)) {
+          wx.showToast({ title: '内容包含敏感词', icon: 'none' });
+          return;
+        }
+      }
+      
+      // XSS防护：HTML转义
+      const safeText = t.replace(/[&<>"']/g, char => HTML_ESCAPE_MAP[char]);
+      
+      this._add(safeText, true);
       this.setData({ inputValue: '', btnReady: false });
       this.triggerEvent('send', { text: t });
     },
@@ -103,13 +130,57 @@ Component({
     // ---- 自动播放 ----
     _startAuto() {
       if (this.data.autoTimer) return;
+      
+      // 优先使用云端配置，如果没有则使用本地兜底数据
       const presets = this.properties.presetDanmaku.length > 0
         ? this.properties.presetDanmaku
-        : ['这家店味道太棒了！👍','环境不错，推荐推荐~','性价比很高！！','会再来光顾的 🐟','服务态度超好 ❤️','排队也值得！','人均消费很合理','菜品摆盘精致 ✨','适合朋友聚餐','停车方便 👍','下次带家人来','宝藏店铺发现！','辣度刚刚好 🔥','甜品必点！','拍照超出片 📸'];
+        : null; // 云端配置优先，null表示需要加载云端
+      
+      if (presets) {
+        this._startAutoWithPresets(presets);
+      } else {
+        this._loadCloudPresets();
+      }
+    },
+
+    // 从云端加载预设弹幕
+    _loadCloudPresets() {
+      // 本地兜底数据（用于云端加载失败时）
+      const localPresets = [
+        '这家店味道太棒了！👍', '环境不错，推荐推荐~', '性价比很高！！',
+        '会再来光顾的 🐟', '服务态度超好 ❤️', '排队也值得！',
+        '人均消费很合理', '菜品摆盘精致 ✨', '适合朋友聚餐',
+        '停车方便 👍', '下次带家人来', '宝藏店铺发现！',
+        '辣度刚刚好 🔥', '甜品必点！', '拍照超出片 📸'
+      ];
+
+      // 尝试从云端获取弹幕配置
+      const app = getApp();
+      if (app.globalData.danmakuPresets && app.globalData.danmakuPresets.length > 0) {
+        this._startAutoWithPresets(app.globalData.danmakuPresets);
+        return;
+      }
+
+      // 如果云端配置未加载，延迟尝试一次
+      setTimeout(() => {
+        const app2 = getApp();
+        if (app2.globalData.danmakuPresets && app2.globalData.danmakuPresets.length > 0) {
+          this._startAutoWithPresets(app2.globalData.danmakuPresets);
+        } else {
+          // 使用本地兜底数据
+          this._startAutoWithPresets(localPresets);
+        }
+      }, 500);
+    },
+
+    // 使用预设弹幕开始自动播放
+    _startAutoWithPresets(presets) {
       let i = 0;
       const next = () => {
         this.data.autoTimer = setTimeout(() => {
-          this._add(typeof presets[i] === 'string' ? presets[i] : presets[i].text || '');
+          const item = presets[i];
+          const text = typeof item === 'string' ? item : (item.text || '');
+          this._add(text, false);
           i = (i + 1) % presets.length;
           next();
         }, 2500 + Math.random() * 1500); // 2.5~4秒间隔，避免卡顿

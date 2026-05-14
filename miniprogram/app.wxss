@@ -191,6 +191,27 @@ page {
   box-shadow: var(--shadow-sm);
 }
 
+/* === 全局返回按钮 === */
+.back-btn {
+  width: 64rpx;
+  height: 64rpx;
+  min-width: 64rpx;
+  min-height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  color: var(--text);
+  padding: 12rpx;
+  margin: -12rpx;
+  box-sizing: content-box;
+}
+
+.back-btn::before {
+  content: '‹';
+  font-weight: 400;
+}
+
 /* === 按钮基础 === */
 .btn {
   height: 88rpx;

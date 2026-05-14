@@ -189,11 +189,11 @@
   width: fit-content !important;
   height: auto !important;
   line-height: 1 !important;
-  border-radius: 36rpx !important;
+  border-radius: var(--radius-xl) !important;
   font-size: 28rpx !important;
   font-weight: 600 !important;
-  border: 4rpx solid #3D3D3D !important;
-  box-shadow: 4rpx 4rpx 0 #3D3D3D !important;
+  border: 4rpx solid var(--text) !important;
+  box-shadow: 4rpx 4rpx 0 var(--text) !important;
   text-align: center;
   padding: 20rpx 56rpx !important;
   margin: 0 auto !important;
@@ -204,7 +204,7 @@
 }
 
 .btn-primary {
-  background: #FF9F43 !important;
+  background: var(--primary) !important;
   color: #fff !important;
 }
 

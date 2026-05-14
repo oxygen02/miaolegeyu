@@ -2,7 +2,7 @@
 <view class="dm-wrap" wx:if="{{visible}}">
 
   <!-- 弹幕轨道区：垂直居中，只占中间区域 -->
-  <view class="dm-tracks" catchtap="onTrackTap">
+  <view class="dm-tracks">
     <block wx:for="{{[0,1,2]}}" wx:key="*this">
       <view
         class="dm-item {{item.color ? 'c-' + item.color : ''}}"
@@ -12,6 +12,7 @@
         wx:if="{{item.trackIndex === index && item.show}}"
         wx:key="uniqueId"
         data-id="{{item.uniqueId}}"
+        catchtap="onTrackTap"
       >
         <image wx:if="{{item.avatar}}" class="dm-avatar" src="{{item.avatar}}" mode="aspectFill" />
         <view wx:else class="dm-avatar dm-avatar-def"></view>

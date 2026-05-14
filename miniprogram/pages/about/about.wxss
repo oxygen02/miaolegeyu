@@ -1,6 +1,6 @@
 .about-page {
   height: 100vh;
-  background: #F5F0E8;
+  background: var(--bg);
   display: flex;
   flex-direction: column;
 }
@@ -10,15 +10,9 @@
   display: flex;
   align-items: center;
   padding: 16rpx 20rpx;
-  background: #fff;
-  border-bottom: 2rpx solid #E0E0E0;
+  background: var(--card);
+  border-bottom: 2rpx solid rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
-}
-
-.back-btn {
-  font-size: 48rpx;
-  color: #333;
-  padding: 0 20rpx;
 }
 
 .nav-title {
@@ -26,7 +20,7 @@
   text-align: center;
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   margin-right: 88rpx;
 }
 

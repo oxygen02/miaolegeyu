@@ -43,5 +43,15 @@
       { "pagePath": "pages/profile/profile", "text": "我的" }
     ]
   },
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于导航到店铺位置，为你推荐附近的美食"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation",
+    "chooseAddress"
+  ]
 }

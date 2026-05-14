@@ -634,10 +634,6 @@
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
 }
 
-.feature-emoji {
-  font-size: 48rpx;
-}
-
 .feature-icon-image {
   width: 56rpx;
   height: 56rpx;
@@ -646,6 +642,10 @@
 .feature-icon-image.large-icon {
   width: 64rpx;
   height: 64rpx;
+}
+
+.feature-emoji {
+  font-size: 40rpx;
 }
 
 .fish-emoji-large {

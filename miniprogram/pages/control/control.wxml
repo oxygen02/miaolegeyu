@@ -141,7 +141,7 @@
   </view>
 
   <view class="card tip-card" wx:if="{{roomStatus === 'voting'}}">
-    <view class="sec-title">
+    <view class="tip-header">
       <image src="/assets/icon-bulb.png" mode="aspectFit" />
       <text>决策说明</text>
     </view>

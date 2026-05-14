@@ -720,16 +720,16 @@ Page({
             if (!isNaN(date.getTime())) {
               const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
               const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
-              const hour = (room.getHours() < 10 ? '0' : '') + room.getHours();
-              const minute = (room.getMinutes() < 10 ? '0' : '') + room.getMinutes();
+              const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
+              const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
               room.voteDeadlineStr = `${month}-${day} ${hour}:${minute}`;
             }
           }
           return {
             ...room,
-            location: typeof room.location === 'object' ? room.location.name || room.location.address || '' : (room.location || ''),
-            activityDate: typeof room.activityDate === 'object' ? '' : (room.activityDate || ''),
-            activityTime: typeof room.activityTime === 'object' ? '' : (room.activityTime || ''),
+            location: room.location && typeof room.location === 'object' ? room.location.name || room.location.address || '' : (room.location || ''),
+            activityDate: room.activityDate && typeof room.activityDate === 'object' ? '' : (room.activityDate || ''),
+            activityTime: room.activityTime && typeof room.activityTime === 'object' ? '' : (room.activityTime || ''),
             ...this.calcDeadlineUrgent(room.voteDeadline)
           };
         });

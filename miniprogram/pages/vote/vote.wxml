@@ -293,6 +293,27 @@
     </view>
   </view>
 
+  <!-- 投票完成后的结果通知 -->
+  <view class="vote-result-section" wx:if="{{showVoteResult}}">
+    <result-card
+      title="橘仔宣布"
+      subtitle="本次聚餐地点已定"
+      poster-image-url="{{voteResult.finalPoster.imageUrl}}"
+      platform-source="{{voteResult.finalPoster.platformSource}}"
+      show-vote-stats="{{true}}"
+      vote-percent="{{voteResult.finalPoster.votePercent}}"
+      voters="{{voteResult.participants}}"
+      shop-name="{{voteResult.finalPoster.shopName}}"
+      time="{{voteResult.finalPoster.time}}"
+      address="{{voteResult.finalPoster.address}}"
+      is-poster="{{false}}"
+      show-bottom-actions="{{true}}"
+      show-share="{{true}}"
+      show-poster-btn="{{true}}"
+      bind:showPoster="showResultPoster"
+    />
+  </view>
+
   <!-- 海报分享弹窗 -->
   <poster-modal
     visible="{{showPosterModal}}"

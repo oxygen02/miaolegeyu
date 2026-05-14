@@ -6,24 +6,30 @@ const _ = db.command;
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
   const { status = 'all', mode = '' } = event;
+  const OPENID = wxContext.OPENID;
+
+  if (!OPENID) {
+    return { code: -1, msg: '用户未登录', data: [] };
+  }
 
   try {
     let whereClause = {
-      creatorOpenId: wxContext.OPENID
+      creatorOpenId: OPENID
     };
-    
+
     // 根据状态筛选
     if (status === 'voting') {
       whereClause.status = 'voting';
     } else if (status === 'locked') {
       whereClause.status = 'locked';
     }
-    
+
     // 根据模式筛选（group=拼单, dining=聚餐投票, meal=约饭）
+    // 兼容旧数据：mode 'b' 也视为聚餐模式
     if (mode === 'group') {
       whereClause.mode = 'group';
     } else if (mode === 'dining') {
-      whereClause.mode = 'pick_for_them';
+      whereClause.mode = _.in(['pick_for_them', 'b']);
     } else if (mode === 'meal') {
       whereClause.mode = 'meal';
     }
@@ -31,13 +37,47 @@ exports.main = async (event) => {
     let query = db.collection('rooms').where(whereClause);
 
     // 获取当前用户创建的所有房间（限制数量避免超时）
-    const { data: rooms } = await query.orderBy('createdAt', 'desc').limit(100).get();
+    let { data: rooms } = await query.orderBy('createdAt', 'desc').limit(100).get();
+
+    // 如果通过 creatorOpenId 查不到，尝试通过 room_participants 中 role=creator 的记录查询
+    // 这可以兼容 creatorOpenId 字段异常的情况
+    if (!rooms || rooms.length === 0) {
+      try {
+        const { data: creatorParticipants } = await db.collection('room_participants')
+          .where({ openid: OPENID, role: 'creator' })
+          .orderBy('joinedAt', 'desc')
+          .limit(100)
+          .get();
+
+        const fallbackRoomIds = creatorParticipants.map(p => p.roomId).filter(Boolean);
+        if (fallbackRoomIds.length > 0) {
+          let fallbackWhere = { roomId: _.in(fallbackRoomIds) };
+          if (status === 'voting') {
+            fallbackWhere.status = 'voting';
+          } else if (status === 'locked') {
+            fallbackWhere.status = 'locked';
+          }
+          if (mode === 'group') {
+            fallbackWhere.mode = 'group';
+          } else if (mode === 'dining') {
+            fallbackWhere.mode = _.in(['pick_for_them', 'b']);
+          } else if (mode === 'meal') {
+            fallbackWhere.mode = 'meal';
+          }
+          const fallbackRes = await db.collection('rooms').where(fallbackWhere).orderBy('createdAt', 'desc').get();
+          rooms = fallbackRes.data || [];
+        }
+      } catch (fallbackErr) {
+        console.error('getMyRooms 备选查询失败:', fallbackErr);
+      }
+    }
 
     if (!rooms || rooms.length === 0) {
       return {
         code: 0,
         data: [],
-        msg: '获取成功'
+        msg: '获取成功',
+        debug: { openid: OPENID, whereClause, source: 'primary' }
       };
     }
 
@@ -111,7 +151,7 @@ exports.main = async (event) => {
         
         // 为每个房间收集参与者头像（排除发起人）
         participants.forEach(p => {
-          if (p.openid !== wxContext.OPENID) { // 排除发起人自己
+          if (p.openid !== OPENID) { // 排除发起人自己
             if (!participantAvatars[p.roomId]) {
               participantAvatars[p.roomId] = [];
             }
@@ -129,9 +169,9 @@ exports.main = async (event) => {
     // 获取当前用户信息
     let creatorInfo = { nickName: '', avatarUrl: '' };
     try {
-      console.log('查询用户信息, OPENID:', wxContext.OPENID);
-      const { data: users } = await db.collection('users')
-        .where({ _openid: wxContext.OPENID })
+      console.log('查询用户信息, OPENID:', OPENID);
+        const { data: users } = await db.collection('users')
+          .where({ _openid: OPENID })
         .limit(1)
         .get();
       console.log('查询到的用户:', users);
@@ -227,17 +267,21 @@ exports.main = async (event) => {
       };
     });
 
+    console.log('getMyRooms 查询条件:', JSON.stringify(whereClause), '结果数:', roomsWithParticipants.length);
+
     return {
       code: 0,
       data: roomsWithParticipants,
-      msg: '获取成功'
+      msg: '获取成功',
+      debug: { openid: OPENID, whereClause }
     };
   } catch (err) {
     console.error('getMyRooms error:', err);
     return {
       code: -1,
       msg: err.message || '获取失败',
-      data: []
+      data: [],
+      debug: { openid: OPENID }
     };
   }
 };

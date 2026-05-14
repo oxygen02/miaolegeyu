@@ -332,7 +332,7 @@ class PosterGenerator {
       this._drawCatIcon(ctx, cx, avatarCY + 2, 22);
     }
 
-    // ==================== 4. 白色大卡片 ====================
+    // ==================== 4. 白色大卡片（result-card 格式）====================
     const cardX = 32;
     const cardY = 300;
     const cardW = width - 64;
@@ -354,7 +354,7 @@ class PosterGenerator {
 
     let cy = cardY + 55;
 
-    // === 餐厅名 ===
+    // === 餐厅名（对应 result-card 的 shop-name）===
     const shopName = winner?.name || '饭店待定';
     ctx.font = 'bold 44px sans-serif';
     ctx.fillStyle = '#2D2018';
@@ -362,7 +362,7 @@ class PosterGenerator {
     ctx.fillText(shopName, cx, cy);
     cy += 60;
 
-    // === 地址分类 ===
+    // === 地址分类（对应 result-card 的 address + category）===
     const category = winner?.category || '美食';
     const addrText = (winner?.address || roomAddress || '地址待定') + ' | ' + category;
     ctx.font = 'bold 28px sans-serif';
@@ -370,7 +370,7 @@ class PosterGenerator {
     ctx.fillText(addrText, cx, cy);
     cy += 55;
 
-    // --- 时间 ---
+    // --- 时间（对应 result-card 的 time）---
     ctx.font = 'bold 28px sans-serif';
     ctx.fillStyle = '#2D2018';
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
@@ -383,12 +383,12 @@ class PosterGenerator {
     ctx.fillRect(cardX + 40, cy, cardW - 80, 1.5);
     cy += 45;
 
-    // ==================== 5. 投票数据区 ====================
+    // ==================== 5. 投票数据区（对应 result-card 的 vote-stats）====================
     const voteCount = winner?.voteCount || 0;
     const percent = winner?.votePercent || 0;
     const pCount = participants?.length || 0;
 
-    // 左侧：票数
+    // 左侧：票数（对应 result-card 的 stats-percent）
     const voteY = cy + 50;
     const numStr = String(voteCount);
     ctx.font = 'bold 80px sans-serif';
@@ -401,7 +401,7 @@ class PosterGenerator {
     ctx.fillStyle = '#2D2018';
     ctx.fillText('票', cardX + 48 + numW, voteY + 4);
 
-    // 右侧：环形支持率
+    // 右侧：环形支持率（对应 result-card 的 vote-bar）
     const ringX = cardX + cardW - 110;
     const ringR = 45;
     const ringWidth = 8;
@@ -430,18 +430,18 @@ class PosterGenerator {
 
     cy = voteY + 70;
 
-    // 进度条背景
+    // 进度条背景（对应 result-card 的 vote-bar）
     const barH = 16;
     const barY = cy;
     this.drawRoundRect(cardX + 40, barY, cardW - 80, barH, barH / 2, '#F0EBE4');
 
-    // 进度条填充
+    // 进度条填充（对应 result-card 的 vote-fill）
     const fillW = Math.max(barH, (cardW - 80) * (percent / 100));
     this.drawRoundRect(cardX + 40, barY, fillW, barH, barH / 2, '#FF8A65');
 
     cy += 40;
 
-    // 参与人数
+    // 参与人数（对应 result-card 的 voters-section）
     ctx.font = '24px sans-serif';
     ctx.fillStyle = '#999488';
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
@@ -453,7 +453,7 @@ class PosterGenerator {
     ctx.fillRect(cardX + 40, cy, cardW - 80, 1.5);
     cy += 40;
 
-    // ==================== 6. 小程序码 ====================
+    // ==================== 6. 小程序码（对应 result-card 的 bottom-action-bar）====================
     const qrSize = 140;
     const qrY = cy;
     const qrX = cx - qrSize / 2;
@@ -485,7 +485,7 @@ class PosterGenerator {
     ctx.fillText('长按识别查看详情', cx, qrY + qrSize + 20);
     cy = qrY + qrSize + 60;
 
-    // ==================== 7. 底部品牌 ====================
+    // ==================== 7. 底部品牌（对应 result-card 的 result-header）====================
     // 分隔线
     ctx.fillStyle = '#EDE8E2';
     ctx.fillRect(cardX + 40, cy, cardW - 80, 1);
@@ -533,7 +533,7 @@ class PosterGenerator {
     ctx.fillStyle = '#999488';
     ctx.fillText('让聚餐不再纠结', logoX + logoSize + 12, logoY + logoSize / 2 + 28);
 
-    // ==================== 猫爪印装饰（文字下方居中）====================
+    // ==================== 猫爪印装饰（对应 result-card 的 cat-tail）====================
     let clawImg = null;
     try { clawImg = await this.loadImage(canvas, this.IMAGES.singleClaw); } catch (e) {}
     if (clawImg) {

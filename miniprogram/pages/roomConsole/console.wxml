@@ -1,7 +1,7 @@
 <view class="page-container">
   <view class="banner">
     <view class="banner-inner">
-      <image class="banner-cat" src="/assets/cat-banner.png" mode="aspectFit" />
+      <image class="banner-cat" src="{{bannerCatUrl}}" mode="aspectFit" binderror="onBannerCatError" />
       <view class="banner-text">
         <text class="banner-title">发起人控制台</text>
         <text class="banner-sub">掌握全局 · 一锤定音</text>
@@ -45,7 +45,7 @@
 
     <view class="anon-row" bindtap="toggleAnonymous">
       <view class="anon-icon {{isAnonymous ? 'active' : ''}}">
-        <image src="/assets/icon-mask.png" mode="aspectFit" />
+        <image src="{{imagePaths.icons.setting}}" mode="aspectFit" />
       </view>
       <view class="anon-text">
         <text class="anon-title">匿名投票</text>
@@ -58,10 +58,10 @@
       <view class="code-box" bindtap="copyRoomCode">
         <text class="code-label">房间号</text>
         <text class="code-val">{{roomCode}}</text>
-        <image src="/assets/icon-copy.png" mode="aspectFit" />
+        <image src="{{imagePaths.icons.about}}" mode="aspectFit" />
       </view>
       <view class="share-btn" bindtap="shareRoom">
-        <image src="/assets/icon-share-w.png" mode="aspectFit" />
+        <image src="{{imagePaths.icons.sharetofriends}}" mode="aspectFit" />
         <text>邀请</text>
       </view>
     </view>
@@ -69,7 +69,7 @@
 
   <view class="card" wx:if="{{roomStatus === 'voting'}}">
     <view class="sec-title">
-      <image src="/assets/icon-chart.png" mode="aspectFit" />
+      <image src="{{imagePaths.icons.toupiaojuece}}" mode="aspectFit" />
       <text>实时投票进度</text>
     </view>
     <view class="progress-box">
@@ -82,7 +82,7 @@
       </view>
     </view>
     <view class="anon-hint" wx:if="{{isAnonymous}}">
-      <image src="/assets/icon-mask.png" mode="aspectFit" />
+      <image src="{{imagePaths.icons.setting}}" mode="aspectFit" />
       <text>匿名模式下仅展示票数聚合，不公开个人选择</text>
     </view>
     <view class="top3" wx:if="{{topOptions.length > 0}}">
@@ -104,7 +104,7 @@
 
   <view class="card">
     <view class="sec-title">
-      <image src="/assets/icon-members.png" mode="aspectFit" />
+      <image src="{{imagePaths.icons.hudong}}" mode="aspectFit" />
       <text>参与情况</text>
       <text class="badge">{{participants.length}}人</text>
     </view>
@@ -115,8 +115,8 @@
             bindtap="handleMemberTap"
             data-index="{{index}}">
         <view class="avatar-box">
-          <image class="avatar {{isAnonymous && item.isVoted ? 'blur' : ''}}" 
-                 src="{{isAnonymous && item.isVoted ? '/assets/cat-anonymous.png' : item.avatarUrl}}" 
+          <image class="avatar {{isAnonymous && item.isVoted ? 'blur' : ''}}"
+                 src="{{isAnonymous && item.isVoted ? imagePaths.decorations.peekingCatIcon : item.avatarUrl}}"
                  mode="aspectFill" />
           <view class="mark {{item.isVoted ? 'done' : 'wait'}}">
             <text>{{item.isVoted ? '✓' : '···'}}</text>
@@ -141,8 +141,8 @@
   </view>
 
   <view class="card tip-card" wx:if="{{roomStatus === 'voting'}}">
-    <view class="sec-title">
-      <image src="/assets/icon-bulb.png" mode="aspectFit" />
+    <view class="tip-header">
+      <image src="{{imagePaths.icons.setting}}" mode="aspectFit" />
       <text>决策说明</text>
     </view>
     <view class="tip-list">
@@ -165,35 +165,21 @@
     </view>
   </view>
 
-  <view class="card result-card" wx:if="{{roomStatus === 'locked'}}">
-    <view class="result-head">
-      <image src="/assets/icon-trophy.png" mode="aspectFit" />
-      <text>已锁定最终结果</text>
-    </view>
-    <view class="winner">
-      <image class="win-img" src="{{winner.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{winner.image}}"/>
-      <view class="win-info">
-        <text class="win-name">{{winner.name}}</text>
-        <text class="win-addr">{{winner.address}}</text>
-        <view class="win-tags">
-          <text class="win-tag">{{winner.category}}</text>
-          <text class="win-tag red">人均¥{{winner.price}}</text>
-        </view>
-      </view>
-    </view>
-    <view class="win-vote">
-      <view class="win-vote-text">
-        <text>{{winner.voteCount}}票当选</text>
-        <text class="win-pct">{{winner.votePercent}}%支持率</text>
-      </view>
-      <view class="win-bar-bg">
-        <view class="win-bar" style="width: {{winner.votePercent}}%"></view>
-      </view>
-    </view>
-    <view class="win-anon" wx:if="{{isAnonymous}}">
-      <image src="/assets/icon-shield.png" mode="aspectFit" />
-      <text>本次投票为匿名模式，个人选择记录已加密</text>
-    </view>
+  <!-- 使用 result-card 组件展示锁定结果 -->
+  <view class="card result-card-wrapper" wx:if="{{roomStatus === 'locked'}}">
+    <result-card
+      title="橘仔宣布"
+      subtitle="本次聚餐地点已定"
+      poster-image-url="{{winner.image}}"
+      shop-name="{{winner.name}}"
+      address="{{winner.address}}"
+      show-vote-stats="{{true}}"
+      vote-percent="{{winner.votePercent}}"
+      voters="{{participants}}"
+      is-poster="{{false}}"
+      show-bottom-actions="{{false}}"
+      bind:previewPoster="previewImage"
+    />
   </view>
 
   <view class="spacer"></view>
@@ -201,11 +187,11 @@
 
 <view class="bottom-bar">
   <view class="b-btn gray" bindtap="editRoom">
-    <image src="/assets/icon-edit.png" mode="aspectFit" />
+    <image src="{{imagePaths.icons.chongxuan}}" mode="aspectFit" />
     <text>编辑活动</text>
   </view>
   <view class="b-btn orange {{roomStatus === 'locked' ? 'disabled' : ''}}" bindtap="lockResult">
-    <image src="/assets/icon-lock.png" mode="aspectFit" />
+    <image src="{{imagePaths.icons.gaizhang}}" mode="aspectFit" />
     <text>{{roomStatus === 'locked' ? '已锁定' : '锁定结果'}}</text>
   </view>
   <view class="b-btn green" bindtap="shareToFriends">

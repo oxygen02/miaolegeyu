@@ -159,12 +159,12 @@
   width: fit-content !important;
   height: auto !important;
   line-height: 1 !important;
-  border-radius: 36rpx !important;
+  border-radius: var(--radius-xl) !important;
   font-size: 28rpx !important;
   font-weight: 600 !important;
   text-align: center;
-  border: 4rpx solid #3D3D3D !important;
-  box-shadow: 4rpx 4rpx 0 #3D3D3D !important;
+  border: 4rpx solid var(--text) !important;
+  box-shadow: 4rpx 4rpx 0 var(--text) !important;
   padding: 12rpx 32rpx !important;
   margin: 0 !important;
 }
@@ -174,12 +174,12 @@
 }
 
 .btn-secondary {
-  background: #fff !important;
-  color: #3D3D3D !important;
+  background: var(--card) !important;
+  color: var(--text) !important;
 }
 
 .btn-primary {
-  background: #FF9F43 !important;
+  background: var(--primary) !important;
   color: #fff !important;
 }
 

@@ -99,10 +99,6 @@ Page({
     ],
     // 标签展开状态
     isCuisineExpanded: false,
-    // 图片预览
-    previewVisible: false,
-    previewImages: [],
-    previewCurrent: 0,
     // 倒计时定时器
     countdownTimers: {}
   },
@@ -430,33 +426,40 @@ Page({
       return;
     }
 
-    // 打开地图选择导航
-    wx.showActionSheet({
-      itemList: ['使用腾讯地图导航', '复制地址'],
+    // 先获取用户当前位置
+    wx.getLocation({
+      type: 'gcj02',
       success: (res) => {
-        if (res.tapIndex === 0) {
-          // 使用腾讯地图
-          wx.openLocation({
-            name: name || '目的地',
-            address: address,
-            latitude: 0,
-            longitude: 0,
-            fail: () => {
-              // 如果无法直接打开，尝试使用地址搜索
-              wx.navigateTo({
-                url: `/pages/address-nav/address-nav?address=${encodeURIComponent(address)}&name=${encodeURIComponent(name || '')}`
+        wx.showActionSheet({
+          itemList: ['使用腾讯地图导航', '复制地址'],
+          success: (actionRes) => {
+            if (actionRes.tapIndex === 0) {
+              wx.openLocation({
+                latitude: res.latitude,
+                longitude: res.longitude,
+                name: name || '目的地',
+                address: address,
+                scale: 16,
+                fail: () => {
+                  wx.setClipboardData({ data: address });
+                  wx.showToast({ title: '地址已复制', icon: 'success' });
+                }
+              });
+            } else {
+              wx.setClipboardData({
+                data: address,
+                success: () => { wx.showToast({ title: '地址已复制', icon: 'success' }); }
               });
             }
-          });
-        } else if (res.tapIndex === 1) {
-          // 复制地址
-          wx.setClipboardData({
-            data: address,
-            success: () => {
-              wx.showToast({ title: '地址已复制', icon: 'success' });
-            }
-          });
-        }
+          }
+        });
+      },
+      fail: () => {
+        // 无法获取位置时直接复制地址
+        wx.setClipboardData({
+          data: address,
+          success: () => { wx.showToast({ title: '地址已复制', icon: 'success' }); }
+        });
       }
     });
   },
@@ -507,45 +510,7 @@ Page({
     });
   },
 
-  // 点击缩略图 - 预览图片
-  onThumbTap(e) {
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation();
-    }
-    const { index } = e.currentTarget.dataset;
-    const shop = this.data.shops[index];
-    if (!shop.images || shop.images.length === 0) {
-      wx.showToast({ title: '暂无图片', icon: 'none' });
-      return;
-    }
-    this.setData({
-      previewVisible: true,
-      previewImages: shop.images,
-      previewCurrent: 0
-    });
-  },
-
-  // 关闭图片预览
-  closePreview(e) {
-    e.stopPropagation();
-    this.setData({
-      previewVisible: false,
-      previewImages: [],
-      previewCurrent: 0
-    });
-  },
-
-  // 预览图片切换
-  onPreviewChange(e) {
-    this.setData({
-      previewCurrent: e.detail.current
-    });
-  },
-
-  // 阻止预览图片点击冒泡
-  onPreviewImageTap(e) {
-    e.stopPropagation();
-  },
+  // 点击缩略图 - 已取消图片预览功能
 
   // 点击发起约饭按钮 - 先查询意向用户，再跳转
   async onCreateAppointmentTap(e) {

@@ -21,11 +21,11 @@ exports.main = async (event) => {
       status: 'voting' // 只显示进行中的活动
     };
 
-    // 根据模式筛选
+    // 根据模式筛选（兼容旧数据：mode 'b' 也视为聚餐模式）
     if (mode === 'group') {
       whereClause.mode = 'group';
     } else if (mode === 'dining') {
-      whereClause.mode = 'pick_for_them';
+      whereClause.mode = _.in(['pick_for_them', 'b']);
     } else if (mode === 'meal') {
       // 约饭模式不查询 rooms 集合，返回空
       return {
@@ -33,8 +33,8 @@ exports.main = async (event) => {
         rooms: []
       };
     } else if (mode === '' || mode === 'all') {
-      // 全部模式：只查询 group 和 pick_for_them
-      whereClause.mode = _.in(['group', 'pick_for_them']);
+      // 全部模式：查询 group、pick_for_them 和 b
+      whereClause.mode = _.in(['group', 'pick_for_them', 'b']);
     }
 
     // 获取所有进行中的房间（只返回必要字段，脱敏处理）

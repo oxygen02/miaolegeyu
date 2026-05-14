@@ -38,15 +38,32 @@ Page({
   isTouchMoved: false,
 
   async onLoad(options) {
-    // 等待全局图片路径解析完成（cloud:// → https://）
-    const resolvedPaths = await app.whenImageReady();
-    this.setData({ imagePaths: resolvedPaths });
+    try {
+      // 等待全局图片路径解析完成（cloud:// → https://）
+      // 使用 Promise.race 防止 whenImageReady 卡死
+      const resolvedPaths = await Promise.race([
+        app.whenImageReady(),
+        new Promise((resolve) => setTimeout(() => {
+          console.warn('[首页] whenImageReady 超时，使用本地配置');
+          resolve(imagePaths);
+        }, 3000))
+      ]);
+      this.setData({ imagePaths: resolvedPaths });
+    } catch (err) {
+      console.error('[首页] 图片路径加载失败，使用本地配置:', err);
+      // 降级：直接使用 imageConfig 的配置
+      this.setData({ imagePaths: imagePaths });
+    }
 
+    // 立即标记页面就绪，确保 UI 先渲染
+    this.setData({ pageReady: true });
+
+    // 延迟加载数据（不阻塞页面渲染）
     setTimeout(() => {
-      this.setData({ pageReady: true });
+      console.log('[首页] 开始加载数据');
       this._loadDataAsync();
       this._initFishes();
-    }, 200);
+    }, 300);
   },
   updateTabBarSelected() {
     const tabBar = this.getTabBar();
@@ -63,6 +80,11 @@ Page({
       this.loadAppointmentBanners();
       this._loading = false;
       this.setData({ _dataLoaded: true });
+
+      // 确保页面即使数据加载失败也能显示
+      if (!this.data.pageReady) {
+        this.setData({ pageReady: true });
+      }
     }, 500);
   },
 
@@ -93,14 +115,31 @@ Page({
     this.setData({ countdownTimers: {} });
   },
 
+  // 带超时的云函数调用
+  _callWithTimeout(funcName, data, timeoutMs = 10000) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        console.warn(`[首页] ${funcName} 调用超时 (${timeoutMs}ms)`);
+        resolve({ result: { success: false, timeout: true } });
+      }, timeoutMs);
+
+      wx.cloud.callFunction({ name: funcName, data, timeout: timeoutMs + 2000 })
+        .then(res => {
+          clearTimeout(timer);
+          resolve(res);
+        })
+        .catch(err => {
+          clearTimeout(timer);
+          resolve({ result: { success: false, error: err.message } });
+        });
+    });
+  },
+
   async loadRecentRooms() {
     try {
-      const { result } = await wx.cloud.callFunction({
-        name: 'getRecentRooms',
-        data: { limit: 5 }
-      });
+      const { result } = await this._callWithTimeout('getRecentRooms', { limit: 5 }, 10000);
       if (result.success) {
-        const rooms = result.rooms.map(room => ({
+        const rooms = (result.rooms || []).map(room => ({
           ...room,
           statusText: this.getStatusText(room.status),
           posterUrl: room.candidatePosters?.[0]?.imageUrl || imagePaths.banners.taiyakiIcon
@@ -108,15 +147,13 @@ Page({
         this.setData({ recentRooms: rooms });
       }
     } catch (err) {
+      console.error('[首页] loadRecentRooms 失败:', err);
     }
   },
 
   async loadAppointmentBanners() {
     try {
-      const { result } = await wx.cloud.callFunction({
-        name: 'getDiningAppointments',
-        data: { limit: 5 }
-      });
+      const { result } = await this._callWithTimeout('getDiningAppointments', { limit: 5 }, 10000);
       if (result.success && result.appointments) {
         const now = new Date().getTime();
         let appointments = result.appointments

@@ -121,6 +121,10 @@ module.exports = {
             <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{utils.safeString(item.shopNameStr) || utils.safeString(item.shopName)}}</text>
             <view class="activity-meta">
               <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{utils.safeString(item.time)}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
+              <view class="activity-location" wx:if="{{item.address}}" bindtap="openMap" data-address="{{item.address}}" catchtap="stopPropagation">
+                <text class="location-icon">📍</text>
+                <text class="location-text">{{utils.safeString(item.address)}}</text>
+              </view>
             </view>
             <!-- 参与用户头像 -->
             <view class="participant-avatars" wx:if="{{item.participantAvatars.length > 0 && item.type !== 'scheduleVote'}}">
@@ -179,6 +183,10 @@ module.exports = {
             <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{utils.safeString(item.shopName)}}</text>
             <view class="activity-meta">
               <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{utils.safeString(item.time)}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
+              <view class="activity-location" wx:if="{{item.address}}" bindtap="openMap" data-address="{{item.address}}" catchtap="stopPropagation">
+                <text class="location-icon">📍</text>
+                <text class="location-text">{{utils.safeString(item.address)}}</text>
+              </view>
               <text class="activity-participants" wx:if="{{item.type !== 'scheduleVote'}}">{{item.participantCount}}人参与</text>
               <text class="activity-participants sv-participant-count" wx:if="{{item.type === 'scheduleVote'}}">{{item.participantCount}}人已填写</text>
             </view>
@@ -219,6 +227,10 @@ module.exports = {
             <text class="activity-shop" wx:if="{{item.type !== 'scheduleVote'}}">{{utils.safeString(item.shopName)}}</text>
             <view class="activity-meta">
               <text class="activity-time {{item.deadlineUrgent ? 'urgent' : ''}}">截止: {{utils.safeString(item.time)}}{{item.deadlineCountdown ? (' (' + item.deadlineCountdown + ')') : ''}}</text>
+              <view class="activity-location" wx:if="{{item.address}}" bindtap="openMap" data-address="{{item.address}}" catchtap="stopPropagation">
+                <text class="location-icon">📍</text>
+                <text class="location-text">{{utils.safeString(item.address)}}</text>
+              </view>
               <text class="activity-participants" wx:if="{{item.type !== 'scheduleVote'}}">{{item.participantCount}}人参与</text>
               <text class="activity-participants sv-participant-count" wx:if="{{item.type === 'scheduleVote'}}">{{item.participantCount}}人已填写</text>
             </view>

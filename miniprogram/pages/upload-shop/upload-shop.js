@@ -134,7 +134,7 @@ Page({
     });
   },
 
-  // 选择图片
+  // 选择图片 - 添加大小和格式校验
   onChooseImage() {
     const { images, maxImages } = this.data;
     const remainCount = maxImages - images.length;
@@ -150,10 +150,27 @@ Page({
       sourceType: ['album', 'camera'],
       success: (res) => {
         const newImages = res.tempFiles.map(file => file.tempFilePath);
+        
+        // 校验图片大小（限制5MB）
+        const MAX_SIZE = 5 * 1024 * 1024;
+        const oversizedFiles = res.tempFiles.filter(file => file.size > MAX_SIZE);
+        if (oversizedFiles.length > 0) {
+          wx.showToast({ 
+            title: `有${oversizedFiles.length}张图片超过5MB，请压缩后重试`, 
+            icon: 'none',
+            duration: 3000
+          });
+          return;
+        }
+        
         this.setData({
           images: [...images, ...newImages]
         });
         this.checkFormValid();
+      },
+      fail: (err) => {
+        console.error('选择图片失败:', err);
+        wx.showToast({ title: '选择图片失败', icon: 'none' });
       }
     });
   },
@@ -385,8 +402,6 @@ Page({
   async uploadImages() {
     const { images } = this.data;
     
-    console.log('📤 开始上传图片，共', images.length, '张');
-    
     if (!images || images.length === 0) {
       throw new Error('没有选择图片');
     }
@@ -407,8 +422,6 @@ Page({
           });
         });
         
-        console.log(`📷 图片${index + 1}存在，准备上传...`);
-        
         const cloudPath = `shops/${Date.now()}_${index}.jpg`;
         
         // ✅ 关键修复：将uploadFile包装在Promise中
@@ -417,7 +430,6 @@ Page({
             cloudPath: cloudPath,
             filePath: imagePath,
             success: (res) => {
-              console.log(`✅ 图片${index + 1}上传成功:`, res.fileID);
               if (res.fileID && typeof res.fileID === 'string') {
                 resolve(res);  // ✅ 正确地resolve，传递fileID
               } else {
@@ -440,14 +452,10 @@ Page({
     }
 
     try {
-      console.log('⏳ 等待所有图片上传完成...');
       const results = await Promise.all(uploadPromises);
       
       // 提取所有fileID并验证
       const fileIDs = results.map(res => res.fileID).filter(id => id && id !== 'undefined' && id !== '');
-      
-      console.log('✅ 全部图片上传成功！');
-      console.log('📦 获得的fileIDs:', fileIDs);
       
       if (fileIDs.length !== results.length) {
         throw new Error(`部分图片fileID无效（${results.length - fileIDs.length}/${results.length}张）`);
@@ -666,7 +674,6 @@ Page({
       let ocrText = '';
       try {
         ocrText = await this.callCloudOCR(imagePath);
-        console.log('✅ 云函数OCR调用成功');
       } catch (ocrErr) {
         console.error('❌ 云函数OCR失败:', ocrErr);
         
@@ -686,6 +693,11 @@ Page({
         }
         
         throw new Error(`${errorMessage}\n${errorDetail}`);
+      }
+      
+      // 检测OCR结果是否为空
+      if (!ocrText || ocrText.trim().length === 0) {
+        throw new Error('⚠️ 未识别到文字\n请确保图片中包含清晰的文字信息，如店铺名称、地址等。建议上传美团或大众点评的截图。');
       }
 
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -742,9 +754,6 @@ Page({
         filePath: imagePath,
         encoding: 'base64',
         success: (res) => {
-          console.log('✅ 图片读取成功，大小:', (res.data.length / 1024 / 1024).toFixed(2), 'MB');
-          console.log('🚀 开始调用云函数（超时时间：25秒）...');
-          
           wx.cloud.callFunction({
             name: 'recognizeShop',
             data: {
@@ -752,12 +761,8 @@ Page({
             },
             timeout: 25000, // 设置25秒超时（比云函数20秒稍长）
             success: (cloudRes) => {
-              console.log('☁️ 云函数调用成功:', cloudRes);
-              
               if (cloudRes.result && cloudRes.result.code === 0) {
                 const rawData = cloudRes.result.data || [];
-                console.log('📦 原始数据类型:', typeof rawData, '长度:', rawData.length);
-                console.log('📦 数据前3项:', rawData.slice(0, 3));
                 
                 // 兼容两种数据格式：
                 // 格式1: 字符串数组 ["文本1", "文本2"] (腾讯云OCR已处理)
@@ -767,17 +772,13 @@ Page({
                 if (rawData.length > 0 && typeof rawData[0] === 'string') {
                   // 格式1：直接拼接
                   ocrText = rawData.join('\n');
-                  console.log('✅ 使用格式1（字符串数组），共', rawData.length, '项');
                 } else if (rawData.length > 0 && typeof rawData[0] === 'object') {
                   // 格式2：提取DetectedText字段
                   ocrText = rawData.map(item => item.DetectedText || item.text || '').join('\n');
-                  console.log('✅ 使用格式2（对象数组），共', rawData.length, '项');
                 } else {
-                  console.warn('⚠️ 未知数据格式');
                   ocrText = String(rawData);
                 }
                 
-                console.log('📝 OCR文本预览（前200字）:', ocrText.substring(0, 200));
                 resolve(ocrText);
               } else {
                 // 构造包含详细信息的错误对象
@@ -823,12 +824,9 @@ Page({
     let price = '';
 
     // ========== 1. 提取店名（最关键）==========
-    console.log('\n[提取店名]');
     
     // 预处理：过滤掉undefined和空值
     const cleanLines = lines.filter(line => line && line.trim() && line !== 'undefined');
-    console.log('清理后文本行数:', cleanLines.length);
-    console.log('清理后前10行:', cleanLines.slice(0, 10));
     
     // ⭐ 核心原理：店名的视觉特征
     // 1. 位置：在图片上端 → OCR返回的前几行

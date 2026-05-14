@@ -25,7 +25,7 @@
           <text class="mode-desc-line">先投票选出公共时间</text>
         </view>
       </view>
-      <image class="mode-arrow" src="{{imagePaths.icons.daohang}}" mode="aspectFit"/>
+      <image class="mode-arrow" src="{{imagePaths.icons.danzhua}}" mode="aspectFit"/>
       <view class="crayon-border"></view>
     </view>
 
@@ -42,7 +42,7 @@
           <text class="mode-desc-line">大家直接投票选</text>
         </view>
       </view>
-      <image class="mode-arrow" src="{{imagePaths.icons.daohang}}" mode="aspectFit"/>
+      <image class="mode-arrow" src="{{imagePaths.icons.danzhua}}" mode="aspectFit"/>
       <view class="crayon-border"></view>
     </view>
 
@@ -59,7 +59,7 @@
           <text class="mode-desc-line">大家先选口味偏好</text>
         </view>
       </view>
-      <image class="mode-arrow" src="{{imagePaths.icons.daohang}}" mode="aspectFit"/>
+      <image class="mode-arrow" src="{{imagePaths.icons.danzhua}}" mode="aspectFit"/>
       <view class="crayon-border"></view>
     </view>
 
