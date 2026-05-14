@@ -103,7 +103,7 @@ module.exports = {
         <view class="activity-main">
           <!-- 时间投票左侧图标区域 -->
           <view class="activity-image schedule-vote-image" wx:if="{{item.type === 'scheduleVote'}}">
-            <image class="sv-taiyaki-icon" src="/images/taiyaki-icon.png" mode="aspectFit" />
+            <image class="sv-taiyaki-icon" src="{{imagePaths.banners.taiyakiIcon}}" mode="aspectFit" />
           </view>
           <image class="activity-image" src="{{item.image}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.image}}" binderror="onImageError" data-index="{{index}}" data-type="ongoing" wx:else/>
           <view class="activity-info">
@@ -169,7 +169,7 @@ module.exports = {
         <view class="activity-main">
           <!-- 时间投票左侧图标区域 -->
           <view class="activity-image schedule-vote-image" wx:if="{{item.type === 'scheduleVote'}}">
-            <image class="sv-taiyaki-icon" src="/images/taiyaki-icon.png" mode="aspectFit" />
+            <image class="sv-taiyaki-icon" src="{{imagePaths.banners.taiyakiIcon}}" mode="aspectFit" />
           </view>
           <image class="activity-image" src="{{item.image}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}" data-type="my" wx:else/>
           <view class="activity-info">
@@ -213,7 +213,7 @@ module.exports = {
         <view class="activity-main">
           <!-- 时间投票左侧图标区域 -->
           <view class="activity-image schedule-vote-image" wx:if="{{item.type === 'scheduleVote'}}">
-            <image class="sv-taiyaki-icon" src="/images/taiyaki-icon.png" mode="aspectFit" />
+            <image class="sv-taiyaki-icon" src="{{imagePaths.banners.taiyakiIcon}}" mode="aspectFit" />
           </view>
           <image class="activity-image" src="{{item.image}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}" data-type="participated" wx:else/>
           <view class="activity-info">
