@@ -1,6 +1,6 @@
-const { imagePaths } = require('../../config/imageConfig');
-const audioManager = require('../../utils/audioManager');
-const { withLock } = require('../../utils/debounce');
+const { imagePaths } = getApp().globalData;
+const audioManager = getApp().globalData.audioManager;
+const { withLock } = getApp().globalData.debounce;
 
 Page({
   data: {
@@ -61,6 +61,14 @@ Page({
 
   onHide() {
     this.clearFishTankDeadlineTimer();
+  },
+
+  // 下拉刷新
+  async onPullDownRefresh() {
+    wx.showNavigationBarLoading();
+    await this.loadData();
+    wx.hideNavigationBarLoading();
+    wx.stopPullDownRefresh();
   },
 
   onUnload() {
@@ -204,20 +212,45 @@ Page({
 
   // 加载正在进行的活动（所有进行中的）
   async loadOngoingRooms() {
+    const viewMode = this.data.viewMode;
+    const CACHE_KEY = `fish_ongoing_${viewMode}`;
+    const CACHE_TIME = `fish_ongoing_${viewMode}_time`;
+    const CACHE_EXPIRY = 3 * 60 * 1000; // 缓存3分钟
+
+    // 1. 先显示缓存数据（如果有且未过期）
+    try {
+      const cached = wx.getStorageSync(CACHE_KEY);
+      const cachedTime = wx.getStorageSync(CACHE_TIME);
+      if (cached && cachedTime && (Date.now() - cachedTime < CACHE_EXPIRY)) {
+        this.setData({
+          ongoingActivities: cached.ongoingActivities,
+          ongoingCount: cached.ongoingCount
+        });
+      }
+    } catch (e) { /* 忽略缓存读取错误 */ }
+
+    // 2. 请求最新数据
     // 如果是约饭模式，调用不同的云函数
-    if (this.data.viewMode === 'meal') {
+    if (viewMode === 'meal') {
       await this.loadDiningAppointments();
       return;
     }
 
     // 如果是时间投票模式
-    if (this.data.viewMode === 'scheduleVote') {
-      const votes = await this.loadScheduleVotes('all');
-      const ongoingVotes = votes.filter(v => v.status === 'voting');
-      this.setData({
-        ongoingActivities: this.processActivitiesDeadline(ongoingVotes),
-        ongoingCount: ongoingVotes.length
-      });
+    if (viewMode === 'scheduleVote') {
+      try {
+        const votes = await this.loadScheduleVotes('all');
+        const ongoingVotes = votes.filter(v => v.status === 'voting');
+        const processed = this.processActivitiesDeadline(ongoingVotes);
+        this.setData({
+          ongoingActivities: processed,
+          ongoingCount: ongoingVotes.length
+        });
+        wx.setStorageSync(CACHE_KEY, { ongoingActivities: processed, ongoingCount: ongoingVotes.length });
+        wx.setStorageSync(CACHE_TIME, Date.now());
+      } catch (err) {
+        // 缓存已显示，用户无感知
+      }
       return;
     }
 
@@ -230,7 +263,7 @@ Page({
         name: 'getAllRooms',
         data: { 
           limit: 100,
-          mode: this.data.viewMode === 'all' ? 'all' : this.data.viewMode
+          mode: viewMode === 'all' ? 'all' : viewMode
         }
       });
 
@@ -239,7 +272,7 @@ Page({
       }
       
       // 如果是全部模式，再查询 dining_appointments
-      if (this.data.viewMode === 'all') {
+      if (viewMode === 'all') {
         try {
           const { result: diningResult } = await wx.cloud.callFunction({
             name: 'getDiningAppointments',
@@ -270,7 +303,7 @@ Page({
       }
 
       // 如果是全部模式，混入时间投票
-      if (this.data.viewMode === 'all') {
+      if (viewMode === 'all') {
         try {
           const scheduleVotes = await this.loadScheduleVotes('all');
           const ongoingVotes = scheduleVotes.filter(v => v.status === 'voting');
@@ -280,10 +313,6 @@ Page({
       }
 
       // 统计各类型数量
-      const groupCount = allRooms.filter(r => r.mode === 'group').length;
-      const diningCount = allRooms.filter(r => r.mode === 'pick_for_them' || r.mode === 'b').length;
-      const mealCount = allRooms.filter(r => r.mode === 'meal').length;
-      const otherCount = allRooms.filter(r => r.mode !== 'group' && r.mode !== 'pick_for_them' && r.mode !== 'b' && r.mode !== 'meal').length;
       const rooms = allRooms.map(room => {
         // 根据 mode 确定类型
         let type = 'dining';
@@ -354,15 +383,17 @@ Page({
         };
       });
 
+      const processed = this.processActivitiesDeadline(rooms);
       this.setData({
-        ongoingActivities: this.processActivitiesDeadline(rooms),
+        ongoingActivities: processed,
         ongoingCount: rooms.length
       });
+      // 写入缓存
+      wx.setStorageSync(CACHE_KEY, { ongoingActivities: processed, ongoingCount: rooms.length });
+      wx.setStorageSync(CACHE_TIME, Date.now());
     } catch (err) {
-      this.setData({
-        ongoingActivities: [],
-        ongoingCount: 0
-      });
+      // 网络失败时，缓存数据已显示，用户无感知
+      console.error('[fish-tank] loadOngoingRooms 失败:', err);
     }
   },
 
@@ -943,7 +974,7 @@ Page({
       const shopId = activity?.shopId;
       if (shopId) {
         wx.navigateTo({
-          url: `/pages/shop-detail/shop-detail?id=${shopId}`
+          url: `/package-shop/pages/shop-detail/shop-detail?id=${shopId}`
         });
       } else {
         wx.showToast({ title: '店铺信息缺失', icon: 'none' });
@@ -954,12 +985,12 @@ Page({
                        this.data.myActivities.find(a => a.id === roomId) ||
                        this.data.participatedActivities.find(a => a.id === roomId);
       wx.navigateTo({
-        url: `/pages/schedule-vote/fill/fill?voteId=${roomId}&title=${encodeURIComponent(activity?.title || '')}`
+        url: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${roomId}&title=${encodeURIComponent(activity?.title || '')}`
       });
     } else {
       // 聚餐活动 - 跳转到投票页
       wx.navigateTo({
-        url: `/pages/vote/vote?roomId=${roomId}`
+        url: `/package-vote/pages/vote/vote?roomId=${roomId}`
       });
     }
   },
@@ -1009,7 +1040,7 @@ Page({
     const type = e.currentTarget.dataset.type;
     this.closeCreateModal();
     wx.navigateTo({
-      url: `/pages/create-group-order/create-group-order?type=${type}`
+      url: `/package-create/pages/create-group-order/create-group-order?type=${type}`
     });
   },
 
@@ -1017,7 +1048,7 @@ Page({
   createDining() {
     this.closeCreateModal();
     wx.navigateTo({
-      url: '/pages/create/create'
+      url: '/package-create/pages/create/create'
     });
   },
 
@@ -1038,7 +1069,7 @@ Page({
     if (activity?.type === 'scheduleVote') {
       // 时间投票 - 跳转到结果页
       wx.navigateTo({
-        url: `/pages/schedule-vote/result/result?id=${roomId}`,
+        url: `/package-schedule/pages/schedule-vote/result/result?id=${roomId}`,
         fail: (err) => {
           wx.showToast({ title: '页面跳转失败', icon: 'none' });
         }
@@ -1046,7 +1077,7 @@ Page({
     } else if (activity?.type === 'group') {
       // 拼单活动 - 跳转到拼单详情页
       wx.navigateTo({
-        url: `/pages/group-detail/group-detail?roomId=${roomId}`,
+        url: `/package-vote/pages/group-detail/group-detail?roomId=${roomId}`,
         fail: (err) => {
           wx.showToast({ title: '页面跳转失败', icon: 'none' });
         }
@@ -1056,7 +1087,7 @@ Page({
       const shopId = activity?.shopId;
       if (shopId) {
         wx.navigateTo({
-          url: `/pages/shop-detail/shop-detail?id=${shopId}`,
+          url: `/package-shop/pages/shop-detail/shop-detail?id=${shopId}`,
           fail: (err) => {
             wx.showToast({ title: '页面跳转失败', icon: 'none' });
           }
@@ -1067,7 +1098,7 @@ Page({
     } else {
       // 聚餐投票活动
       wx.navigateTo({
-        url: `/pages/vote/vote?roomId=${roomId}`,
+        url: `/package-vote/pages/vote/vote?roomId=${roomId}`,
         fail: (err) => {
           wx.showToast({ title: '跳转失败', icon: 'none' });
         }
@@ -1085,12 +1116,12 @@ Page({
     // 拼单活动跳转到拼单管理页面
     if (activity?.type === 'group') {
       wx.navigateTo({
-        url: `/pages/group-order-control/group-order-control?roomId=${roomId}`
+        url: `/package-vote/pages/roomConsole/console?roomId=${roomId}`
       });
     } else {
       // 聚餐活动跳转到control页面
       wx.navigateTo({
-        url: `/pages/control/control?roomId=${roomId}`
+        url: `/package-vote/pages/control/control?roomId=${roomId}`
       });
     }
   },
@@ -1147,7 +1178,7 @@ Page({
   // 跳转到新店探索
   goToFoodDiscovery() {
     wx.navigateTo({
-      url: '/pages/food-discovery/food-discovery'
+      url: '/package-shop/pages/food-discovery/food-discovery'
     });
   },
 

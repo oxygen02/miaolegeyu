@@ -16,6 +16,12 @@
     <view class="fence-decoration"></view>
   </view>
 
+  <!-- 骨架屏 -->
+  <view class="skeleton-section" wx:if="{{!pageReady}}">
+    <skeleton type="banner" count="1" />
+    <skeleton type="card" count="3" />
+  </view>
+
   <!-- Banner轮播 -->
   <view class="middle-section" wx:if="{{appointmentBanners.length > 0 || pageReady}}">
     <swiper class="banner-swiper" indicator-dots autoplay circular interval="4000" duration="600">

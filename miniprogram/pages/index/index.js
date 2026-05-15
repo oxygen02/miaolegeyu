@@ -1,5 +1,5 @@
-const { imagePaths } = require('../../config/imageConfig');
-const audioManager = require('../../utils/audioManager');
+const { imagePaths } = getApp().globalData;
+const audioManager = getApp().globalData.audioManager;
 const app = getApp();
 
 // 鱼的配置
@@ -37,33 +37,18 @@ Page({
   touchStartY: 0,
   isTouchMoved: false,
 
-  async onLoad(options) {
-    try {
-      // 等待全局图片路径解析完成（cloud:// → https://）
-      // 使用 Promise.race 防止 whenImageReady 卡死
-      const resolvedPaths = await Promise.race([
-        app.whenImageReady(),
-        new Promise((resolve) => setTimeout(() => {
-          console.warn('[首页] whenImageReady 超时，使用本地配置');
-          resolve(imagePaths);
-        }, 3000))
-      ]);
-      this.setData({ imagePaths: resolvedPaths });
-    } catch (err) {
-      console.error('[首页] 图片路径加载失败，使用本地配置:', err);
-      // 降级：直接使用 imageConfig 的配置
-      this.setData({ imagePaths: imagePaths });
-    }
+  onLoad(options) {
+    // 1. 直接使用本地 CDN 直链配置，无需等待解析
+    this.setData({
+      imagePaths: imagePaths,
+      pageReady: true
+    });
 
-    // 立即标记页面就绪，确保 UI 先渲染
-    this.setData({ pageReady: true });
-
-    // 延迟加载数据（不阻塞页面渲染）
-    setTimeout(() => {
-      console.log('[首页] 开始加载数据');
+    // 2. 异步加载数据和初始化动画，不阻塞首屏渲染
+    wx.nextTick(() => {
       this._loadDataAsync();
       this._initFishes();
-    }, 300);
+    });
   },
   updateTabBarSelected() {
     const tabBar = this.getTabBar();
@@ -108,6 +93,14 @@ Page({
     }
   },
 
+  // 下拉刷新
+  async onPullDownRefresh() {
+    wx.showNavigationBarLoading();
+    await this._loadDataAsync();
+    wx.hideNavigationBarLoading();
+    wx.stopPullDownRefresh();
+  },
+
   clearAllTimers() {
     Object.values(this.data.countdownTimers).forEach(timer => {
       clearInterval(timer);
@@ -136,6 +129,20 @@ Page({
   },
 
   async loadRecentRooms() {
+    const CACHE_KEY = 'index_recentRooms';
+    const CACHE_TIME = 'index_recentRooms_time';
+    const CACHE_EXPIRY = 5 * 60 * 1000; // 缓存5分钟
+
+    // 1. 先显示缓存数据（如果有且未过期）
+    try {
+      const cached = wx.getStorageSync(CACHE_KEY);
+      const cachedTime = wx.getStorageSync(CACHE_TIME);
+      if (cached && cachedTime && (Date.now() - cachedTime < CACHE_EXPIRY)) {
+        this.setData({ recentRooms: cached });
+      }
+    } catch (e) { /* 忽略缓存读取错误 */ }
+
+    // 2. 请求最新数据
     try {
       const { result } = await this._callWithTimeout('getRecentRooms', { limit: 5 }, 10000);
       if (result.success) {
@@ -145,13 +152,32 @@ Page({
           posterUrl: room.candidatePosters?.[0]?.imageUrl || imagePaths.banners.taiyakiIcon
         }));
         this.setData({ recentRooms: rooms });
+        // 写入缓存
+        wx.setStorageSync(CACHE_KEY, rooms);
+        wx.setStorageSync(CACHE_TIME, Date.now());
       }
     } catch (err) {
       console.error('[首页] loadRecentRooms 失败:', err);
+      // 网络失败时，缓存数据已显示，用户无感知
     }
   },
 
   async loadAppointmentBanners() {
+    const CACHE_KEY = 'index_appointmentBanners';
+    const CACHE_TIME = 'index_appointmentBanners_time';
+    const CACHE_EXPIRY = 3 * 60 * 1000; // 缓存3分钟
+
+    // 1. 先显示缓存数据（如果有且未过期）
+    try {
+      const cached = wx.getStorageSync(CACHE_KEY);
+      const cachedTime = wx.getStorageSync(CACHE_TIME);
+      if (cached && cachedTime && (Date.now() - cachedTime < CACHE_EXPIRY)) {
+        this.setData({ appointmentBanners: cached });
+        this.startCountdowns(cached);
+      }
+    } catch (e) { /* 忽略缓存读取错误 */ }
+
+    // 2. 请求最新数据
     try {
       const { result } = await this._callWithTimeout('getDiningAppointments', { limit: 5 }, 10000);
       if (result.success && result.appointments) {
@@ -188,11 +214,15 @@ Page({
         }
         this.setData({ appointmentBanners: appointments });
         this.startCountdowns(appointments);
+        // 写入缓存
+        wx.setStorageSync(CACHE_KEY, appointments);
+        wx.setStorageSync(CACHE_TIME, Date.now());
       } else {
         this.setData({ appointmentBanners: [] });
       }
     } catch (err) {
-      this.setData({ appointmentBanners: [] });
+      // 网络失败时，缓存数据已显示，用户无感知
+      console.error('[首页] loadAppointmentBanners 失败:', err);
     }
   },
 
@@ -296,19 +326,19 @@ Page({
 
   goCreate() {
     audioManager.playMeowShort();
-    wx.navigateTo({ url: '/pages/create/create' });
+    wx.navigateTo({ url: '/package-create/pages/create/create' });
   },
   goJoin() {
     audioManager.playMeowShort();
-    wx.navigateTo({ url: '/pages/room-list/room-list' });
+    wx.navigateTo({ url: '/package-vote/pages/room-list/room-list' });
   },
   goFishTank() {
     audioManager.playMeowShort();
-    wx.navigateTo({ url: '/pages/create-group-order/create-group-order' });
+    wx.navigateTo({ url: '/package-create/pages/create-group-order/create-group-order' });
   },
   goFoodDiscovery() {
     audioManager.playMeowShort();
-    wx.navigateTo({ url: '/pages/food-discovery/food-discovery' });
+    wx.navigateTo({ url: '/package-shop/pages/food-discovery/food-discovery' });
   },
 
   switchTab(e) {
@@ -339,7 +369,7 @@ Page({
   enterRoom(e) {
     const { id } = e.currentTarget.dataset;
     audioManager.playPawTap();
-    wx.navigateTo({ url: `/pages/vote/vote?roomId=${id}` });
+    wx.navigateTo({ url: `/package-vote/pages/vote/vote?roomId=${id}` });
   },
 
   viewAllRecent() {
@@ -351,14 +381,14 @@ Page({
     if (appointmentId) {
       if (shopId) {
         // 约饭活动 - 跳转到店铺详情页
-        wx.navigateTo({ url: `/pages/shop-detail/shop-detail?id=${shopId}` });
+        wx.navigateTo({ url: `/package-shop/pages/shop-detail/shop-detail?id=${shopId}` });
       } else {
-        wx.navigateTo({ url: `/pages/vote/vote?roomId=${appointmentId}` });
+        wx.navigateTo({ url: `/package-vote/pages/vote/vote?roomId=${appointmentId}` });
       }
       return;
     }
     switch(type) {
-      case 'food': wx.navigateTo({ url: '/pages/food-discovery/food-discovery' }); break;
+      case 'food': wx.navigateTo({ url: '/package-shop/pages/food-discovery/food-discovery' }); break;
       case 'activity': wx.navigateTo({ url: '/pages/fish-tank/fish-tank' }); break;
       case 'night': wx.showToast({ title: '深夜食堂即将开启', icon: 'none' }); break;
     }
@@ -670,5 +700,23 @@ Page({
       }, 100);
       if (this._fishTimers[index]) this._fishTimers[index].push(startTimer);
     });
+  },
+
+  // 分享
+  onShareAppMessage() {
+    return {
+      title: '喵了个鱼 - 聚餐投票神器',
+      path: '/pages/index/index',
+      imageUrl: imagePaths.banners.faqijucan || ''
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline() {
+    return {
+      title: '喵了个鱼 - 聚餐投票神器',
+      query: '',
+      imageUrl: imagePaths.banners.faqijucan || ''
+    };
   }
 });

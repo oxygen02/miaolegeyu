@@ -1,0 +1,107 @@
+.skeleton {
+  background: #fff;
+  padding: 24rpx;
+}
+
+.skeleton-title {
+  width: 40%;
+  height: 40rpx;
+  background: #f0f0f0;
+  border-radius: 8rpx;
+  margin-bottom: 24rpx;
+}
+
+.skeleton-paragraph {
+  margin-bottom: 24rpx;
+}
+
+.skeleton-line {
+  height: 32rpx;
+  background: #f0f0f0;
+  border-radius: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.skeleton-line:last-child {
+  width: 60%;
+}
+
+.skeleton-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.skeleton-card {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx;
+  background: #fafafa;
+  border-radius: 16rpx;
+}
+
+.skeleton-card-image {
+  width: 160rpx;
+  height: 160rpx;
+  background: #f0f0f0;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+}
+
+.skeleton-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.skeleton-card-title {
+  width: 70%;
+  height: 36rpx;
+  background: #f0f0f0;
+  border-radius: 8rpx;
+}
+
+.skeleton-card-desc {
+  width: 50%;
+  height: 28rpx;
+  background: #f0f0f0;
+  border-radius: 8rpx;
+}
+
+.skeleton-banner {
+  width: 100%;
+  height: 320rpx;
+  background: #f0f0f0;
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.skeleton-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  background: #f0f0f0;
+  border-radius: 50%;
+}
+
+/* 闪光动画 */
+.skeleton.active .skeleton-title,
+.skeleton.active .skeleton-line,
+.skeleton.active .skeleton-card-image,
+.skeleton.active .skeleton-card-title,
+.skeleton.active .skeleton-card-desc,
+.skeleton.active .skeleton-banner,
+.skeleton.active .skeleton-avatar {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

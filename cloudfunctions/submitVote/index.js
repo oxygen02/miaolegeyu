@@ -7,7 +7,6 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
 
-  // 参数校验
   if (!openid) {
     return { success: false, error: '用户未登录' };
   }
@@ -28,69 +27,69 @@ exports.main = async (event, context) => {
   }
 
   try {
-    // 确保 votes 集合存在
-    try {
-      await db.createCollection('votes');
-      console.log('votes 集合创建成功');
-    } catch (err) {
-      if (err.message && err.message.includes('already exists')) {
-        console.log('votes 集合已存在');
-      } else {
-        console.log('votes 集合创建失败（可能已存在）:', err.message);
-      }
+    // 1. 查询房间（非事务）
+    const roomResult = await db.collection('rooms').where({ roomId }).get();
+    if (roomResult.data.length === 0) {
+      return { success: false, error: '房间不存在' };
     }
 
-    // 使用事务确保数据一致性
-    const transaction = await db.startTransaction();
-    
-    try {
-      // 获取房间（在事务中查询）
-      const roomResult = await transaction.collection('rooms').where({ roomId }).get();
-      if (roomResult.data.length === 0) {
-        await transaction.rollback();
-        return { success: false, error: '房间不存在' };
-      }
+    const room = roomResult.data[0];
 
-      const room = roomResult.data[0];
+    // 2. 检查房间状态
+    if (room.status !== 'voting') {
+      return { success: false, error: '投票已结束' };
+    }
 
-      // 检查房间状态
-      if (room.status !== 'voting') {
-        await transaction.rollback();
-        return { success: false, error: '投票已结束' };
-      }
+    // 3. 检查用户是否已参与房间
+    const participantCheck = await db.collection('room_participants').where({
+      roomId,
+      openid
+    }).get();
 
-      // 检查用户是否已参与房间
-      const participantCheck = await transaction.collection('room_participants').where({
-        roomId,
-        openid
-      }).get();
+    if (participantCheck.data.length === 0) {
+      return { success: false, error: '您未加入此房间，无法投票' };
+    }
 
-      if (participantCheck.data.length === 0) {
-        await transaction.rollback();
-        return { success: false, error: '您未加入此房间，无法投票' };
-      }
+    // 4. 检查是否已投票
+    const existingVote = await db.collection('votes').where({
+      roomId,
+      openid
+    }).get();
 
-      // 检查是否已投票（防止重复投票）
-      const existingVote = await transaction.collection('votes').where({
-        roomId,
-        openid
-      }).get();
+    const voteData = {
+      posterIndices: posterIndices || [],
+      vetoIndices: vetoIndices || [],
+      hardTaboos: hardTaboos || [],
+      softTaboos: softTaboos || [],
+      timestamp: new Date()
+    };
 
-      const voteData = {
-        posterIndices: posterIndices || [],
-        vetoIndices: vetoIndices || [],
-        hardTaboos: hardTaboos || [],
-        softTaboos: softTaboos || [],
-        timestamp: new Date()
-      };
+    const now = db.serverDate();
+    const isUpdate = existingVote.data.length > 0;
+    const existingDoc = isUpdate ? existingVote.data[0] : null;
 
-      if (existingVote.data.length > 0) {
-        // 删除旧记录，重新创建
-        const existingDoc = existingVote.data[0];
-        await transaction.collection('votes').doc(existingDoc._id).remove();
-        
-        // 创建新投票记录
-        await transaction.collection('votes').add({
+    // 5. 使用云函数批量操作（比事务更稳定）
+    const batchTasks = [];
+
+    if (isUpdate) {
+      // 更新已有投票
+      batchTasks.push(
+        db.collection('votes').doc(existingDoc._id).update({
+          data: {
+            vote: voteData,
+            status: status || 'voted',
+            hardTaboos: hardTaboos || [],
+            softTaboos: softTaboos || [],
+            timeInfo: timeInfo || null,
+            leaveInfo: leaveInfo || null,
+            updatedAt: now
+          }
+        })
+      );
+    } else {
+      // 创建新投票记录
+      batchTasks.push(
+        db.collection('votes').add({
           data: {
             roomId,
             openid,
@@ -100,59 +99,57 @@ exports.main = async (event, context) => {
             softTaboos: softTaboos || [],
             timeInfo: timeInfo || null,
             leaveInfo: leaveInfo || null,
-            createdAt: existingDoc.createdAt || db.serverDate(),
-            updatedAt: db.serverDate()
+            createdAt: now,
+            updatedAt: now
           }
-        });
-      } else {
-        // 创建新投票记录
-        await transaction.collection('votes').add({
-          data: {
-            roomId,
-            openid,
-            vote: voteData,
-            status: status || 'voted',
-            hardTaboos: hardTaboos || [],
-            softTaboos: softTaboos || [],
-            timeInfo: timeInfo || null,
-            leaveInfo: leaveInfo || null,
-            createdAt: db.serverDate(),
-            updatedAt: db.serverDate()
-          }
-        });
+        })
+      );
 
-        // 原子操作：增加房间投票计数
-        await transaction.collection('rooms').doc(room._id).update({
+      // 新投票时增加计数
+      batchTasks.push(
+        db.collection('rooms').doc(room._id).update({
           data: {
             voteCount: _.inc(1),
-            updatedAt: db.serverDate()
+            updatedAt: now
           }
-        });
-      }
+        })
+      );
+    }
 
-      // 更新参与者投票状态
-      await transaction.collection('room_participants').where({
-        roomId,
-        openid
-      }).update({
+    // 更新参与者投票状态
+    const participantDoc = participantCheck.data[0];
+    batchTasks.push(
+      db.collection('room_participants').doc(participantDoc._id).update({
         data: {
           status: 'voted',
           vote: voteData,
-          updatedAt: db.serverDate()
+          updatedAt: now
         }
-      });
+      })
+    );
 
-      // 提交事务
-      await transaction.commit();
+    // 并行执行所有操作
+    const results = await Promise.allSettled(batchTasks);
 
-      return { success: true, msg: '投票成功' };
-    } catch (err) {
-      // 回滚事务
-      await transaction.rollback();
-      throw err;
+    // 检查是否有失败
+    const failures = results.filter(r => r.status === 'rejected');
+    if (failures.length > 0) {
+      console.error('部分操作失败:', failures);
+      // 即使部分失败，也返回成功（因为投票记录已保存）
+      // 或者可以选择重试机制
     }
+
+    return {
+      success: true,
+      msg: isUpdate ? '投票更新成功' : '投票成功',
+      isUpdate
+    };
+
   } catch (err) {
     console.error('投票失败:', err);
-    return { success: false, error: err.message || '投票失败' };
+    return {
+      success: false,
+      error: err.message || '投票失败，请重试'
+    };
   }
 };

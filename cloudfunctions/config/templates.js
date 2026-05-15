@@ -46,7 +46,7 @@ const TEMPLATE_CONFIG = {
   // 报名截止提醒
   DEADLINE_REMINDER: {
     name: '报名截止提醒',
-    page: '/pages/room-detail/room-detail',
+    page: '/pages/vote/vote',
     data: {
       thing1: '活动名称',
       time2: '截止时间',
@@ -58,7 +58,7 @@ const TEMPLATE_CONFIG = {
   // 活动开始提醒
   ACTIVITY_START: {
     name: '活动开始提醒',
-    page: '/pages/room-detail/room-detail',
+    page: '/pages/vote/vote',
     data: {
       thing1: '活动名称',
       time2: '活动时间',

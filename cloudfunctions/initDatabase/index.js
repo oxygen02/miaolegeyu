@@ -2,124 +2,130 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
+/**
+ * 初始化数据库 - 创建集合和索引
+ * 仅供管理员使用
+ */
 exports.main = async (event, context) => {
+  const { action } = event;
+
   try {
-    const results = {
-      collections: [],
-      indexes: [],
-      errors: []
-    };
-
-    // 创建集合的辅助函数
-    const createCollection = async (collectionName) => {
-      try {
-        await db.createCollection(collectionName);
-        results.collections.push({ name: collectionName, status: '创建成功' });
-      } catch (err) {
-        if (err.message && err.message.includes('already exists')) {
-          results.collections.push({ name: collectionName, status: '已存在' });
-        } else {
-          results.errors.push({ type: 'collection', name: collectionName, error: err.message });
-        }
-      }
-    };
-
-    // 创建索引的辅助函数
-    const createIndex = async (collectionName, indexName, keys, options = {}) => {
-      try {
-        // 检查索引是否已存在
-        const indexes = await db.collection(collectionName).getIndexes();
-        const exists = indexes.data.some(idx => idx.name === indexName);
-        
-        if (exists) {
-          results.indexes.push({ collection: collectionName, name: indexName, status: '已存在' });
-          return;
-        }
-
-        // 创建索引
-        await db.collection(collectionName).createIndex({
-          name: indexName,
-          keys,
-          ...options
-        });
-        
-        results.indexes.push({ collection: collectionName, name: indexName, status: '创建成功' });
-      } catch (err) {
-        results.errors.push({ collection: collectionName, name: indexName, error: err.message });
-      }
-    };
-
-    // ========== 创建集合 ==========
-    await createCollection('rooms');
-    await createCollection('room_participants');
-    await createCollection('votes');
-    await createCollection('group_order_participants');
-    await createCollection('shops');
-    await createCollection('shop_favorites');
-    await createCollection('dining_appointments');
-    await createCollection('users');
-    await createCollection('favorites');
-
-    // ========== rooms 集合索引 ==========
-    await createIndex('rooms', 'idx_roomId_unique', { roomId: 1 }, { unique: true });
-    await createIndex('rooms', 'idx_status_createdAt', { status: 1, createdAt: -1 });
-    await createIndex('rooms', 'idx_creatorOpenId', { creatorOpenId: 1 });
-    await createIndex('rooms', 'idx_mode_status', { mode: 1, status: 1 });
-    await createIndex('rooms', 'idx_voteDeadline', { voteDeadline: 1 });
-
-    // ========== room_participants 集合索引 ==========
-    await createIndex('room_participants', 'idx_roomId_openid_unique', { roomId: 1, openid: 1 }, { unique: true });
-    await createIndex('room_participants', 'idx_roomId', { roomId: 1 });
-    await createIndex('room_participants', 'idx_openid', { openid: 1 });
-    await createIndex('room_participants', 'idx_status', { status: 1 });
-
-    // ========== votes 集合索引 ==========
-    await createIndex('votes', 'idx_roomId_openid_unique', { roomId: 1, openid: 1 }, { unique: true });
-    await createIndex('votes', 'idx_roomId', { roomId: 1 });
-    await createIndex('votes', 'idx_openid', { openid: 1 });
-    await createIndex('votes', 'idx_createdAt', { createdAt: -1 });
-
-    // ========== group_order_participants 集合索引 ==========
-    await createIndex('group_order_participants', 'idx_roomId_openid_unique', { roomId: 1, openid: 1 }, { unique: true });
-    await createIndex('group_order_participants', 'idx_roomId', { roomId: 1 });
-
-    // ========== shops 集合索引 ==========
-    await createIndex('shops', 'idx_status_createTime', { status: 1, createTime: -1 });
-    await createIndex('shops', 'idx_cuisine', { cuisine: 1 });
-    await createIndex('shops', 'idx_openid', { openid: 1 });
-    await createIndex('shops', 'idx_avgPrice', { avgPrice: 1 });
-
-    // ========== shop_favorites 集合索引 ==========
-    await createIndex('shop_favorites', 'idx_shopId_openid_unique', { shopId: 1, openid: 1 }, { unique: true });
-    await createIndex('shop_favorites', 'idx_openid', { openid: 1 });
-    await createIndex('shop_favorites', 'idx_createTime', { createTime: -1 });
-
-    // ========== dining_appointments 集合索引 ==========
-    await createIndex('dining_appointments', 'idx_shopId', { shopId: 1 });
-    await createIndex('dining_appointments', 'idx_initiatorOpenId', { initiatorOpenId: 1 });
-    await createIndex('dining_appointments', 'idx_status_deadline', { status: 1, deadline: 1 });
-    await createIndex('dining_appointments', 'idx_createTime', { createTime: -1 });
-
-    // ========== users 集合索引 ==========
-    await createIndex('users', 'idx_openid_unique', { _openid: 1 }, { unique: true });
-    await createIndex('users', 'idx_userId', { userId: 1 });
-
-    // ========== favorites 集合索引 ==========
-    await createIndex('favorites', 'idx_openId', { openId: 1 });
-    await createIndex('favorites', 'idx_targetId', { targetId: 1 });
-    await createIndex('favorites', 'idx_createTime', { createTime: -1 });
-
-    return {
-      code: 0,
-      msg: '数据库索引初始化完成',
-      data: results
-    };
+    switch (action) {
+      case 'createIndexes':
+        return await createFeedbacksIndexes();
+      case 'initCollections':
+        return await initCollections();
+      default:
+        return { success: false, msg: '未知操作' };
+    }
   } catch (err) {
-    console.error('initDatabase error:', err);
-    return {
-      code: -1,
-      msg: err.message || '初始化失败',
-      error: err
-    };
+    console.error('数据库初始化失败:', err);
+    return { success: false, msg: err.message };
   }
 };
+
+/**
+ * 创建 feedbacks 集合索引
+ */
+async function createFeedbacksIndexes() {
+  const results = [];
+
+  try {
+    // 1. status 单字段索引
+    await db.collection('feedbacks').createIndex({
+      name: 'status_index',
+      unique: false,
+      keys: { status: 1 }
+    });
+    results.push({ name: 'status_index', status: 'success' });
+  } catch (err) {
+    results.push({ name: 'status_index', status: 'failed', error: err.message });
+  }
+
+  try {
+    // 2. type 单字段索引
+    await db.collection('feedbacks').createIndex({
+      name: 'type_index',
+      unique: false,
+      keys: { type: 1 }
+    });
+    results.push({ name: 'type_index', status: 'success' });
+  } catch (err) {
+    results.push({ name: 'type_index', status: 'failed', error: err.message });
+  }
+
+  try {
+    // 3. createTime 单字段索引（降序，用于时间排序）
+    await db.collection('feedbacks').createIndex({
+      name: 'createTime_index',
+      unique: false,
+      keys: { createTime: -1 }
+    });
+    results.push({ name: 'createTime_index', status: 'success' });
+  } catch (err) {
+    results.push({ name: 'createTime_index', status: 'failed', error: err.message });
+  }
+
+  try {
+    // 4. status + createTime 复合索引（最常用的查询组合）
+    await db.collection('feedbacks').createIndex({
+      name: 'status_createTime_index',
+      unique: false,
+      keys: { status: 1, createTime: -1 }
+    });
+    results.push({ name: 'status_createTime_index', status: 'success' });
+  } catch (err) {
+    results.push({ name: 'status_createTime_index', status: 'failed', error: err.message });
+  }
+
+  try {
+    // 5. type + createTime 复合索引
+    await db.collection('feedbacks').createIndex({
+      name: 'type_createTime_index',
+      unique: false,
+      keys: { type: 1, createTime: -1 }
+    });
+    results.push({ name: 'type_createTime_index', status: 'success' });
+  } catch (err) {
+    results.push({ name: 'type_createTime_index', status: 'failed', error: err.message });
+  }
+
+  const successCount = results.filter(r => r.status === 'success').length;
+
+  return {
+    success: true,
+    msg: `索引创建完成: ${successCount}/${results.length} 成功`,
+    data: results
+  };
+}
+
+/**
+ * 初始化集合（如果不存在则创建）
+ */
+async function initCollections() {
+  const collections = ['feedbacks', 'events'];
+  const results = [];
+
+  for (const collName of collections) {
+    try {
+      // 尝试向集合添加一个空文档再删除，来确保集合存在
+      const tempRes = await db.collection(collName).add({
+        data: { _init: true, createTime: db.serverDate() }
+      });
+
+      // 删除临时文档
+      await db.collection(collName).doc(tempRes._id).remove();
+
+      results.push({ name: collName, status: 'exists_or_created' });
+    } catch (err) {
+      // 集合可能已存在但权限不足，或其他错误
+      results.push({ name: collName, status: 'check_failed', error: err.message });
+    }
+  }
+
+  return {
+    success: true,
+    msg: '集合初始化完成',
+    data: results
+  };
+}

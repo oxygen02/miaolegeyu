@@ -1,0 +1,550 @@
+/* pages/create-mode-a/create-mode-a.wxss */
+
+/* 页面容器 */
+.modea-page {
+  min-height: 100vh;
+  background: #F5F0E8;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+  position: relative;
+  overflow: hidden;
+}
+
+/* 顶部橘色背景区域 */
+.modea-header-bg {
+  background: linear-gradient(135deg, #FF9F43 0%, #FFB347 100%);
+  padding: calc(40rpx + env(safe-area-inset-top)) 32rpx 40rpx;
+  margin: 0;
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 猫尾巴 - 右下角 */
+.modea-header-bg::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -10rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background-image: url('https://636c-cloud1-d5ggnf5wh2d872f3c-1423896909.tcb.qcloud.la/banners/maoweiba.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  opacity: 1;
+  pointer-events: none;
+  z-index: 2;
+  transform: rotate(-10deg);
+}
+
+/* 头部 */
+.modea-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* 页面内容区域 */
+.modea-content {
+  flex: 1;
+  padding: 32rpx;
+  padding-bottom: 0;
+  overflow-y: auto;
+}
+
+.cat-hint {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.cat-img {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  border: 4rpx solid #666666;
+  box-sizing: border-box;
+}
+
+.speech-bubble {
+  background: #FFFFFF;
+  padding: 16rpx 28rpx;
+  border-radius: 24rpx;
+  border: 2rpx solid rgba(212, 101, 42, 0.15);
+  box-shadow: 0 2rpx 12rpx rgba(60, 40, 20, 0.06);
+  position: relative;
+}
+
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  left: -12rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 8rpx solid transparent;
+  border-right-color: #FFFFFF;
+}
+
+.bubble-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #FF9F43;
+}
+
+.header-sub {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 12rpx;
+}
+
+/* 海报上传区 */
+.poster-section {
+  margin-bottom: 0;
+  flex-shrink: 0;
+  padding-top: 16rpx;
+  border-top: 1rpx solid rgba(212, 101, 42, 0.1);
+}
+
+.poster-section .section-label {
+  display: block;
+  margin-bottom: 12rpx;
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.poster-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.poster-item {
+  position: relative;
+  aspect-ratio: 3/4;
+  border-radius: 12rpx;
+  overflow: hidden;
+  background: #FFFDF7;
+  border: 2rpx solid rgba(212, 101, 42, 0.2);
+}
+
+.poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.poster-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 8rpx;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.action-btn {
+  font-size: 22rpx;
+  color: #fff;
+  padding: 4rpx 10rpx;
+}
+
+.action-btn.delete {
+  color: #FF6B6B;
+}
+
+.add-poster {
+  aspect-ratio: 3/4;
+  border-radius: 12rpx;
+  border: 2rpx dashed #D4652A;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(212, 101, 42, 0.05);
+}
+
+.add-icon {
+  font-size: 48rpx;
+  color: #D4652A;
+  font-weight: 300;
+}
+
+.add-text {
+  font-size: 24rpx;
+  color: #D4652A;
+  margin-top: 8rpx;
+}
+
+.add-hint {
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+/* 表单卡片 */
+.form-card {
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.form-card:last-child {
+  margin-bottom: 0;
+}
+
+.form-group {
+  margin-bottom: 16rpx;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.combined-fields,
+.combined-dates {
+  display: flex;
+  align-items: stretch;
+  gap: 16rpx;
+}
+
+.field-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.people-section {
+  flex: 0 0 120rpx;
+}
+
+.section-label {
+  display: block;
+  font-size: 28rpx;
+  color: #666666;
+  font-weight: 500;
+}
+
+.input {
+  height: 72rpx;
+  background: #FAF7F2;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: #3D3D3D;
+}
+
+.input.small {
+  flex: 1;
+  min-width: 100rpx;
+  max-width: 120rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: 26rpx;
+  padding: 0 8rpx;
+  text-align: center;
+}
+
+.field-input {
+  flex: 1;
+}
+
+.location-input-compact {
+  flex: 1;
+  min-width: 0;
+}
+
+.people-input-compact {
+  width: 100%;
+  text-align: center;
+}
+
+.divider {
+  width: 1rpx;
+  background: rgba(0,0,0,0.1);
+  margin: 0 8rpx;
+}
+
+.location-content-compact {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.location-map-btn-compact {
+  width: 64rpx;
+  height: 64rpx;
+  background: #FAF7F2;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.location-icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.date-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.separator {
+  font-size: 26rpx;
+  color: #8A8A8A;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 匿名投票和房间密码 - 同一行对齐 */
+.switch-row-combined {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.switch-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.switch-label {
+  font-size: 26rpx;
+  color: #666666;
+  font-weight: 500;
+}
+
+.switch-control {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.switch-control switch {
+  transform: scale(0.75);
+  transform-origin: left center;
+}
+
+.switch-status {
+  font-size: 24rpx;
+  color: #8A8A8A;
+}
+
+.switch-divider {
+  width: 1rpx;
+  height: 60rpx;
+  background: rgba(0,0,0,0.1);
+  align-self: center;
+}
+
+.payment-options-compact {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+  flex-wrap: nowrap;
+}
+
+.payment-option {
+  flex: 1;
+  padding: 16rpx 8rpx;
+  background: #FAF7F2;
+  border-radius: 12rpx;
+  border: 2rpx solid transparent;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.payment-option .option-text {
+  font-size: 24rpx;
+  white-space: nowrap;
+}
+
+.payment-option.selected {
+  background: rgba(255, 159, 67, 0.2);
+  border-color: #D4652A;
+}
+
+.payment-option.selected .option-text {
+  color: #D4652A;
+  font-weight: 500;
+}
+
+.payment-hint {
+  display: block;
+  font-size: 22rpx;
+  color: #999999;
+  margin-top: 12rpx;
+  line-height: 1.5;
+}
+
+/* 房间密码 */
+.password-input-section {
+  margin-top: -8rpx;
+  margin-bottom: 16rpx;
+}
+
+.password-input {
+  width: 100%;
+  height: 72rpx;
+  background: #FAF7F2;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: #3D3D3D;
+  margin-bottom: 8rpx;
+}
+
+.password-hint {
+  font-size: 22rpx;
+  color: #8A8A8A;
+  padding-left: 8rpx;
+}
+
+/* 底部按钮 */
+.bottom-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  background: #F5F0E8;
+  z-index: 100;
+  pointer-events: auto;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.submit-btn {
+  display: block !important;
+  width: fit-content !important;
+  height: auto !important;
+  line-height: 1 !important;
+  border-radius: 36rpx !important;
+  background: #FF9F43 !important;
+  color: #fff !important;
+  font-size: 28rpx !important;
+  font-weight: 600 !important;
+  border: 4rpx solid #3D3D3D !important;
+  box-shadow: 4rpx 4rpx 0 #3D3D3D !important;
+  padding: 20rpx 56rpx !important;
+  margin: 0 auto !important;
+}
+
+.submit-btn.btn-disabled {
+  background: #CCC !important;
+  color: #888 !important;
+  border-color: #999 !important;
+  box-shadow: 4rpx 4rpx 0 #999 !important;
+}
+
+.submit-btn::after {
+  display: none !important;
+}
+
+/* 弹窗 */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.popup-content {
+  position: relative;
+  width: 560rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  z-index: 1;
+}
+
+.popup-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #3D3D3D;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.platform-options {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 32rpx;
+}
+
+.platform-opt {
+  flex: 1;
+  padding: 24rpx;
+  background: #F5F5F5;
+  border-radius: 16rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.platform-opt.active {
+  background: rgba(255, 159, 67, 0.1);
+  color: #FF9F43;
+  border: 2rpx solid #FF9F43;
+}
+
+.btn-confirm {
+  width: 100%;
+  height: 88rpx;
+  background: #FF9F43;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  border: none;
+}
+
+.btn-confirm::after {
+  display: none;
+}

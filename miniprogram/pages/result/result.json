@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "结果通知",
-  "usingComponents": {
-    "poster-modal": "../../components/poster-modal/poster-modal",
-    "result-card": "../../components/result-card/result-card"
-  }
-}

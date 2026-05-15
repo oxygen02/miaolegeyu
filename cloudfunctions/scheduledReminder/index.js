@@ -30,7 +30,10 @@ exports.main = async (event, context) => {
     // 2. 检查即将开始的活动（15分钟内开始）
     await checkActivityStartReminders(now, fifteenMinutesLater);
     
-    // 3. 检查需要发送投票结果的房间
+    // 3. 自动锁定已截止的房间
+    await autoLockExpiredRooms(now);
+    
+    // 4. 检查需要发送投票结果的房间
     await checkVoteResults(now);
     
     return {
@@ -55,9 +58,9 @@ async function checkDeadlineReminders(now, deadlineThreshold) {
     // 查询截止时间在未来15分钟内且未发送过提醒的房间
     const rooms = await db.collection('rooms')
       .where({
-        deadline: _.gt(now).and(_.lte(deadlineThreshold)),
+        voteDeadline: _.gt(now).and(_.lte(deadlineThreshold)),
         deadlineReminderSent: _.neq(true),
-        status: 'active'
+        status: 'voting'
       })
       .get();
     
@@ -196,10 +199,9 @@ async function checkVoteResults(now) {
     // 查询已截止且未发送投票结果通知的房间
     const rooms = await db.collection('rooms')
       .where({
-        deadline: _.lte(now),
+        voteDeadline: _.lte(now),
         voteResultSent: _.neq(true),
-        status: 'active',
-        hasVote: true
+        status: _.in(['voting', 'locked'])
       })
       .get();
     
@@ -277,6 +279,74 @@ async function sendVoteResultNotification(room) {
     }
   } catch (error) {
     console.error(`发送投票结果通知失败 [${room._id}]:`, error);
+  }
+}
+
+// 自动锁定已截止的房间
+async function autoLockExpiredRooms(now) {
+  console.log('检查已截止房间，执行自动锁定...');
+  
+  try {
+    // 查询投票已截止但状态仍为 voting 的房间
+    const rooms = await db.collection('rooms')
+      .where({
+        voteDeadline: _.lte(now),
+        status: 'voting'
+      })
+      .get();
+    
+    console.log(`找到 ${rooms.data.length} 个已截止未锁定的房间`);
+    
+    for (const room of rooms.data) {
+      try {
+        // 获取投票结果，计算获胜选项
+        const votes = await db.collection('votes')
+          .where({ roomId: room._id })
+          .get();
+        
+        const voteCount = {};
+        votes.data.forEach(vote => {
+          voteCount[vote.option] = (voteCount[vote.option] || 0) + 1;
+        });
+        
+        let winner = '';
+        let maxVotes = 0;
+        for (const [option, count] of Object.entries(voteCount)) {
+          if (count > maxVotes) {
+            maxVotes = count;
+            winner = option;
+          }
+        }
+        
+        // 确定最终海报
+        let finalPoster = null;
+        if (room.candidatePosters && room.candidatePosters.length > 0) {
+          const winnerIndex = parseInt(winner);
+          if (!isNaN(winnerIndex) && room.candidatePosters[winnerIndex]) {
+            finalPoster = room.candidatePosters[winnerIndex];
+          } else if (maxVotes === 0) {
+            // 无人投票，默认选第一个
+            finalPoster = room.candidatePosters[0];
+          }
+        }
+        
+        // 更新房间状态为 locked
+        await db.collection('rooms').doc(room._id).update({
+          data: {
+            status: 'locked',
+            finalPoster: finalPoster,
+            lockedAt: db.serverDate(),
+            winner: winner || '0'
+          }
+        });
+        
+        console.log(`房间已自动锁定: ${room._id}, 获胜选项: ${winner || '默认'}`);
+      } catch (err) {
+        console.error(`自动锁定房间失败 [${room._id}]:`, err);
+      }
+    }
+  } catch (error) {
+    console.error('自动锁定已截止房间失败:', error);
   }
 }
 

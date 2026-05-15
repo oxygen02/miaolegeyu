@@ -1,9 +1,9 @@
 {
   "name": "initDatabase",
   "version": "1.0.0",
-  "description": "初始化数据库",
+  "description": "初始化数据库集合和索引",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "3.0.0"
+    "wx-server-sdk": "latest"
   }
 }

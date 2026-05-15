@@ -1,0 +1,153 @@
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 拼单内容 -->
+  <view wx:else class="content">
+    <!-- 标题区域 -->
+    <view class="header-section">
+      <text class="title">{{room.title || '拼单活动'}}</text>
+      <text class="subtitle" wx:if="{{room.shopName && room.shopName !== room.title}}">{{room.shopName}}</text>
+      <view class="participants-count">
+        <text class="count-num">{{totalParticipants}}</text>
+        <text class="count-text">人参与</text>
+      </view>
+    </view>
+
+    <!-- 拼单选项列表 -->
+    <view class="options-section">
+      <text class="section-title">选择拼单选项</text>
+      <view class="options-list">
+        <view
+          class="option-card {{selectedOptionIndex === index ? 'selected' : ''}} {{mySelectedOption === index ? 'joined' : ''}}"
+          wx:for="{{options}}"
+          wx:key="index"
+        >
+          <!-- 选项主内容 -->
+          <view class="option-main" bindtap="selectOption" data-index="{{index}}">
+            <view class="option-image-wrap" wx:if="{{item.shopImage}}">
+              <image class="option-image" src="{{item.shopImage}}" mode="aspectFill"/>
+            </view>
+            <view class="option-info">
+              <view class="option-header">
+                <text class="option-title">{{item.title || '选项' + (index + 1)}}</text>
+                <view class="option-badge" wx:if="{{mySelectedOption === index}}">已选</view>
+              </view>
+              <text class="option-platform" wx:if="{{item.platformName}}">平台: {{item.platformName}}</text>
+              <text class="option-deadline" wx:if="{{item.deadlineText}}">截止时间: {{item.deadlineText}}</text>
+              <view class="option-stats">
+                <text class="stats-text">{{optionStats[index].count}}人选择</text>
+                <view class="progress-bar" wx:if="{{totalParticipants > 0}}">
+                  <view class="progress-fill" style="width: {{optionStats[index].count / totalParticipants * 100}}%"></view>
+                </view>
+              </view>
+            </view>
+          </view>
+          <!-- 查看详情按钮 -->
+          <view class="option-detail-btn" catchtap="showOptionDetail" data-index="{{index}}">
+            <text class="detail-btn-text">查看详情</text>
+            <text class="detail-btn-arrow">›</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 参与按钮 -->
+    <view class="action-section">
+      <button
+        class="btn btn-primary {{joining ? 'btn-loading' : ''}}"
+        bindtap="joinGroupOrder"
+        disabled="{{joining || selectedOptionIndex < 0}}"
+        wx:if="{{!hasJoined}}"
+      >
+        <text wx:if="{{!joining}}">参与拼单</text>
+        <text wx:else>处理中...</text>
+      </button>
+      <button
+        class="btn btn-success"
+        bindtap="joinGroupOrder"
+        disabled="{{joining || selectedOptionIndex === mySelectedOption}}"
+        wx:else
+      >
+        <text wx:if="{{selectedOptionIndex !== mySelectedOption}}">更新选择</text>
+        <text wx:else>已参与</text>
+      </button>
+    </view>
+
+    <!-- 提示信息 -->
+    <view class="tips-section" wx:if="{{!hasJoined}}">
+      <text class="tips-text">选择一个选项后点击"参与拼单"按钮加入</text>
+    </view>
+  </view>
+
+  <!-- 选项详情弹窗 -->
+  <view class="option-detail-modal" wx:if="{{showDetailModal}}" bindtap="closeOptionDetail">
+    <view class="detail-modal-content" catchtap="preventBubble">
+      <!-- 弹窗头部 -->
+      <view class="detail-modal-header">
+        <text class="detail-modal-title">选项详情</text>
+        <view class="detail-modal-close" bindtap="closeOptionDetail">×</view>
+      </view>
+
+      <scroll-view class="detail-modal-body" scroll-y wx:if="{{currentOption}}">
+        <!-- 标题 -->
+        <text class="detail-option-title">{{currentOption.title || '选项' + (currentOptionIndex + 1)}}</text>
+
+        <!-- 图片 -->
+        <view class="detail-image-section" wx:if="{{currentOption.shopImage}}">
+          <image class="detail-option-image" src="{{currentOption.shopImage}}" mode="widthFix" bindtap="previewImage" data-src="{{currentOption.shopImage}}"/>
+          <text class="image-hint">点击图片查看大图</text>
+        </view>
+
+        <!-- 信息列表 -->
+        <view class="detail-info-list">
+          <view class="detail-info-item" wx:if="{{currentOption.platformName}}">
+            <text class="info-label">外卖平台</text>
+            <text class="info-value">{{currentOption.platformName}}</text>
+          </view>
+          <view class="detail-info-item" wx:if="{{currentOption.deadlineText}}">
+            <text class="info-label">截止时间</text>
+            <text class="info-value">{{currentOption.deadlineText}}</text>
+          </view>
+          <view class="detail-info-item">
+            <text class="info-label">选择人数</text>
+            <text class="info-value">{{optionStats[currentOptionIndex].count || 0}}人</text>
+          </view>
+        </view>
+
+        <!-- 店铺链接 -->
+        <view class="detail-link-section" wx:if="{{currentOption.shopLink}}">
+          <text class="link-label">店铺链接</text>
+          <view class="link-box" bindtap="copyLink" data-link="{{currentOption.shopLink}}">
+            <text class="link-text">{{currentOption.shopLink}}</text>
+            <text class="link-hint">点击复制</text>
+          </view>
+        </view>
+
+        <!-- 统计进度 -->
+        <view class="detail-stats-section">
+          <text class="stats-label">选择统计</text>
+          <view class="detail-progress-bar">
+            <view class="detail-progress-fill" style="width: {{totalParticipants > 0 ? (optionStats[currentOptionIndex].count / totalParticipants * 100) : 0}}%"></view>
+          </view>
+          <text class="stats-percent">{{totalParticipants > 0 ? Math.round(optionStats[currentOptionIndex].count / totalParticipants * 100) : 0}}% 的人选择</text>
+        </view>
+      </scroll-view>
+
+      <!-- 弹窗底部 -->
+      <view class="detail-modal-footer">
+        <view class="btn btn-primary" bindtap="selectAndClose" wx:if="{{!hasJoined}}">
+          选择此选项
+        </view>
+        <view class="btn btn-success" wx:elif="{{mySelectedOption === currentOptionIndex}}">
+          当前已选
+        </view>
+        <view class="btn btn-secondary" bindtap="selectAndClose" wx:else>
+          切换到此选项
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

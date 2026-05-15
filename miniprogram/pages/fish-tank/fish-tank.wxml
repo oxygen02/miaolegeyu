@@ -18,9 +18,6 @@ module.exports = {
 <view class="fish-tank-page">
   <!-- 顶部橘红色区域 -->
   <view class="header-section">
-    <view class="home-btn" bindtap="goHome">
-      <image class="home-icon" src="{{imagePaths.misc.pawHomeIcon}}" mode="aspectFit" />
-    </view>
     <view class="header-content">
       <view class="header-avatar-wrapper">
         <image class="header-avatar" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" binderror="onAvatarError" data-type="header" />

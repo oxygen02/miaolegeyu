@@ -1,0 +1,226 @@
+<view class="admin-page">
+  <!-- 统计卡片 -->
+  <view class="stats-section">
+    <view class="stats-grid">
+      <view class="stat-card total">
+        <text class="stat-num">{{total}}</text>
+        <text class="stat-label">全部反馈</text>
+      </view>
+      <view class="stat-card pending">
+        <text class="stat-num">{{pendingCount}}</text>
+        <text class="stat-label">待处理</text>
+      </view>
+      <view class="stat-card processing">
+        <text class="stat-num">{{processingCount}}</text>
+        <text class="stat-label">处理中</text>
+      </view>
+      <view class="stat-card resolved">
+        <text class="stat-num">{{resolvedCount}}</text>
+        <text class="stat-label">已解决</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 状态筛选标签 -->
+  <view class="filter-tabs">
+    <view class="tab {{currentTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-status="all">
+      全部
+    </view>
+    <view class="tab {{currentTab === 'pending' ? 'active' : ''}}" bindtap="switchTab" data-status="pending">
+      待处理
+    </view>
+    <view class="tab {{currentTab === 'processing' ? 'active' : ''}}" bindtap="switchTab" data-status="processing">
+      处理中
+    </view>
+    <view class="tab {{currentTab === 'resolved' ? 'active' : ''}}" bindtap="switchTab" data-status="resolved">
+      已解决
+    </view>
+  </view>
+
+  <!-- 类型筛选 -->
+  <view class="type-filter">
+    <view class="type-tab {{currentType === 'all' ? 'active' : ''}}" bindtap="switchType" data-type="all">全部</view>
+    <view class="type-tab {{currentType === 'bug' ? 'active' : ''}}" bindtap="switchType" data-type="bug">🐛 Bug</view>
+    <view class="type-tab {{currentType === 'feature' ? 'active' : ''}}" bindtap="switchType" data-type="feature">✨ 建议</view>
+    <view class="type-tab {{currentType === 'ui' ? 'active' : ''}}" bindtap="switchType" data-type="ui">🎨 UI</view>
+    <view class="type-tab {{currentType === 'performance' ? 'active' : ''}}" bindtap="switchType" data-type="performance">⚡ 性能</view>
+    <view class="type-tab {{currentType === 'other' ? 'active' : ''}}" bindtap="switchType" data-type="other">📝 其他</view>
+  </view>
+
+  <!-- 反馈列表 -->
+  <scroll-view class="feedback-list" scroll-y bindscrolltolower="loadMore">
+    <!-- 加载中 -->
+    <view class="loading-state" wx:if="{{loading && feedbacks.length === 0}}">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && feedbacks.length === 0}}">
+      <text class="empty-icon">📭</text>
+      <text class="empty-text">暂无反馈</text>
+    </view>
+
+    <!-- 反馈卡片 -->
+    <view class="feedback-card" wx:for="{{feedbacks}}" wx:key="_id" bindtap="showDetail" data-id="{{item._id}}">
+      <!-- 头部信息 -->
+      <view class="card-header">
+        <view class="user-info">
+          <image class="user-avatar" src="{{item.userAvatar || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit"/>
+          <view class="user-meta">
+            <text class="user-name">{{item.userName || '匿名用户'}}</text>
+            <text class="feedback-time">{{item.createTimeStr}}</text>
+          </view>
+        </view>
+        <view class="status-badge" style="background: {{getStatusColor(item.status)}}20; color: {{getStatusColor(item.status)}};">
+          {{getStatusText(item.status)}}
+        </view>
+      </view>
+
+      <!-- 反馈内容 -->
+      <view class="card-body">
+        <view class="type-tag">{{getTypeIcon(item.type)}} {{getTypeText(item.type)}}</view>
+        <text class="feedback-content">{{item.content}}</text>
+
+        <!-- 图片 -->
+        <view class="image-list" wx:if="{{item.images && item.images.length > 0}}">
+          <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" src="{{img}}" mode="aspectFill" class="feedback-image" catchtap="previewImage" data-url="{{img}}" data-urls="{{item.images}}"/>
+        </view>
+
+        <!-- 联系信息 -->
+        <view class="contact-info" wx:if="{{item.contact}}">
+          <text class="contact-label">联系方式:</text>
+          <text class="contact-value">{{item.contact}}</text>
+        </view>
+      </view>
+
+      <!-- 管理员回复 -->
+      <view class="card-footer" wx:if="{{item.reply}}">
+        <view class="reply-section">
+          <text class="reply-label">管理员回复:</text>
+          <text class="reply-content">{{item.reply}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{hasMore}}">
+      <text wx:if="{{!loading}}">上拉加载更多</text>
+      <view wx:else class="loading-spinner small"></view>
+    </view>
+
+    <view class="no-more" wx:if="{{!hasMore && feedbacks.length > 0}}">
+      <text>没有更多了</text>
+    </view>
+  </scroll-view>
+
+  <!-- 详情弹窗 -->
+  <view class="detail-modal" wx:if="{{showDetail}}" bindtap="closeDetail">
+    <view class="modal-content" catchtap="preventBubble">
+      <!-- 弹窗头部 -->
+      <view class="modal-header">
+        <text class="modal-title">反馈详情</text>
+        <view class="close-btn" bindtap="closeDetail">×</view>
+      </view>
+
+      <scroll-view class="modal-body" scroll-y>
+        <view wx:if="{{currentFeedback}}">
+          <!-- 用户信息 -->
+          <view class="detail-user">
+            <image class="detail-avatar" src="{{currentFeedback.userAvatar || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit"/>
+            <view class="detail-user-meta">
+              <text class="detail-name">{{currentFeedback.userName || '匿名用户'}}</text>
+              <text class="detail-time">{{currentFeedback.createTimeStr}}</text>
+            </view>
+            <view class="detail-status" style="background: {{getStatusColor(currentFeedback.status)}}20; color: {{getStatusColor(currentFeedback.status)}};">
+              {{getStatusText(currentFeedback.status)}}
+            </view>
+          </view>
+
+          <!-- 类型 -->
+          <view class="detail-type">
+            <text class="type-badge">{{getTypeIcon(currentFeedback.type)}} {{getTypeText(currentFeedback.type)}}</text>
+          </view>
+
+          <!-- 内容 -->
+          <view class="detail-section">
+            <text class="section-label">反馈内容</text>
+            <view class="content-box" bindtap="copyContent" data-content="{{currentFeedback.content}}">
+              <text>{{currentFeedback.content}}</text>
+              <text class="copy-hint">点击复制</text>
+            </view>
+          </view>
+
+          <!-- 图片 -->
+          <view class="detail-section" wx:if="{{currentFeedback.images && currentFeedback.images.length > 0}}">
+            <text class="section-label">图片附件</text>
+            <view class="detail-images">
+              <image wx:for="{{currentFeedback.images}}" wx:for-item="img" wx:key="*this" src="{{img}}" mode="aspectFill" class="detail-image" bindtap="previewImage" data-url="{{img}}" data-urls="{{currentFeedback.images}}"/>
+            </view>
+          </view>
+
+          <!-- 联系方式 -->
+          <view class="detail-section" wx:if="{{currentFeedback.contact}}">
+            <text class="section-label">联系方式</text>
+            <view class="content-box" bindtap="copyContent" data-content="{{currentFeedback.contact}}">
+              <text>{{currentFeedback.contact}}</text>
+              <text class="copy-hint">点击复制</text>
+            </view>
+          </view>
+
+          <!-- 设备信息 -->
+          <view class="detail-section" wx:if="{{currentFeedback.systemInfo}}">
+            <text class="section-label">设备信息</text>
+            <view class="info-grid">
+              <view class="info-item" wx:if="{{currentFeedback.systemInfo.model}}">
+                <text class="info-label">机型</text>
+                <text class="info-value">{{currentFeedback.systemInfo.model}}</text>
+              </view>
+              <view class="info-item" wx:if="{{currentFeedback.systemInfo.system}}">
+                <text class="info-label">系统</text>
+                <text class="info-value">{{currentFeedback.systemInfo.system}}</text>
+              </view>
+              <view class="info-item" wx:if="{{currentFeedback.systemInfo.version}}">
+                <text class="info-label">微信版本</text>
+                <text class="info-value">{{currentFeedback.systemInfo.version}}</text>
+              </view>
+              <view class="info-item" wx:if="{{currentFeedback.systemInfo.platform}}">
+                <text class="info-label">平台</text>
+                <text class="info-value">{{currentFeedback.systemInfo.platform}}</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 回复区域 -->
+          <view class="detail-section reply-section">
+            <text class="section-label">管理员回复</text>
+            <textarea
+              class="reply-input"
+              placeholder="请输入回复内容..."
+              value="{{replyContent}}"
+              bindinput="onReplyInput"
+              maxlength="500"
+            />
+            <text class="reply-hint">{{replyContent.length}}/500</text>
+          </view>
+        </view>
+      </scroll-view>
+
+      <!-- 弹窗底部操作 -->
+      <view class="modal-footer">
+        <view class="action-btns">
+          <view class="btn btn-secondary" bindtap="updateStatus" data-status="pending" wx:if="{{currentFeedback.status !== 'pending'}}">
+            标记待处理
+          </view>
+          <view class="btn btn-warning" bindtap="updateStatus" data-status="processing" wx:if="{{currentFeedback.status !== 'processing'}}">
+            标记处理中
+          </view>
+          <view class="btn btn-success" bindtap="updateStatus" data-status="resolved" wx:if="{{currentFeedback.status !== 'resolved'}}">
+            标记已解决
+          </view>
+        </view>
+        <view class="btn btn-primary full-width" bindtap="submitReply">发送回复</view>
+      </view>
+    </view>
+  </view>
+</view>

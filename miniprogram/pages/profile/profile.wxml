@@ -18,83 +18,48 @@ module.exports = {
 <view class="profile-page">
   <!-- 用户信息 -->
   <view class="user-header">
-    <view class="user-avatar" bindtap="wxLogin">
-      <image src="{{userInfo.avatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit"/>
-      <view class="avatar-edit" wx:if="{{userInfo.isLogin}}">更换头像</view>
-      <view class="avatar-edit" wx:else>点击登录</view>
-    </view>
-    <view class="user-info" bindtap="wxLogin">
-      <text class="user-name">{{userInfo.nickName || '点击登录'}}</text>
-      <text class="user-id" wx:if="{{userInfo.isLogin}}">ID: {{userInfo.userId}}</text>
-    </view>
-    <!-- 积分等级信息（已登录时显示） -->
-    <view class="user-points-section" wx:if="{{userInfo.isLogin}}">
-      <view class="level-badge">
-        <text class="level-name">{{userPoints.levelName}}</text>
+    <view class="user-header-main" bindtap="wxLogin">
+      <view class="user-avatar">
+        <image src="{{userInfo.avatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit"/>
       </view>
-      <view class="points-row">
-        <view class="points-item">
-          <image class="points-icon" src="{{imagePaths.misc.fishIcon}}" mode="aspectFit"/>
-          <text class="points-value">{{userPoints.fishCoins}}</text>
-        </view>
-        <view class="points-item">
-          <text class="points-label">总积分</text>
-          <text class="points-value">{{userPoints.total}}</text>
-        </view>
-      </view>
-      <view class="level-progress">
-        <view class="progress-bar">
-          <view class="progress-fill" style="width: {{(userPoints.total / userPoints.nextLevelNeed) * 100}}%;"></view>
-        </view>
-        <text class="progress-text">{{userPoints.total}}/{{userPoints.nextLevelNeed}} 升级进度</text>
+      <view class="user-info">
+        <text class="user-name">{{userInfo.nickName || '点击登录'}}</text>
+        <text class="user-id" wx:if="{{userInfo.isLogin}}">ID: {{userInfo.userId}}</text>
+        <text class="user-level" wx:if="{{userInfo.isLogin}}">{{userPoints.levelName}}</text>
       </view>
     </view>
-    <!-- 登录方式选择（未登录时，嵌入橙色背景内） -->
-    <view class="login-section" wx:if="{{!userInfo.isLogin}}" catchtap="preventBubble">
-      <view class="login-btn-group">
-        <view class="login-btn wechat" bindtap="wechatLoginDirect" hover-class="login-btn-hover">
-          <text class="btn-label">微信登录</text>
-          <text class="btn-desc">一键快速登录</text>
-        </view>
-        <view class="login-btn quick" bindtap="quickLoginDirect" hover-class="login-btn-hover">
-          <text class="btn-label">快速体验</text>
-          <text class="btn-desc">游客模式浏览</text>
-        </view>
-        <view class="login-btn custom" bindtap="customLogin" hover-class="login-btn-hover">
-          <text class="btn-label">自定义</text>
-          <text class="btn-desc">设置昵称头像</text>
-        </view>
-      </view>
+    <!-- 登录方式选择（未登录时） -->
+    <view class="login-section-compact" wx:if="{{!userInfo.isLogin}}" catchtap="preventBubble">
+      <view class="login-btn-compact wechat" bindtap="wechatLoginDirect">微信登录</view>
+      <view class="login-btn-compact quick" bindtap="quickLoginDirect">快速体验</view>
+      <view class="login-btn-compact custom" bindtap="customLogin">自定义</view>
     </view>
+    <!-- 猫尾巴装饰 -->
+    <image class="cat-tail-decoration" src="{{imagePaths.decorations.catTail || imagePaths.decorations.catDecoration}}" mode="aspectFit"/>
   </view>
 
-  <!-- 数据统计 - 五个并列一排 -->
+  <!-- 数据统计 - 紧凑五列 -->
   <view class="stats-section">
     <view class="stats-grid">
       <view class="stat-item" bindtap="showMyRooms">
         <text class="stat-num">{{stats.myRooms}}</text>
         <text class="stat-label">我发起的</text>
-        <text class="stat-sublabel">聚餐/拼单</text>
       </view>
       <view class="stat-item" bindtap="showMyParticipated">
         <text class="stat-num">{{stats.myParticipated || 0}}</text>
         <text class="stat-label">我参与的</text>
-        <text class="stat-sublabel">加入的聚餐</text>
       </view>
       <view class="stat-item" bindtap="showMyShops">
         <text class="stat-num">{{stats.myShops}}</text>
         <text class="stat-label">我的店铺</text>
-        <text class="stat-sublabel">推荐店铺</text>
       </view>
       <view class="stat-item" bindtap="showMyAppointments">
         <text class="stat-num">{{stats.myAppointments}}</text>
         <text class="stat-label">我的约饭</text>
-        <text class="stat-sublabel">发起的约饭</text>
       </view>
       <view class="stat-item" bindtap="showMyScheduleVotes">
         <text class="stat-num">{{stats.myScheduleVotes || 0}}</text>
         <text class="stat-label">时间投票</text>
-        <text class="stat-sublabel">发起/参与</text>
       </view>
     </view>
   </view>
@@ -102,7 +67,7 @@ module.exports = {
   <!-- 功能菜单 -->
   <view class="menu-section">
     <view class="menu-item" bindtap="showFavorites">
-      <image class="menu-icon-image" src="{{imagePaths.icons.favorite || imagePaths.icons.about}}" mode="aspectFit"/>
+      <image class="menu-icon-image" src="{{imagePaths.icons.collection || imagePaths.icons.about}}" mode="aspectFit"/>
       <text class="menu-text">我的收藏</text>
       <view class="menu-badge" wx:if="{{stats.favorites > 0}}">{{stats.favorites}}</view>
       <text class="menu-arrow">›</text>
@@ -110,6 +75,22 @@ module.exports = {
     <view class="menu-item" bindtap="goToSettings">
       <image class="menu-icon-image" src="{{imagePaths.icons.setting}}" mode="aspectFit"/>
       <text class="menu-text">设置</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item menu-contact-item">
+      <image class="menu-icon-image" src="{{imagePaths.icons.customerService || imagePaths.icons.about}}" mode="aspectFit"/>
+      <text class="menu-text">客服</text>
+      <text class="menu-arrow">›</text>
+      <button class="menu-contact-btn" open-type="contact" bindcontact="handleContact">联系客服</button>
+    </view>
+    <view class="menu-item" bindtap="goToFeedback">
+      <image class="menu-icon-image" src="{{imagePaths.icons.feedbacks || imagePaths.icons.about}}" mode="aspectFit"/>
+      <text class="menu-text">意见反馈</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="goToAdminDashboard">
+      <image class="menu-icon-image" src="{{imagePaths.icons.feedbackManage || imagePaths.icons.setting}}" mode="aspectFit"/>
+      <text class="menu-text">反馈管理</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="goToAbout">

@@ -1,0 +1,275 @@
+@import "/styles/variables.wxss";
+
+/* ==================== 结果页样式 ==================== */
+
+page {
+  background: #F5F5F5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  min-height: 100vh;
+}
+
+.result-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #F5F5F5;
+}
+
+
+/* ---------- 结算按钮 ---------- */
+.btn-settlement {
+  width: 100%;
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  border: 2rpx solid #FFCCBC;
+  background: #FFF5F5;
+  color: #E57373;
+}
+
+.btn-settlement::after {
+  border: none;
+}
+
+.btn-settlement:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+.btn-settlement-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+/* ---------- 加载状态 ---------- */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.loading-icon {
+  width: 120rpx;
+  height: 120rpx;
+}
+
+.loading-text {
+  margin-top: 24rpx;
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* ---------- 无结果状态 ---------- */
+.no-result-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 40rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  margin: 0 24rpx 24rpx;
+}
+
+.no-result-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  margin-bottom: 20rpx;
+  border-radius: 50%;
+}
+
+.no-result-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.no-result-hint {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* ==================== Mode B 匹配结果样式 ==================== */
+
+.modeb-result-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 0 24rpx 24rpx;
+}
+
+.best-matches-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.section-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.match-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx;
+  border-radius: 12rpx;
+}
+
+.match-item.perfect {
+  background: #E8F5E9;
+}
+
+.match-item.partial {
+  background: #FFF8E1;
+}
+
+.match-rank {
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  background: #FF9F43;
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 600;
+  border-radius: 50%;
+  margin-right: 12rpx;
+}
+
+.match-info {
+  flex: 1;
+}
+
+.match-name {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4rpx;
+}
+
+.match-meta {
+  display: flex;
+  gap: 12rpx;
+}
+
+.match-tag {
+  font-size: 20rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 12rpx;
+  background: #4CAF50;
+  color: #fff;
+}
+
+.match-item.partial .match-tag {
+  background: #FFC107;
+  color: #333;
+}
+
+.match-rate {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #FF9F43;
+}
+
+.category-stats-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.category-item {
+  margin-bottom: 16rpx;
+}
+
+.category-item:last-child {
+  margin-bottom: 0;
+}
+
+.category-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.sub-items {
+  padding-left: 12rpx;
+}
+
+.sub-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8rpx 0;
+}
+
+.sub-name {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.sub-count {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.taboo-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  border: 2rpx solid #FFEBEE;
+}
+
+.taboo-card .section-title {
+  color: #C62828;
+}
+
+.taboo-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.taboo-tag {
+  background: #FFEBEE;
+  border-radius: 16rpx;
+  padding: 8rpx 16rpx;
+  font-size: 24rpx;
+  color: #C62828;
+}
+
+.recommend-card {
+  background: #FFF8E1;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recommend-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.recommend-arrow {
+  font-size: 24rpx;
+  color: #FF9F43;
+  font-weight: 600;
+}

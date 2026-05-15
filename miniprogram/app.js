@@ -1,11 +1,30 @@
 const audioManager = require('./utils/audioManager');
 const cloudConfig = require('./config/cloudConfig');
-const { imagePaths } = require('./config/imageConfig');
+const { imagePaths, CDN_BASE } = require('./config/imageConfig');
+const auth = require('./utils/auth');
+const Validator = require('./utils/validator');
+const debounce = require('./utils/debounce');
+const uuid = require('./utils/uuid');
+const cuisineCategories = require('./data/cuisineCategories');
+const holidayConfig = require('./config/holidayConfig');
+const poster = require('./utils/poster');
+const tracker = require('./utils/tracker');
 
 App({
   globalData: {
-    imagePaths: null, // 全局解析后的 imagePaths（cloud:// → https://）
-    _imageReady: false,
+    imagePaths: imagePaths, // 直接赋值，避免页面获取时为 null
+    _imageReady: true,
+    // 公共模块挂载，供分包通过 getApp().globalData.xxx 访问
+    audioManager,
+    auth,
+    Validator,
+    debounce,
+    uuid,
+    cuisineCategories,
+    holidayConfig,
+    CDN_BASE,
+    poster,
+    tracker,
   },
 
   onLaunch: function () {
@@ -20,6 +39,7 @@ App({
     this.checkPrivacySetting();
     this.initNetworkListener();
     audioManager.init();
+    tracker.initPerformanceMonitor();
     // checkUpdate 可能触发网络请求，延迟执行避免阻塞
     setTimeout(() => this.checkUpdate(), 2000);
   },

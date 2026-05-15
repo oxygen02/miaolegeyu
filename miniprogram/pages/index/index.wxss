@@ -9,16 +9,20 @@
   padding: 0 4vw calc(180rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 /* ---------- Hero 区域 - 条纹背景 + 栅栏 ---------- */
 .hero-section {
-  position: relative;
-  padding: 6vh 0 0;
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: calc(6vh + env(safe-area-inset-top)) 0 0;
   margin: 0 -4vw;
   overflow: visible;
   min-height: 320rpx;
+  z-index: 10;
 }
 
 /* 竖条纹渐变背景 - 一格深一格浅交替 */

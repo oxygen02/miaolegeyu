@@ -113,7 +113,7 @@ function wechatLogin(callback) {
  */
 function customLogin() {
   wx.navigateTo({
-    url: '/pages/avatar-select/avatar-select?mode=login'
+    url: '/package-user/pages/avatar-select/avatar-select?mode=login'
   });
 }
 

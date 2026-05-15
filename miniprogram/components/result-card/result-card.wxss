@@ -1,5 +1,5 @@
-@import "../../styles/variables.wxss";
-@import "../../app.wxss";
+@import "/styles/variables.wxss";
+@import "/app.wxss";
 
 /* ==================== 结果通知卡片组件 ==================== */
 

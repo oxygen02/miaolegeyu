@@ -3,6 +3,10 @@ const CDN_BASE = 'https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la
 const imagePaths = {
   icons: {
     about: `${CDN_BASE}/icons/about.png`,
+    collection: `${CDN_BASE}/icons/collection.png`,
+    customerService: `${CDN_BASE}/icons/CustomerService.png`,
+    feedbacks: `${CDN_BASE}/icons/feedbacks.png`,
+    feedbackManage: `${CDN_BASE}/icons/feedbackmanage.png`,
     history: `${CDN_BASE}/icons/juze_avatar.png`,
     setting: `${CDN_BASE}/icons/setting.png`,
     gexingtouxiang: `${CDN_BASE}/icons/gexingtouxiang.png`,
@@ -32,6 +36,7 @@ const imagePaths = {
     sleepingCatIcon: `${CDN_BASE}/misc/juze_avatar.png`,
     winkCatIcon: `${CDN_BASE}/misc/juze_avatar.png`,
     angryCat: `${CDN_BASE}/misc/juze_avatar.png`,
+    catTail: `${CDN_BASE}/decorations/cat-tail.png`,
   },
 
   banners: {

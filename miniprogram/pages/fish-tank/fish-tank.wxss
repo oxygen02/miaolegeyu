@@ -10,34 +10,17 @@
 /* 顶部橘红色区域 */
 .header-section {
   background: linear-gradient(180deg, #FF9F43 0%, #FFB347 100%);
-  padding: 30rpx 32rpx 40rpx;
-  position: relative;
+  padding: calc(30rpx + env(safe-area-inset-top)) 32rpx 40rpx;
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
   overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 10;
   flex-shrink: 0;
-}
-
-/* 返回首页按钮 */
-.home-btn {
-  position: absolute;
-  left: 16rpx;
-  top: 16rpx;
-  width: 56rpx;
-  height: 56rpx;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 20;
-}
-
-.home-icon {
-  width: 36rpx;
-  height: 36rpx;
 }
 
 .header-section::before {

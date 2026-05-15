@@ -1,33 +1,81 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/loading/loading",
-    "pages/create/create",
-    "pages/create-mode-a/create-mode-a",
-    "pages/create-mode-b/create-mode-b",
-    "pages/create-group-order/create-group-order",
-    "pages/group-detail/group-detail",
-    "pages/vote/vote",
-    "pages/filter/filter",
-    "pages/control/control",
-    "pages/result/result",
-    "pages/settlement/settlement",
     "pages/fish-tank/fish-tank",
-    "pages/food-discovery/food-discovery",
-    "pages/shop-detail/shop-detail",
-    "pages/upload-shop/upload-shop",
-    "pages/upload-images/upload-images",
-    "pages/profile/profile",
-    "pages/room-list/room-list",
-    "pages/avatar-select/avatar-select",
-    "pages/settings/settings",
-    "pages/history/history",
-    "pages/about/about",
-    "pages/roomConsole/console",
-    "pages/schedule-vote/create/create",
-    "pages/schedule-vote/fill/fill",
-    "pages/schedule-vote/result/result"
+    "pages/profile/profile"
   ],
+  "subPackages": [
+    {
+      "root": "package-admin",
+      "pages": [
+        "pages/admin-dashboard/admin-dashboard"
+      ]
+    },
+    {
+      "root": "package-create",
+      "pages": [
+        "pages/create/create",
+        "pages/create-mode-a/create-mode-a",
+        "pages/create-mode-b/create-mode-b",
+        "pages/create-group-order/create-group-order"
+      ]
+    },
+    {
+      "root": "package-vote",
+      "pages": [
+        "pages/vote/vote",
+        "pages/room-list/room-list",
+        "pages/result/result",
+        "pages/control/control",
+        "pages/filter/filter",
+        "pages/roomConsole/console",
+        "pages/group-detail/group-detail",
+        "pages/settlement/settlement",
+        "pages/recommend-restaurant/recommend-restaurant"
+      ]
+    },
+    {
+      "root": "package-shop",
+      "pages": [
+        "pages/shop-detail/shop-detail",
+        "pages/upload-shop/upload-shop",
+        "pages/food-discovery/food-discovery",
+        "pages/upload-images/upload-images"
+      ]
+    },
+    {
+      "root": "package-schedule",
+      "pages": [
+        "pages/schedule-vote/create/create",
+        "pages/schedule-vote/fill/fill",
+        "pages/schedule-vote/result/result"
+      ]
+    },
+    {
+      "root": "package-user",
+      "pages": [
+        "pages/avatar-select/avatar-select",
+        "pages/settings/settings",
+        "pages/history/history",
+        "pages/about/about",
+        "pages/feedback/feedback"
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/index/index": {
+      "network": "all",
+      "packages": ["package-create", "package-vote"]
+    },
+    "pages/fish-tank/fish-tank": {
+      "network": "all",
+      "packages": ["package-vote", "package-shop"]
+    },
+    "pages/profile/profile": {
+      "network": "all",
+      "packages": ["package-user", "package-schedule"]
+    }
+  },
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#F5F0E8",

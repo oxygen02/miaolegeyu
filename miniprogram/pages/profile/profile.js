@@ -3,9 +3,9 @@
  * 功能：展示用户信息、登录/登出、统计概览、收藏/店铺/聚餐/房间列表管理
  * 登录方式：微信登录、快速体验（随机昵称）、自定义登录（头像+昵称选择页）
  */
-const audioManager = require('../../utils/audioManager');
-const auth = require('../../utils/auth');
-const { imagePaths } = require('../../config/imageConfig');
+const audioManager = getApp().globalData.audioManager;
+const auth = getApp().globalData.auth;
+const { imagePaths } = getApp().globalData;
 const app = getApp();
 
 Page({
@@ -253,7 +253,7 @@ Page({
   // 自定义登录
   customLogin() {
     wx.navigateTo({
-      url: '/pages/avatar-select/avatar-select?mode=login'
+      url: '/package-user/pages/avatar-select/avatar-select?mode=login'
     });
   },
 
@@ -333,12 +333,12 @@ Page({
             wx.hideLoading();
 
             if (result.code === 0) {
-            const userInfo = {
-              ...this.data.userInfo,
-              nickName: res.content
-            };
-            auth.setUserInfo(userInfo);
-            this.setData({ userInfo });
+              const userInfo = {
+                ...this.data.userInfo,
+                nickName: res.content
+              };
+              auth.setUserInfo(userInfo);
+              this.setData({ userInfo });
               wx.showToast({ title: '修改成功', icon: 'success' });
             } else {
               wx.showToast({ title: result.msg || '修改失败', icon: 'none' });
@@ -355,7 +355,7 @@ Page({
   // 更换头像
   changeAvatar() {
     wx.navigateTo({
-      url: '/pages/avatar-select/avatar-select?mode=profile'
+      url: '/package-user/pages/avatar-select/avatar-select?mode=profile'
     });
   },
 
@@ -627,7 +627,7 @@ Page({
   goToScheduleVoteDetail(e) {
     const { id } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/pages/schedule-vote/result/result?voteId=${id}`
+      url: `/package-schedule/pages/schedule-vote/result/result?voteId=${id}`
     });
   },
 
@@ -837,20 +837,34 @@ Page({
 
   goToShopDetail(e) {
     const { id } = e.currentTarget.dataset;
-    wx.navigateTo({ url: `/pages/shop-detail/shop-detail?id=${id}` });
+    wx.navigateTo({ url: `/package-shop/pages/shop-detail/shop-detail?id=${id}` });
   },
 
   goToAppointmentDetail(e) {
     const { shopid } = e.currentTarget.dataset;
     if (shopid) {
-      wx.navigateTo({ url: `/pages/shop-detail/shop-detail?id=${shopid}` });
+      wx.navigateTo({ url: `/package-shop/pages/shop-detail/shop-detail?id=${shopid}` });
     }
   },
 
   goToRoomDetail(e) {
     const { roomid } = e.currentTarget.dataset;
-    if (roomid) {
-      wx.navigateTo({ url: `/pages/control/control?roomId=${roomid}` });
+    if (!roomid) return;
+
+    // 查找房间信息判断类型
+    const room = [...(this.data.myRooms || []), ...(this.data.myParticipated || [])]
+      .find(r => r.roomId === roomid);
+
+    // 拼单活动跳转到拼单详情页
+    if (room?.mode === 'group') {
+      wx.navigateTo({
+        url: `/package-vote/pages/group-detail/group-detail?roomId=${roomid}`
+      });
+    } else {
+      // 聚餐活动跳转到control页面
+      wx.navigateTo({
+        url: `/package-vote/pages/control/control?roomId=${roomid}`
+      });
     }
   },
 
@@ -883,7 +897,7 @@ Page({
           // 查找对应的活动获取 shopId
           const appointment = this.data.myAppointments.find(item => item._id === id);
           if (appointment && appointment.shopId) {
-            wx.navigateTo({ url: `/pages/shop-detail/shop-detail?id=${appointment.shopId}` });
+            wx.navigateTo({ url: `/package-shop/pages/shop-detail/shop-detail?id=${appointment.shopId}` });
           }
         } else if (res.tapIndex === 1) {
           this.deleteAppointment({ currentTarget: { dataset: { id } } });
@@ -896,9 +910,9 @@ Page({
   goToFavoriteDetail(e) {
     const { item } = e.currentTarget.dataset;
     if (item.type === 'shop' && item.targetId) {
-      wx.navigateTo({ url: `/pages/shop-detail/shop-detail?id=${item.targetId}` });
+      wx.navigateTo({ url: `/package-shop/pages/shop-detail/shop-detail?id=${item.targetId}` });
     } else if (item.type === 'appointment' && item.targetId) {
-      wx.navigateTo({ url: `/pages/shop-detail/shop-detail?id=${item.targetId}` });
+      wx.navigateTo({ url: `/package-shop/pages/shop-detail/shop-detail?id=${item.targetId}` });
     }
   },
 
@@ -936,7 +950,7 @@ Page({
         .find(r => r.roomId === roomId);
       return {
         title: room ? `「${room.title || '聚餐投票'}」快来一起选餐厅！` : '快来一起选餐厅！',
-        path: `/pages/vote/vote?roomId=${roomId}`,
+        path: `/package-vote/pages/vote/vote?roomId=${roomId}`,
         imageUrl: room?.finalPoster || (room?.candidatePosters?.[0]?.imageUrl) || ''
       };
     }
@@ -1019,12 +1033,12 @@ Page({
     if (isModeB || (hasDinnerTime && !hasPosters)) {
       // 模式B：你们来定
       wx.navigateTo({
-        url: `/pages/create-mode-b/create-mode-b?edit=true&roomId=${roomId}`
+        url: `/package-create/pages/create-mode-b/create-mode-b?edit=true&roomId=${roomId}`
       });
     } else {
       // 模式A：我选好了
       wx.navigateTo({
-        url: `/pages/create-mode-a/create-mode-a?edit=true&roomId=${roomId}`
+        url: `/package-create/pages/create-mode-a/create-mode-a?edit=true&roomId=${roomId}`
       });
     }
   },
@@ -1098,7 +1112,7 @@ Page({
 
     // 跳转到推荐店铺页（upload-shop），携带编辑数据
     wx.reLaunch({
-      url: `/pages/upload-shop/upload-shop?mode=edit&shopId=${item._id}`
+      url: `/package-shop/pages/upload-shop/upload-shop?mode=edit&shopId=${item._id}`
     });
   },
 
@@ -1219,11 +1233,19 @@ Page({
   },
 
     goToSettings() {
-    wx.navigateTo({ url: '/pages/settings/settings' });
+    wx.navigateTo({ url: '/package-user/pages/settings/settings' });
+  },
+
+  goToFeedback() {
+    wx.navigateTo({ url: '/package-user/pages/feedback/feedback' });
   },
 
   goToAbout() {
-    wx.navigateTo({ url: '/pages/about/about' });
+    wx.navigateTo({ url: '/package-user/pages/about/about' });
+  },
+
+  goToAdminDashboard() {
+    wx.navigateTo({ url: '/package-admin/pages/admin-dashboard/admin-dashboard' });
   },
 
   preventBubble() {

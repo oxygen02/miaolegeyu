@@ -1,4 +1,4 @@
-const PosterGenerator = require('../../utils/poster.js');
+const PosterGenerator = getApp().globalData.poster;
 
 Component({
   properties: {

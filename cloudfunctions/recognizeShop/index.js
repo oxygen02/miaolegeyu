@@ -86,8 +86,8 @@ exports.main = async (event, context) => {
     // ========== 第2层：腾讯云OCR 🔄 ==========
     console.log(`\n[2/2] 尝试腾讯云OCR... (${Date.now() - startTime}ms)`);
     
-    const secretId = process.env.TENCENT_SECRET_ID || 'AKIDjP4JQM5dFq8LSUP9kDWeaN1VO5bx43sV';
-    const secretKey = process.env.TENCENT_SECRET_KEY || 'Ur4SgssfGfx63tZ4NI9vX8fLvMp7E87x';
+    const secretId = process.env.TENCENT_SECRET_ID;
+    const secretKey = process.env.TENCENT_SECRET_KEY;
 
     if (OcrClient && secretId && secretKey) {
       try {

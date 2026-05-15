@@ -97,7 +97,7 @@ async function sendDeadlineReminder(roomId, openid, data) {
   return await cloud.openapi.subscribeMessage.send({
     touser: openid,
     templateId: TEMPLATES.DEADLINE_REMINDER,
-    page: `pages/room-detail/room-detail?roomId=${roomId}`,
+    page: `pages/vote/vote?roomId=${roomId}`,
     data: {
       thing1: { value: title }, // 活动名称
       time2: { value: timeStr }, // 截止时间
@@ -125,7 +125,7 @@ async function sendActivityStart(roomId, openid, data) {
   return await cloud.openapi.subscribeMessage.send({
     touser: openid,
     templateId: TEMPLATES.ACTIVITY_START,
-    page: `pages/room-detail/room-detail?roomId=${roomId}`,
+    page: `pages/vote/vote?roomId=${roomId}`,
     data: {
       thing1: { value: title }, // 活动名称
       time2: { value: timeStr }, // 活动时间
