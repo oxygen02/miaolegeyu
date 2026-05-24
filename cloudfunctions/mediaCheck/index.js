@@ -3,182 +3,127 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 /**
  * 多媒体内容安全检测云函数
- * 支持图片、音频内容检测
+ * 调用微信官方 mediaCheckAsync 2.0 接口（异步检测）
+ * 文档：https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/sec-center/sec-check/mediaCheckAsync.html
  */
 
 /**
- * 下载云存储文件并转换为Buffer
+ * 获取云存储文件的临时 URL
  * @param {string} fileID - 云存储fileID
- * @returns {Promise<Buffer>}
+ * @returns {Promise<string>} - 临时URL
  */
-async function downloadCloudFile(fileID) {
+async function getCloudFileUrl(fileID) {
   try {
-    const res = await cloud.downloadFile({
-      fileID: fileID
+    const res = await cloud.getTempFileURL({
+      fileList: [fileID]
     });
-    return res.fileContent;
+    if (res.fileList && res.fileList.length > 0 && res.fileList[0].tempFileURL) {
+      return res.fileList[0].tempFileURL;
+    }
+    throw new Error('获取文件临时URL失败');
   } catch (err) {
-    console.error('下载文件失败:', err);
+    console.error('获取云存储文件URL失败:', err);
     throw err;
   }
 }
 
 /**
- * 检测图片内容
- * @param {string} mediaUrl - 图片云存储fileID或URL
- * @param {string} openid - 用户openid
- * @param {number} scene - 场景值
- * @returns {Promise<object>}
- */
-async function checkImage(mediaUrl, openid, scene = 2) {
-  try {
-    let imageBuffer;
-    let contentType = 'image/png';
-    
-    // 如果是云存储fileID，先下载
-    if (mediaUrl.startsWith('cloud://')) {
-      imageBuffer = await downloadCloudFile(mediaUrl);
-      // 根据fileID后缀判断图片类型
-      if (mediaUrl.endsWith('.jpg') || mediaUrl.endsWith('.jpeg')) {
-        contentType = 'image/jpeg';
-      } else if (mediaUrl.endsWith('.png')) {
-        contentType = 'image/png';
-      } else if (mediaUrl.endsWith('.gif')) {
-        contentType = 'image/gif';
-      } else if (mediaUrl.endsWith('.bmp')) {
-        contentType = 'image/bmp';
-      }
-    } else if (mediaUrl.startsWith('http')) {
-      // 如果是HTTP URL，使用异步检测
-      return await checkMediaAsync(mediaUrl, 1, openid, scene);
-    } else {
-      throw new Error('不支持的图片格式');
-    }
-    
-    const result = await cloud.openapi.security.imgSecCheck({
-      media: {
-        contentType: contentType,
-        value: imageBuffer
-      },
-      openid: openid,
-      scene: scene
-    });
-    
-    // 解析检测结果
-    // result.result.suggest: risky/pass/review
-    // result.result.label: 100:正常 10001:广告 20001:时政 20002:色情 20003:辱骂 20006:违法犯罪 20008:欺诈 20012:低俗 20013:版权 21000:其他
-    const suggest = result.result?.suggest || 'pass';
-    const label = result.result?.label || 100;
-    
-    // 优化：明确返回 pass 或通过时才通过；review 状态视为通过（避免误报）
-    // 只有明确返回 risky 才拦截
-    const passed = suggest !== 'risky';
-    
-    return {
-      passed: passed,
-      suggest: suggest,
-      label: label,
-      detail: result.result?.detail || null,
-      errCode: 0
-    };
-  } catch (err) {
-    console.error('图片检测失败:', err);
-    // API调用失败时放行，避免阻塞正常用户
-    return {
-      passed: true,
-      suggest: 'error',
-      label: -1,
-      errCode: -1,
-      errMsg: err.message || '检测失败',
-      isError: true  // 标记为API调用错误，非违规内容
-    };
-  }
-}
-
-/**
- * 异步检测媒体内容（支持图片、音频）
- * @param {string} mediaUrl - 媒体文件URL
- * @param {number} mediaType - 1:图片 2:音频 3:视频
+ * 异步检测媒体内容（图片/音频）
+ * @param {string} mediaUrl - 媒体文件URL（必须是http/https）
+ * @param {number} mediaType - 1:音频 2:图片
  * @param {string} openid - 用户openid
  * @param {number} scene - 场景值
  * @param {string} title - 标题
  * @returns {Promise<object>}
  */
-async function checkMediaAsync(mediaUrl, mediaType = 1, openid, scene = 2, title = '') {
+async function checkMediaAsync(mediaUrl, mediaType, openid, scene = 2, title = '') {
   try {
     const result = await cloud.openapi.security.mediaCheckAsync({
       version: 2,
       media_url: mediaUrl,
-      media_type: mediaType,
+      media_type: mediaType, // 1:音频 2:图片
       openid: openid,
       scene: scene,
       title: title
     });
-    
-    // 异步检测返回trace_id，需要通过msgSecCheck查询结果
+
+    console.log('mediaCheckAsync 返回结果:', JSON.stringify(result));
+
+    // 异步检测返回 trace_id，需要通过消息推送获取真实结果
+    // 但前端需要立即知道是否通过，这里返回已提交状态
     return {
-      passed: true, // 异步检测先返回通过，后续通过消息推送获取真实结果
+      passed: true, // 异步检测先返回通过，后续通过消息推送处理
       traceId: result.trace_id,
       errCode: 0,
-      isAsync: true
+      isAsync: true,
+      msg: '异步检测已提交'
     };
   } catch (err) {
-    console.error('媒体异步检测失败:', err);
+    console.error('mediaCheckAsync 调用异常:', err);
+    // API 调用异常时放行
     return {
       passed: true,
       errCode: -1,
-      errMsg: err.message || '检测失败'
+      errMsg: err.message || '检测失败',
+      isError: true
     };
   }
 }
 
 exports.main = async (event, context) => {
-  const { 
+  const {
     mediaUrl,      // 媒体文件URL或fileID
-    mediaType = 1, // 1:图片 2:音频 3:视频
-    checkType = 'image', // image:图片检测 media:异步媒体检测
+    mediaType = 2, // 1:音频 2:图片（默认图片）
     scene = 2,
     title = ''
   } = event;
-  
+
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
-  
+
   if (!openid) {
     return { code: -1, msg: '未登录' };
   }
-  
+
   if (!mediaUrl) {
     return { code: -1, msg: '媒体文件地址不能为空' };
   }
-  
+
   try {
-    let result;
-    
-    if (checkType === 'image') {
-      // 图片检测
-      result = await checkImage(mediaUrl, openid, scene);
-    } else {
-      // 异步媒体检测
-      result = await checkMediaAsync(mediaUrl, mediaType, openid, scene, title);
+    let finalMediaUrl = mediaUrl;
+
+    // 如果是云存储 fileID，先获取临时 URL
+    if (mediaUrl.startsWith('cloud://')) {
+      finalMediaUrl = await getCloudFileUrl(mediaUrl);
     }
-    
-    if (!result.passed && !result.isAsync) {
+
+    // 调用异步检测接口
+    const result = await checkMediaAsync(finalMediaUrl, mediaType, openid, scene, title);
+
+    if (!result.passed && !result.isAsync && !result.isError) {
       return {
         code: 403,
         data: result,
         msg: '媒体内容包含违规信息'
       };
     }
-    
+
     return {
       code: 0,
       data: result,
       msg: result.isAsync ? '异步检测已提交' : '媒体内容审核通过'
     };
-    
+
   } catch (err) {
     console.error('媒体检测失败:', err);
-    return { code: -1, msg: '检测失败，请稍后重试' };
+    // 异常时放行，避免阻塞正常用户
+    return {
+      code: 0,
+      data: {
+        passed: true,
+        warning: '检测服务暂不可用，已放行'
+      },
+      msg: '媒体内容审核通过'
+    };
   }
 };

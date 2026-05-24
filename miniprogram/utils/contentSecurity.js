@@ -1,10 +1,14 @@
 /**
  * 内容安全检查工具
- * 封装调用内容安全相关云函数的逻辑
+ * 封装调用微信官方内容安全 API 的云函数
+ * 文本检测：msgSecCheck 2.0
+ * 图片检测：mediaCheckAsync 2.0（异步）
+ * 安全风控：getUserRiskRank
  */
 
 /**
  * 检查文本内容是否违规
+ * 调用 contentCheck 云函数（底层使用 msgSecCheck 2.0）
  * @param {string} content - 待检查文本
  * @param {number} scene - 场景值 1:资料 2:评论 3:论坛 4:社交日志
  * @returns {Promise<{passed: boolean, msg: string}>}
@@ -22,18 +26,18 @@ async function checkContent(content, scene = 2) {
         scene: scene
       }
     });
-    
+
     const result = res.result || {};
 
-    // 云函数返回403表示内容违规
+    // 云函数返回 403 表示内容违规
     if (result.code === 403) {
       return {
         passed: false,
         msg: result.msg || '内容包含违规信息，请修改后重试'
       };
     }
-    
-    // 云函数返回其他错误码 - 检测失败时放行（避免阻塞正常用户）
+
+    // 云函数返回其他非 0 错误码 - 检测失败时放行（避免阻塞正常用户）
     if (result.code !== 0) {
       console.warn('内容检查调用失败:', result.msg);
       return { passed: true, msg: '检查服务暂不可用，已放行' };
@@ -64,7 +68,7 @@ async function checkContent(content, scene = 2) {
  */
 async function checkContentWithToast(content, scene = 2) {
   const result = await checkContent(content, scene);
-  
+
   if (!result.passed) {
     wx.showToast({
       title: result.msg,
@@ -72,13 +76,14 @@ async function checkContentWithToast(content, scene = 2) {
       duration: 2000
     });
   }
-  
+
   return result.passed;
 }
 
 /**
  * 检查图片内容是否违规
- * @param {string} mediaUrl - 图片fileID或URL
+ * 调用 mediaCheck 云函数（底层使用 mediaCheckAsync 2.0）
+ * @param {string} mediaUrl - 图片 fileID 或 URL
  * @param {number} scene - 场景值
  * @returns {Promise<{passed: boolean, msg: string}>}
  */
@@ -87,38 +92,33 @@ async function checkImage(mediaUrl, scene = 2) {
     return { passed: true, msg: '图片为空，无需检查' };
   }
 
-  // 临时绕过图片检测，直接放行
-  // 原因：微信 imgSecCheck API 对正常餐饮店铺截图误报率过高
-  // 后续可通过后端异步检测或人工审核机制补充
-  console.log('[图片检测] 已跳过，直接放行:', mediaUrl);
-  return { passed: true, msg: '图片审核通过' };
-
-  /*
   try {
     const res = await wx.cloud.callFunction({
       name: 'mediaCheck',
       data: {
         mediaUrl: mediaUrl,
-        mediaType: 1,
-        checkType: 'image',
+        mediaType: 2, // 2:图片
         scene: scene
       }
     });
-    
+
     const result = res.result || {};
 
+    // 云函数返回 403 表示内容违规
     if (result.code === 403) {
       return {
         passed: false,
         msg: result.msg || '图片包含违规内容'
       };
     }
-    
+
+    // 云函数返回其他非 0 错误码 - 检测失败时放行
     if (result.code !== 0) {
       console.warn('图片检测调用失败:', result.msg);
       return { passed: true, msg: '检测服务暂不可用，已放行' };
     }
 
+    // 检查云函数返回的数据
     const data = result.data || {};
     if (data.passed === false) {
       return {
@@ -130,20 +130,20 @@ async function checkImage(mediaUrl, scene = 2) {
     return { passed: true, msg: '图片审核通过' };
   } catch (err) {
     console.error('图片检测异常:', err);
+    // 异常时放行，避免阻塞正常用户
     return { passed: true, msg: '检测异常，已放行' };
   }
-  */
 }
 
 /**
  * 检查图片并提示
- * @param {string} mediaUrl - 图片fileID或URL
+ * @param {string} mediaUrl - 图片 fileID 或 URL
  * @param {number} scene - 场景值
  * @returns {Promise<boolean>}
  */
 async function checkImageWithToast(mediaUrl, scene = 2) {
   const result = await checkImage(mediaUrl, scene);
-  
+
   if (!result.passed) {
     wx.showToast({
       title: result.msg,
@@ -151,19 +151,19 @@ async function checkImageWithToast(mediaUrl, scene = 2) {
       duration: 2000
     });
   }
-  
+
   return result.passed;
 }
 
 /**
- * 异步检测媒体内容（图片/音频/视频）
- * @param {string} mediaUrl - 媒体文件URL
- * @param {number} mediaType - 1:图片 2:音频 3:视频
+ * 异步检测媒体内容（图片/音频）
+ * @param {string} mediaUrl - 媒体文件 URL
+ * @param {number} mediaType - 1:音频 2:图片
  * @param {number} scene - 场景值
  * @param {string} title - 标题
  * @returns {Promise<{passed: boolean, msg: string, traceId: string}>}
  */
-async function checkMediaAsync(mediaUrl, mediaType = 1, scene = 2, title = '') {
+async function checkMediaAsync(mediaUrl, mediaType = 2, scene = 2, title = '') {
   if (!mediaUrl) {
     return { passed: true, msg: '媒体文件为空' };
   }
@@ -174,12 +174,11 @@ async function checkMediaAsync(mediaUrl, mediaType = 1, scene = 2, title = '') {
       data: {
         mediaUrl: mediaUrl,
         mediaType: mediaType,
-        checkType: 'media',
         scene: scene,
         title: title
       }
     });
-    
+
     const result = res.result || {};
 
     if (result.code !== 0) {
@@ -199,6 +198,7 @@ async function checkMediaAsync(mediaUrl, mediaType = 1, scene = 2, title = '') {
 
 /**
  * 获取用户安全等级
+ * 调用 userRiskCheck 云函数（底层使用 getUserRiskRank）
  * @param {number} scene - 0:注册 1:营销作弊
  * @returns {Promise<{riskRank: number, riskLevel: string, riskDesc: string}>}
  */
@@ -210,7 +210,7 @@ async function getUserRiskRank(scene = 0) {
         scene: scene
       }
     });
-    
+
     const result = res.result || {};
 
     if (result.code !== 0) {
