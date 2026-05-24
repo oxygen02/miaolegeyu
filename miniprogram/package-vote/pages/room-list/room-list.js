@@ -1,6 +1,5 @@
-const { imagePaths } = getApp().globalData;
-const audioManager = getApp().globalData.audioManager;
-const app = getApp();
+let app = null;
+let audioManager = null;
 
 Page({
   data: {
@@ -20,6 +19,8 @@ Page({
   },
 
   async onLoad() {
+    app = getApp();
+    audioManager = app.globalData.audioManager;
     const resolvedPaths = await app.whenImageReady();
     this.setData({ imagePaths: resolvedPaths });
     // 设置导航栏颜色为米色
@@ -49,6 +50,7 @@ Page({
       const { currentFilter } = this.data;
       let createdRooms = [];
       let participatedRooms = [];
+      let scheduleVotes = [];
 
       // 并行获取我创建的房间和我参与的房间
       const fetchCreated = async () => {
@@ -80,29 +82,57 @@ Page({
         return [];
       };
 
+      // 获取时间投票（统一用 mode: 'all'，一次调用获取所有）
+      const fetchScheduleVotes = async () => {
+        try {
+          const res = await wx.cloud.callFunction({
+            name: 'getMyScheduleVotes',
+            data: { mode: 'all', status: currentFilter, limit: 100 }
+          });
+          if (res.result && res.result.success) {
+            return this.formatScheduleVotes(res.result.votes || []);
+          }
+        } catch (cloudErr) {
+          console.log('[room-list] 获取时间投票失败:', cloudErr);
+        }
+        return [];
+      };
+
       if (currentFilter === 'all' || currentFilter === 'active' || currentFilter === 'locked') {
-        // 全部、进行中、已结束：同时获取创建的和参与的
-        [createdRooms, participatedRooms] = await Promise.all([fetchCreated(), fetchParticipated()]);
+        // 全部、进行中、已结束：获取普通投票和时间投票
+        [createdRooms, participatedRooms, scheduleVotes] = await Promise.all([
+          fetchCreated(), fetchParticipated(), fetchScheduleVotes()
+        ]);
       } else if (currentFilter === 'created') {
         // 我创建的
-        createdRooms = await fetchCreated();
+        [createdRooms, scheduleVotes] = await Promise.all([fetchCreated(), fetchScheduleVotes()]);
       } else if (currentFilter === 'participated') {
         // 我参与的
-        participatedRooms = await fetchParticipated();
+        [participatedRooms, scheduleVotes] = await Promise.all([fetchParticipated(), fetchScheduleVotes()]);
       }
 
       // 合并并去重（根据 roomId）
       const roomMap = new Map();
-      [...createdRooms, ...participatedRooms].forEach(room => {
+      [...createdRooms, ...participatedRooms, ...scheduleVotes].forEach(room => {
         if (room.roomId && !roomMap.has(room.roomId)) {
           roomMap.set(room.roomId, room);
         }
       });
       let allRooms = Array.from(roomMap.values());
-      
+
+      // 按创建时间倒序排序（最新的排在最上面）
+      allRooms.sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA;
+      });
+
       // 调试日志
-      if (allRooms.length > 0) {
-      }
+      console.log('[room-list] 普通投票-创建:', createdRooms.length);
+      console.log('[room-list] 普通投票-参与:', participatedRooms.length);
+      console.log('[room-list] 时间投票:', scheduleVotes.length);
+      console.log('[room-list] 合并后总数:', allRooms.length);
+      console.log('[room-list] 时间投票详情:', scheduleVotes.map(v => ({ id: v.roomId, title: v.title, status: v.status })));
 
       // 根据筛选条件过滤
       const filteredRooms = this.filterRooms(allRooms, currentFilter);
@@ -212,6 +242,68 @@ Page({
     return rooms;
   },
 
+  // 格式化时间投票为统一房间格式
+  formatScheduleVotes(votes) {
+    return votes.map(vote => {
+      const dates = vote.candidateDates || [];
+      const dateStr = dates.length > 0
+        ? dates.map(d => {
+            const parts = d.split('-');
+            return `${parts[1]}/${parts[2]}`;
+          }).join('、')
+        : '时间待定';
+
+      let timeStr = '时间待定';
+      if (vote.deadline) {
+        try {
+          const d = new Date(vote.deadline);
+          if (!isNaN(d.getTime())) {
+            const m = (d.getMonth() + 1) + '月' + d.getDate() + '日';
+            const h = d.getHours().toString().padStart(2, '0');
+            const min = d.getMinutes().toString().padStart(2, '0');
+            timeStr = `${m} ${h}:${min}`;
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      const isExpired = vote.isExpired !== undefined ? vote.isExpired : this.isScheduleVoteExpired(vote);
+      const isCreator = vote.isCreator;
+
+      // 生成6位数字房间号用于显示（基于 _id 的哈希）
+      const displayRoomId = this.generateShortRoomId(vote._id);
+
+      return {
+        roomId: vote._id,
+        displayRoomId: displayRoomId,
+        title: vote.title || '时间投票',
+        status: isExpired ? 'locked' : 'voting',
+        mode: 'scheduleVote',
+        location: dateStr,
+        activityTime: timeStr,
+        voteDeadline: vote.deadline,
+        participantCount: vote.participantCount || 0,
+        creatorName: isCreator ? '我' : (vote.creatorNickName || '发起人'),
+        creatorNickName: isCreator ? '我' : (vote.creatorNickName || '发起人'),
+        creatorAvatarUrl: vote.creatorAvatarUrl || '',
+        isScheduleVote: true,
+        createdAt: vote.createdAt
+      };
+    });
+  },
+
+  // 根据 _id 生成稳定的6位数字房间号
+  generateShortRoomId(id) {
+    if (!id || id.length < 6) return '000000';
+    // 取 _id 的字符进行简单哈希，生成6位数字
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash = hash & 0xFFFFFFFF;
+    }
+    const num = Math.abs(hash) % 1000000;
+    return num.toString().padStart(6, '0');
+  },
+
   // 根据筛选条件过滤房间
   filterRooms(rooms, filter) {
     if (filter === 'all' || filter === 'created' || filter === 'participated') {
@@ -225,6 +317,16 @@ Page({
       }
       return true;
     });
+  },
+
+  // 判断时间投票是否已结束
+  isScheduleVoteExpired(vote) {
+    if (!vote.deadline) return false;
+    try {
+      return new Date(vote.deadline).getTime() <= Date.now();
+    } catch (e) {
+      return false;
+    }
   },
 
   switchFilter(e) {
@@ -283,6 +385,16 @@ Page({
   // 点击卡片进入房间
   goToRoom(e) {
     const { roomid } = e.currentTarget.dataset;
+    const room = this.data.allRooms.find(r => r.roomId === roomid);
+    
+    // 如果是时间投票，跳转到时间投票页面
+    if (room && room.isScheduleVote) {
+      wx.navigateTo({
+        url: `/package-schedule/pages/schedule-vote/result/result?voteId=${roomid}`
+      });
+      return;
+    }
+    
     this.goToRoomById(roomid);
   },
 

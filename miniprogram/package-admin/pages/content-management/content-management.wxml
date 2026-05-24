@@ -1,0 +1,134 @@
+<view class="admin-page">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input
+      class="search-input"
+      placeholder="搜索内容标题..."
+      value="{{keyword}}"
+      bindinput="onSearchInput"
+      confirm-type="search"
+      bindconfirm="doSearch"
+    />
+    <view class="search-btn" bindtap="doSearch">搜索</view>
+  </view>
+
+  <!-- 内容类型筛选 -->
+  <view class="type-filter">
+    <view class="type-tab {{contentType === 'all' ? 'active' : ''}}" bindtap="switchType" data-type="all">全部</view>
+    <view class="type-tab {{contentType === 'room' ? 'active' : ''}}" bindtap="switchType" data-type="room">普通投票</view>
+    <view class="type-tab {{contentType === 'shop' ? 'active' : ''}}" bindtap="switchType" data-type="shop">店铺</view>
+    <view class="type-tab {{contentType === 'vote' ? 'active' : ''}}" bindtap="switchType" data-type="vote">时间投票</view>
+    <view class="type-tab {{contentType === 'appointment' ? 'active' : ''}}" bindtap="switchType" data-type="appointment">约饭</view>
+  </view>
+
+  <!-- 状态筛选 -->
+  <view class="filter-tabs">
+    <view class="tab {{currentTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-status="all">全部</view>
+    <view class="tab {{currentTab === 'active' ? 'active' : ''}}" bindtap="switchTab" data-status="active">进行中</view>
+    <view class="tab {{currentTab === 'locked' ? 'active' : ''}}" bindtap="switchTab" data-status="locked">已锁定</view>
+    <view class="tab {{currentTab === 'ended' ? 'active' : ''}}" bindtap="switchTab" data-status="ended">已结束</view>
+  </view>
+
+  <!-- 内容列表 -->
+  <scroll-view class="content-list" scroll-y bindscrolltolower="loadMore">
+    <view class="loading-state" wx:if="{{loading && contents.length === 0}}">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+
+    <view class="empty-state" wx:if="{{!loading && contents.length === 0}}">
+      <text class="empty-icon">📦</text>
+      <text class="empty-text">暂无内容</text>
+    </view>
+
+    <view class="content-card" wx:for="{{contents}}" wx:key="id" bindtap="showContentDetail" data-id="{{item.id}}">
+      <view class="card-header">
+        <view class="type-badge" style="background: {{getTypeColor(item.type)}}20; color: {{getTypeColor(item.type)}};">
+          {{item.typeText}}
+        </view>
+        <view class="status-badge" wx:if="{{item.status}}">
+          {{getStatusText(item.status)}}
+        </view>
+      </view>
+
+      <view class="card-body">
+        <text class="content-title">{{item.title || '未命名'}}</text>
+        <view class="content-meta">
+          <text class="meta-item">创建者: {{item.creatorName}}</text>
+          <text class="meta-item">参与: {{item.participantCount || 0}}人</text>
+        </view>
+        <view class="content-meta">
+          <text class="meta-item">{{item.createdAtStr}}</text>
+          <text class="meta-item" wx:if="{{item.address}}">{{item.address}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="load-more" wx:if="{{hasMore}}">
+      <text wx:if="{{!loading}}">上拉加载更多</text>
+      <view wx:else class="loading-spinner small"></view>
+    </view>
+    <view class="no-more" wx:if="{{!hasMore && contents.length > 0}}">
+      <text>没有更多了</text>
+    </view>
+  </scroll-view>
+
+  <!-- 详情弹窗 -->
+  <view class="detail-modal" wx:if="{{showDetail}}" bindtap="closeDetail">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">内容详情</text>
+        <view class="close-btn" bindtap="closeDetail">×</view>
+      </view>
+
+      <scroll-view class="modal-body" scroll-y>
+        <view wx:if="{{currentContent}}">
+          <view class="detail-section">
+            <view class="detail-type-badge" style="background: {{getTypeColor(currentContent.type)}}20; color: {{getTypeColor(currentContent.type)}};">
+              {{currentContent.typeText}}
+            </view>
+            <text class="detail-title">{{currentContent.title || '未命名'}}</text>
+          </view>
+
+          <view class="detail-section">
+            <text class="section-label">基本信息</text>
+            <view class="info-grid">
+              <view class="info-item">
+                <text class="info-label">创建者</text>
+                <text class="info-value">{{currentContent.creatorName}}</text>
+              </view>
+              <view class="info-item">
+                <text class="info-label">参与人数</text>
+                <text class="info-value">{{currentContent.participantCount || 0}}</text>
+              </view>
+              <view class="info-item">
+                <text class="info-label">创建时间</text>
+                <text class="info-value">{{currentContent.createdAtStr}}</text>
+              </view>
+              <view class="info-item" wx:if="{{currentContent.status}}">
+                <text class="info-label">状态</text>
+                <text class="info-value">{{getStatusText(currentContent.status)}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="detail-section" wx:if="{{currentContent.address}}">
+            <text class="section-label">地址</text>
+            <view class="content-box">
+              <text>{{currentContent.address}}</text>
+            </view>
+          </view>
+
+          <view class="detail-section">
+            <text class="section-label">删除操作</text>
+            <view class="action-section">
+              <view class="action-label">删除原因（可选）</view>
+              <input class="action-input" placeholder="请输入删除原因" value="{{deleteReason}}" bindinput="onDeleteReasonInput"/>
+              <view class="btn btn-danger full-width" bindtap="deleteContent">删除内容</view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

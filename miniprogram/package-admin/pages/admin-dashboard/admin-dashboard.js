@@ -375,6 +375,27 @@ Page({
     wx.stopPullDownRefresh();
   },
 
+  // 跳转到用户管理
+  goToUserManagement() {
+    wx.navigateTo({
+      url: '/package-admin/pages/user-management/user-management'
+    });
+  },
+
+  // 跳转到内容管理
+  goToContentManagement() {
+    wx.navigateTo({
+      url: '/package-admin/pages/content-management/content-management'
+    });
+  },
+
+  // 跳转到举报管理
+  goToReportManagement() {
+    wx.navigateTo({
+      url: '/package-admin/pages/report-management/report-management'
+    });
+  },
+
   // 阻止冒泡
   preventBubble() {}
 });

@@ -22,7 +22,7 @@ exports.main = async (event) => {
     const roomResult = await db.collection('rooms').where({ roomId }).get();
     
     if (roomResult.data.length === 0) {
-      return { success: false, error: '房间不存在' };
+      return { success: false, error: '房间不存在或已删除' };
     }
 
     const room = roomResult.data[0];

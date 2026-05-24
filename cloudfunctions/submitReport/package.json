@@ -1,0 +1,9 @@
+{
+  "name": "submitReport",
+  "version": "1.0.0",
+  "description": "用户提交举报",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

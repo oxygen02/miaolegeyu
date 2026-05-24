@@ -1,5 +1,6 @@
 const { imagePaths } = getApp().globalData;
 const { HOLIDAY_CONFIG } = getApp().globalData.holidayConfig;
+const { checkContentWithToast } = require('../../../../utils/contentSecurity');
 
 Page({
   data: {
@@ -32,7 +33,7 @@ Page({
     loading: false
   },
 
-  onLoad() {
+  onLoad(options) {
     // 重置状态，防止缓存数据
     this.setData({
       selectedDates: [],
@@ -40,10 +41,64 @@ Page({
       description: '',
       minParticipants: 2,
       deadlineDate: '',
-      deadlineTime: '12:00'
+      deadlineTime: '12:00',
+      isEdit: false,
+      editVoteId: ''
     });
     this.initDates();
     this.initDeadline();
+    
+    // 如果是编辑模式，加载现有数据
+    if (options && options.edit === 'true' && options.voteId) {
+      this.setData({ isEdit: true, editVoteId: options.voteId });
+      this.loadVoteData(options.voteId);
+    }
+  },
+  
+  // 加载时间投票数据（编辑模式）
+  async loadVoteData(voteId) {
+    wx.showLoading({ title: '加载中...' });
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getScheduleVote',
+        data: { voteId }
+      });
+      
+      if (result && result.success && result.vote) {
+        const vote = result.vote;
+        // 解析截止时间
+        let deadlineDate = '';
+        let deadlineTime = '12:00';
+        if (vote.deadline) {
+          const d = new Date(vote.deadline);
+          if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const day = d.getDate().toString().padStart(2, '0');
+            deadlineDate = `${year}-${month}-${day}`;
+            deadlineTime = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+          }
+        }
+        
+        this.setData({
+          title: vote.title || '',
+          description: vote.description || '',
+          selectedDates: vote.candidateDates || [],
+          timePeriod: vote.timePeriod || 'lunch',
+          minParticipants: vote.minParticipants || 2,
+          deadlineDate,
+          deadlineTime,
+          anonymous: vote.anonymous !== false
+        });
+      } else {
+        wx.showToast({ title: '加载失败', icon: 'none' });
+      }
+    } catch (err) {
+      console.error('加载时间投票失败:', err);
+      wx.showToast({ title: '加载失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
   },
 
   // 初始化候选日期（未来14天）
@@ -263,6 +318,13 @@ Page({
       return;
     }
 
+    // 内容安全检查
+    const contentToCheck = [title, this.data.description].filter(Boolean).join(' ');
+    const isContentSafe = await checkContentWithToast(contentToCheck);
+    if (!isContentSafe) {
+      return;
+    }
+
     this.setData({ loading: true });
 
     try {
@@ -272,33 +334,64 @@ Page({
         lunch: (timeRange && timeRange.lunch) || '12:00-14:00',
         dinner: (timeRange && timeRange.dinner) || '18:00-21:00'
       };
-      const { result } = await wx.cloud.callFunction({
-        name: 'createScheduleVote',
-        data: {
-          title: title.trim(),
-          description: (this.data.description || '').trim(),
-          candidateDates: selectedDates,
-          timeRange: safeTimeRange,
-          timePeriod: timePeriod || 'lunch',
-          minParticipants: minParticipants || 2,
-          deadline,
-          anonymous
-        }
-      });
+      
+      // 判断是创建还是编辑
+      const isEdit = this.data.isEdit;
+      const editVoteId = this.data.editVoteId;
+      
+      let result;
+      if (isEdit && editVoteId) {
+        // 编辑模式
+        const { result: updateResult } = await wx.cloud.callFunction({
+          name: 'updateScheduleVote',
+          data: {
+            voteId: editVoteId,
+            title: title.trim(),
+            description: (this.data.description || '').trim(),
+            candidateDates: selectedDates,
+            timeRange: safeTimeRange,
+            timePeriod: timePeriod || 'lunch',
+            minParticipants: minParticipants || 2,
+            deadline,
+            anonymous
+          }
+        });
+        result = updateResult;
+      } else {
+        // 创建模式
+        const { result: createResult } = await wx.cloud.callFunction({
+          name: 'createScheduleVote',
+          data: {
+            title: title.trim(),
+            description: (this.data.description || '').trim(),
+            candidateDates: selectedDates,
+            timeRange: safeTimeRange,
+            timePeriod: timePeriod || 'lunch',
+            minParticipants: minParticipants || 2,
+            deadline,
+            anonymous
+          }
+        });
+        result = createResult;
+      }
 
       if (result.success) {
-        wx.showToast({ title: '创建成功', icon: 'success' });
-        // 跳转到填写页面，让创建者也填写自己的时间
+        wx.showToast({ title: isEdit ? '更新成功' : '创建成功', icon: 'success' });
+        // 跳转到结果页面
         setTimeout(() => {
-          wx.redirectTo({
-            url: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${result.voteId}&title=${encodeURIComponent(title)}`
-          });
+          if (isEdit) {
+            wx.navigateBack();
+          } else {
+            wx.redirectTo({
+              url: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${result.voteId}&title=${encodeURIComponent(title)}`
+            });
+          }
         }, 500);
       } else {
-        wx.showToast({ title: result.error || '创建失败', icon: 'none' });
+        wx.showToast({ title: result.error || (isEdit ? '更新失败' : '创建失败'), icon: 'none' });
       }
     } catch (err) {
-      wx.showToast({ title: '创建失败', icon: 'none' });
+      wx.showToast({ title: this.data.isEdit ? '更新失败' : '创建失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
     }

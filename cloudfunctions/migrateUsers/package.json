@@ -1,0 +1,9 @@
+{
+  "name": "migrateUsers",
+  "version": "1.0.0",
+  "description": "迁移用户数据，添加状态管理字段",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

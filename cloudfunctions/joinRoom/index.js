@@ -27,13 +27,21 @@ exports.main = async (event) => {
       const roomResult = await transaction.collection('rooms').where({ roomId }).get();
       if (roomResult.data.length === 0) {
         await transaction.rollback();
-        return { code: -1, msg: '房间不存在' };
+        return { code: -1, msg: '房间不存在或已删除' };
       }
 
       const room = roomResult.data[0];
 
-      // 4. 检查房间状态
-      if (room.status !== 'voting') {
+      // 4. 检查房间状态（包括是否已过期）
+      const now = new Date();
+      let effectiveStatus = room.status || 'voting';
+      if (effectiveStatus === 'voting' && room.deadline) {
+        const deadlineDate = new Date(room.deadline);
+        if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
+          effectiveStatus = 'ended';
+        }
+      }
+      if (effectiveStatus !== 'voting') {
         await transaction.rollback();
         return { code: -1, msg: '房间已结束或已锁定，无法加入' };
       }

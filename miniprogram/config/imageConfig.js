@@ -23,6 +23,17 @@ const imagePaths = {
     location: `${CDN_BASE}/icons/location.png`,
     danzhua: `${CDN_BASE}/icons/danzhua.png`,
     calendar: `${CDN_BASE}/icons/calendar.png`,
+    clock: `${CDN_BASE}/icons/calendar.png`,
+    edit: `${CDN_BASE}/icons/icon-edit.png`,
+    lock: `${CDN_BASE}/icons/icon-lock.png`,
+    shareW: `${CDN_BASE}/icons/icon-share-w.png`,
+    mask: `${CDN_BASE}/icons/icon-mask.png`,
+    copy: `${CDN_BASE}/icons/icon-copy.png`,
+    chart: `${CDN_BASE}/icons/icon-chart.png`,
+    members: `${CDN_BASE}/icons/icon-members.png`,
+    bulb: `${CDN_BASE}/icons/icon-bulb.png`,
+    trophy: `${CDN_BASE}/icons/icon-trophy.png`,
+    shield: `${CDN_BASE}/icons/icon-shield.png`,
   },
 
   decorations: {

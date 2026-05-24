@@ -20,7 +20,7 @@ exports.main = async (event) => {
     // 3. 获取房间信息
     const roomResult = await db.collection('rooms').where({ roomId }).get();
     if (roomResult.data.length === 0) {
-      return { code: -1, msg: '房间不存在' };
+      return { code: -1, msg: '房间不存在或已删除' };
     }
 
     const room = roomResult.data[0];

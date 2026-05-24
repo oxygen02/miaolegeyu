@@ -221,9 +221,13 @@
 }
 
 .menu-icon-image {
-  width: 44rpx;
-  height: 44rpx;
+  width: 40rpx;
+  height: 40rpx;
   margin-right: 24rpx;
+  -webkit-filter: grayscale(100%) brightness(0) contrast(1000%);
+  filter: grayscale(100%) brightness(0) contrast(1000%);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .menu-text {
@@ -286,11 +290,12 @@
 .modal-content {
   background: #F5F5F5;
   width: 100%;
-  height: 80vh;
+  height: 85vh;
   border-radius: 32rpx 32rpx 0 0;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s ease;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
 }
 
 @keyframes slideUp {
@@ -343,9 +348,9 @@
 
 .list-content {
   flex: 1;
-  padding: 0;
+  padding: 0 0 200rpx 0;
   overflow-y: auto;
-  max-height: calc(80vh - 120rpx);
+  max-height: calc(85vh - 120rpx);
 }
 
 .empty-tip {
@@ -436,7 +441,7 @@
 }
 
 .room-status.ended {
-  color: #999999;
+  color: #FF6B6B;
 }
 
 .room-role-badge {

@@ -1,5 +1,6 @@
 const { imagePaths } = getApp().globalData;
 const app = getApp();
+const { checkContentWithToast, checkImageWithToast } = require('../../../utils/contentSecurity');
 
 Page({
   data: {
@@ -471,6 +472,14 @@ Page({
   // 提交表单
   async onSubmit() {
     if (!this.validateForm()) return;
+
+    // 内容安全检查
+    const { name, location, reason, notice } = this.data;
+    const contentToCheck = [name, location, reason, notice].filter(Boolean).join(' ');
+    const isContentSafe = await checkContentWithToast(contentToCheck);
+    if (!isContentSafe) {
+      return;
+    }
     
     this.setData({ submitting: true });
     wx.showLoading({ title: '提交中...' });
@@ -481,6 +490,20 @@ Page({
       try {
         imageFileIDs = await this.uploadImages();
         console.log('✅ 图片上传完成，获得fileIDs:', imageFileIDs);
+        
+        // 图片内容安全检测
+        wx.showLoading({ title: '图片检测中...', mask: true });
+        for (const fileID of imageFileIDs) {
+          const isImageSafe = await checkImageWithToast(fileID);
+          if (!isImageSafe) {
+            // 删除已上传的违规图片
+            try {
+              await wx.cloud.deleteFile({ fileList: imageFileIDs });
+            } catch (e) {}
+            throw new Error('图片包含违规内容，已删除');
+          }
+        }
+        wx.hideLoading();
         
         // 验证上传结果
         if (!imageFileIDs || imageFileIDs.length === 0) {

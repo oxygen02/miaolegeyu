@@ -19,7 +19,7 @@ module.exports = {
   <!-- 页面标题和房间号输入合并 -->
   <view class="page-header">
     <view class="header-left">
-      <text class="page-title">聚餐列表</text>
+      <text class="page-title">投票列表</text>
       <text class="page-subtitle">点击卡片参与投票</text>
     </view>
     <view class="header-right">
@@ -64,7 +64,7 @@ module.exports = {
   <!-- 空状态 -->
   <view class="empty-state" wx:elif="{{!loading && allRooms.length === 0}}">
     <image class="empty-icon" src="{{imagePaths.decorations.sleepingCatIcon}}" mode="aspectFit" />
-    <text class="empty-text">暂无聚餐活动</text>
+    <text class="empty-text">暂无投票活动</text>
     <text class="empty-subtext">输入房间号或等待邀请</text>
   </view>
 
@@ -93,25 +93,36 @@ module.exports = {
         <view class="info-header">
           <text class="item-title">{{item.title}}</text>
           <view class="status-badge {{item.status}}">
-            {{item.status === 'voting' ? '进行中' : '已结束'}}
+            {{item.status === 'voting' ? '进行中' : (item.status === 'ended' ? '已过期' : '已结束')}}
           </view>
         </view>
-        
+
         <view class="info-detail">
-          <view class="detail-row" wx:if="{{utils.safeString(item.activityDate) || utils.safeString(item.activityTime)}}">
+          <!-- 普通投票：显示日期和时间 -->
+          <view class="detail-row" wx:if="{{!item.isScheduleVote && (utils.safeString(item.activityDate) || utils.safeString(item.activityTime))}}">
             <image class="detail-icon" src="{{imagePaths.icons.calendar}}" mode="aspectFit" />
             <text class="detail-text">{{utils.safeString(item.activityDate)}} {{utils.safeString(item.activityTime)}}</text>
           </view>
-          <view class="detail-row" wx:if="{{utils.safeString(item.location)}}">
+          <!-- 时间投票：显示候选日期 -->
+          <view class="detail-row" wx:if="{{item.isScheduleVote && utils.safeString(item.location)}}">
+            <image class="detail-icon" src="{{imagePaths.icons.calendar}}" mode="aspectFit" />
+            <text class="detail-text">候选: {{utils.safeString(item.location)}}</text>
+          </view>
+          <!-- 时间投票：显示截止时间 -->
+          <view class="detail-row" wx:if="{{item.isScheduleVote && utils.safeString(item.activityTime)}}">
+            <image class="detail-icon" src="{{imagePaths.icons.clock}}" mode="aspectFit" />
+            <text class="detail-text">截止: {{utils.safeString(item.activityTime)}}</text>
+          </view>
+          <view class="detail-row" wx:if="{{!item.isScheduleVote && utils.safeString(item.location)}}">
             <image class="detail-icon" src="{{imagePaths.icons.location}}" mode="aspectFit" />
             <text class="detail-text">{{utils.safeString(item.location)}}</text>
           </view>
         </view>
-        
+
         <view class="info-footer">
-          <image class="creator-avatar-mini" src="{{item.creatorAvatar || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
-          <text class="creator-name-mini">{{item.creatorName}}</text>
-          <text class="room-id">房间号: {{item.roomId}}</text>
+          <image class="creator-avatar-mini" src="{{item.creatorAvatar || item.creatorAvatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" />
+          <text class="creator-name-mini">{{item.creatorName || item.creatorNickName}}</text>
+          <text class="room-id">房间号: {{item.displayRoomId || item.roomId}}</text>
         </view>
       </view>
 

@@ -1,0 +1,151 @@
+@import "../admin-dashboard/admin-dashboard.wxss";
+
+/* 搜索栏 */
+.search-bar {
+  display: flex;
+  padding: 20rpx 24rpx;
+  background: #fff;
+  gap: 16rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.search-input {
+  flex: 1;
+  height: 72rpx;
+  background: #f5f5f5;
+  border-radius: 36rpx;
+  padding: 0 32rpx;
+  font-size: 28rpx;
+}
+
+.search-btn {
+  width: 120rpx;
+  height: 72rpx;
+  background: #FF9F43;
+  color: #fff;
+  border-radius: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* 用户列表 */
+.user-list {
+  flex: 1;
+  padding: 20rpx 24rpx;
+}
+
+.user-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.user-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  border: 2rpx solid #f0f0f0;
+}
+
+.user-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.user-time {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+.card-body {
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f5f5f5;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.info-label {
+  font-size: 24rpx;
+  color: #999;
+  width: 140rpx;
+}
+
+.info-value {
+  font-size: 26rpx;
+  color: #333;
+}
+
+.info-value.warn {
+  color: #FF6B6B;
+}
+
+/* 详情弹窗扩展 */
+.detail-id {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+  word-break: break-all;
+}
+
+.action-section {
+  background: #f8f8f8;
+  border-radius: 16rpx;
+  padding: 24rpx;
+}
+
+.action-label {
+  font-size: 26rpx;
+  color: #333;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.action-input {
+  width: 100%;
+  height: 72rpx;
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  margin-bottom: 20rpx;
+  box-sizing: border-box;
+}
+
+.btn-danger {
+  background: #FF6B6B;
+  color: #fff;
+}
+
+.btn-warning {
+  background: #FFA502;
+  color: #fff;
+}
+
+.btn-success {
+  background: #2ED573;
+  color: #fff;
+}

@@ -54,13 +54,24 @@ exports.main = async (event) => {
         userInfo = { ...userInfo, ...updateData };
       }
     } else {
-      // 新用户，创建记录
+      // 新用户，创建记录（包含状态管理字段）
       const newUser = {
         _openid: openid || null,
         userId: userId,
         nickName: nickName || '喵了个鱼用户',
         avatarUrl: avatarUrl || '',
         isCustomLogin: isCustom,
+        // 用户状态管理字段
+        status: 'normal',           // normal | banned | muted
+        banReason: '',              // 封禁原因
+        banUntil: null,             // 封禁到期时间
+        bannedAt: null,             // 封禁时间
+        bannedBy: '',               // 封禁操作人openid
+        muteReason: '',             // 禁言原因
+        muteUntil: null,            // 禁言到期时间
+        mutedAt: null,              // 禁言时间
+        mutedBy: '',                // 禁言操作人openid
+        violationCount: 0,          // 违规次数
         createTime: db.serverDate(),
         lastLoginTime: db.serverDate()
       };

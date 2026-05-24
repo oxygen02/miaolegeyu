@@ -367,12 +367,27 @@ Page({
   },
 
   // 分享
-  onShareAppMessage() {
-    const { vote, voteId } = this.data;
-    return {
-      title: `📅 ${vote?.title || '时间投票'}`,
-      path: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${voteId}&title=${encodeURIComponent(vote?.title || '')}`,
-      imageUrl: imagePaths.banners.faqijucan
-    };
-  }
+onShareAppMessage() {
+const { vote, voteId } = this.data;
+return {
+title: `📅 ${vote?.title || '时间投票'}`,
+path: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${voteId}&title=${encodeURIComponent(vote?.title || '')}`,
+imageUrl: imagePaths.banners.faqijucan
+};
+},
+
+// 举报时间投票
+reportVote() {
+  const { voteId, vote } = this.data;
+  if (!voteId) return;
+  wx.showActionSheet({
+    itemList: ['举报该投票'],
+    itemColor: '#FF6B6B',
+    success: () => {
+      wx.navigateTo({
+        url: `/package-user/pages/report/report?type=vote&targetId=${voteId}`
+      });
+    }
+  });
+}
 });

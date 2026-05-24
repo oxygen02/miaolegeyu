@@ -1,0 +1,156 @@
+<view class="admin-page">
+  <!-- 状态筛选 -->
+  <view class="filter-tabs">
+    <view class="tab {{currentTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-status="all">全部</view>
+    <view class="tab {{currentTab === 'pending' ? 'active' : ''}}" bindtap="switchTab" data-status="pending">待处理</view>
+    <view class="tab {{currentTab === 'processing' ? 'active' : ''}}" bindtap="switchTab" data-status="processing">处理中</view>
+    <view class="tab {{currentTab === 'resolved' ? 'active' : ''}}" bindtap="switchTab" data-status="resolved">已处理</view>
+  </view>
+
+  <!-- 举报列表 -->
+  <scroll-view class="report-list" scroll-y bindscrolltolower="loadMore">
+    <view class="loading-state" wx:if="{{loading && reports.length === 0}}">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+
+    <view class="empty-state" wx:if="{{!loading && reports.length === 0}}">
+      <text class="empty-icon">🛡️</text>
+      <text class="empty-text">暂无举报</text>
+    </view>
+
+    <view class="report-card" wx:for="{{reports}}" wx:key="_id" bindtap="showReportDetail" data-id="{{item._id}}">
+      <view class="card-header">
+        <view class="reporter-info">
+          <image class="reporter-avatar" src="{{item.reporter.avatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFill"/>
+          <view class="reporter-meta">
+            <text class="reporter-name">{{item.reporter.nickName}}</text>
+            <text class="report-time">{{item.createdAtStr}}</text>
+          </view>
+        </view>
+        <view class="status-badge" style="background: {{getStatusColor(item.status)}}20; color: {{getStatusColor(item.status)}};">
+          {{getStatusText(item.status)}}
+        </view>
+      </view>
+
+      <view class="card-body">
+        <view class="report-type">举报类型: {{getTypeText(item.type)}}</view>
+        <text class="report-reason">{{item.reason}}</text>
+        <text class="report-desc" wx:if="{{item.description}}">{{item.description}}</text>
+
+        <view class="image-list" wx:if="{{item.images && item.images.length > 0}}">
+          <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" src="{{img}}" mode="aspectFill" class="report-image" catchtap="previewImage" data-url="{{img}}" data-urls="{{item.images}}"/>
+        </view>
+      </view>
+
+      <view class="card-footer" wx:if="{{item.adminReply}}">
+        <view class="reply-section">
+          <text class="reply-label">管理员回复:</text>
+          <text class="reply-content">{{item.adminReply}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="load-more" wx:if="{{hasMore}}">
+      <text wx:if="{{!loading}}">上拉加载更多</text>
+      <view wx:else class="loading-spinner small"></view>
+    </view>
+    <view class="no-more" wx:if="{{!hasMore && reports.length > 0}}">
+      <text>没有更多了</text>
+    </view>
+  </scroll-view>
+
+  <!-- 详情弹窗 -->
+  <view class="detail-modal" wx:if="{{showDetail}}" bindtap="closeDetail">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">举报详情</text>
+        <view class="close-btn" bindtap="closeDetail">×</view>
+      </view>
+
+      <scroll-view class="modal-body" scroll-y>
+        <view wx:if="{{currentReport}}">
+          <view class="detail-user">
+            <image class="detail-avatar" src="{{currentReport.reporter.avatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFill"/>
+            <view class="detail-user-meta">
+              <text class="detail-name">{{currentReport.reporter.nickName}}</text>
+              <text class="detail-time">{{currentReport.createdAtStr}}</text>
+            </view>
+            <view class="detail-status" style="background: {{getStatusColor(currentReport.status)}}20; color: {{getStatusColor(currentReport.status)}};">
+              {{getStatusText(currentReport.status)}}
+            </view>
+          </view>
+
+          <view class="detail-section">
+            <text class="section-label">举报信息</text>
+            <view class="info-grid">
+              <view class="info-item">
+                <text class="info-label">举报类型</text>
+                <text class="info-value">{{getTypeText(currentReport.type)}}</text>
+              </view>
+              <view class="info-item">
+                <text class="info-label">目标ID</text>
+                <text class="info-value" style="font-size: 20rpx;">{{currentReport.targetId}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="detail-section">
+            <text class="section-label">举报原因</text>
+            <view class="content-box">
+              <text>{{currentReport.reason}}</text>
+            </view>
+          </view>
+
+          <view class="detail-section" wx:if="{{currentReport.description}}">
+            <text class="section-label">详细描述</text>
+            <view class="content-box">
+              <text>{{currentReport.description}}</text>
+            </view>
+          </view>
+
+          <view class="detail-section" wx:if="{{currentReport.images && currentReport.images.length > 0}}">
+            <text class="section-label">证据图片</text>
+            <view class="detail-images">
+              <image wx:for="{{currentReport.images}}" wx:for-item="img" wx:key="*this" src="{{img}}" mode="aspectFill" class="detail-image" bindtap="previewImage" data-url="{{img}}" data-urls="{{currentReport.images}}"/>
+            </view>
+          </view>
+
+          <!-- 处理区域 -->
+          <view class="detail-section" wx:if="{{currentReport.status !== 'resolved' && currentReport.status !== 'rejected'}}">
+            <text class="section-label">处理操作</text>
+
+            <view class="action-section">
+              <view class="action-label">管理员回复</view>
+              <textarea class="reply-input" placeholder="请输入回复内容..." value="{{adminReply}}" bindinput="onReplyInput" maxlength="500"/>
+
+              <view class="checkbox-row" bindtap="toggleDeleteContent">
+                <view class="checkbox {{deleteContent ? 'checked' : ''}}">
+                  <text wx:if="{{deleteContent}}">✓</text>
+                </view>
+                <text class="checkbox-label">同时删除被举报内容</text>
+              </view>
+
+              <view class="checkbox-row" bindtap="toggleBanUser">
+                <view class="checkbox {{banUser ? 'checked' : ''}}">
+                  <text wx:if="{{banUser}}">✓</text>
+                </view>
+                <text class="checkbox-label">同时封禁内容发布者</text>
+              </view>
+
+              <view wx:if="{{banUser}}">
+                <view class="action-label">封禁原因</view>
+                <input class="action-input" placeholder="请输入封禁原因" value="{{banReason}}" bindinput="onBanReasonInput"/>
+              </view>
+
+              <view class="action-btns">
+                <view class="btn btn-success" bindtap="handleReport" data-action="resolve">处理通过</view>
+                <view class="btn btn-secondary" bindtap="handleReport" data-action="reject">驳回举报</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

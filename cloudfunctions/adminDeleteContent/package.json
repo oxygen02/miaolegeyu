@@ -1,0 +1,9 @@
+{
+  "name": "adminDeleteContent",
+  "version": "1.0.0",
+  "description": "管理员删除内容",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

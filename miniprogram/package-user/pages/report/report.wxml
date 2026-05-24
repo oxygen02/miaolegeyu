@@ -1,0 +1,81 @@
+<view class="report-page">
+  <view class="form-section">
+    <!-- 举报类型 -->
+    <view class="form-item">
+      <text class="form-label">举报类型 <text class="required">*</text></text>
+      <picker mode="selector" range="{{reportTypes}}" range-key="label" value="{{typeIndex}}" bindchange="onTypeChange">
+        <view class="picker-value {{typeIndex >= 0 ? 'selected' : ''}}">
+          {{typeIndex >= 0 ? reportTypes[typeIndex].label : '请选择举报类型'}}
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 被举报对象ID -->
+    <view class="form-item">
+      <text class="form-label">被举报对象ID <text class="required">*</text></text>
+      <input
+        class="form-input"
+        placeholder="请输入房间号、店铺ID或用户ID"
+        value="{{targetId}}"
+        bindinput="onTargetIdInput"
+      />
+    </view>
+
+    <!-- 举报原因 -->
+    <view class="form-item">
+      <text class="form-label">举报原因 <text class="required">*</text></text>
+      <picker mode="selector" range="{{reportReasons}}" value="{{reasonIndex}}" bindchange="onReasonChange">
+        <view class="picker-value {{reasonIndex >= 0 ? 'selected' : ''}}">
+          {{reasonIndex >= 0 ? reportReasons[reasonIndex] : '请选择举报原因'}}
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 详细描述 -->
+    <view class="form-item">
+      <text class="form-label">详细描述</text>
+      <textarea
+        class="form-textarea"
+        placeholder="请详细描述违规情况，有助于我们更快处理..."
+        value="{{description}}"
+        bindinput="onDescriptionInput"
+        maxlength="500"
+      />
+      <text class="textarea-hint">{{description.length}}/500</text>
+    </view>
+
+    <!-- 图片证据 -->
+    <view class="form-item">
+      <text class="form-label">图片证据（最多3张）</text>
+      <view class="image-upload">
+        <view class="image-list">
+          <view class="image-item" wx:for="{{images}}" wx:key="*this">
+            <image src="{{item}}" mode="aspectFill" bindtap="previewImage" data-url="{{item}}"/>
+            <view class="image-remove" bindtap="removeImage" data-index="{{index}}">×</view>
+          </view>
+          <view class="image-add" wx:if="{{images.length < 3}}" bindtap="chooseImage">
+            <text class="add-icon">+</text>
+            <text class="add-text">添加图片</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tips-section">
+    <text class="tips-title">温馨提示</text>
+    <text class="tips-item">1. 请确保举报内容真实有效，恶意举报将受到处罚</text>
+    <text class="tips-item">2. 我们会对举报内容严格保密</text>
+    <text class="tips-item">3. 处理结果将在后台记录，如有需要会联系您</text>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-section">
+    <button class="submit-btn {{submitting ? 'disabled' : ''}}" bindtap="submitReport" disabled="{{submitting}}">
+      {{submitting ? '提交中...' : '提交举报'}}
+    </button>
+  </view>
+</view>

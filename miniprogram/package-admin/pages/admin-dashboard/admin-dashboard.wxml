@@ -1,4 +1,24 @@
 <view class="admin-page">
+  <!-- 管理导航 -->
+  <view class="admin-nav">
+    <view class="nav-item active">
+      <text class="nav-icon">💬</text>
+      <text class="nav-label">反馈管理</text>
+    </view>
+    <view class="nav-item" bindtap="goToUserManagement">
+      <text class="nav-icon">👤</text>
+      <text class="nav-label">用户管理</text>
+    </view>
+    <view class="nav-item" bindtap="goToContentManagement">
+      <text class="nav-icon">📦</text>
+      <text class="nav-label">内容管理</text>
+    </view>
+    <view class="nav-item" bindtap="goToReportManagement">
+      <text class="nav-icon">🛡️</text>
+      <text class="nav-label">举报管理</text>
+    </view>
+  </view>
+
   <!-- 统计卡片 -->
   <view class="stats-section">
     <view class="stats-grid">

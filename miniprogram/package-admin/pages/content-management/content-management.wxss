@@ -1,0 +1,64 @@
+@import "../admin-dashboard/admin-dashboard.wxss";
+
+/* 内容列表 */
+.content-list {
+  flex: 1;
+  padding: 20rpx 24rpx;
+}
+
+.content-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.content-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.type-badge {
+  padding: 6rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.content-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.content-meta {
+  display: flex;
+  gap: 24rpx;
+}
+
+.meta-item {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 详情弹窗扩展 */
+.detail-type-badge {
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.detail-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333;
+  display: block;
+}

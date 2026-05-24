@@ -1,0 +1,170 @@
+<view class="admin-page">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input
+      class="search-input"
+      placeholder="搜索用户昵称..."
+      value="{{keyword}}"
+      bindinput="onSearchInput"
+      confirm-type="search"
+      bindconfirm="doSearch"
+    />
+    <view class="search-btn" bindtap="doSearch">搜索</view>
+  </view>
+
+  <!-- 状态筛选 -->
+  <view class="filter-tabs">
+    <view class="tab {{currentTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-status="all">全部</view>
+    <view class="tab {{currentTab === 'normal' ? 'active' : ''}}" bindtap="switchTab" data-status="normal">正常</view>
+    <view class="tab {{currentTab === 'banned' ? 'active' : ''}}" bindtap="switchTab" data-status="banned">已封禁</view>
+    <view class="tab {{currentTab === 'muted' ? 'active' : ''}}" bindtap="switchTab" data-status="muted">已禁言</view>
+  </view>
+
+  <!-- 用户列表 -->
+  <scroll-view class="user-list" scroll-y bindscrolltolower="loadMore">
+    <view class="loading-state" wx:if="{{loading && users.length === 0}}">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+
+    <view class="empty-state" wx:if="{{!loading && users.length === 0}}">
+      <text class="empty-icon">👤</text>
+      <text class="empty-text">暂无用户</text>
+    </view>
+
+    <view class="user-card" wx:for="{{users}}" wx:key="openid" bindtap="showUserDetail" data-id="{{item.openid}}">
+      <view class="card-header">
+        <image class="user-avatar" src="{{item.avatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFill"/>
+        <view class="user-meta">
+          <text class="user-name">{{item.nickName}}</text>
+          <text class="user-time">注册时间: {{item.createdAtStr}}</text>
+        </view>
+        <view class="status-badge" style="background: {{getStatusColor(item.status)}}20; color: {{getStatusColor(item.status)}};">
+          {{getStatusText(item.status)}}
+        </view>
+      </view>
+
+      <view class="card-body">
+        <view class="info-row">
+          <text class="info-label">违规次数:</text>
+          <text class="info-value">{{item.violationCount || 0}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.banReason}}">
+          <text class="info-label">封禁原因:</text>
+          <text class="info-value warn">{{item.banReason}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.banUntilStr}}">
+          <text class="info-label">封禁至:</text>
+          <text class="info-value warn">{{item.banUntilStr}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.muteReason}}">
+          <text class="info-label">禁言原因:</text>
+          <text class="info-value warn">{{item.muteReason}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.muteUntilStr}}">
+          <text class="info-label">禁言至:</text>
+          <text class="info-value warn">{{item.muteUntilStr}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="load-more" wx:if="{{hasMore}}">
+      <text wx:if="{{!loading}}">上拉加载更多</text>
+      <view wx:else class="loading-spinner small"></view>
+    </view>
+    <view class="no-more" wx:if="{{!hasMore && users.length > 0}}">
+      <text>没有更多了</text>
+    </view>
+  </scroll-view>
+
+  <!-- 用户详情弹窗 -->
+  <view class="detail-modal" wx:if="{{showDetail}}" bindtap="closeDetail">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">用户详情</text>
+        <view class="close-btn" bindtap="closeDetail">×</view>
+      </view>
+
+      <scroll-view class="modal-body" scroll-y>
+        <view wx:if="{{currentUser}}">
+          <view class="detail-user">
+            <image class="detail-avatar" src="{{currentUser.avatarUrl || imagePaths.decorations.catAvatarIcon}}" mode="aspectFill"/>
+            <view class="detail-user-meta">
+              <text class="detail-name">{{currentUser.nickName}}</text>
+              <text class="detail-id">ID: {{currentUser.openid}}</text>
+            </view>
+            <view class="detail-status" style="background: {{getStatusColor(currentUser.status)}}20; color: {{getStatusColor(currentUser.status)}};">
+              {{getStatusText(currentUser.status)}}
+            </view>
+          </view>
+
+          <view class="detail-section">
+            <text class="section-label">用户信息</text>
+            <view class="info-grid">
+              <view class="info-item">
+                <text class="info-label">注册时间</text>
+                <text class="info-value">{{currentUser.createdAtStr}}</text>
+              </view>
+              <view class="info-item">
+                <text class="info-label">违规次数</text>
+                <text class="info-value">{{currentUser.violationCount || 0}}</text>
+              </view>
+              <view class="info-item" wx:if="{{currentUser.lastLoginAt}}">
+                <text class="info-label">最后登录</text>
+                <text class="info-value">{{formatDateTime(currentUser.lastLoginAt)}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="detail-section" wx:if="{{currentUser.status === 'normal'}}">
+            <text class="section-label">操作</text>
+            <view class="action-section">
+              <view class="action-label">封禁原因（可选）</view>
+              <input class="action-input" placeholder="请输入封禁原因" value="{{banReason}}" bindinput="onBanReasonInput"/>
+              <view class="action-label">封禁时长（小时，留空为永久）</view>
+              <input class="action-input" placeholder="例如: 24" type="number" value="{{banDuration}}" bindinput="onBanDurationInput"/>
+              <view class="action-btns">
+                <view class="btn btn-danger" bindtap="banUser">封禁用户</view>
+                <view class="btn btn-warning" bindtap="muteUser">禁言用户</view>
+              </view>
+            </view>
+          </view>
+
+          <view class="detail-section" wx:if="{{currentUser.status === 'banned'}}">
+            <text class="section-label">操作</text>
+            <view class="action-section">
+              <view class="info-row">
+                <text class="info-label">封禁原因:</text>
+                <text class="info-value">{{currentUser.banReason || '无'}}</text>
+              </view>
+              <view class="info-row" wx:if="{{currentUser.banUntilStr}}">
+                <text class="info-label">封禁至:</text>
+                <text class="info-value">{{currentUser.banUntilStr}}</text>
+              </view>
+              <view class="action-btns">
+                <view class="btn btn-success" bindtap="unbanUser">解封用户</view>
+              </view>
+            </view>
+          </view>
+
+          <view class="detail-section" wx:if="{{currentUser.status === 'muted'}}">
+            <text class="section-label">操作</text>
+            <view class="action-section">
+              <view class="info-row">
+                <text class="info-label">禁言原因:</text>
+                <text class="info-value">{{currentUser.muteReason || '无'}}</text>
+              </view>
+              <view class="info-row" wx:if="{{currentUser.muteUntilStr}}">
+                <text class="info-label">禁言至:</text>
+                <text class="info-value">{{currentUser.muteUntilStr}}</text>
+              </view>
+              <view class="action-btns">
+                <view class="btn btn-success" bindtap="unmuteUser">解除禁言</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

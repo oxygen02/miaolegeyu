@@ -32,7 +32,7 @@ exports.main = async (event) => {
     if (!roomResult.data || roomResult.data.length === 0) {
       return {
         code: -1,
-        msg: '房间不存在'
+        msg: '房间不存在或已删除'
       };
     }
 
@@ -41,6 +41,16 @@ exports.main = async (event) => {
     console.log('房间 mode:', room.mode);
     console.log('房间 candidatePosters:', room.candidatePosters);
     console.log('房间 candidatePosters 长度:', room.candidatePosters ? room.candidatePosters.length : 'undefined');
+
+    // 检查是否已过期（deadline已过且状态不是locked）
+    const now = new Date();
+    let effectiveStatus = room.status || 'voting';
+    if (effectiveStatus === 'voting' && room.deadline) {
+      const deadlineDate = new Date(room.deadline);
+      if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
+        effectiveStatus = 'ended';
+      }
+    }
 
     // 权限校验：检查用户是否是房间参与者或创建者
     // 只有参与者或创建者才能查看房间详情
@@ -94,7 +104,8 @@ exports.main = async (event) => {
           roomId: room.roomId,
           title: room.title,
           mode: room.mode,
-          status: room.status,
+          status: effectiveStatus,
+          originalStatus: room.status || 'voting',
           creatorNickName: room.creatorNickName,
           creatorAvatarUrl: room.creatorAvatarUrl,
           // 返回是否需要密码
@@ -163,6 +174,8 @@ exports.main = async (event) => {
       code: 0,
       data: {
         ...room,
+        status: effectiveStatus,
+        originalStatus: room.status || 'voting',
         // 移除敏感字段
         creatorOpenId: undefined,
         // 返回参与者信息（脱敏）

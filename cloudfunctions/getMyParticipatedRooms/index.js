@@ -67,14 +67,26 @@ exports.main = async (event) => {
       }
     }
 
-    // 6. 组装数据
+    // 6. 组装数据，同时检查过期状态
+    const now = new Date();
     const enrichedRooms = rooms.map(room => {
       const creator = creatorInfos.find(u => u._openid === room.creatorOpenId) || {};
+
+      // 检查是否已过期（deadline已过且状态不是locked）
+      let effectiveStatus = room.status || 'voting';
+      if (effectiveStatus === 'voting' && room.deadline) {
+        const deadlineDate = new Date(room.deadline);
+        if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
+          effectiveStatus = 'ended';
+        }
+      }
+
       return {
         roomId: room.roomId,
         title: room.title,
         mode: room.mode,
-        status: room.status,
+        status: effectiveStatus,
+        originalStatus: room.status || 'voting',
         activityDate: room.activityDate || '',
         activityTime: room.activityTime || '',
         location: room.location || '',

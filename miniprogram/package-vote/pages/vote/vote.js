@@ -1740,12 +1740,27 @@ Page({
   },
 
   // 分享投票页面
-  onShareAppMessage() {
-    const { room, roomId } = this.data;
-    return {
-      title: `「${room?.title || '聚餐投票'}」快来一起选餐厅！`,
-      path: `/package-vote/pages/vote/vote?roomId=${roomId}`,
-      imageUrl: room?.finalPoster?.imageUrl || room?.candidatePosters?.[0]?.imageUrl || ''
-    };
-  }
+onShareAppMessage() {
+const { room, roomId } = this.data;
+return {
+title: `「${room?.title || '聚餐投票'}」快来一起选餐厅！`,
+path: `/package-vote/pages/vote/vote?roomId=${roomId}`,
+imageUrl: room?.finalPoster?.imageUrl || room?.candidatePosters?.[0]?.imageUrl || ''
+};
+},
+
+// 举报房间
+reportRoom() {
+  const { roomId, room } = this.data;
+  if (!roomId) return;
+  wx.showActionSheet({
+    itemList: ['举报该投票'],
+    itemColor: '#FF6B6B',
+    success: () => {
+      wx.navigateTo({
+        url: `/package-user/pages/report/report?type=room&targetId=${roomId}`
+      });
+    }
+  });
+}
 });

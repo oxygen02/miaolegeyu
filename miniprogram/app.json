@@ -8,7 +8,10 @@
     {
       "root": "package-admin",
       "pages": [
-        "pages/admin-dashboard/admin-dashboard"
+        "pages/admin-dashboard/admin-dashboard",
+        "pages/user-management/user-management",
+        "pages/content-management/content-management",
+        "pages/report-management/report-management"
       ]
     },
     {
@@ -58,7 +61,8 @@
         "pages/settings/settings",
         "pages/history/history",
         "pages/about/about",
-        "pages/feedback/feedback"
+        "pages/feedback/feedback",
+        "pages/report/report"
       ]
     }
   ],

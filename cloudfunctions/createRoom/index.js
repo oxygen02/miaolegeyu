@@ -4,6 +4,102 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// 基础敏感词库
+const SENSITIVE_WORDS = [
+  // 政治敏感词
+  '反动', '暴乱', '革命', '独裁', '专政', '颠覆', '政变', '游行', '示威',
+  // 色情词汇
+  '色情', '淫秽', '卖淫', '嫖娼', '裸聊', '性服务', '援交', '约炮', '一夜情',
+  // 暴力词汇
+  '杀人', '放火', '爆炸', '恐怖', '暴力', '枪支', '弹药', '炸弹', '刀具',
+  // 诈骗词汇
+  '诈骗', '传销', '洗钱', '赌博', '博彩', '赌球', '赌马', '六合彩',
+  // 毒品相关
+  '毒品', '吸毒', '贩毒', '违禁', '非法', '大麻', '冰毒', '海洛因', '可卡因',
+  // 自残/自杀相关
+  '自杀', '自残', '割腕', '跳楼', '上吊', '服毒', '轻生', '寻死',
+  // 其他违规
+  '翻墙', 'VPN', '代理', '黑客', '盗号', '木马', '病毒', '勒索'
+];
+
+/**
+ * 本地敏感词检查
+ */
+function checkSensitiveWords(text) {
+  if (!text) return { hasSensitive: false };
+  const foundWords = [];
+  for (const word of SENSITIVE_WORDS) {
+    if (text.includes(word)) foundWords.push(word);
+  }
+  return { hasSensitive: foundWords.length > 0, words: foundWords };
+}
+
+/**
+ * 调用微信官方内容安全API
+ */
+async function checkWithWxApi(content) {
+  try {
+    const result = await cloud.openapi.security.msgSecCheck({
+      version: 2,
+      content: content,
+      openid: cloud.getWXContext().OPENID,
+      scene: 2
+    });
+    return {
+      passed: result.result?.suggest === 'pass' && result.result?.label === 100,
+      detail: result.result
+    };
+  } catch (err) {
+    console.error('微信内容安全API调用失败:', err);
+    // API调用失败时返回失败，避免违规内容被创建
+    return { passed: false, errMsg: err.message || 'API调用失败' };
+  }
+}
+
+/**
+ * 调用微信官方图片内容安全API
+ */
+async function checkImageWithWxApi(mediaUrl, openid, scene = 2) {
+  try {
+    let imageBuffer;
+    let contentType = 'image/png';
+    
+    // 下载云存储文件
+    if (mediaUrl.startsWith('cloud://')) {
+      const res = await cloud.downloadFile({ fileID: mediaUrl });
+      imageBuffer = res.fileContent;
+      if (mediaUrl.endsWith('.jpg') || mediaUrl.endsWith('.jpeg')) {
+        contentType = 'image/jpeg';
+      } else if (mediaUrl.endsWith('.png')) {
+        contentType = 'image/png';
+      } else if (mediaUrl.endsWith('.gif')) {
+        contentType = 'image/gif';
+      }
+    } else {
+      throw new Error('不支持的图片格式');
+    }
+    
+    const result = await cloud.openapi.security.imgSecCheck({
+      media: {
+        contentType: contentType,
+        value: imageBuffer
+      },
+      openid: openid,
+      scene: scene
+    });
+    
+    return {
+      passed: result.result?.suggest === 'pass' && result.result?.label === 100,
+      suggest: result.result?.suggest || 'pass',
+      label: result.result?.label || 100
+    };
+  } catch (err) {
+    console.error('图片内容安全API调用失败:', err);
+    // API调用失败时返回失败，避免违规图片被创建
+    return { passed: false, errMsg: err.message || '图片检测失败' };
+  }
+}
+
 // 生成6位数字房间号
 function generateRoomId() {
   let roomId = '';
@@ -65,6 +161,52 @@ exports.main = async (event) => {
   }
   
   try {
+    // 内容安全检查（防止绕过前端直接调用）
+    const contentToCheck = [title, location].filter(Boolean).join(' ');
+    if (contentToCheck) {
+      // 本地敏感词检查
+      const localCheck = checkSensitiveWords(contentToCheck);
+      if (localCheck.hasSensitive) {
+        return { code: 403, msg: '内容包含违规信息，请修改后重试' };
+      }
+      
+      // 微信官方API检查
+      const wxCheck = await checkWithWxApi(contentToCheck);
+      if (!wxCheck.passed) {
+        return { code: 403, msg: '内容包含违规信息，请修改后重试' };
+      }
+    }
+    
+    // 图片内容安全检查（仅作为辅助检测，不阻塞正常用户）
+    console.log('开始图片内容安全检查，海报数量:', candidatePosters?.length || 0);
+    if (candidatePosters && candidatePosters.length > 0) {
+      for (let i = 0; i < candidatePosters.length; i++) {
+        const poster = candidatePosters[i];
+        const imageUrl = poster.imageUrl || poster;
+        console.log(`检查第${i + 1}张图片:`, imageUrl);
+        if (imageUrl && imageUrl.startsWith('cloud://')) {
+          try {
+            const imageCheck = await checkImageWithWxApi(imageUrl, wxContext.OPENID);
+            console.log(`图片检测结果:`, imageCheck);
+            // 只有明确检测到违规内容才拦截（label > 100 且 suggest === 'risky'）
+            if (!imageCheck.passed && imageCheck.label > 100 && imageCheck.suggest === 'risky') {
+              console.log(`图片检测未通过:`, imageCheck);
+              return { code: 403, msg: '图片包含违规内容，请更换后重试' };
+            }
+            // API 调用失败或其他情况，记录日志但不拦截
+            if (!imageCheck.passed) {
+              console.log(`图片检测服务异常，放行:`, imageCheck.errMsg || '未知错误');
+            }
+          } catch (imgErr) {
+            console.error('图片检测异常，放行:', imgErr);
+            // API 异常时不阻塞用户
+          }
+        } else {
+          console.log(`跳过非云存储图片:`, imageUrl);
+        }
+      }
+    }
+    
     // 使用传入的roomId，如果没有则生成唯一房间号
     let roomId;
     if (inputRoomId) {

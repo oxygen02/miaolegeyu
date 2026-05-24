@@ -939,6 +939,23 @@
   opacity: 0.6;
 }
 
+/* 删除按钮样式 */
+.btn-delete {
+  margin-top: 8rpx;
+  background: #FF6B6B;
+  color: #fff;
+  border: 3rpx solid #3D3D3D;
+  box-shadow: 2rpx 2rpx 0 #3D3D3D;
+  padding: 8rpx 16rpx;
+  font-size: 22rpx;
+  min-width: 80rpx;
+}
+
+.btn-delete:active {
+  transform: translate(2rpx, 2rpx);
+  box-shadow: none;
+}
+
 /* ===== 时间投票专属卡片样式 ===== */
 
 /* 时间投票卡片整体 */

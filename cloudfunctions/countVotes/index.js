@@ -137,7 +137,7 @@ exports.main = async (event) => {
     if (!roomResult.data || roomResult.data.length === 0) {
       return {
         code: -1,
-        msg: '房间不存在'
+        msg: '房间不存在或已删除'
       };
     }
 

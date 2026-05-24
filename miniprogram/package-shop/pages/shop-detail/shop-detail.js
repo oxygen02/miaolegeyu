@@ -362,6 +362,21 @@ async onLoad(options) {
     };
   },
 
+  // 举报店铺
+  reportShop() {
+    const { shop } = this.data;
+    if (!shop || !shop._id) return;
+    wx.showActionSheet({
+      itemList: ['举报该店铺'],
+      itemColor: '#FF6B6B',
+      success: () => {
+        wx.navigateTo({
+          url: `/package-user/pages/report/report?type=shop&targetId=${shop._id}`
+        });
+      }
+    });
+  },
+
   // 返回上一页
   goBack() {
     wx.navigateBack();

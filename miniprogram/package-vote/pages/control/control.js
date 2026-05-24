@@ -1,5 +1,6 @@
 const ANON_NAMES = ['吃货喵', '馋嘴猫', '干饭喵', '探店喵', '觅食喵', '品鉴喵', '寻味喵', '尝鲜喵', '老饕喵', '滋味喵'];
 const { imagePaths } = getApp().globalData;
+const { CONTROL_TEXTS } = require('../../../utils/i18n');
 
 Page({
   data: {
@@ -134,14 +135,26 @@ Page({
           ...p,
           anonName: ANON_NAMES[idx % ANON_NAMES.length] + (idx >= ANON_NAMES.length ? (idx + 1) : '')
         }));
-        
+
+        // 使用服务端返回的统计数据
+        const stats = room.stats || {};
+        const votedCount = stats.votedCount !== undefined ? stats.votedCount : participants.filter(p => p.isVoted).length;
+        const unvotedCount = stats.unvotedCount !== undefined ? stats.unvotedCount : (participants.length - votedCount);
+        const progressPercent = stats.progressPercent !== undefined ? stats.progressPercent : (participants.length > 0 ? Math.round((votedCount / participants.length) * 100) : 0);
+
+        // 使用服务端返回的topOptions
+        const topOptions = (room.topOptions || []).map(opt => ({
+          ...opt,
+          image: opt.image || imagePaths.banners.taiyakiIcon
+        }));
+
         let deadline = null;
         if (room.deadline) {
           deadline = this.parseDeadline(room.deadline);
         } else if (room.time) {
           deadline = this.parseDeadline(room.time);
         }
-        
+
         this.setData({
           roomTitle: room.title || '',
           roomAddress: room.location || '',
@@ -151,10 +164,13 @@ Page({
           isAnonymous: isAnon,
           participants: participants,
           bannerCatUrl: room.creatorAvatarUrl || imagePaths.misc.juzeAvatar,
-          roomCode: room.code || this.data.roomCode
+          roomCode: room.code || this.data.roomCode,
+          votedCount,
+          unvotedCount,
+          progressPercent,
+          topOptions
         });
-        
-        this.calculateStats(participants);
+
         this.updateStatusText();
         this.startCountdown();
       }
@@ -247,18 +263,41 @@ Page({
   },
 
   updateStatusText() {
-    const statusMap = { voting: '投票中', locked: '已锁定', cancelled: '已取消', ended: '已结束' };
-    this.setData({ statusText: statusMap[this.data.roomStatus] || '未知' });
+    this.setData({ statusText: CONTROL_TEXTS.statusMap[this.data.roomStatus] || '未知' });
   },
 
   toggleAnonymous() {
-    this.setData({ isAnonymous: !this.data.isAnonymous });
+    const newValue = !this.data.isAnonymous;
+    this.setData({ isAnonymous: newValue });
+    // 同步到服务端
+    if (this.data.roomId && wx.cloud) {
+      wx.cloud.callFunction({
+        name: 'updateRoom',
+        data: {
+          roomId: this.data.roomId,
+          isAnonymous: newValue
+        }
+      }).then(res => {
+        if (res.result && res.result.code === 0) {
+          wx.showToast({ title: newValue ? CONTROL_TEXTS.toast.anonymousOn : CONTROL_TEXTS.toast.anonymousOff, icon: 'success' });
+        } else {
+          wx.showToast({ title: res.result?.msg || CONTROL_TEXTS.toast.settingFailed, icon: 'none' });
+          // 回滚本地状态
+          this.setData({ isAnonymous: !newValue });
+        }
+      }).catch(err => {
+        console.error('同步匿名状态失败:', err);
+        wx.showToast({ title: CONTROL_TEXTS.toast.settingFailed, icon: 'none' });
+        // 回滚本地状态
+        this.setData({ isAnonymous: !newValue });
+      });
+    }
   },
 
   copyRoomCode() {
     wx.setClipboardData({
       data: this.data.roomCode,
-      success: () => { wx.showToast({ title: '已复制', icon: 'success' }); }
+      success: () => { wx.showToast({ title: CONTROL_TEXTS.toast.copied, icon: 'success' }); }
     });
   },
 
@@ -272,7 +311,7 @@ Page({
     if (!this.data.isAnonymous || !participant.isVoted) {
       wx.showModal({
         title: participant.nickName,
-        content: participant.isVoted ? '已完成投票' : '等待投票中',
+        content: participant.isVoted ? CONTROL_TEXTS.modal.memberVoted : CONTROL_TEXTS.modal.memberUnvoted,
         showCancel: false
       });
     }
@@ -281,33 +320,51 @@ Page({
   remindMember(e) {
     const id = e.currentTarget.dataset.id;
     wx.showModal({
-      title: '催一下',
-      content: '是否发送提醒消息？',
+      title: CONTROL_TEXTS.modal.remindTitle,
+      content: CONTROL_TEXTS.modal.remindContent,
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({ title: '已发送提醒', icon: 'success' });
+          wx.showToast({ title: CONTROL_TEXTS.toast.remindSent, icon: 'success' });
         }
       }
     });
   },
 
   editRoom() {
+    if (this.data.roomStatus === 'ended') {
+      wx.showToast({ title: CONTROL_TEXTS.toast.editExpired, icon: 'none' });
+      return;
+    }
     wx.navigateTo({ url: `/package-create/pages/create-mode-a/create-mode-a?edit=true&roomId=${this.data.roomId}` });
   },
 
   lockResult() {
-    if (this.data.roomStatus === 'locked') return;
+    if (this.data.roomStatus === 'locked' || this.data.roomStatus === 'ended') return;
     wx.showModal({
-      title: '确认锁定',
-      content: '锁定后将无法修改投票结果，确定继续？',
+      title: CONTROL_TEXTS.modal.lockTitle,
+      content: CONTROL_TEXTS.modal.lockContent,
       success: (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '锁定中...' });
-          setTimeout(() => {
+          wx.showLoading({ title: CONTROL_TEXTS.loading.locking });
+          // 调用云函数锁定房间
+          wx.cloud.callFunction({
+            name: 'lockRoom',
+            data: {
+              roomId: this.data.roomId
+            }
+          }).then(res => {
             wx.hideLoading();
-            this.setData({ roomStatus: 'locked', statusText: '已锁定' });
-            wx.showToast({ title: '已锁定', icon: 'success' });
-          }, 1000);
+            if (res.result && res.result.code === 0) {
+              this.setData({ roomStatus: 'locked', statusText: CONTROL_TEXTS.statusMap.locked });
+              wx.showToast({ title: CONTROL_TEXTS.toast.locked, icon: 'success' });
+            } else {
+              wx.showToast({ title: res.result?.msg || CONTROL_TEXTS.toast.lockFailed, icon: 'none' });
+            }
+          }).catch(err => {
+            wx.hideLoading();
+            console.error('锁定失败:', err);
+            wx.showToast({ title: CONTROL_TEXTS.toast.lockFailed, icon: 'none' });
+          });
         }
       }
     });

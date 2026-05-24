@@ -2,6 +2,41 @@ const { imagePaths } = getApp().globalData;
 const audioManager = getApp().globalData.audioManager;
 const { withLock } = getApp().globalData.debounce;
 
+// 敏感词库（与云函数保持一致）
+const SENSITIVE_WORDS = [
+  // 政治敏感词
+  '反动', '暴乱', '革命', '独裁', '专政', '颠覆', '政变', '游行', '示威',
+  // 色情词汇
+  '色情', '淫秽', '卖淫', '嫖娼', '裸聊', '性服务', '援交', '约炮', '一夜情',
+  // 暴力词汇
+  '杀人', '放火', '爆炸', '恐怖', '暴力', '枪支', '弹药', '炸弹', '刀具',
+  // 诈骗词汇
+  '诈骗', '传销', '洗钱', '赌博', '博彩', '赌球', '赌马', '六合彩',
+  // 毒品相关
+  '毒品', '吸毒', '贩毒', '违禁', '非法', '大麻', '冰毒', '海洛因', '可卡因',
+  // 自残/自杀相关
+  '自杀', '自残', '割腕', '跳楼', '上吊', '服毒', '轻生', '寻死',
+  // 其他违规
+  '翻墙', 'VPN', '代理', '黑客', '盗号', '木马', '病毒', '勒索'
+];
+
+function containsSensitive(text) {
+  if (!text) return false;
+  for (const word of SENSITIVE_WORDS) {
+    if (text.includes(word)) return true;
+  }
+  return false;
+}
+
+// 过滤违规活动
+function filterSensitiveActivities(activities) {
+  if (!activities || !Array.isArray(activities)) return [];
+  return activities.filter(activity => {
+    const textToCheck = [activity.title, activity.shopName, activity.location].filter(Boolean).join(' ');
+    return !containsSensitive(textToCheck);
+  });
+}
+
 Page({
   data: {
     imagePaths: imagePaths,
@@ -45,9 +80,29 @@ Page({
     if (options.tab === 'group') {
       this.setData({ viewMode: 'group' });
     }
+    
+    // 清除旧缓存，确保不显示违规内容
+    this.clearSensitiveCache();
+    
     this.loadData();
     // 防抖：加入活动
     this._lockedJoinActivity = withLock(this.joinActivity.bind(this));
+  },
+  
+  // 清除可能包含违规内容的缓存
+  clearSensitiveCache() {
+    try {
+      const cacheKeys = ['fish_ongoing_all', 'fish_ongoing_group', 'fish_ongoing_dining', 'fish_ongoing_meal', 'fish_ongoing_scheduleVote'];
+      cacheKeys.forEach(key => {
+        try {
+          wx.removeStorageSync(key);
+          wx.removeStorageSync(key + '_time');
+        } catch (e) {}
+      });
+      console.log('[fish-tank] 已清除活动列表缓存');
+    } catch (e) {
+      console.error('[fish-tank] 清除缓存失败:', e);
+    }
   },
 
   onShow() {
@@ -178,6 +233,7 @@ Page({
         typeName: '时间投票',
         title: vote.title || '时间投票',
         shopName: dateStr,
+        location: vote.location || '',
         time: timeStr,
         participantCount: vote.participantCount || 0,
         image: imagePaths.banners.taiyakiIcon,
@@ -222,9 +278,11 @@ Page({
       const cached = wx.getStorageSync(CACHE_KEY);
       const cachedTime = wx.getStorageSync(CACHE_TIME);
       if (cached && cachedTime && (Date.now() - cachedTime < CACHE_EXPIRY)) {
+        // 过滤缓存中的违规内容
+        const filteredActivities = filterSensitiveActivities(cached.ongoingActivities);
         this.setData({
-          ongoingActivities: cached.ongoingActivities,
-          ongoingCount: cached.ongoingCount
+          ongoingActivities: filteredActivities,
+          ongoingCount: filteredActivities.length
         });
       }
     } catch (e) { /* 忽略缓存读取错误 */ }
@@ -241,12 +299,14 @@ Page({
       try {
         const votes = await this.loadScheduleVotes('all');
         const ongoingVotes = votes.filter(v => v.status === 'voting');
-        const processed = this.processActivitiesDeadline(ongoingVotes);
+        // 过滤违规投票
+        const filteredVotes = filterSensitiveActivities(ongoingVotes);
+        const processed = this.processActivitiesDeadline(filteredVotes);
         this.setData({
           ongoingActivities: processed,
-          ongoingCount: ongoingVotes.length
+          ongoingCount: filteredVotes.length
         });
-        wx.setStorageSync(CACHE_KEY, { ongoingActivities: processed, ongoingCount: ongoingVotes.length });
+        wx.setStorageSync(CACHE_KEY, { ongoingActivities: processed, ongoingCount: filteredVotes.length });
         wx.setStorageSync(CACHE_TIME, Date.now());
       } catch (err) {
         // 缓存已显示，用户无感知
@@ -307,11 +367,16 @@ Page({
         try {
           const scheduleVotes = await this.loadScheduleVotes('all');
           const ongoingVotes = scheduleVotes.filter(v => v.status === 'voting');
-          allRooms = [...allRooms, ...ongoingVotes];
+          // 过滤违规投票
+          const filteredVotes = filterSensitiveActivities(ongoingVotes);
+          allRooms = [...allRooms, ...filteredVotes];
         } catch (svErr) {
         }
       }
 
+      // 获取当前用户openid
+      const myOpenId = getApp().globalData.openid || wx.getStorageSync('openid');
+      
       // 统计各类型数量
       const rooms = allRooms.map(room => {
         // 根据 mode 确定类型
@@ -360,6 +425,8 @@ Page({
           };
           displayShopName = platformMap[room.platform] || room.platform;
         }
+        // 判断是否是创建者
+        const isCreator = room.creatorOpenId === myOpenId || room.isCreator === true;
         return {
           id: room.roomId,
           type: type,
@@ -375,7 +442,8 @@ Page({
           platform: room.platform,
           minAmount: room.minAmount,
           currentAmount: room.currentAmount || 0,
-          isCreator: false,
+          isCreator: isCreator,
+          creatorOpenId: room.creatorOpenId,
           creatorNickName: room.creatorNickName || '未知用户',
           creatorAvatarUrl: room.creatorAvatarUrl || imagePaths.decorations.catAvatarIcon,
           // 拼单参与者头像
@@ -384,12 +452,14 @@ Page({
       });
 
       const processed = this.processActivitiesDeadline(rooms);
+      // 过滤违规内容
+      const filteredProcessed = filterSensitiveActivities(processed);
       this.setData({
-        ongoingActivities: processed,
-        ongoingCount: rooms.length
+        ongoingActivities: filteredProcessed,
+        ongoingCount: filteredProcessed.length
       });
-      // 写入缓存
-      wx.setStorageSync(CACHE_KEY, { ongoingActivities: processed, ongoingCount: rooms.length });
+      // 写入缓存（存储过滤后的数据）
+      wx.setStorageSync(CACHE_KEY, { ongoingActivities: filteredProcessed, ongoingCount: filteredProcessed.length });
       wx.setStorageSync(CACHE_TIME, Date.now());
     } catch (err) {
       // 网络失败时，缓存数据已显示，用户无感知
@@ -405,6 +475,9 @@ Page({
         data: { limit: 100 }
       });
 
+      // 获取当前用户openid
+      const myOpenId = getApp().globalData.openid || wx.getStorageSync('openid');
+      
       if (result.success && result.appointments) {
         const appointments = result.appointments.map(apt => {
           // 格式化报名截止时间
@@ -420,6 +493,8 @@ Page({
               }
             } catch (e) { /* ignore */ }
           }
+          // 判断是否是创建者
+          const isCreator = apt.initiatorOpenId === myOpenId;
           return {
             id: apt.roomId,
             type: 'meal',
@@ -437,16 +512,19 @@ Page({
             platform: '',
             minAmount: 0,
             currentAmount: 0,
-            isCreator: false,
+            isCreator: isCreator,
+            creatorOpenId: apt.initiatorOpenId,
             creatorNickName: apt.creatorNickName || '神秘喵友',
             creatorAvatarUrl: apt.creatorAvatarUrl || imagePaths.decorations.catAvatarIcon,
             isAppointment: true
           };
         });
 
+      // 过滤违规内容
+      const filteredAppointments = filterSensitiveActivities(appointments);
       this.setData({
-        ongoingActivities: this.processActivitiesDeadline(appointments),
-        ongoingCount: appointments.length
+        ongoingActivities: this.processActivitiesDeadline(filteredAppointments),
+        ongoingCount: filteredAppointments.length
       });
     } else {
       this.setData({
@@ -473,9 +551,11 @@ Page({
     // 如果是时间投票模式
     if (this.data.viewMode === 'scheduleVote') {
       const votes = await this.loadScheduleVotes('created');
+      // 过滤违规投票
+      const filteredVotes = filterSensitiveActivities(votes);
       this.setData({
-        myActivities: this.processActivitiesDeadline(votes),
-        myCount: votes.length
+        myActivities: this.processActivitiesDeadline(filteredVotes),
+        myCount: filteredVotes.length
       });
       return;
     }
@@ -528,7 +608,9 @@ Page({
       if (this.data.viewMode === 'all') {
         try {
           const scheduleVotes = await this.loadScheduleVotes('created');
-          allMyRooms = [...allMyRooms, ...scheduleVotes];
+          // 过滤违规投票
+          const filteredVotes = filterSensitiveActivities(scheduleVotes);
+          allMyRooms = [...allMyRooms, ...filteredVotes];
         } catch (svErr) {
         }
       }
@@ -591,9 +673,11 @@ Page({
         };
       });
 
+      // 过滤违规内容
+      const filteredRooms = filterSensitiveActivities(rooms);
       this.setData({
-        myActivities: this.processActivitiesDeadline(rooms),
-        myCount: rooms.length
+        myActivities: this.processActivitiesDeadline(filteredRooms),
+        myCount: filteredRooms.length
       });
     } catch (err) {
       this.setData({
@@ -645,9 +729,11 @@ Page({
           };
         });
 
+      // 过滤违规内容
+      const filteredAppointments = filterSensitiveActivities(appointments);
       this.setData({
-        myActivities: this.processActivitiesDeadline(appointments),
-        myCount: appointments.length
+        myActivities: this.processActivitiesDeadline(filteredAppointments),
+        myCount: filteredAppointments.length
       });
     } else {
       this.setData({
@@ -674,9 +760,11 @@ Page({
     // 如果是时间投票模式
     if (this.data.viewMode === 'scheduleVote') {
       const votes = await this.loadScheduleVotes('participated');
+      // 过滤违规投票
+      const filteredVotes = filterSensitiveActivities(votes);
       this.setData({
-        participatedActivities: this.processActivitiesDeadline(votes),
-        participatedCount: votes.length
+        participatedActivities: this.processActivitiesDeadline(filteredVotes),
+        participatedCount: filteredVotes.length
       });
       return;
     }
@@ -746,7 +834,9 @@ Page({
       if (this.data.viewMode === 'all') {
         try {
           const scheduleVotes = await this.loadScheduleVotes('participated');
-          allParticipatedRooms = [...allParticipatedRooms, ...scheduleVotes];
+          // 过滤违规投票
+          const filteredVotes = filterSensitiveActivities(scheduleVotes);
+          allParticipatedRooms = [...allParticipatedRooms, ...filteredVotes];
         } catch (svErr) {
         }
       }
@@ -806,9 +896,17 @@ Page({
         };
       });
 
+      // 获取当前用户openid
+      const myOpenId = getApp().globalData.openid || wx.getStorageSync('openid');
+      
+      // 过滤违规内容并修正isCreator
+      const filteredRooms = filterSensitiveActivities(rooms).map(room => ({
+        ...room,
+        isCreator: room.creatorOpenId === myOpenId
+      }));
       this.setData({
-        participatedActivities: this.processActivitiesDeadline(rooms),
-        participatedCount: rooms.length
+        participatedActivities: this.processActivitiesDeadline(filteredRooms),
+        participatedCount: filteredRooms.length
       });
     } catch (err) {
       this.setData({
@@ -825,9 +923,11 @@ Page({
         name: 'getDiningAppointments'
       });
 
+      // 获取当前用户openid
+      const myOpenId = getApp().globalData.openid || wx.getStorageSync('openid');
+      
       if (result.success && result.appointments) {
         // 过滤出我参与的（排除我发起的）
-        const myOpenId = getApp().globalData.openid;
         const participated = result.appointments.filter(apt => {
           // 检查 participants 数组中是否有我
           return apt.participants && apt.participants.some(p => p.openId === myOpenId);
@@ -862,14 +962,20 @@ Page({
             statusName: '进行中',
             roomId: apt._id,
             isCreator: false,
+            creatorOpenId: apt.initiatorOpenId,
             creatorNickName: apt.initiatorName || '神秘喵友',
             creatorAvatarUrl: apt.initiatorAvatar || imagePaths.decorations.catAvatarIcon
           };
         });
 
+      // 过滤违规内容并修正isCreator
+      const filteredAppointments = filterSensitiveActivities(appointments).map(apt => ({
+        ...apt,
+        isCreator: apt.creatorOpenId === myOpenId
+      }));
       this.setData({
-        participatedActivities: this.processActivitiesDeadline(appointments),
-        participatedCount: appointments.length
+        participatedActivities: this.processActivitiesDeadline(filteredAppointments),
+        participatedCount: filteredAppointments.length
       });
     } else {
       this.setData({
@@ -1058,8 +1164,7 @@ Page({
     const activity = this.data.ongoingActivities.find(a => a.id === roomId) || 
                      this.data.myActivities.find(a => a.id === roomId) ||
                      this.data.participatedActivities.find(a => a.id === roomId);
-    
-    
+
     if (!roomId) {
       wx.showToast({ title: '房间ID无效', icon: 'none' });
       return;
@@ -1067,9 +1172,9 @@ Page({
 
     // 根据活动类型跳转到不同页面
     if (activity?.type === 'scheduleVote') {
-      // 时间投票 - 跳转到结果页
+      // 时间投票 - 跳转到结果页（使用voteId参数）
       wx.navigateTo({
-        url: `/package-schedule/pages/schedule-vote/result/result?id=${roomId}`,
+        url: `/package-schedule/pages/schedule-vote/result/result?voteId=${roomId}`,
         fail: (err) => {
           wx.showToast({ title: '页面跳转失败', icon: 'none' });
         }
@@ -1518,5 +1623,51 @@ Page({
   // 阻止事件冒泡
   stopPropagation(e) {
     e.stopPropagation();
+  },
+
+  // 删除单个活动（管理员功能）
+  deleteRoom(e) {
+    const { id, title } = e.currentTarget.dataset;
+    
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要删除活动「${title || id}」吗？此操作不可恢复！`,
+      confirmColor: '#FF6B6B',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '删除中...' });
+          
+          // 调用云函数删除活动
+          wx.cloud.callFunction({
+            name: 'deleteRoomById',
+            data: { roomId: id }
+          }).then(res => {
+            wx.hideLoading();
+            const result = res.result;
+            
+            if (result.code === 0) {
+              wx.showToast({
+                title: '删除成功',
+                icon: 'success'
+              });
+              // 刷新列表
+              this.loadData();
+            } else {
+              wx.showToast({
+                title: result.msg || '删除失败',
+                icon: 'none'
+              });
+            }
+          }).catch(err => {
+            wx.hideLoading();
+            console.error('删除活动失败:', err);
+            wx.showToast({
+              title: '删除失败，请重试',
+              icon: 'none'
+            });
+          });
+        }
+      }
+    });
   }
 });

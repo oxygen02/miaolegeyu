@@ -1,6 +1,7 @@
 const Validator = getApp().globalData.Validator;
 const { imagePaths } = getApp().globalData;
 const { withLock } = getApp().globalData.debounce;
+const { checkContentWithToast, checkImageWithToast } = require('../../../utils/contentSecurity');
 
 Page({
   data: {
@@ -798,6 +799,13 @@ Page({
       }
     }
 
+    // 内容安全检查
+    const contentToCheck = [title, finalLocation].filter(Boolean).join(' ');
+    const isContentSafe = await checkContentWithToast(contentToCheck);
+    if (!isContentSafe) {
+      return;
+    }
+
     // 设置提交中标记
     this.setData({ isSubmitting: true });
 
@@ -882,9 +890,20 @@ Page({
                 cloudPath: `posters/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`,
                 filePath: compressedRes.tempFilePath
               });
+              
+              // 图片内容安全检测
+              const isImageSafe = await checkImageWithToast(fileID);
+              if (!isImageSafe) {
+                // 删除违规图片
+                try {
+                  await wx.cloud.deleteFile({ fileList: [fileID] });
+                } catch (e) {}
+                throw new Error(`第${idx + 1}张海报包含违规内容`);
+              }
+              
               return { imageUrl: fileID, platformSource: p.platformSource || '' };
             } catch (uploadErr) {
-              throw new Error(`第${idx + 1}张海报上传失败，请重试`);
+              throw new Error(uploadErr.message || `第${idx + 1}张海报上传失败，请重试`);
             }
           })
         );

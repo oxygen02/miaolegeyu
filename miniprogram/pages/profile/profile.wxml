@@ -93,6 +93,11 @@ module.exports = {
       <text class="menu-text">反馈管理</text>
       <text class="menu-arrow">›</text>
     </view>
+    <view class="menu-item" bindtap="goToReportPage">
+      <image class="menu-icon-image" src="/icons/reports.png" mode="aspectFit"/>
+      <text class="menu-text">举报中心</text>
+      <text class="menu-arrow">›</text>
+    </view>
     <view class="menu-item" bindtap="goToAbout">
       <image class="menu-icon-image" src="{{imagePaths.icons.about}}" mode="aspectFit"/>
       <text class="menu-text">关于</text>
@@ -131,7 +136,7 @@ module.exports = {
               <image src="{{item.finalPoster || (item.candidatePosters && item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || imagePaths.banners.taiyakiIcon}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.finalPoster || (item.candidatePosters && item.candidatePosters[0] && item.candidatePosters[0].imageUrl)}}"/>
               <!-- 状态标签（毛玻璃效果） -->
               <view class="room-status {{item.status}}">
-                {{item.status === 'voting' ? '进行中' : (item.status === 'locked' ? '已锁定' : '已结束')}}
+                {{item.status === 'voting' ? '进行中' : (item.status === 'locked' ? '已锁定' : (item.status === 'ended' ? '已过期' : '已结束'))}}
               </view>
               <view class="room-role-badge" wx:if="{{item.isCreator}}">房主</view>
             </view>
@@ -184,6 +189,8 @@ module.exports = {
         <view class="empty-tip" wx:if="{{myParticipated.length === 0}}">
           <text>还没有参与任何聚餐</text>
         </view>
+        <!-- 底部占位，确保最后一个卡片不被遮挡 -->
+        <view style="height: 120rpx;"></view>
       </scroll-view>
 
       <!-- 我发起的聚餐列表 -->
@@ -195,7 +202,7 @@ module.exports = {
               <image src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl) || imagePaths.banners.taiyakiIcon}}" mode="aspectFill" catchtap="previewImage" data-src="{{item.finalPoster || (item.candidatePosters[0] && item.candidatePosters[0].imageUrl)}}"/>
               <!-- 状态标签（毛玻璃效果） -->
               <view class="room-status {{item.status}}">
-                {{item.status === 'voting' ? '进行中' : (item.status === 'locked' ? '已锁定' : '已结束')}}
+                {{item.status === 'voting' ? '进行中' : (item.status === 'locked' ? '已锁定' : (item.status === 'ended' ? '已过期' : '已结束'))}}
               </view>
               <view class="room-role-badge" wx:if="{{item.isCreator}}">房主</view>
             </view>
@@ -249,6 +256,8 @@ module.exports = {
         <view class="empty-tip" wx:if="{{myRooms.length === 0}}">
           <text>还没有发起过聚餐</text>
         </view>
+        <!-- 底部占位，确保最后一个卡片不被遮挡 -->
+        <view style="height: 120rpx;"></view>
       </scroll-view>
 
       <!-- 我的店铺列表 -->
@@ -269,6 +278,8 @@ module.exports = {
         <view class="empty-tip" wx:if="{{myShops.length === 0}}">
           <text>还没有推荐过店铺</text>
         </view>
+        <!-- 底部占位，确保最后一个卡片不被遮挡 -->
+        <view style="height: 120rpx;"></view>
       </scroll-view>
 
       <!-- 我的活动列表 -->
@@ -332,6 +343,8 @@ module.exports = {
         <view class="empty-tip" wx:if="{{myAppointments.length === 0}}">
           <text>还没有发起过活动</text>
         </view>
+        <!-- 底部占位，确保最后一个卡片不被遮挡 -->
+        <view style="height: 120rpx;"></view>
       </scroll-view>
 
       <!-- 我的时间投票列表 -->
@@ -380,7 +393,7 @@ module.exports = {
                   <text class="participant-count">{{item.participantCount || 0}}人参与</text>
                 </view>
                 <view class="action-group" wx:if="{{item.isCreator && !item.isExpired}}">
-                  <text class="manage-btn">管理</text>
+                  <text class="manage-btn" catchtap="onManageScheduleVoteTap" data-id="{{item._id}}">管理</text>
                 </view>
               </view>
             </view>
@@ -389,6 +402,8 @@ module.exports = {
         <view class="empty-tip" wx:if="{{myScheduleVotes.length === 0}}">
           <text>还没有时间投票</text>
         </view>
+        <!-- 底部占位，确保最后一个卡片不被遮挡 -->
+        <view style="height: 120rpx;"></view>
       </scroll-view>
 
       <!-- 我的收藏列表 -->
@@ -440,6 +455,8 @@ module.exports = {
         <view class="empty-tip" wx:if="{{favorites.length === 0}}">
           <text>还没有收藏</text>
         </view>
+        <!-- 底部占位，确保最后一个卡片不被遮挡 -->
+        <view style="height: 120rpx;"></view>
       </scroll-view>
     </view>
   </view>

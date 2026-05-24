@@ -310,6 +310,11 @@ page {
   color: #fff;
 }
 
+.status-badge.ended {
+  background: #FF6B6B;
+  color: #fff;
+}
+
 .info-detail {
   display: flex;
   flex-direction: row;

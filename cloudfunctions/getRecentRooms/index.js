@@ -3,6 +3,32 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// 敏感词库
+const SENSITIVE_WORDS = [
+  // 政治敏感词
+  '反动', '暴乱', '革命', '独裁', '专政', '颠覆', '政变', '游行', '示威',
+  // 色情词汇
+  '色情', '淫秽', '卖淫', '嫖娼', '裸聊', '性服务', '援交', '约炮', '一夜情',
+  // 暴力词汇
+  '杀人', '放火', '爆炸', '恐怖', '暴力', '枪支', '弹药', '炸弹', '刀具',
+  // 诈骗词汇
+  '诈骗', '传销', '洗钱', '赌博', '博彩', '赌球', '赌马', '六合彩',
+  // 毒品相关
+  '毒品', '吸毒', '贩毒', '违禁', '非法', '大麻', '冰毒', '海洛因', '可卡因',
+  // 自残/自杀相关
+  '自杀', '自残', '割腕', '跳楼', '上吊', '服毒', '轻生', '寻死',
+  // 其他违规
+  '翻墙', 'VPN', '代理', '黑客', '盗号', '木马', '病毒', '勒索'
+];
+
+function containsSensitive(text) {
+  if (!text) return false;
+  for (const word of SENSITIVE_WORDS) {
+    if (text.includes(word)) return true;
+  }
+  return false;
+}
+
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
   // 限制最大返回数量，防止数据过大
@@ -51,20 +77,39 @@ exports.main = async (event) => {
       roomMap[room.roomId] = room;
     });
     
+    const now = new Date();
     const rooms = roomIds.map(id => {
       const room = roomMap[id];
       if (!room) return null;
+      // 过滤违规内容
+      const textToCheck = [room.title, room.location, room.shopName].filter(Boolean).join(' ');
+      if (containsSensitive(textToCheck)) {
+        console.log('过滤违规房间:', room.roomId, room.title);
+        return null;
+      }
+
+      // 检查是否已过期（deadline已过且状态不是locked）
+      let effectiveStatus = room.status || 'voting';
+      if (effectiveStatus === 'voting' && room.deadline) {
+        const deadlineDate = new Date(room.deadline);
+        if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
+          effectiveStatus = 'ended';
+        }
+      }
+
       return {
         _id: room._id,
         roomId: room.roomId,
         title: room.title,
-        status: room.status,
+        status: effectiveStatus,
+        originalStatus: room.status || 'voting',
         mode: room.mode,
         candidatePosters: room.candidatePosters || [],
         createdAt: room.createdAt,
         location: room.location,
         activityTime: room.activityTime,
-        participantCount: room.participantCount || 0
+        participantCount: room.participantCount || 0,
+        creatorOpenId: room.creatorOpenId
       };
     }).filter(Boolean);
     

@@ -1,9 +1,5 @@
 // 弹幕组件 - 简化版：纯CSS动画 + 3条轨道居中
-
-// 敏感词列表（示例，实际使用时需配置完整敏感词库）
-const SENSITIVE_WORDS = [
-  '敏感词1', '敏感词2', '测试词'
-];
+const { checkContentWithToast } = require('../../utils/contentSecurity');
 
 // HTML特殊字符转义表
 const HTML_ESCAPE_MAP = {
@@ -68,16 +64,14 @@ Component({
       });
     },
 
-    sendDanmaku() {
+    async sendDanmaku() {
       const t = this.data.inputValue.trim();
       if (!t) return;
       
-      // 敏感词过滤
-      for (const word of SENSITIVE_WORDS) {
-        if (t.includes(word)) {
-          wx.showToast({ title: '内容包含敏感词', icon: 'none' });
-          return;
-        }
+      // 内容安全检查
+      const isContentSafe = await checkContentWithToast(t);
+      if (!isContentSafe) {
+        return;
       }
       
       // XSS防护：HTML转义

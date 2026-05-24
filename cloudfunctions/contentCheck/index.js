@@ -1,63 +1,79 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
-// 基础敏感词库（可根据需要扩展）
+// 基础敏感词库（作为二次校验）
 const SENSITIVE_WORDS = [
   // 政治敏感词
-  '反动', '暴乱', '革命', '独裁', '专政',
+  '反动', '暴乱', '革命', '独裁', '专政', '颠覆', '政变', '游行', '示威',
   // 色情词汇
-  '色情', '淫秽', '卖淫', '嫖娼', '裸聊',
+  '色情', '淫秽', '卖淫', '嫖娼', '裸聊', '性服务', '援交', '约炮', '一夜情',
   // 暴力词汇
-  '杀人', '放火', '爆炸', '恐怖', '暴力',
+  '杀人', '放火', '爆炸', '恐怖', '暴力', '枪支', '弹药', '炸弹', '刀具',
   // 诈骗词汇
-  '诈骗', '传销', '洗钱', '赌博', '博彩',
+  '诈骗', '传销', '洗钱', '赌博', '博彩', '赌球', '赌马', '六合彩',
+  // 毒品相关
+  '毒品', '吸毒', '贩毒', '违禁', '非法', '大麻', '冰毒', '海洛因', '可卡因',
+  // 自残/自杀相关
+  '自杀', '自残', '割腕', '跳楼', '上吊', '服毒', '轻生', '寻死',
   // 其他违规
-  '毒品', '吸毒', '贩毒', '违禁', '非法'
+  '翻墙', 'VPN', '代理', '黑客', '盗号', '木马', '病毒', '勒索'
 ];
 
-// 替换字符映射
-const CHAR_MAP = {
-  '@': 'a', '＠': 'a', 'ⓐ': 'a',
-  '0': 'o', '０': 'o', 'ⓞ': 'o',
-  '1': 'i', 'l': 'i', 'ｉ': 'i', 'ⓘ': 'i',
-  '3': 'e', '３': 'e', 'ⓔ': 'e',
-  '5': 's', '５': 's', 'ⓢ': 's',
-  '7': 't', '７': 't', 'ⓣ': 't',
-  '9': 'g', '９': 'g', 'ⓖ': 'g'
-};
-
 /**
- * 文本预处理：统一转换为小写，替换特殊字符
- * @param {string} text - 原始文本
- * @returns {string} - 处理后的文本
+ * 调用微信官方内容安全API (2.0版本)
+ * @param {string} content - 待检查文本
+ * @param {string} openid - 用户openid
+ * @param {number} scene - 场景值 1:资料 2:评论 3:论坛 4:社交日志
+ * @returns {Promise<object>} - 检查结果
  */
-function preprocessText(text) {
-  if (!text) return '';
-  
-  let processed = text.toLowerCase();
-  
-  // 替换特殊字符
-  for (const [key, value] of Object.entries(CHAR_MAP)) {
-    processed = processed.replace(new RegExp(key, 'g'), value);
+async function checkWithWxApi(content, openid, scene = 2) {
+  try {
+    // 使用2.0版本接口
+    const result = await cloud.openapi.security.msgSecCheck({
+      version: 2,
+      content: content,
+      openid: openid,
+      scene: scene,
+      title: content.substring(0, 30) // 标题取前30字
+    });
+    
+    // result.result.suggest: risky/pass
+    // result.result.label: 100:正常 10001:广告 20001:时政 20002:色情 20003:辱骂 20006:违法犯罪 20008:欺诈 20012:低俗 20013:版权 21000:其他
+    const suggest = result.result?.suggest || 'pass';
+    const label = result.result?.label || 100;
+    
+    return {
+      passed: suggest === 'pass' && label === 100,
+      suggest: suggest,
+      label: label,
+      detail: result.result?.detail || null,
+      errCode: 0,
+      errMsg: 'ok'
+    };
+  } catch (err) {
+    console.error('微信内容安全API调用失败:', err);
+    // API调用失败时，返回失败而不是放行
+    // 这样可以避免违规内容被创建
+    return {
+      passed: false,
+      suggest: 'error',
+      label: -1,
+      errCode: -1,
+      errMsg: err.message || 'API调用失败'
+    };
   }
-  
-  // 去除空格和特殊符号
-  processed = processed.replace(/[\s\p{P}\p{S}]/gu, '');
-  
-  return processed;
 }
 
 /**
- * 检查文本是否包含敏感词
+ * 本地敏感词检查（作为二次校验）
  * @param {string} text - 待检查文本
  * @returns {object} - { hasSensitive: boolean, words: array }
  */
 function checkSensitiveWords(text) {
-  const processed = preprocessText(text);
   const foundWords = [];
   
   for (const word of SENSITIVE_WORDS) {
-    if (processed.includes(word)) {
+    if (text.includes(word)) {
       foundWords.push(word);
     }
   }
@@ -68,28 +84,13 @@ function checkSensitiveWords(text) {
   };
 }
 
-/**
- * 替换敏感词为*
- * @param {string} text - 原始文本
- * @returns {string} - 处理后的文本
- */
-function maskSensitiveWords(text) {
-  let masked = text;
-  
-  for (const word of SENSITIVE_WORDS) {
-    const regex = new RegExp(word, 'gi');
-    masked = masked.replace(regex, '*'.repeat(word.length));
-  }
-  
-  return masked;
-}
-
-exports.main = async (event) => {
-  const { content, type = 'check' } = event;
+exports.main = async (event, context) => {
+  const { content, type = 'check', scene = 2 } = event;
   const wxContext = cloud.getWXContext();
+  const openid = wxContext.OPENID;
   
   // 校验登录态
-  if (!wxContext.OPENID) {
+  if (!openid) {
     return { code: -1, msg: '未登录' };
   }
   
@@ -98,51 +99,55 @@ exports.main = async (event) => {
   }
   
   // 长度限制
-  if (content.length > 1000) {
-    return { code: -1, msg: '内容长度不能超过1000字符' };
+  if (content.length > 2500) {
+    return { code: -1, msg: '内容长度不能超过2500字符' };
   }
   
   try {
-    switch (type) {
-      case 'check':
-        // 检查敏感词
-        const result = checkSensitiveWords(content);
-        return {
-          code: 0,
-          data: result,
-          msg: result.hasSensitive ? '内容包含敏感词' : '内容正常'
-        };
-        
-      case 'mask':
-        // 替换敏感词
-        const masked = maskSensitiveWords(content);
-        return {
-          code: 0,
-          data: { masked },
-          msg: '处理成功'
-        };
-        
-      case 'strict':
-        // 严格模式：包含敏感词则拒绝
-        const strictResult = checkSensitiveWords(content);
-        if (strictResult.hasSensitive) {
-          return {
-            code: 403,
-            data: strictResult,
-            msg: '内容包含违规信息，请修改后重试'
-          };
-        }
-        return {
-          code: 0,
-          data: { passed: true },
-          msg: '内容审核通过'
-        };
-        
-      default:
-        return { code: -1, msg: '未知的检查类型' };
+    // 优先调用微信官方API (2.0版本)
+    const wxResult = await checkWithWxApi(content, openid, scene);
+    
+    // 如果微信API检测到违规，直接返回
+    if (!wxResult.passed) {
+      return {
+        code: 403,
+        data: {
+          passed: false,
+          source: 'wx_api',
+          suggest: wxResult.suggest,
+          label: wxResult.label,
+          detail: wxResult.detail
+        },
+        msg: '内容包含违规信息，请修改后重试'
+      };
     }
+    
+    // 微信API通过后，进行二次敏感词校验
+    const localResult = checkSensitiveWords(content);
+    if (localResult.hasSensitive) {
+      return {
+        code: 403,
+        data: {
+          passed: false,
+          source: 'local',
+          words: localResult.words
+        },
+        msg: '内容包含违规信息，请修改后重试'
+      };
+    }
+    
+    // 全部通过
+    return {
+      code: 0,
+      data: {
+        passed: true,
+        wxCheck: wxResult
+      },
+      msg: '内容审核通过'
+    };
+    
   } catch (err) {
     console.error('内容检查失败:', err);
-    return { code: -1, msg: '检查失败' };
+    return { code: -1, msg: '检查失败，请稍后重试' };
   }
 };

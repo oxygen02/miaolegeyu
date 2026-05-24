@@ -53,7 +53,7 @@
 
       <!-- 日期汇总矩阵 -->
       <view class="summary-matrix anim-slide-up delay-3">
-        <view class="section-title">📊 日期汇总</view>
+        <view class="section-title"><image class="section-icon" src="/icons/calendar.png" mode="aspectFit" /> 日期汇总</view>
         <view class="matrix-wrap">
           <view class="matrix-header">
             <view class="m-header-cell">日期</view>
@@ -80,7 +80,7 @@
     <!-- ====== 成员明细视图 ====== -->
     <block wx:if="{{viewMode === 'detail'}}">
       <view class="participant-list anim-slide-up delay-2">
-        <view class="section-title">👥 成员填写明细</view>
+        <view class="section-title"><image class="section-icon" src="/misc/cat-paw-icon.png" mode="aspectFit" /> 成员填写明细</view>
 
         <view class="participant-card {{expandedParticipant === index ? 'expanded' : ''}}"
               wx:for="{{participants}}" wx:key="openId" wx:for-index="index">

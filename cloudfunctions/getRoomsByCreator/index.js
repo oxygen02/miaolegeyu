@@ -47,11 +47,21 @@ exports.main = async (event) => {
       .orderBy('createdAt', 'desc')
       .get();
 
-    // 4. 按发起人分组
+    // 4. 按发起人分组，同时检查过期状态
+    const now = new Date();
     const creatorGroups = {};
 
     rooms.forEach(room => {
       const creatorId = room.creatorOpenId || 'unknown';
+
+      // 检查是否已过期（deadline已过且状态不是locked）
+      let effectiveStatus = room.status || 'voting';
+      if (effectiveStatus === 'voting' && room.deadline) {
+        const deadlineDate = new Date(room.deadline);
+        if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
+          effectiveStatus = 'ended';
+        }
+      }
 
       if (!creatorGroups[creatorId]) {
         creatorGroups[creatorId] = {
@@ -65,7 +75,8 @@ exports.main = async (event) => {
       creatorGroups[creatorId].rooms.push({
         roomId: room.roomId,
         title: room.title,
-        status: room.status,
+        status: effectiveStatus,
+        originalStatus: room.status || 'voting',
         activityDate: room.activityDate,
         activityTime: room.activityTime,
         location: room.location,

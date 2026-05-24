@@ -2,6 +2,7 @@ const { generateRoomId } = getApp().globalData.uuid;
 const { imagePaths } = getApp().globalData;
 const { withLock } = getApp().globalData.debounce;
 const app = getApp();
+const { checkContentWithToast } = require('../../../utils/contentSecurity');
 
 // 创建默认选项
 const createDefaultOption = () => ({
@@ -341,15 +342,25 @@ Page({
       option.selectedPlatform && option.selectedPlatform.trim() !== '';
   },
 
-  // 创建拼单
-  async createGroupOrder() {
-    
-    if (!this.canSubmit()) {
-      wx.showToast({ title: '请至少完成一个选项（标题、图片、时间、平台）', icon: 'none' });
-      return;
-    }
+// 创建拼单
+async createGroupOrder() {
 
-    wx.showLoading({ title: '创建中...', mask: true });
+if (!this.canSubmit()) {
+wx.showToast({ title: '请至少完成一个选项（标题、图片、时间、平台）', icon: 'none' });
+return;
+}
+
+// 内容安全检查
+const { shopOptions } = this.data;
+const contentToCheck = shopOptions.map(o => o.title).filter(Boolean).join(' ');
+if (contentToCheck) {
+  const isContentSafe = await checkContentWithToast(contentToCheck);
+  if (!isContentSafe) {
+    return;
+  }
+}
+
+wx.showLoading({ title: '创建中...', mask: true });
 
     try {
       const roomId = generateRoomId();

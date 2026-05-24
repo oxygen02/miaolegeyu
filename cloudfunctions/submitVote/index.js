@@ -30,13 +30,21 @@ exports.main = async (event, context) => {
     // 1. 查询房间（非事务）
     const roomResult = await db.collection('rooms').where({ roomId }).get();
     if (roomResult.data.length === 0) {
-      return { success: false, error: '房间不存在' };
+      return { success: false, error: '房间不存在或已删除' };
     }
 
     const room = roomResult.data[0];
 
-    // 2. 检查房间状态
-    if (room.status !== 'voting') {
+    // 2. 检查房间状态（包括是否已过期）
+    const now = new Date();
+    let effectiveStatus = room.status || 'voting';
+    if (effectiveStatus === 'voting' && room.deadline) {
+      const deadlineDate = new Date(room.deadline);
+      if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
+        effectiveStatus = 'ended';
+      }
+    }
+    if (effectiveStatus !== 'voting') {
       return { success: false, error: '投票已结束' };
     }
 

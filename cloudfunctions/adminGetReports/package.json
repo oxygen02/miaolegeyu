@@ -1,0 +1,9 @@
+{
+  "name": "adminGetReports",
+  "version": "1.0.0",
+  "description": "管理员获取举报列表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

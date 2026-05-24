@@ -1,4 +1,5 @@
 const { imagePaths } = getApp().globalData;
+const { checkContentWithToast } = require('../../../utils/contentSecurity');
 
 Page({
   data: {
@@ -46,6 +47,12 @@ Page({
     
     if (!selectedType || !content.trim()) {
       wx.showToast({ title: '请填写完整信息', icon: 'none' });
+      return;
+    }
+
+    // 内容安全检查
+    const isContentSafe = await checkContentWithToast(content.trim());
+    if (!isContentSafe) {
       return;
     }
 

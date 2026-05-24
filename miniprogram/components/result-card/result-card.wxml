@@ -64,7 +64,7 @@
         <text class="info-label">地址</text>
         <text class="info-value">{{address}}</text>
         <button class="btn-inline" bindtap="openNavigation">
-          <image class="btn-inline-icon" src="https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la/icons/daohang.png" mode="aspectFit"/>
+          <image class="btn-inline-icon" src="https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la/icons/danzhua.png" mode="aspectFit"/>
           <text>导航</text>
         </button>
       </view>

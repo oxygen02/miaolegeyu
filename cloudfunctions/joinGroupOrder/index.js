@@ -24,7 +24,7 @@ exports.main = async (event) => {
       .get();
 
     if (!rooms || rooms.length === 0) {
-      return { code: -1, msg: '房间不存在' };
+      return { code: -1, msg: '房间不存在或已删除' };
     }
 
     const room = rooms[0];

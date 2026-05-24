@@ -3,6 +3,32 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// 敏感词库
+const SENSITIVE_WORDS = [
+  // 政治敏感词
+  '反动', '暴乱', '革命', '独裁', '专政', '颠覆', '政变', '游行', '示威',
+  // 色情词汇
+  '色情', '淫秽', '卖淫', '嫖娼', '裸聊', '性服务', '援交', '约炮', '一夜情',
+  // 暴力词汇
+  '杀人', '放火', '爆炸', '恐怖', '暴力', '枪支', '弹药', '炸弹', '刀具',
+  // 诈骗词汇
+  '诈骗', '传销', '洗钱', '赌博', '博彩', '赌球', '赌马', '六合彩',
+  // 毒品相关
+  '毒品', '吸毒', '贩毒', '违禁', '非法', '大麻', '冰毒', '海洛因', '可卡因',
+  // 自残/自杀相关
+  '自杀', '自残', '割腕', '跳楼', '上吊', '服毒', '轻生', '寻死',
+  // 其他违规
+  '翻墙', 'VPN', '代理', '黑客', '盗号', '木马', '病毒', '勒索'
+];
+
+function containsSensitive(text) {
+  if (!text) return false;
+  for (const word of SENSITIVE_WORDS) {
+    if (text.includes(word)) return true;
+  }
+  return false;
+}
+
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
   const { status = 'all', mode = '' } = event;
@@ -81,8 +107,16 @@ exports.main = async (event) => {
       };
     }
 
-    // 过滤掉 roomId 为空的文档
-    const validRooms = rooms.filter(room => room.roomId);
+    // 过滤掉 roomId 为空的文档，并过滤违规内容
+    const validRooms = rooms.filter(room => {
+      if (!room.roomId) return false;
+      const textToCheck = [room.title, room.location, room.shopName].filter(Boolean).join(' ');
+      if (containsSensitive(textToCheck)) {
+        console.log('过滤违规房间:', room.roomId, room.title);
+        return false;
+      }
+      return true;
+    });
     console.log('getMyRooms 有效房间数:', validRooms.length, '原始房间数:', rooms.length);
 
     // 获取所有房间ID
@@ -204,7 +238,8 @@ exports.main = async (event) => {
       console.error('获取用户信息失败:', err);
     }
 
-    // 组装返回数据
+    // 组装返回数据，同时检查过期状态
+    const now = new Date();
     const roomsWithParticipants = validRooms.map(room => {
       // 处理 location 字段，可能是对象或字符串
       let locationStr = '';
@@ -216,7 +251,16 @@ exports.main = async (event) => {
           locationStr = room.location.name || room.location.address || JSON.stringify(room.location);
         }
       }
-      
+
+      // 检查是否已过期（deadline已过且状态不是locked）
+      let effectiveStatus = room.status || 'voting';
+      if (effectiveStatus === 'voting' && room.deadline) {
+        const deadlineDate = new Date(room.deadline);
+        if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
+          effectiveStatus = 'ended';
+        }
+      }
+
       // 格式化 voteDeadline（转换为北京时间 UTC+8）
       let voteDeadlineStr = '';
       if (room.voteDeadline) {
@@ -231,11 +275,12 @@ exports.main = async (event) => {
           voteDeadlineStr = `${month}-${day} ${hour}:${minute}`;
         }
       }
-      
+
       return {
         roomId: room.roomId,
         title: room.title,
-        status: room.status,
+        status: effectiveStatus,
+        originalStatus: room.status || 'voting',
         mode: room.mode,
         activityDate: room.activityDate || '',
         activityTime: room.activityTime || '',

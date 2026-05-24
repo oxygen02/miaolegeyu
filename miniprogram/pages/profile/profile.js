@@ -631,6 +631,55 @@ Page({
     });
   },
 
+  // 时间投票管理按钮点击
+  onManageScheduleVoteTap(e) {
+    const { id } = e.currentTarget.dataset;
+    wx.showActionSheet({
+      itemList: ['编辑', '删除'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          // 编辑
+          wx.navigateTo({
+            url: `/package-schedule/pages/schedule-vote/create/create?edit=true&voteId=${id}`
+          });
+        } else if (res.tapIndex === 1) {
+          // 删除
+          this.deleteScheduleVote(id);
+        }
+      }
+    });
+  },
+
+  // 删除时间投票
+  async deleteScheduleVote(voteId) {
+    const res = await wx.showModal({
+      title: '确认删除',
+      content: '确定要删除这个时间投票吗？删除后不可恢复',
+      confirmColor: '#FF6B6B'
+    });
+
+    if (res.confirm) {
+      wx.showLoading({ title: '删除中...' });
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'deleteRoomById',
+          data: { roomId: voteId }
+        });
+        if (result.success) {
+          wx.showToast({ title: '删除成功', icon: 'success' });
+          this.showMyScheduleVotes();
+          this.loadStats();
+        } else {
+          wx.showToast({ title: result.error || '删除失败', icon: 'none' });
+        }
+      } catch (err) {
+        wx.showToast({ title: '删除失败', icon: 'none' });
+      } finally {
+        wx.hideLoading();
+      }
+    }
+  },
+
   async showMyRooms() {
     if (!this.checkLogin()) return;
     audioManager.playPawTap();
@@ -872,15 +921,26 @@ Page({
   onManageTap(e) {
     // 使用 catchtap 阻止冒泡，不需要调用 stopPropagation
     const { roomid } = e.currentTarget.dataset;
+    const room = this.data.myRooms.find(r => r.roomId === roomid);
+    const isEnded = room && room.status === 'ended';
+    const itemList = isEnded ? ['删除', '分享'] : ['编辑', '删除', '分享'];
     wx.showActionSheet({
-      itemList: ['编辑', '删除', '分享'],
+      itemList,
       success: (res) => {
-        if (res.tapIndex === 0) {
-          this.editRoom(roomid);
-        } else if (res.tapIndex === 1) {
-          this.deleteRoom(roomid);
-        } else if (res.tapIndex === 2) {
-          this.shareRoom(roomid);
+        if (isEnded) {
+          if (res.tapIndex === 0) {
+            this.deleteRoom(roomid);
+          } else if (res.tapIndex === 1) {
+            this.shareRoom(roomid);
+          }
+        } else {
+          if (res.tapIndex === 0) {
+            this.editRoom(roomid);
+          } else if (res.tapIndex === 1) {
+            this.deleteRoom(roomid);
+          } else if (res.tapIndex === 2) {
+            this.shareRoom(roomid);
+          }
         }
       }
     });
@@ -981,7 +1041,9 @@ Page({
   // 长按房间显示操作菜单
   onRoomLongPress(e) {
     const { roomid, iscreator } = e.currentTarget.dataset;
-    const itemList = iscreator ? ['编辑', '删除'] : ['取消参与'];
+    const room = this.data.myRooms.find(r => r.roomId === roomid);
+    const isEnded = room && room.status === 'ended';
+    const itemList = iscreator ? (isEnded ? ['删除'] : ['编辑', '删除']) : ['取消参与'];
 
     wx.showActionSheet({
       itemList,
@@ -1007,6 +1069,10 @@ Page({
   editRoom(roomId) {
     // 查找房间信息以确定模式
     const room = this.data.myRooms.find(r => r.roomId === roomId);
+    if (room && room.status === 'ended') {
+      wx.showToast({ title: '活动已过期，不可编辑', icon: 'none' });
+      return;
+    }
     const mode = room ? room.mode : '';
 
 
@@ -1246,6 +1312,10 @@ Page({
 
   goToAdminDashboard() {
     wx.navigateTo({ url: '/package-admin/pages/admin-dashboard/admin-dashboard' });
+  },
+
+  goToReportPage() {
+    wx.navigateTo({ url: '/package-user/pages/report/report' });
   },
 
   preventBubble() {

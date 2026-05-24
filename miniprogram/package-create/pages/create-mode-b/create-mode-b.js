@@ -2,6 +2,7 @@
 const { generateRoomId } = getApp().globalData.uuid;
 const { imagePaths } = getApp().globalData;
 const { withLock } = getApp().globalData.debounce;
+const { checkContentWithToast } = require('../../../utils/contentSecurity');
 
 Page({
   data: {
@@ -595,6 +596,14 @@ this.markAsModified();
         wx.showToast({ title: '截止时间不能早于当前时间', icon: 'none' });
         return;
       }
+    }
+
+    // 内容安全检查
+    const { title, locationText } = this.data;
+    const contentToCheck = [title, locationText].filter(Boolean).join(' ');
+    const isContentSafe = await checkContentWithToast(contentToCheck);
+    if (!isContentSafe) {
+      return;
     }
 
     wx.showLoading({ title: this.data.isEditMode ? '保存中...' : '创建中...' });
