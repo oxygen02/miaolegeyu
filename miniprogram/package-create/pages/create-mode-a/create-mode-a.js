@@ -1,7 +1,7 @@
 const Validator = getApp().globalData.Validator;
 const { imagePaths } = getApp().globalData;
 const { withLock } = getApp().globalData.debounce;
-const { checkContentWithToast, checkImageWithToast } = require('../../../utils/contentSecurity');
+const { checkContentWithToast } = require('../../../utils/contentSecurity');
 
 Page({
   data: {
@@ -885,22 +885,17 @@ Page({
                 src: p.tempFilePath,
                 quality: 80
               });
-              
+
               const { fileID } = await wx.cloud.uploadFile({
                 cloudPath: `posters/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`,
                 filePath: compressedRes.tempFilePath
               });
-              
-              // 图片内容安全检测
-              const isImageSafe = await checkImageWithToast(fileID);
-              if (!isImageSafe) {
-                // 删除违规图片
-                try {
-                  await wx.cloud.deleteFile({ fileList: [fileID] });
-                } catch (e) {}
-                throw new Error(`第${idx + 1}张海报包含违规内容`);
-              }
-              
+
+              // 注意：mediaCheckAsync 是异步接口，无法立即返回结果
+              // 图片检测改为后台异步进行，不阻塞创建活动流程
+              // 如果后续检测发现违规，可通过消息推送通知用户
+              this.performAsyncImageCheck(fileID, title);
+
               return { imageUrl: fileID, platformSource: p.platformSource || '' };
             } catch (uploadErr) {
               throw new Error(uploadErr.message || `第${idx + 1}张海报上传失败，请重试`);
@@ -1000,6 +995,34 @@ Page({
         });
       }
     } catch (err) {
+    }
+  },
+
+  /**
+   * 异步图片内容安全检测
+   * mediaCheckAsync 是异步接口，无法立即返回结果
+   * 此方法不阻塞主流程，仅记录检测状态
+   * @param {string} fileID - 图片云存储 fileID
+   * @param {string} title - 活动标题，用于检测场景
+   */
+  async performAsyncImageCheck(fileID, title = '') {
+    try {
+      // 异步调用媒体检测，不等待结果
+      wx.cloud.callFunction({
+        name: 'mediaCheck',
+        data: {
+          mediaUrl: fileID,
+          mediaType: 2,
+          scene: 2,
+          title: title
+        }
+      }).then(res => {
+        console.log('异步图片检测结果:', res);
+      }).catch(err => {
+        console.error('异步图片检测失败:', err);
+      });
+    } catch (err) {
+      console.error('启动异步图片检测失败:', err);
     }
   },
 });

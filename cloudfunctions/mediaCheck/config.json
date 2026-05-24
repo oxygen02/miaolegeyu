@@ -4,5 +4,6 @@
       "security.imgSecCheck",
       "security.mediaCheckAsync"
     ]
-  }
+  },
+  "timeout": 20
 }

@@ -5,6 +5,9 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
  * 多媒体内容安全检测云函数
  * 调用微信官方 mediaCheckAsync 2.0 接口（异步检测）
  * 文档：https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/sec-center/sec-check/mediaCheckAsync.html
+ *
+ * 注意：mediaCheckAsync 是异步接口，返回 trace_id，真实结果需要通过消息推送获取
+ * 前端不应同步等待结果，本云函数直接返回已提交状态
  */
 
 /**
@@ -50,7 +53,7 @@ async function checkMediaAsync(mediaUrl, mediaType, openid, scene = 2, title = '
     console.log('mediaCheckAsync 返回结果:', JSON.stringify(result));
 
     // 异步检测返回 trace_id，需要通过消息推送获取真实结果
-    // 但前端需要立即知道是否通过，这里返回已提交状态
+    // 前端需要立即知道是否通过，这里返回已提交状态
     return {
       passed: true, // 异步检测先返回通过，后续通过消息推送处理
       traceId: result.trace_id,

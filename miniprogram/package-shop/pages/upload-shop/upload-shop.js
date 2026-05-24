@@ -1,6 +1,6 @@
 const { imagePaths } = getApp().globalData;
 const app = getApp();
-const { checkContentWithToast, checkImageWithToast } = require('../../../utils/contentSecurity');
+const { checkContentWithToast } = require('../../../utils/contentSecurity');
 
 Page({
   data: {
@@ -491,19 +491,9 @@ Page({
         imageFileIDs = await this.uploadImages();
         console.log('✅ 图片上传完成，获得fileIDs:', imageFileIDs);
         
-        // 图片内容安全检测
-        wx.showLoading({ title: '图片检测中...', mask: true });
-        for (const fileID of imageFileIDs) {
-          const isImageSafe = await checkImageWithToast(fileID);
-          if (!isImageSafe) {
-            // 删除已上传的违规图片
-            try {
-              await wx.cloud.deleteFile({ fileList: imageFileIDs });
-            } catch (e) {}
-            throw new Error('图片包含违规内容，已删除');
-          }
-        }
-        wx.hideLoading();
+        // 注意：mediaCheckAsync 是异步接口，无法立即返回结果
+        // 图片检测改为后台异步进行，不阻塞提交流程
+        this.performAsyncImageCheck(imageFileIDs, this.data.shopName);
         
         // 验证上传结果
         if (!imageFileIDs || imageFileIDs.length === 0) {
@@ -1446,5 +1436,37 @@ Page({
       aiResult: null
     });
     this.onAIRecognize();
+  },
+
+  /**
+   * 异步图片内容安全检测
+   * mediaCheckAsync 是异步接口，无法立即返回结果
+   * 此方法不阻塞主流程，仅记录检测状态
+   * @param {string[]} fileIDs - 图片云存储 fileID 数组
+   * @param {string} title - 店铺名称，用于检测场景
+   */
+  async performAsyncImageCheck(fileIDs, title = '') {
+    if (!fileIDs || fileIDs.length === 0) return;
+
+    try {
+      for (const fileID of fileIDs) {
+        // 异步调用媒体检测，不等待结果
+        wx.cloud.callFunction({
+          name: 'mediaCheck',
+          data: {
+            mediaUrl: fileID,
+            mediaType: 2,
+            scene: 2,
+            title: title
+          }
+        }).then(res => {
+          console.log('异步图片检测结果:', res);
+        }).catch(err => {
+          console.error('异步图片检测失败:', err);
+        });
+      }
+    } catch (err) {
+      console.error('启动异步图片检测失败:', err);
+    }
   }
 });
