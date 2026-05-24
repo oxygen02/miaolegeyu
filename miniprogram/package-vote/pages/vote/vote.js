@@ -2,6 +2,7 @@ const app = getApp();
 const cuisineCategories = getApp().globalData.cuisineCategories;
 const audioManager = getApp().globalData.audioManager;
 const { withLock } = getApp().globalData.debounce;
+const { checkContentWithToast } = require('../../../utils/contentSecurity');
 
 const { imagePaths } = getApp().globalData;
 
@@ -1328,9 +1329,17 @@ Page({
     wx.showModal({
       title: '确认弃权',
       content: '确定要放弃本次投票吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          this.submitVote({
+          // 弃权时如果填写了请假原因，也需要检查
+          const { timeType, leaveReason } = this.data;
+          if (timeType === 'leave' && leaveReason && leaveReason.trim()) {
+            const isContentSafe = await checkContentWithToast(leaveReason.trim());
+            if (!isContentSafe) {
+              return;
+            }
+          }
+          this._lockedDoSubmitVote({
             posterIndices: [],
             vetoIndices: [],
             cuisinePreferences: [],
@@ -1341,8 +1350,16 @@ Page({
     });
   },
 
-  submitVote() {
+  async submitVote() {
     const { mode, likedIndices, vetoedIndices, selectedHardTaboos, selectedTime, timeType, leaveReason, selectedCategoryIds, selectedSubCategories } = this.data;
+
+    // 内容安全检查：请假原因
+    if (timeType === 'leave' && leaveReason && leaveReason.trim()) {
+      const isContentSafe = await checkContentWithToast(leaveReason.trim());
+      if (!isContentSafe) {
+        return;
+      }
+    }
 
     let voteData;
 

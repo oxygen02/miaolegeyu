@@ -1,4 +1,5 @@
 const { imagePaths, CDN_BASE } = getApp().globalData;
+const { checkContentWithToast } = require('../../../utils/contentSecurity');
 
 // 云存储头像基础URL（使用HTTPS地址）
 const AVATAR_BASE_URL = `${CDN_BASE}/avatars/cat`;
@@ -184,6 +185,11 @@ Page({
     if (this.data.isLoginMode) {
       if (!this.data.nickName.trim()) {
         wx.showToast({ title: '请输入昵称', icon: 'none' });
+        return;
+      }
+      // 内容安全检查：昵称
+      const isContentSafe = await checkContentWithToast(this.data.nickName.trim());
+      if (!isContentSafe) {
         return;
       }
       await this.doLogin();

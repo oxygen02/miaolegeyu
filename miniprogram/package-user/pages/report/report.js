@@ -1,4 +1,5 @@
 const app = getApp();
+const { checkContentWithToast } = require('../../../utils/contentSecurity');
 
 Page({
   data: {
@@ -129,6 +130,14 @@ Page({
     if (!targetId.trim()) {
       wx.showToast({ title: '请输入被举报对象ID', icon: 'none' });
       return;
+    }
+
+    // 内容安全检查：举报描述
+    if (description && description.trim()) {
+      const isContentSafe = await checkContentWithToast(description.trim());
+      if (!isContentSafe) {
+        return;
+      }
     }
 
     this.setData({ submitting: true });

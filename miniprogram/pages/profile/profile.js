@@ -7,6 +7,7 @@ const audioManager = getApp().globalData.audioManager;
 const auth = getApp().globalData.auth;
 const { imagePaths } = getApp().globalData;
 const app = getApp();
+const { checkContentWithToast } = require('../../utils/contentSecurity');
 
 Page({
   data: {
@@ -322,6 +323,12 @@ Page({
       placeholderText: '请输入新昵称',
       success: async (res) => {
         if (res.confirm && res.content) {
+          // 内容安全检查：昵称
+          const isContentSafe = await checkContentWithToast(res.content.trim());
+          if (!isContentSafe) {
+            return;
+          }
+
           wx.showLoading({ title: '更新中...' });
 
           try {

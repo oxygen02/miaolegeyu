@@ -1,5 +1,6 @@
 const app = getApp();
 const { imagePaths } = getApp().globalData;
+const { checkContentWithToast } = require('../../../utils/contentSecurity');
 
 // 生成年月日时分数据
 const generateDateTimeData = () => {
@@ -534,6 +535,15 @@ async onLoad(options) {
     if (!editShopName.trim()) {
       wx.showToast({ title: '店铺名称不能为空', icon: 'none' });
       return;
+    }
+
+    // 内容安全检查：店铺信息
+    const contentToCheck = [editShopName, editShopAddress, editShopReason, editShopTips].filter(Boolean).join(' ');
+    if (contentToCheck) {
+      const isContentSafe = await checkContentWithToast(contentToCheck);
+      if (!isContentSafe) {
+        return;
+      }
     }
 
     wx.showLoading({ title: '保存中...' });
@@ -1085,6 +1095,15 @@ async onLoad(options) {
       return;
     }
 
+    // 内容安全检查：约饭备注和自定义要求
+    const contentToCheck = [appointmentNote, customRequirement].filter(Boolean).join(' ');
+    if (contentToCheck) {
+      const isContentSafe = await checkContentWithToast(contentToCheck);
+      if (!isContentSafe) {
+        return;
+      }
+    }
+
     const requirements = requirementOptions
       .filter(item => item.selected && item.id !== 'custom')
       .map(item => item.name);
@@ -1189,6 +1208,14 @@ async onLoad(options) {
     if (ratingStars === 0) {
       wx.showToast({ title: '请选择评分', icon: 'none' });
       return;
+    }
+
+    // 内容安全检查：评价内容
+    if (ratingComment && ratingComment.trim()) {
+      const isContentSafe = await checkContentWithToast(ratingComment.trim());
+      if (!isContentSafe) {
+        return;
+      }
     }
 
     wx.showLoading({ title: '提交中...' });
