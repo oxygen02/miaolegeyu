@@ -115,8 +115,9 @@ async function checkImage(mediaUrl, scene = 2) {
 
     // 检查云函数返回的数据
     const data = result.data || {};
-    // 只有明确返回违规才拦截
-    if (data.passed === false && data.label > 100 && data.suggest === 'risky') {
+    // 云函数已优化判断逻辑：只有明确返回 risky 才标记为不通过
+    // 前端只需信任云函数返回的 passed 字段
+    if (data.passed === false) {
       return {
         passed: false,
         msg: '图片包含违规内容，请更换后重试'

@@ -70,8 +70,9 @@ async function checkImage(mediaUrl, openid, scene = 2) {
     const suggest = result.result?.suggest || 'pass';
     const label = result.result?.label || 100;
     
-    // 只有明确返回 pass 才通过
-    const passed = suggest === 'pass' && label === 100;
+    // 优化：明确返回 pass 或通过时才通过；review 状态视为通过（避免误报）
+    // 只有明确返回 risky 才拦截
+    const passed = suggest !== 'risky';
     
     return {
       passed: passed,

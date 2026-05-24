@@ -42,8 +42,11 @@ async function checkWithWxApi(content, openid, scene = 2) {
     const suggest = result.result?.suggest || 'pass';
     const label = result.result?.label || 100;
     
+    // 优化：只有明确返回 risky 才拦截，避免正常内容被误报
+    const passed = suggest !== 'risky';
+    
     return {
-      passed: suggest === 'pass' && label === 100,
+      passed: passed,
       suggest: suggest,
       label: label,
       detail: result.result?.detail || null,
