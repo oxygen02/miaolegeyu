@@ -83,9 +83,9 @@ async function checkImage(mediaUrl, openid, scene = 2) {
     };
   } catch (err) {
     console.error('图片检测失败:', err);
-    // API调用失败时，返回特定错误码，让调用方决定是否放行
+    // API调用失败时放行，避免阻塞正常用户
     return {
-      passed: false,
+      passed: true,
       suggest: 'error',
       label: -1,
       errCode: -1,

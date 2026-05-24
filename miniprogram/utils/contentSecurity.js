@@ -33,10 +33,10 @@ async function checkContent(content, scene = 2) {
       };
     }
     
-    // 云函数返回其他错误码 - 检测失败时不放行
+    // 云函数返回其他错误码 - 检测失败时放行（避免阻塞正常用户）
     if (result.code !== 0) {
       console.warn('内容检查调用失败:', result.msg);
-      return { passed: false, msg: '检查服务暂不可用，请稍后重试' };
+      return { passed: true, msg: '检查服务暂不可用，已放行' };
     }
 
     // 检查云函数返回的数据
@@ -51,7 +51,8 @@ async function checkContent(content, scene = 2) {
     return { passed: true, msg: '内容审核通过' };
   } catch (err) {
     console.error('内容检查异常:', err);
-    return { passed: false, msg: '检查异常，请稍后重试' };
+    // 异常时放行，避免阻塞正常用户
+    return { passed: true, msg: '检查异常，已放行' };
   }
 }
 
