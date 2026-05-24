@@ -1,6 +1,7 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const { checkContent } = require('../utils/contentSecurity');
 
 // 确保集合存在（自动创建）
 async function ensureCollection(collectionName) {
@@ -34,6 +35,15 @@ exports.main = async (event, context) => {
   const { title, description, candidateDates, timeRange, timePeriod, minParticipants, deadline, anonymous } = event;
 
   try {
+    // 内容安全检查
+    const contentToCheck = [title, description].filter(Boolean).join(' ');
+    if (contentToCheck) {
+      const securityCheck = await checkContent(contentToCheck, OPENID, 2);
+      if (!securityCheck.passed) {
+        return { success: false, error: securityCheck.msg };
+      }
+    }
+
     // 确保 schedule_votes 集合存在
     await ensureCollection('schedule_votes');
 

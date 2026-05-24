@@ -1,10 +1,11 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const { checkContent } = require('../utils/contentSecurity');
 
 exports.main = async (event, context) => {
   console.log('云函数被调用，接收数据:', event);
-  
+
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
 
@@ -36,6 +37,14 @@ exports.main = async (event, context) => {
   }
 
   try {
+    // 内容安全检查
+    const contentToCheck = [name, location, reason, notice, tips].filter(Boolean).join(' ');
+    if (contentToCheck) {
+      const securityCheck = await checkContent(contentToCheck, openid, 2);
+      if (!securityCheck.passed) {
+        return { success: false, error: securityCheck.msg };
+      }
+    }
     const shopData = {
       name: name.trim(),
       cuisine,

@@ -33,7 +33,7 @@ async function checkContent(content, scene = 2) {
     if (result.code === 403) {
       return {
         passed: false,
-        msg: result.msg || '内容包含违规信息，请修改后重试'
+        msg: result.msg || '所发布内容含违规信息'
       };
     }
 
@@ -48,7 +48,7 @@ async function checkContent(content, scene = 2) {
     if (data.passed === false) {
       return {
         passed: false,
-        msg: '内容包含违规信息，请修改后重试'
+        msg: '所发布内容含违规信息'
       };
     }
 
@@ -108,7 +108,7 @@ async function checkImage(mediaUrl, scene = 2) {
     if (result.code === 403) {
       return {
         passed: false,
-        msg: result.msg || '图片包含违规内容'
+        msg: result.msg || '所发布内容含违规信息'
       };
     }
 
@@ -123,7 +123,7 @@ async function checkImage(mediaUrl, scene = 2) {
     if (data.passed === false) {
       return {
         passed: false,
-        msg: '图片包含违规内容，请更换后重试'
+        msg: '所发布内容含违规信息'
       };
     }
 

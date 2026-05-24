@@ -2,6 +2,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
+const { checkContent } = require('../utils/contentSecurity');
 
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
@@ -16,6 +17,15 @@ exports.main = async (event, context) => {
   }
 
   try {
+    // 内容安全检查
+    const contentToCheck = [title, description].filter(Boolean).join(' ');
+    if (contentToCheck) {
+      const securityCheck = await checkContent(contentToCheck, OPENID, 2);
+      if (!securityCheck.passed) {
+        return { success: false, error: securityCheck.msg };
+      }
+    }
+
     // 先查询投票是否存在且是当前用户创建的
     const { data: votes } = await db.collection('schedule_votes')
       .where({ _id: voteId })

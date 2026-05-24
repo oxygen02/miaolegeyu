@@ -1,21 +1,33 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const { checkContent } = require('../utils/contentSecurity');
 
 exports.main = async (event) => {
   const { nickName, avatarUrl } = event;
-  
+
   try {
     const wxContext = cloud.getWXContext();
     const openid = wxContext.OPENID;
-    
+
     if (!openid) {
       return {
         code: -1,
         msg: '未登录'
       };
     }
-    
+
+    // 内容安全检查（昵称）
+    if (nickName) {
+      const securityCheck = await checkContent(nickName, openid, 1); // scene=1:资料
+      if (!securityCheck.passed) {
+        return {
+          code: 403,
+          msg: securityCheck.msg
+        };
+      }
+    }
+
     const { data: users } = await db.collection('users')
       .where({ _openid: openid })
       .limit(1)

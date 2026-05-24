@@ -214,13 +214,13 @@ exports.main = async (event) => {
       // 本地敏感词检查
       const localCheck = checkSensitiveWords(contentToCheck);
       if (localCheck.hasSensitive) {
-        return { code: 403, msg: '内容包含违规信息，请修改后重试' };
+        return { code: 403, msg: '所发布内容含违规信息' };
       }
-      
+
       // 微信官方API检查
       const wxCheck = await checkWithWxApi(contentToCheck);
       if (wxCheck.passed === false && wxCheck.suggest === 'risky') {
-        return { code: 403, msg: '内容包含违规信息，请修改后重试' };
+        return { code: 403, msg: '所发布内容含违规信息' };
       }
     }
     
@@ -239,7 +239,7 @@ exports.main = async (event) => {
             // 只有明确返回 risky 才拦截
             if (imageCheck.passed === false && imageCheck.suggest === 'risky') {
               console.log(`图片检测未通过，存在违规内容:`, imageCheck);
-              return { code: 403, msg: '图片包含违规内容，请更换后重试' };
+              return { code: 403, msg: '所发布内容含违规信息' };
             }
             console.log(`图片检测通过或放行:`, imageCheck.msg);
           } catch (imgErr) {

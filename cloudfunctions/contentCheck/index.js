@@ -53,7 +53,7 @@ exports.main = async (event, context) => {
           suggest: suggest,
           detail: result.result?.detail || null
         },
-        msg: '内容包含违规信息，请修改后重试'
+        msg: '所发布内容含违规信息'
       };
     }
 

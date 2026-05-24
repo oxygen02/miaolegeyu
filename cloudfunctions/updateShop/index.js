@@ -1,6 +1,7 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const { checkContent } = require('../utils/contentSecurity');
 
 exports.main = async (event, context) => {
   const { shopId, name, cuisine, cuisineName, avgPrice, location, reason, tips, platformUrl, rating, images, isAnonymous } = event;
@@ -11,6 +12,15 @@ exports.main = async (event, context) => {
   }
 
   try {
+    // 内容安全检查
+    const contentToCheck = [name, location, reason, tips].filter(Boolean).join(' ');
+    if (contentToCheck) {
+      const securityCheck = await checkContent(contentToCheck, OPENID, 2);
+      if (!securityCheck.passed) {
+        return { success: false, error: securityCheck.msg };
+      }
+    }
+
     // 获取店铺信息，检查是否是发起者
     const shopRes = await db.collection('shops').doc(shopId).get();
 

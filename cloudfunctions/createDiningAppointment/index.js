@@ -1,12 +1,13 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const { checkContent } = require('../utils/contentSecurity');
 
 exports.main = async (event, context) => {
-  const { 
-    shopId, 
-    appointmentTime, 
-    deadline, 
+  const {
+    shopId,
+    appointmentTime,
+    deadline,
     note,
     maxParticipants,
     requirements = [],
@@ -16,12 +17,20 @@ exports.main = async (event, context) => {
     notifyInterested = false // 是否通知感兴趣的用户
   } = event;
   const { OPENID } = cloud.getWXContext();
-  
+
   if (!shopId || !appointmentTime || !deadline) {
     return { success: false, error: '缺少必要参数' };
   }
-  
+
   try {
+    // 内容安全检查
+    const contentToCheck = [note, customRequirement].filter(Boolean).join(' ');
+    if (contentToCheck) {
+      const securityCheck = await checkContent(contentToCheck, OPENID, 2);
+      if (!securityCheck.passed) {
+        return { success: false, error: securityCheck.msg };
+      }
+    }
     // 获取店铺信息
     let shopName = '未知店铺';
     try {

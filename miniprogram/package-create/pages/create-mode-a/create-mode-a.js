@@ -1017,7 +1017,7 @@ Page({
           title: title
         }
       }).then(res => {
-        console.log('异步图片检测结果:', res);
+        console.log('异步图片检测结果:', JSON.stringify(res.result || {}));
       }).catch(err => {
         console.error('异步图片检测失败:', err);
       });

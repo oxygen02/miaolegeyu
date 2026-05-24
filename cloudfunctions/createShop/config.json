@@ -1,4 +1,9 @@
 {
+  "permissions": {
+    "openapi": [
+      "security.msgSecCheck"
+    ]
+  },
   "timeout": 30,
   "memorySize": 512
 }

@@ -2,6 +2,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
+const { checkContent } = require('../utils/contentSecurity');
 
 exports.main = async (event, context) => {
   const { shopId, stars, comment } = event;
@@ -22,6 +23,13 @@ exports.main = async (event, context) => {
   }
 
   try {
+    // 内容安全检查
+    if (comment) {
+      const securityCheck = await checkContent(comment, OPENID, 2);
+      if (!securityCheck.passed) {
+        return { success: false, error: securityCheck.msg };
+      }
+    }
     // 获取店铺信息
     const shopResult = await db.collection('shops').doc(shopId).get();
     if (!shopResult.data) {

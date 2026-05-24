@@ -1,16 +1,24 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const { checkContent } = require('../utils/contentSecurity');
 
 exports.main = async (event, context) => {
   const { appointmentId, stars, comment } = event;
   const { OPENID } = cloud.getWXContext();
-  
+
   if (!appointmentId || !stars) {
     return { success: false, error: '缺少必要参数' };
   }
-  
+
   try {
+    // 内容安全检查
+    if (comment) {
+      const securityCheck = await checkContent(comment, OPENID, 2);
+      if (!securityCheck.passed) {
+        return { success: false, error: securityCheck.msg };
+      }
+    }
     // 获取报名信息
     const appointment = await db.collection('dining_appointments').doc(appointmentId).get();
     
