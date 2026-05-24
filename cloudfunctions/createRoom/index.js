@@ -35,7 +35,8 @@ function checkSensitiveWords(text) {
 }
 
 /**
- * 调用微信官方内容安全API
+ * 调用微信官方内容安全API (msgSecCheck)
+ * 策略：只有明确返回 risky 才拦截，API 错误时放行
  */
 async function checkWithWxApi(content) {
   try {
@@ -45,25 +46,49 @@ async function checkWithWxApi(content) {
       openid: cloud.getWXContext().OPENID,
       scene: 2
     });
+
+    console.log('msgSecCheck 返回:', JSON.stringify(result));
+
+    const suggest = result.result?.suggest;
+
+    // 只有明确返回 risky 才拦截
+    if (suggest === 'risky') {
+      return {
+        passed: false,
+        suggest: suggest,
+        detail: result.result,
+        msg: '内容包含违规信息'
+      };
+    }
+
+    // pass 或 review 都视为通过
     return {
-      passed: result.result?.suggest === 'pass' && result.result?.label === 100,
-      detail: result.result
+      passed: true,
+      suggest: suggest || 'pass',
+      detail: result.result,
+      msg: '内容审核通过'
     };
   } catch (err) {
     console.error('微信内容安全API调用失败:', err);
-    // API调用失败时返回失败，避免违规内容被创建
-    return { passed: false, errMsg: err.message || 'API调用失败' };
+    // API 调用失败时放行，避免阻塞正常用户
+    return {
+      passed: true,
+      errMsg: err.message || 'API调用失败',
+      msg: '检测服务暂不可用，已放行'
+    };
   }
 }
 
 /**
- * 调用微信官方图片内容安全API
+ * 调用微信官方图片内容安全API (imgSecCheck)
+ * 注意：imgSecCheck 对正常图片也可能返回误判，且 API 不稳定
+ * 策略：只有明确返回 risky 才拦截，其他情况（包括 API 错误）都放行
  */
 async function checkImageWithWxApi(mediaUrl, openid, scene = 2) {
   try {
     let imageBuffer;
     let contentType = 'image/png';
-    
+
     // 下载云存储文件
     if (mediaUrl.startsWith('cloud://')) {
       const res = await cloud.downloadFile({ fileID: mediaUrl });
@@ -76,9 +101,10 @@ async function checkImageWithWxApi(mediaUrl, openid, scene = 2) {
         contentType = 'image/gif';
       }
     } else {
-      throw new Error('不支持的图片格式');
+      console.warn('不支持的图片格式，跳过检测:', mediaUrl);
+      return { passed: true, msg: '跳过非云存储图片' };
     }
-    
+
     const result = await cloud.openapi.security.imgSecCheck({
       media: {
         contentType: contentType,
@@ -87,16 +113,37 @@ async function checkImageWithWxApi(mediaUrl, openid, scene = 2) {
       openid: openid,
       scene: scene
     });
-    
+
+    console.log('imgSecCheck 返回:', JSON.stringify(result));
+
+    const suggest = result.result?.suggest;
+    const label = result.result?.label;
+
+    // 只有明确返回 risky 才认为是违规
+    if (suggest === 'risky') {
+      return {
+        passed: false,
+        suggest: suggest,
+        label: label,
+        msg: '图片包含违规内容'
+      };
+    }
+
+    // pass 或 review 都视为通过
     return {
-      passed: result.result?.suggest === 'pass' && result.result?.label === 100,
-      suggest: result.result?.suggest || 'pass',
-      label: result.result?.label || 100
+      passed: true,
+      suggest: suggest || 'pass',
+      label: label || 100,
+      msg: '图片审核通过'
     };
   } catch (err) {
     console.error('图片内容安全API调用失败:', err);
-    // API调用失败时返回失败，避免违规图片被创建
-    return { passed: false, errMsg: err.message || '图片检测失败' };
+    // API 调用失败时放行，避免阻塞正常用户
+    return {
+      passed: true,
+      errMsg: err.message || '图片检测失败',
+      msg: '检测服务暂不可用，已放行'
+    };
   }
 }
 
@@ -172,12 +219,13 @@ exports.main = async (event) => {
       
       // 微信官方API检查
       const wxCheck = await checkWithWxApi(contentToCheck);
-      if (!wxCheck.passed) {
+      if (wxCheck.passed === false && wxCheck.suggest === 'risky') {
         return { code: 403, msg: '内容包含违规信息，请修改后重试' };
       }
     }
     
-    // 图片内容安全检查（仅作为辅助检测，不阻塞正常用户）
+    // 图片内容安全检查
+    // 策略：只有 imgSecCheck 明确返回 risky 才拦截，API 错误或 review 状态都放行
     console.log('开始图片内容安全检查，海报数量:', candidatePosters?.length || 0);
     if (candidatePosters && candidatePosters.length > 0) {
       for (let i = 0; i < candidatePosters.length; i++) {
@@ -188,15 +236,12 @@ exports.main = async (event) => {
           try {
             const imageCheck = await checkImageWithWxApi(imageUrl, wxContext.OPENID);
             console.log(`图片检测结果:`, imageCheck);
-            // 只有明确检测到违规内容才拦截（label > 100 且 suggest === 'risky'）
-            if (!imageCheck.passed && imageCheck.label > 100 && imageCheck.suggest === 'risky') {
-              console.log(`图片检测未通过:`, imageCheck);
+            // 只有明确返回 risky 才拦截
+            if (imageCheck.passed === false && imageCheck.suggest === 'risky') {
+              console.log(`图片检测未通过，存在违规内容:`, imageCheck);
               return { code: 403, msg: '图片包含违规内容，请更换后重试' };
             }
-            // API 调用失败或其他情况，记录日志但不拦截
-            if (!imageCheck.passed) {
-              console.log(`图片检测服务异常，放行:`, imageCheck.errMsg || '未知错误');
-            }
+            console.log(`图片检测通过或放行:`, imageCheck.msg);
           } catch (imgErr) {
             console.error('图片检测异常，放行:', imgErr);
             // API 异常时不阻塞用户
