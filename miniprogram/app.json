@@ -105,5 +105,6 @@
     "getLocation",
     "chooseLocation",
     "chooseAddress"
-  ]
+  ],
+  "lazyCodeLoading": "requiredComponents"
 }

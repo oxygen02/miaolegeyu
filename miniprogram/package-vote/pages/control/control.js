@@ -1,6 +1,6 @@
 const ANON_NAMES = ['吃货喵', '馋嘴猫', '干饭喵', '探店喵', '觅食喵', '品鉴喵', '寻味喵', '尝鲜喵', '老饕喵', '滋味喵'];
 const { imagePaths } = getApp().globalData;
-const { CONTROL_TEXTS } = require('../../../utils/i18n');
+const { CONTROL_TEXTS } = require('../../utils/i18n');
 
 Page({
   data: {
