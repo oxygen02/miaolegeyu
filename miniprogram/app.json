@@ -62,7 +62,8 @@
         "pages/history/history",
         "pages/about/about",
         "pages/feedback/feedback",
-        "pages/report/report"
+        "pages/report/report",
+        "pages/privacy/privacy"
       ]
     }
   ],
@@ -106,5 +107,8 @@
     "chooseLocation",
     "chooseAddress"
   ],
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+  "usingComponents": {
+    "empty-state": "components/empty-state/empty-state"
+  }
 }

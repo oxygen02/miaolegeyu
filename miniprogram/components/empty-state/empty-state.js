@@ -1,48 +1,107 @@
-const { imagePaths } = getApp().globalData;
-
 Component({
   properties: {
     type: {
       type: String,
-      value: 'default' // default, search, network, error
-    },
-    icon: {
-      type: String,
-      value: ''
+      value: 'default'
     },
     title: {
       type: String,
       value: ''
     },
-    desc: {
+    description: {
       type: String,
       value: ''
     },
-    btnText: {
+    buttonText: {
       type: String,
       value: ''
+    },
+    imageUrl: {
+      type: String,
+      value: ''
+    },
+    showButton: {
+      type: Boolean,
+      value: true
     }
   },
 
   data: {
-    defaultIcon: ''
+    defaultConfigs: {
+      default: {
+        title: '暂无数据',
+        description: '暂无相关内容',
+        buttonText: '去看看',
+        icon: 'empty'
+      },
+      room: {
+        title: '还没有房间',
+        description: '快去创建一个聚餐房间吧',
+        buttonText: '创建房间',
+        icon: 'room'
+      },
+      vote: {
+        title: '还没有投票',
+        description: '参与投票，选出心仪的餐厅',
+        buttonText: '去投票',
+        icon: 'vote'
+      },
+      shop: {
+        title: '暂无店铺',
+        description: '快来推荐你喜欢的餐厅',
+        buttonText: '推荐店铺',
+        icon: 'shop'
+      },
+      order: {
+        title: '暂无订单',
+        description: '还没有参与任何聚餐活动',
+        buttonText: '发起聚餐',
+        icon: 'order'
+      },
+      message: {
+        title: '暂无消息',
+        description: '暂时没有新消息',
+        buttonText: '',
+        icon: 'message'
+      },
+      search: {
+        title: '未找到结果',
+        description: '换个关键词试试吧',
+        buttonText: '',
+        icon: 'search'
+      },
+      network: {
+        title: '网络连接失败',
+        description: '请检查网络设置',
+        buttonText: '重新连接',
+        icon: 'network'
+      }
+    },
+    iconPaths: {}
   },
 
-  lifetimes: {
-    attached() {
-      const icons = {
-        default: imagePaths.decorations.catAvatarIcon,
-        search: imagePaths.decorations.catAvatarIcon,
-        network: imagePaths.decorations.catAvatarIcon,
-        error: imagePaths.decorations.catAvatarIcon
-      };
-      this.setData({ defaultIcon: icons[this.data.type] || icons.default });
-    }
+  async attached() {
+    const app = getApp();
+    const imagePaths = await app.whenImageReady();
+    this.setData({ iconPaths: imagePaths });
   },
 
   methods: {
-    onBtnTap() {
-      this.triggerEvent('btnTap');
+    getConfig() {
+      const { type, title, description, buttonText, imageUrl } = this.properties;
+      const defaultConfig = this.data.defaultConfigs[type] || this.data.defaultConfigs.default;
+      
+      return {
+        title: title || defaultConfig.title,
+        description: description || defaultConfig.description,
+        buttonText: buttonText || defaultConfig.buttonText,
+        icon: defaultConfig.icon,
+        imageUrl: imageUrl
+      };
+    },
+
+    onButtonTap() {
+      this.triggerEvent('buttonTap', {});
     }
   }
 });

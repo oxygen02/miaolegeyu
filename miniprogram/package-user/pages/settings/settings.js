@@ -223,5 +223,19 @@ Page({
         }
       }
     });
+  },
+
+  // 跳转到隐私政策页面
+  goToPrivacy() {
+    wx.navigateTo({
+      url: '/package-user/pages/privacy/privacy?tab=privacy'
+    });
+  },
+
+  // 跳转到用户协议页面
+  goToAgreement() {
+    wx.navigateTo({
+      url: '/package-user/pages/privacy/privacy?tab=agreement'
+    });
   }
 });

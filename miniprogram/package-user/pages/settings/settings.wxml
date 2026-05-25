@@ -45,6 +45,16 @@
       <text class="setting-label">清除缓存</text>
       <text class="setting-arrow">›</text>
     </view>
+
+    <view class="setting-item" bindtap="goToPrivacy">
+      <text class="setting-label">隐私政策</text>
+      <text class="setting-arrow">›</text>
+    </view>
+
+    <view class="setting-item" bindtap="goToAgreement">
+      <text class="setting-label">用户协议</text>
+      <text class="setting-arrow">›</text>
+    </view>
   </view>
 
   <!-- 退出登录按钮 -->

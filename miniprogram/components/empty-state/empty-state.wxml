@@ -1,6 +1,45 @@
-<view class="empty-state {{type}}">
-  <image class="empty-icon" src="{{icon || defaultIcon}}" mode="aspectFit"/>
-  <text class="empty-title">{{title || '暂无数据'}}</text>
-  <text class="empty-desc" wx:if="{{desc}}">{{desc}}</text>
-  <button class="empty-btn" wx:if="{{btnText}}" bindtap="onBtnTap">{{btnText}}</button>
+<view class="empty-state-container">
+  <view class="empty-content">
+    <view class="empty-icon-wrapper">
+      <image 
+        v-if="getConfig().imageUrl" 
+        class="empty-image" 
+        :src="getConfig().imageUrl" 
+        mode="aspectFit"
+      />
+      <view v-else class="empty-icon" :class="getConfig().icon">
+        <view v-if="getConfig().icon === 'room'" class="icon-room">
+          <text class="icon-text">🏠</text>
+        </view>
+        <view v-else-if="getConfig().icon === 'vote'" class="icon-vote">
+          <text class="icon-text">🗳️</text>
+        </view>
+        <view v-else-if="getConfig().icon === 'shop'" class="icon-shop">
+          <text class="icon-text">🍽️</text>
+        </view>
+        <view v-else-if="getConfig().icon === 'order'" class="icon-order">
+          <text class="icon-text">📋</text>
+        </view>
+        <view v-else-if="getConfig().icon === 'message'" class="icon-message">
+          <text class="icon-text">💬</text>
+        </view>
+        <view v-else-if="getConfig().icon === 'search'" class="icon-search">
+          <text class="icon-text">🔍</text>
+        </view>
+        <view v-else-if="getConfig().icon === 'network'" class="icon-network">
+          <text class="icon-text">📶</text>
+        </view>
+        <view v-else class="icon-default">
+          <text class="icon-text">🐱</text>
+        </view>
+      </view>
+    </view>
+    
+    <text class="empty-title">{{ getConfig().title }}</text>
+    <text class="empty-description">{{ getConfig().description }}</text>
+    
+    <view v-if="getConfig().buttonText && showButton" class="empty-button" bindtap="onButtonTap">
+      <text class="button-text">{{ getConfig().buttonText }}</text>
+    </view>
+  </view>
 </view>

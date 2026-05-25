@@ -1,0 +1,143 @@
+.privacy-container {
+  min-height: 100vh;
+  background-color: #F5F0E8;
+}
+
+.header {
+  background-color: #FFFFFF;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #E8E8E8;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32rpx;
+}
+
+.back-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-icon {
+  font-size: 36rpx;
+  color: #333333;
+}
+
+.title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.placeholder {
+  width: 64rpx;
+}
+
+.tabs {
+  display: flex;
+  background-color: #FFFFFF;
+  border-bottom: 1rpx solid #E8E8E8;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx 0;
+  position: relative;
+}
+
+.tab-text {
+  font-size: 28rpx;
+  color: #999999;
+  transition: color 0.3s;
+}
+
+.tab-item.active .tab-text {
+  color: #5B8FF9;
+  font-weight: 500;
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  width: 48rpx;
+  height: 6rpx;
+  background-color: #5B8FF9;
+  border-radius: 3rpx;
+}
+
+.content-scroll {
+  height: calc(100vh - 180rpx);
+}
+
+.content {
+  padding: 32rpx;
+}
+
+.section {
+  margin-bottom: 40rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333333;
+  display: block;
+  text-align: center;
+  margin-bottom: 12rpx;
+}
+
+.section-date {
+  font-size: 24rpx;
+  color: #999999;
+  display: block;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.section-subtitle {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+  display: block;
+  margin-bottom: 20rpx;
+  padding-left: 16rpx;
+  border-left: 6rpx solid #5B8FF9;
+}
+
+.paragraph {
+  font-size: 28rpx;
+  color: #666666;
+  line-height: 1.8;
+}
+
+.paragraph .bold {
+  font-weight: 500;
+  color: #333333;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.list {
+  margin-top: 16rpx;
+  padding-left: 24rpx;
+}
+
+.list-item {
+  display: block;
+  font-size: 28rpx;
+  color: #666666;
+  line-height: 2;
+}
+
+.footer-space {
+  height: 60rpx;
+}
