@@ -662,7 +662,7 @@ this.markAsModified();
           icon: 'success' 
         });
         setTimeout(() => {
-                  wx.navigateTo({ url: `/package-vote/pages/control/control?roomId=${this.data.isEditMode ? this.data.editRoomId : result.result.data.roomId}` });
+                  wx.redirectTo({ url: `/package-vote/pages/control/control?roomId=${this.data.isEditMode ? this.data.editRoomId : result.result.data.roomId}` });
         }, 1500);
       } else {
         throw new Error(result.result.msg || (this.data.isEditMode ? '保存失败' : '创建失败'));

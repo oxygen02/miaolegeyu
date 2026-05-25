@@ -7,10 +7,10 @@ Page({
     imagePaths: imagePaths,
     roomId: '',
     bannerCatUrl: imagePaths.misc.juzeAvatar,
-    roomCode: '731286',
-    roomTitle: '周二晚撸串建设北路',
-    roomAddress: '建设北路',
-    roomTime: '4月28日 18:00',
+    roomCode: '',
+    roomTitle: '',
+    roomAddress: '',
+    roomTime: '',
     voteDeadline: '',
     roomStatus: 'voting',
     statusText: '投票中',
@@ -18,30 +18,13 @@ Page({
     countdown: '00:00:00',
     countdownTimer: null,
     pollTimer: null,
-    votedCount: 3,
-    unvotedCount: 2,
-    progressPercent: 60,
-    participants: [
-      { id: 'o001', nickName: '喵不喵', avatarUrl: imagePaths.misc.juzeAvatar, isVoted: true, isHost: true, anonName: '吃货喵', choices: ['经典川菜', '重庆火锅'] },
-      { id: 'o002', nickName: '吃货小王', avatarUrl: imagePaths.misc.juzeAvatar, isVoted: true, isHost: false, anonName: '馋嘴猫', choices: ['重庆火锅'] },
-      { id: 'o003', nickName: '美食家小李', avatarUrl: imagePaths.misc.juzeAvatar, isVoted: true, isHost: false, anonName: '干饭喵', choices: ['经典川菜', '麻辣香锅'] },
-      { id: 'o004', nickName: '橘仔', avatarUrl: imagePaths.misc.juzeAvatar, isVoted: false, isHost: false, anonName: '探店喵', choices: [] },
-      { id: 'o005', nickName: '匿名喵友', avatarUrl: imagePaths.misc.juzeAvatar, isVoted: false, isHost: false, anonName: '觅食喵', choices: [] }
-    ],
-    topOptions: [
-      { id: 'sub_01_01', name: '经典川菜', image: imagePaths.banners.taiyakiIcon, count: 3, percent: 75 },
-      { id: 'sub_01_02', name: '重庆火锅', image: imagePaths.banners.taiyakiIcon, count: 2, percent: 50 },
-      { id: 'sub_10_02', name: '麻辣香锅', image: imagePaths.banners.taiyakiIcon, count: 2, percent: 50 }
-    ],
-    winner: {
-      name: '味记小渔匠肥肠鱼稻田蛙',
-      address: '东郊记忆店',
-      category: '川菜',
-      price: 68,
-      image: imagePaths.banners.taiyakiIcon,
-      voteCount: 4,
-      votePercent: 80
-    }
+    votedCount: 0,
+    unvotedCount: 0,
+    progressPercent: 0,
+    participants: [],
+    topOptions: [],
+    winner: null,
+    isLoading: true
   },
 
   previewImage(e) {
@@ -168,7 +151,8 @@ Page({
           votedCount,
           unvotedCount,
           progressPercent,
-          topOptions
+          topOptions,
+          isLoading: false
         });
 
         this.updateStatusText();

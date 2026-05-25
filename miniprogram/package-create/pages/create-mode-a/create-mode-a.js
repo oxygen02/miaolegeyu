@@ -963,7 +963,7 @@ Page({
       });
 
       setTimeout(() => {
-        wx.navigateTo({ url: `/package-vote/pages/control/control?roomId=${this.data.isEditMode ? this.data.editRoomId : result.result.data.roomId}` });
+        wx.redirectTo({ url: `/package-vote/pages/control/control?roomId=${this.data.isEditMode ? this.data.editRoomId : result.result.data.roomId}` });
       }, 1500);
 
     } catch (err) {
