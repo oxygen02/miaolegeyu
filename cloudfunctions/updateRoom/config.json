@@ -1,8 +1,9 @@
 {
   "permissions": {
     "openapi": [
-      "security.msgSecCheck"
+      "security.msgSecCheck",
+      "security.imgSecCheck"
     ]
   },
-  "timeout": 10
+  "timeout": 90
 }

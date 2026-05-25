@@ -618,6 +618,7 @@ this.markAsModified();
         // 编辑模式：调用更新接口
         result = await wx.cloud.callFunction({
           name: 'updateRoom',
+          timeout: 60000,
           data: {
             roomId: this.data.editRoomId,
             title: this.data.title,
@@ -636,6 +637,7 @@ this.markAsModified();
         const roomId = generateRoomId();
         result = await wx.cloud.callFunction({
           name: 'createRoom',
+          timeout: 60000,
           data: {
             roomId,
             mode: 'pick_for_them',

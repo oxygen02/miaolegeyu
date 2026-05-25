@@ -33,8 +33,9 @@ function checkSensitiveWords(text) {
 }
 
 /**
- * 调用微信官方内容安全API (msgSecCheck)
- * 策略：只有明确返回 risky 才拦截，API 错误时放行
+ * 调用微信官方内容安全API (msgSecCheck 2.0)
+ * 策略：只有明确返回 risky 才拦截，pass/review 均视为通过
+ * 文档：https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/sec-check/security.msgSecCheck.html
  */
 async function checkWithWxApi(content) {
   try {
@@ -42,24 +43,26 @@ async function checkWithWxApi(content) {
       version: 2,
       content: content,
       openid: cloud.getWXContext().OPENID,
-      scene: 2
+      scene: 2 // 2:评论（适用于发布内容）
     });
 
+    const errcode = result.errcode;
     const suggest = result.result?.suggest;
 
-    // 只有明确返回 risky 才拦截
-    if (suggest === 'risky') {
+    // 策略：只有明确返回 risky 或 errcode === 87014 才拦截
+    if (errcode === 87014 || suggest === 'risky') {
       return {
         passed: false,
         suggest: suggest,
-        msg: '内容包含违规信息'
+        msg: '所发布内容含违规信息'
       };
     }
 
+    // pass 或 review 都视为通过
     return { passed: true, msg: '内容审核通过' };
   } catch (err) {
     console.error('微信内容安全API调用失败:', err);
-    // API 调用失败时放行
+    // API 调用失败时放行，避免阻塞正常用户
     return { passed: true, msg: '检测服务暂不可用，已放行' };
   }
 }
@@ -89,29 +92,36 @@ exports.main = async (event) => {
 
       // 微信官方API检查
       const wxCheck = await checkWithWxApi(contentToCheck);
-      if (wxCheck.passed === false && wxCheck.suggest === 'risky') {
-        return { success: false, msg: '所发布内容含违规信息' };
+      if (wxCheck.passed === false) {
+        return { success: false, msg: wxCheck.msg || '所发布内容含违规信息' };
       }
     }
 
-    // 写入反馈集合
-    await db.collection('feedbacks').add({
+    const now = new Date();
+
+    // 创建反馈记录
+    const result = await db.collection('feedback').add({
       data: {
+        openid: wxContext.OPENID,
         type,
         content,
-        contact: contact || '',
-        openid: wxContext.OPENID,
-        userInfo: userInfo || {},
-        systemInfo: systemInfo || {},
-        status: 'pending', // pending, processing, resolved
-        createTime: db.serverDate(),
-        updateTime: db.serverDate()
+        contact,
+        userInfo,
+        systemInfo,
+        status: 'pending',
+        adminReply: '',
+        createdAt: now,
+        updatedAt: now
       }
     });
 
-    return { success: true, msg: '反馈提交成功' };
+    return {
+      success: true,
+      msg: '提交成功',
+      data: { id: result._id }
+    };
   } catch (err) {
-    console.error('提交反馈失败:', err);
-    return { success: false, msg: '提交失败，请稍后重试' };
+    console.error('submitFeedback error:', err);
+    return { success: false, msg: err.message || '提交失败' };
   }
 };

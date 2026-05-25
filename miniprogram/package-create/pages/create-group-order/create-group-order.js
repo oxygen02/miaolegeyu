@@ -412,6 +412,7 @@ wx.showLoading({ title: '创建中...', mask: true });
       // 创建拼单房间
       await wx.cloud.callFunction({
         name: 'createRoom',
+        timeout: 60000,
         data: {
           roomId,
           mode: 'group',

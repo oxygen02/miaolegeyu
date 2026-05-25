@@ -914,6 +914,7 @@ Page({
         // 编辑模式：调用更新接口
         result = await wx.cloud.callFunction({
           name: 'updateRoom',
+          timeout: 60000,
           data: {
             roomId: this.data.editRoomId,
             title,
@@ -934,6 +935,7 @@ Page({
         // 创建模式
         result = await wx.cloud.callFunction({
           name: 'createRoom',
+          timeout: 60000,
           data: {
             title,
             location: finalLocation,
