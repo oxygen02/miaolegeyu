@@ -40,7 +40,7 @@ async function ensureCollection(collectionName) {
 
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
-  const { title, description, candidateDates, timeRange, timePeriod, minParticipants, deadline, anonymous } = event;
+  const { title, description, candidateDates, timeRange, timePeriod, minParticipants, deadline, anonymous, creatorNickName: inputCreatorNickName, creatorAvatarUrl: inputCreatorAvatarUrl } = event;
 
   try {
     // 参数验证
@@ -133,17 +133,20 @@ exports.main = async (event, context) => {
 
     const allSlots = generateTimeSlots(candidateDates, timeRange, normalizedTimePeriod);
 
-    // 获取创建者用户信息
-    let creatorNickName = '';
-    let creatorAvatarUrl = '';
-    try {
-      const { data: users } = await db.collection('users').where({ _openid: OPENID }).limit(1).get();
-      if (users && users.length > 0) {
-        creatorNickName = users[0].nickName || '';
-        creatorAvatarUrl = users[0].avatarUrl || '';
+    // 获取创建者用户信息（优先使用客户端传入的参数）
+    let creatorNickName = inputCreatorNickName || '';
+    let creatorAvatarUrl = inputCreatorAvatarUrl || '';
+    // 如果客户端没有传入，则从数据库查询
+    if (!creatorNickName || !creatorAvatarUrl) {
+      try {
+        const { data: users } = await db.collection('users').where({ _openid: OPENID }).limit(1).get();
+        if (users && users.length > 0) {
+          creatorNickName = creatorNickName || users[0].nickName || '';
+          creatorAvatarUrl = creatorAvatarUrl || users[0].avatarUrl || '';
+        }
+      } catch (err) {
+        console.error('获取创建者信息失败:', err);
       }
-    } catch (err) {
-      console.error('获取创建者信息失败:', err);
     }
 
     const result = await db.collection('schedule_votes').add({

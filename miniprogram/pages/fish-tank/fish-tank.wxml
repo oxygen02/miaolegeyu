@@ -23,7 +23,7 @@ module.exports = {
         <image class="header-avatar" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit" binderror="onAvatarError" data-type="header" />
       </view>
       <text class="header-title">喵不喵</text>
-      <text class="header-subtitle">拼美食 · 拼奶茶 · 拼生活</text>
+      <text class="header-subtitle">凑时间 · 拼奶茶 · 约美食 · 聚生活</text>
     </view>
     <image class="header-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit" />
   </view>
@@ -90,7 +90,7 @@ module.exports = {
   <scroll-view class="activity-list" scroll-y="true" enhanced="true" show-scrollbar="false">
     <!-- 正在进行的活动 -->
     <block wx:if="{{activeTab === 'ongoing'}}">
-      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}} {{item.type === 'scheduleVote' ? 'schedule-vote-card' : ''}}" wx:for="{{ongoingActivities}}" wx:key="id" data-index="{{index}}" data-type="{{item.type}}" bindtap="onCardTap" data-id="{{item.id}}">
+      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}} {{item.type === 'scheduleVote' ? 'schedule-vote-card' : ''}}" wx:for="{{ongoingActivities}}" wx:key="id" data-index="{{index}}" data-type="{{item.type}}" data-list-type="ongoing" bindtap="onCardTap" data-id="{{item.id}}">
         <!-- 左上角复选框 -->
         <view class="checkbox-top-left" wx:if="{{isEditMode}}" catchtap="toggleSelect" data-index="{{index}}" data-type="ongoing">
           <view class="checkbox {{item.selected ? 'checked' : ''}}">
@@ -128,9 +128,10 @@ module.exports = {
               <view class="avatar-list">
                 <image
                   wx:for="{{item.participantAvatars}}"
+                  wx:for-item="avatarItem"
                   wx:key="index"
                   class="participant-avatar {{index > 0 ? 'avatar-overlap' : ''}}"
-                  src="{{item.avatarUrl}}"
+                  src="{{avatarItem.avatarUrl}}"
                   mode="aspectFill"
                   style="z-index: {{item.participantAvatars.length - index}};"
                 />
@@ -160,7 +161,7 @@ module.exports = {
 
     <!-- 我发起的活动 -->
     <block wx:if="{{activeTab === 'my'}}">
-      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}} {{item.type === 'scheduleVote' ? 'schedule-vote-card' : ''}}" wx:for="{{myActivities}}" wx:key="id" data-index="{{index}}" data-type="{{item.type}}" bindtap="onCardTap" data-id="{{item.id}}">
+      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}} {{item.type === 'scheduleVote' ? 'schedule-vote-card' : ''}}" wx:for="{{myActivities}}" wx:key="id" data-index="{{index}}" data-type="{{item.type}}" data-list-type="my" bindtap="onCardTap" data-id="{{item.id}}">
         <!-- 左上角复选框 -->
         <view class="checkbox-top-left" wx:if="{{isEditMode}}" catchtap="toggleSelect" data-index="{{index}}" data-type="my">
           <view class="checkbox {{item.selected ? 'checked' : ''}}">
@@ -204,7 +205,7 @@ module.exports = {
 
     <!-- 我参与的活动 -->
     <block wx:if="{{activeTab === 'participated'}}">
-      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}} {{item.type === 'scheduleVote' ? 'schedule-vote-card' : ''}}" wx:for="{{participatedActivities}}" wx:key="id" data-index="{{index}}" data-type="{{item.type}}" bindtap="onCardTap" data-id="{{item.id}}">
+      <view class="activity-card card anim-slide-up {{item.selected ? 'selected' : ''}} {{item.type === 'scheduleVote' ? 'schedule-vote-card' : ''}}" wx:for="{{participatedActivities}}" wx:key="id" data-index="{{index}}" data-type="{{item.type}}" data-list-type="participated" bindtap="onCardTap" data-id="{{item.id}}">
         <!-- 左上角复选框 -->
         <view class="checkbox-top-left" wx:if="{{isEditMode}}" catchtap="toggleSelect" data-index="{{index}}" data-type="participated">
           <view class="checkbox {{item.selected ? 'checked' : ''}}">

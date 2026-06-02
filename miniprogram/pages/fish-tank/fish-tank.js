@@ -379,10 +379,13 @@ Page({
       
       // 统计各类型数量
       const rooms = allRooms.map(room => {
-        // 根据 mode 确定类型
+        // 根据 mode 或 isScheduleVote 确定类型（时间投票优先判断）
         let type = 'dining';
         let typeName = '聚会';
-        if (room.mode === 'group') {
+        if (room.isScheduleVote || room.type === 'scheduleVote') {
+          type = 'scheduleVote';
+          typeName = '时间投票';
+        } else if (room.mode === 'group') {
           type = 'group';
           typeName = '拼单';
         } else if (room.mode === 'meal') {
@@ -392,10 +395,11 @@ Page({
           type = 'dining';
           typeName = '聚会';
         }
+        const isScheduleVoteType = room.isScheduleVote || room.type === 'scheduleVote';
         const isGroup = room.mode === 'group';
         const isMeal = room.mode === 'meal';
-        // 确保 shopName 是字符串
-        let shopName = isGroup ? (room.shopName || '外卖拼单') : (room.location || room.shopName || '地点待定');
+        // 确保 shopName 是字符串（时间投票用 shopName 字段存储日期信息）
+        let shopName = isScheduleVoteType ? (room.shopName || '') : (isGroup ? (room.shopName || '外卖拼单') : (room.location || room.shopName || '地点待定'));
         if (shopName && typeof shopName === 'object') {
           shopName = shopName.name || shopName.title || JSON.stringify(shopName);
         }
@@ -452,14 +456,14 @@ Page({
         };
         const creatorInfo = getCreatorInfo(room);
         return {
-          id: room.roomId,
+          id: room.roomId || room.id,
           type: type,
           typeName: typeName,
           title: room.title,
-          shopName: isMeal ? room.shopName : displayShopName,
-          time: timeStr,
+          shopName: isScheduleVoteType ? (room.shopName || '') : (isMeal ? room.shopName : displayShopName),
+          time: isScheduleVoteType ? (room.time || timeStr) : timeStr,
           participantCount: room.participantCount || 0,
-          image: room.shopImage || (room.candidatePosters && room.candidatePosters[0] && room.candidatePosters[0].imageUrl) || imagePaths.banners.taiyakiIcon,
+          image: isScheduleVoteType ? (imagePaths.banners.taiyakiIcon) : (room.shopImage || (room.candidatePosters && room.candidatePosters[0] && room.candidatePosters[0].imageUrl) || imagePaths.banners.taiyakiIcon),
           status: room.status,
           statusName: room.status === 'voting' ? '进行中' : '已结束',
           roomId: room.roomId,
@@ -641,10 +645,13 @@ Page({
 
       
       const rooms = allMyRooms.map(room => {
-        // 根据 mode 确定类型
+        // 根据 mode 或 isScheduleVote 确定类型（时间投票优先判断）
         let type = 'dining';
         let typeName = '聚会';
-        if (room.mode === 'group') {
+        if (room.isScheduleVote || room.type === 'scheduleVote') {
+          type = 'scheduleVote';
+          typeName = '时间投票';
+        } else if (room.mode === 'group') {
           type = 'group';
           typeName = '拼单';
         } else if (room.mode === 'meal') {
@@ -654,10 +661,11 @@ Page({
           type = 'dining';
           typeName = '聚会';
         }
+        const isScheduleVoteType = room.isScheduleVote || room.type === 'scheduleVote';
         const isGroup = room.mode === 'group';
         const isMeal = room.mode === 'meal';
-        // 确保 shopName 是字符串
-        let shopName = isGroup ? (room.shopName || '外卖拼单') : (room.location || room.shopName || '地点待定');
+        // 确保 shopName 是字符串（时间投票用 shopName 字段存储日期信息）
+        let shopName = isScheduleVoteType ? (room.shopName || '') : (isGroup ? (room.shopName || '外卖拼单') : (room.location || room.shopName || '地点待定'));
         if (shopName && typeof shopName === 'object') {
           shopName = shopName.name || shopName.title || JSON.stringify(shopName);
         }
@@ -883,10 +891,13 @@ Page({
 
 
       const rooms = allParticipatedRooms.map(room => {
-        // 根据 mode 确定类型
+        // 根据 mode 或 isScheduleVote 确定类型（时间投票优先判断）
         let type = 'dining';
         let typeName = '聚会';
-        if (room.mode === 'group') {
+        if (room.isScheduleVote || room.type === 'scheduleVote') {
+          type = 'scheduleVote';
+          typeName = '时间投票';
+        } else if (room.mode === 'group') {
           type = 'group';
           typeName = '拼单';
         } else if (room.mode === 'meal') {
@@ -896,15 +907,16 @@ Page({
           type = 'dining';
           typeName = '聚会';
         }
+        const isScheduleVoteType = room.isScheduleVote || room.type === 'scheduleVote';
         const isGroup = room.mode === 'group';
-        // 确保 shopName 是字符串
-        let shopName = isGroup ? (room.shopName || '外卖拼单') : (room.location || '地点待定');
+        // 确保 shopName 是字符串（时间投票用 shopName 字段存储日期信息）
+        let shopName = isScheduleVoteType ? (room.shopName || '') : (isGroup ? (room.shopName || '外卖拼单') : (room.location || '地点待定'));
         if (shopName && typeof shopName === 'object') {
           shopName = shopName.name || shopName.title || JSON.stringify(shopName);
         }
-        // 格式化时间（约饭显示报名截止，聚餐/拼单显示投票截止）
-        let timeStr = room.deadline || room.activityTime || '时间待定';
-        if (timeStr && timeStr !== '时间待定') {
+        // 格式化时间（时间投票已格式化好，无需二次处理）
+        let timeStr = isScheduleVoteType ? (room.time || '') : (room.deadline || room.activityTime || '时间待定');
+        if (!isScheduleVoteType && timeStr && timeStr !== '时间待定') {
           try {
             const date = new Date(timeStr);
             if (!isNaN(date.getTime())) {
@@ -918,17 +930,17 @@ Page({
           }
         }
         return {
-          id: room.roomId,
+          id: room.roomId || room.id,
           type: type,
           typeName: typeName,
           title: room.title,
           shopName: shopName,
           time: timeStr,
           participantCount: room.participantCount || 0,
-          image: room.shopImage || room.candidatePosters?.[0]?.imageUrl || imagePaths.banners.taiyakiIcon,
+          image: isScheduleVoteType ? imagePaths.banners.taiyakiIcon : (room.shopImage || room.candidatePosters?.[0]?.imageUrl || imagePaths.banners.taiyakiIcon),
           status: room.status,
           statusName: room.status === 'voting' ? '进行中' : '已结束',
-          roomId: room.roomId,
+          roomId: room.roomId || room.id,
           platform: room.platform,
           minAmount: room.minAmount,
           currentAmount: room.currentAmount || 0,
@@ -1201,7 +1213,8 @@ Page({
   // 跳转到活动详情
   goToActivityDetail(e) {
     const roomId = e.currentTarget.dataset.id;
-    const activity = this.data.ongoingActivities.find(a => a.id === roomId) || 
+    const type = e.currentTarget.dataset.type;
+    const activity = this.data.ongoingActivities.find(a => a.id === roomId) ||
                      this.data.myActivities.find(a => a.id === roomId) ||
                      this.data.participatedActivities.find(a => a.id === roomId);
 
@@ -1210,8 +1223,11 @@ Page({
       return;
     }
 
+    // 优先使用传入的 type 参数，如果没有则使用查找结果的 type
+    const activityType = type || activity?.type;
+
     // 根据活动类型跳转到不同页面
-    if (activity?.type === 'scheduleVote') {
+    if (activityType === 'scheduleVote') {
       // 时间投票 - 跳转到结果页（使用voteId参数）
       wx.navigateTo({
         url: `/package-schedule/pages/schedule-vote/result/result?voteId=${roomId}`,
@@ -1219,7 +1235,7 @@ Page({
           wx.showToast({ title: '页面跳转失败', icon: 'none' });
         }
       });
-    } else if (activity?.type === 'group') {
+    } else if (activityType === 'group') {
       // 拼单活动 - 跳转到拼单详情页
       wx.navigateTo({
         url: `/package-vote/pages/group-detail/group-detail?roomId=${roomId}`,
@@ -1227,7 +1243,7 @@ Page({
           wx.showToast({ title: '页面跳转失败', icon: 'none' });
         }
       });
-    } else if (activity?.type === 'meal') {
+    } else if (activityType === 'meal') {
       // 约饭活动 - 跳转到店铺详情页
       const shopId = activity?.shopId;
       if (shopId) {
@@ -1514,10 +1530,13 @@ Page({
             const isScheduleVoteActivity = item.type === 'scheduleVote' || item.isScheduleVote === true;
             if (isScheduleVoteActivity) {
               // 时间投票活动使用 deleteScheduleVote
+              const voteIdToDelete = item.id || item.roomId;
+              console.log('删除时间投票, voteId:', voteIdToDelete, 'item:', JSON.stringify({ id: item.id, roomId: item.roomId, type: item.type }));
               const { result: deleteResult } = await wx.cloud.callFunction({
                 name: 'deleteScheduleVote',
-                data: { voteId: item.id || item.roomId }
+                data: { voteId: voteIdToDelete }
               });
+              console.log('删除时间投票结果:', JSON.stringify(deleteResult));
               result = deleteResult;
             } else if (isMealActivity) {
               // 约饭活动使用 deleteDiningAppointment
@@ -1537,6 +1556,7 @@ Page({
             if (result.code === 0 || result.success === true) {
               successCount++;
             } else {
+              console.log('删除失败详情:', JSON.stringify(result));
               failCount++;
             }
           } else {
@@ -1575,15 +1595,15 @@ Page({
 
   // 卡片点击事件
   onCardTap(e) {
-    const { id, index, type } = e.currentTarget.dataset;
+    const { id, index, type, listType } = e.currentTarget.dataset;
     const { isEditMode } = this.data;
     
     if (!isEditMode) {
       // 非编辑模式下，进入详情页
-      this.goToActivityDetail({ currentTarget: { dataset: { id } } });
+      this.goToActivityDetail({ currentTarget: { dataset: { id, type } } });
     } else {
       // 编辑模式下，切换选中状态
-      this.toggleSelect({ currentTarget: { dataset: { index, type } } });
+      this.toggleSelect({ currentTarget: { dataset: { index, type: listType } } });
     }
   },
 

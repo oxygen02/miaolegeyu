@@ -14,7 +14,9 @@ exports.main = async (event, context) => {
     customRequirement,
     paymentMode = '',
     isAnonymous = false,
-    notifyInterested = false // 是否通知感兴趣的用户
+    notifyInterested = false, // 是否通知感兴趣的用户
+    initiatorName,
+    initiatorAvatar
   } = event;
   const { OPENID } = cloud.getWXContext();
 
@@ -40,14 +42,29 @@ exports.main = async (event, context) => {
       console.log('获取店铺信息失败:', shopErr);
     }
     
-    // 创建报名（不依赖 users 集合）
+    // 获取创建者信息（优先使用传入的参数）
+    let creatorName = initiatorName || '';
+    let creatorAvatar = initiatorAvatar || '';
+    if (!creatorName) {
+      try {
+        const { data: users } = await db.collection('users').where({ _openid: OPENID }).limit(1).get();
+        if (users && users.length > 0) {
+          creatorName = users[0].nickName || '';
+          creatorAvatar = users[0].avatarUrl || '';
+        }
+      } catch (err) {
+        console.log('获取用户信息失败:', err);
+      }
+    }
+
+    // 创建报名
     const result = await db.collection('dining_appointments').add({
       data: {
         shopId,
         shopName: shopName,
         initiatorOpenId: OPENID,
-        initiatorName: '神秘喵友',
-        initiatorAvatar: '',
+        initiatorName: creatorName || '神秘喵友',
+        initiatorAvatar: creatorAvatar || '',
         appointmentTime: new Date(appointmentTime),
         deadline: new Date(deadline),
         tzFixed: true,
@@ -59,8 +76,8 @@ exports.main = async (event, context) => {
         isAnonymous: isAnonymous || false,
         participants: [{
           openId: OPENID,
-          name: isAnonymous ? '匿名喵友' : '神秘喵友',
-          avatar: '',
+          name: isAnonymous ? '匿名喵友' : (creatorName || '神秘喵友'),
+          avatar: creatorAvatar || '',
           joinTime: new Date()
         }],
         status: 'active',

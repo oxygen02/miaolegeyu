@@ -1,0 +1,9 @@
+{
+  "name": "quitGroupOrder",
+  "version": "1.0.0",
+  "description": "退出拼单活动",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

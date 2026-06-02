@@ -75,10 +75,27 @@ exports.main = async (event) => {
     }
 
     // 检查用户是否在参与者列表中
-    const isParticipant = participants.some(p => p.openid === wxContext.OPENID);
+    let isParticipant = participants.some(p => p.openid === wxContext.OPENID);
+
+    // 对于拼单模式，还要检查 group_order_participants
+    let isGroupOrderParticipant = false;
+    let myGroupOrderSelectedOption = -1;
+    if (room.mode === 'group' && !isParticipant) {
+      try {
+        const { data: groupParticipants } = await db.collection('group_order_participants')
+          .where({ roomId, openid: wxContext.OPENID })
+          .get();
+        if (groupParticipants && groupParticipants.length > 0) {
+          isGroupOrderParticipant = true;
+          myGroupOrderSelectedOption = groupParticipants[0].selectedOptionIndex;
+        }
+      } catch (err) {
+        console.error('获取拼单参与者失败:', err);
+      }
+    }
 
     // 如果不是创建者也不是参与者，且房间不是公开状态，则拒绝访问
-    if (!isCreator && !isParticipant) {
+    if (!isCreator && !isParticipant && !isGroupOrderParticipant) {
       // 对于进行中的房间，允许任何人加入
       // 拼单模式需要返回 options 以便用户选择参与
       const isGroupMode = room.mode === 'group';
@@ -160,10 +177,15 @@ exports.main = async (event) => {
           return { index: idx, count };
         });
 
-        // 检查当前用户是否已参与
-        const myParticipation = groupOrderParticipants.find(p => p.openid === wxContext.OPENID);
-        hasJoinedGroupOrder = !!myParticipation;
-        mySelectedOption = myParticipation ? myParticipation.selectedOptionIndex : -1;
+        // 检查当前用户是否已参与（优先使用之前查询的结果）
+        if (isGroupOrderParticipant) {
+          hasJoinedGroupOrder = true;
+          mySelectedOption = myGroupOrderSelectedOption;
+        } else {
+          const myParticipation = groupOrderParticipants.find(p => p.openid === wxContext.OPENID);
+          hasJoinedGroupOrder = !!myParticipation;
+          mySelectedOption = myParticipation ? myParticipation.selectedOptionIndex : -1;
+        }
       } catch (err) {
         console.error('获取拼单参与者失败:', err);
       }

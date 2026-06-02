@@ -149,7 +149,7 @@ exports.main = async (event) => {
         .field({ roomId: true, openid: true })
         .get();
 
-      // 按房间分组获取参与者
+      // 按房间分组获取参与者 openid
       const roomParticipantOpenIds = {};
       groupParticipants.forEach(p => {
         if (!roomParticipantOpenIds[p.roomId]) {
@@ -158,12 +158,31 @@ exports.main = async (event) => {
         roomParticipantOpenIds[p.roomId].push(p.openid);
       });
 
-      // 使用默认头像（脱敏处理，不暴露真实openid）
+      // 收集所有需要去查询头像的 openid
+      const allOpenIds = [...new Set(groupParticipants.map(p => p.openid))];
+      // 查询 users 集合获取真实头像
+      let userAvatarMap = {};
+      if (allOpenIds.length > 0) {
+        try {
+          const { data: users } = await db.collection('users')
+            .where({
+              _openid: _.in(allOpenIds)
+            })
+            .field({ _openid: true, avatarUrl: true })
+            .get();
+          users.forEach(u => {
+            userAvatarMap[u._openid] = u.avatarUrl || '';
+          });
+        } catch (userErr) {
+          console.error('查询用户头像失败:', userErr);
+        }
+      }
+
+      // 组装头像数据
       for (const roomId of Object.keys(roomParticipantOpenIds)) {
         participantAvatars[roomId] = roomParticipantOpenIds[roomId].map((openid, index) => ({
-          avatarUrl: '/assets/images/cat-avatar-icon.png', // 默认头像
+          avatarUrl: userAvatarMap[openid] || '/assets/images/cat-avatar-icon.png',
           index
-          // 注意：不返回 openid
         }));
       }
     } catch (err) {

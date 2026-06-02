@@ -359,6 +359,7 @@ Page({
         result = updateResult;
       } else {
         // 创建模式
+        const userInfo = wx.getStorageSync('userInfo') || {};
         const { result: createResult } = await wx.cloud.callFunction({
           name: 'createScheduleVote',
           data: {
@@ -369,7 +370,9 @@ Page({
             timePeriod: timePeriod || 'lunch',
             minParticipants: minParticipants || 2,
             deadline,
-            anonymous
+            anonymous,
+            creatorNickName: userInfo.nickName || '',
+            creatorAvatarUrl: userInfo.avatarUrl || ''
           }
         });
         result = createResult;

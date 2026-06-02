@@ -635,6 +635,7 @@ this.markAsModified();
       } else {
         // 创建模式
         const roomId = generateRoomId();
+        const userInfo = wx.getStorageSync('userInfo') || {};
         result = await wx.cloud.callFunction({
           name: 'createRoom',
           timeout: 60000,
@@ -649,7 +650,9 @@ this.markAsModified();
             isAnonymous: this.data.isAnonymous,
             needPassword: this.data.needPassword,
             roomPassword: this.data.needPassword ? this.data.roomPassword : '',
-            enableRestaurantRecommend: this.data.enableRestaurantRecommend
+            enableRestaurantRecommend: this.data.enableRestaurantRecommend,
+            creatorNickName: userInfo.nickName || '',
+            creatorAvatarUrl: userInfo.avatarUrl || ''
           }
         });
       }

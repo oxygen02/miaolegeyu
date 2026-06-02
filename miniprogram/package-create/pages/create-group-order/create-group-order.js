@@ -409,6 +409,9 @@ wx.showLoading({ title: '创建中...', mask: true });
       );
 
 
+      // 获取用户信息
+      const userInfo = wx.getStorageSync('userInfo') || {};
+
       // 创建拼单房间
       await wx.cloud.callFunction({
         name: 'createRoom',
@@ -417,7 +420,9 @@ wx.showLoading({ title: '创建中...', mask: true });
           roomId,
           mode: 'group',
           options: optionsWithImages,
-          optionCount: optionsWithImages.length
+          optionCount: optionsWithImages.length,
+          creatorNickName: userInfo.nickName || '',
+          creatorAvatarUrl: userInfo.avatarUrl || ''
         }
       });
 

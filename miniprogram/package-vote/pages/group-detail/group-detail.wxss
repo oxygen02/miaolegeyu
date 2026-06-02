@@ -61,15 +61,54 @@
 
 /* 选项区域 */
 .options-section {
-  margin-bottom: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
 }
 
 .section-title {
   font-size: 32rpx;
-  font-weight: 600;
-  color: #3D3D3D;
-  margin-bottom: 20rpx;
+  font-weight: 700;
+  color: var(--text);
   display: block;
+}
+
+/* 头部操作按钮组 - 右上角取消/退出/删除 */
+.header-actions {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.action-btn {
+  display: inline-block !important;
+  background: #fff !important;
+  color: #666 !important;
+  border: 2rpx solid #ccc !important;
+  box-shadow: none !important;
+  padding: 6rpx 18rpx !important;
+  font-size: 24rpx !important;
+  font-weight: 500 !important;
+  border-radius: 8rpx !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  height: auto !important;
+  min-width: auto !important;
+}
+
+.action-btn::after {
+  display: none !important;
+}
+
+.action-btn[disabled] {
+  background: #f5f5f5 !important;
+  color: #bbb !important;
+  border-color: #ddd !important;
 }
 
 .options-list {
@@ -191,22 +230,15 @@
   gap: 20rpx;
 }
 
-/* 次要操作按钮组 */
-.secondary-actions {
-  display: flex;
-  gap: 16rpx;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 16rpx;
+/* 操作提示文字 */
+.action-hint {
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+  margin-top: 8rpx;
 }
 
-.secondary-actions .btn {
-  flex: 1;
-  min-width: 180rpx;
-  max-width: 220rpx;
-  padding: 16rpx 32rpx !important;
-  font-size: 24rpx !important;
-}
+/* 次要操作按钮组 - 已移至右上角 header-actions */
 
 .btn {
   display: block !important;
@@ -255,47 +287,7 @@
   opacity: 0.8;
 }
 
-/* 警告按钮（取消选择）- 淡橙色 */
-.btn-warning {
-  background: #FFD8A6 !important;
-  color: #8B5A2B !important;
-  border-color: #FFB347 !important;
-}
-
-.btn-warning[disabled] {
-  background: #FFE4C4 !important;
-  color: #A0A0A0 !important;
-  border-color: #FFD8A6 !important;
-  box-shadow: 4rpx 4rpx 0 #FFD8A6 !important;
-}
-
-/* 危险按钮（退出活动）- 淡红色 */
-.btn-danger {
-  background: #FFB3A7 !important;
-  color: #8B3A3A !important;
-  border-color: #FF9A8B !important;
-}
-
-.btn-danger[disabled] {
-  background: #FFD4C4 !important;
-  color: #A0A0A0 !important;
-  border-color: #FFB3A7 !important;
-  box-shadow: 4rpx 4rpx 0 #FFB3A7 !important;
-}
-
-/* 删除按钮（删除活动）- 淡紫色 */
-.btn-delete {
-  background: #E1BEE7 !important;
-  color: #6A1B9A !important;
-  border-color: #CE93D8 !important;
-}
-
-.btn-delete[disabled] {
-  background: #F3E5F5 !important;
-  color: #A0A0A0 !important;
-  border-color: #E1BEE7 !important;
-  box-shadow: 4rpx 4rpx 0 #E1BEE7 !important;
-}
+/* 警告/危险/删除按钮 - 已统一为 action-btn 样式 */
 
 /* 提示信息 */
 .tips-section {

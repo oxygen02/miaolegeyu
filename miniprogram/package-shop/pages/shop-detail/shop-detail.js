@@ -1109,8 +1109,9 @@ async onLoad(options) {
       .map(item => item.name);
 
     wx.showLoading({ title: '提交中...' });
-    
+
     try {
+      const userInfo = wx.getStorageSync('userInfo') || {};
       const { result } = await wx.cloud.callFunction({
         name: 'createDiningAppointment',
         data: {
@@ -1122,7 +1123,9 @@ async onLoad(options) {
           requirements,
           customRequirement,
           paymentMode,
-          isAnonymous: isAnonymousInitiator
+          isAnonymous: isAnonymousInitiator,
+          initiatorName: userInfo.nickName || '',
+          initiatorAvatar: userInfo.avatarUrl || ''
         }
       });
 
