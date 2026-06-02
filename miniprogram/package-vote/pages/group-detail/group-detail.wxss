@@ -184,6 +184,30 @@
   margin-top: auto;
 }
 
+/* 操作按钮组容器 */
+.action-buttons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* 次要操作按钮组 */
+.secondary-actions {
+  display: flex;
+  gap: 16rpx;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16rpx;
+}
+
+.secondary-actions .btn {
+  flex: 1;
+  min-width: 180rpx;
+  max-width: 220rpx;
+  padding: 16rpx 32rpx !important;
+  font-size: 24rpx !important;
+}
+
 .btn {
   display: block !important;
   width: fit-content !important;
@@ -229,6 +253,48 @@
 
 .btn-loading {
   opacity: 0.8;
+}
+
+/* 警告按钮（取消选择） */
+.btn-warning {
+  background: #FF9800 !important;
+  color: #fff !important;
+  border-color: #FF9800 !important;
+}
+
+.btn-warning[disabled] {
+  background: #FFB74D !important;
+  color: #fff !important;
+  border-color: #FF9800 !important;
+  box-shadow: 4rpx 4rpx 0 #FF9800 !important;
+}
+
+/* 危险按钮（退出活动） */
+.btn-danger {
+  background: #F44336 !important;
+  color: #fff !important;
+  border-color: #F44336 !important;
+}
+
+.btn-danger[disabled] {
+  background: #E57373 !important;
+  color: #fff !important;
+  border-color: #F44336 !important;
+  box-shadow: 4rpx 4rpx 0 #F44336 !important;
+}
+
+/* 删除按钮（删除活动） */
+.btn-delete {
+  background: #9C27B0 !important;
+  color: #fff !important;
+  border-color: #9C27B0 !important;
+}
+
+.btn-delete[disabled] {
+  background: #BA68C8 !important;
+  color: #fff !important;
+  border-color: #9C27B0 !important;
+  box-shadow: 4rpx 4rpx 0 #9C27B0 !important;
 }
 
 /* 提示信息 */

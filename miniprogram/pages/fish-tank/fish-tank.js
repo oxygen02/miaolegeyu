@@ -241,8 +241,8 @@ Page({
         statusName: vote.isExpired ? '已截止' : '进行中',
         roomId: vote._id,
         isCreator: vote.isCreator,
-        creatorNickName: vote.isCreator ? '我' : '发起人',
-        creatorAvatarUrl: imagePaths.decorations.catAvatarIcon,
+        creatorNickName: vote.creatorNickName || (vote.participants && vote.participants[0] && vote.participants[0].isHost && vote.participants[0].nickName) || (vote.isCreator ? '我' : '发起人'),
+        creatorAvatarUrl: vote.creatorAvatarUrl || (vote.participants && vote.participants[0] && vote.participants[0].isHost && vote.participants[0].avatarUrl) || imagePaths.decorations.catAvatarIcon,
         isScheduleVote: true,
         calendarMonth,
         calendarDay
@@ -427,6 +427,30 @@ Page({
         }
         // 判断是否是创建者
         const isCreator = room.creatorOpenId === myOpenId || room.isCreator === true;
+        // 获取发起人信息：优先从creatorNickName/creatorAvatarUrl获取，其次从participants中查找isHost=true的用户
+        const getCreatorInfo = (room) => {
+          if (room.creatorNickName && room.creatorAvatarUrl) {
+            return {
+              nickName: room.creatorNickName,
+              avatarUrl: room.creatorAvatarUrl
+            };
+          }
+          if (room.participants && Array.isArray(room.participants)) {
+            const host = room.participants.find(p => p.isHost === true);
+            if (host && host.nickName) {
+              return {
+                nickName: host.nickName,
+                avatarUrl: host.avatarUrl || imagePaths.decorations.catAvatarIcon
+              };
+            }
+          }
+          // 如果都找不到，返回默认值
+          return {
+            nickName: '神秘喵友',
+            avatarUrl: imagePaths.decorations.catAvatarIcon
+          };
+        };
+        const creatorInfo = getCreatorInfo(room);
         return {
           id: room.roomId,
           type: type,
@@ -444,8 +468,8 @@ Page({
           currentAmount: room.currentAmount || 0,
           isCreator: isCreator,
           creatorOpenId: room.creatorOpenId,
-          creatorNickName: room.creatorNickName || room.creatorName || (room.participants && room.participants[0] && room.participants[0].isHost && room.participants[0].nickName) || '神秘喵友',
-          creatorAvatarUrl: room.creatorAvatarUrl || (room.participants && room.participants[0] && room.participants[0].isHost && room.participants[0].avatarUrl) || imagePaths.decorations.catAvatarIcon,
+          creatorNickName: isCreator ? '我' : creatorInfo.nickName,
+          creatorAvatarUrl: creatorInfo.avatarUrl,
           // 拼单参与者头像
           participantAvatars: room.participantAvatars || []
         };
@@ -668,8 +692,24 @@ Page({
           minAmount: room.minAmount,
           currentAmount: room.currentAmount || 0,
           isCreator: true,
-          creatorNickName: room.creatorNickName || room.creatorName || (room.participants && room.participants[0] && room.participants[0].isHost && room.participants[0].nickName) || '神秘喵友',
-          creatorAvatarUrl: room.creatorAvatarUrl || (room.participants && room.participants[0] && room.participants[0].isHost && room.participants[0].avatarUrl) || imagePaths.decorations.catAvatarIcon
+          // 获取发起人信息
+          creatorNickName: (() => {
+            if (room.creatorNickName) return room.creatorNickName;
+            if (room.creatorName) return room.creatorName;
+            if (room.participants && Array.isArray(room.participants)) {
+              const host = room.participants.find(p => p.isHost === true);
+              if (host && host.nickName) return host.nickName;
+            }
+            return '我';
+          })(),
+          creatorAvatarUrl: (() => {
+            if (room.creatorAvatarUrl) return room.creatorAvatarUrl;
+            if (room.participants && Array.isArray(room.participants)) {
+              const host = room.participants.find(p => p.isHost === true);
+              if (host && host.avatarUrl) return host.avatarUrl;
+            }
+            return imagePaths.decorations.catAvatarIcon;
+          })()
         };
       });
 
@@ -1470,7 +1510,16 @@ Page({
             let result;
             // 判断是否是约饭活动：type === 'meal' 或 mode === 'meal' 或 isAppointment === true
             const isMealActivity = item.type === 'meal' || item.mode === 'meal' || item.isAppointment === true;
-            if (isMealActivity) {
+            // 判断是否是时间投票活动
+            const isScheduleVoteActivity = item.type === 'scheduleVote' || item.isScheduleVote === true;
+            if (isScheduleVoteActivity) {
+              // 时间投票活动使用 deleteScheduleVote
+              const { result: deleteResult } = await wx.cloud.callFunction({
+                name: 'deleteScheduleVote',
+                data: { voteId: item.id || item.roomId }
+              });
+              result = deleteResult;
+            } else if (isMealActivity) {
               // 约饭活动使用 deleteDiningAppointment
               const { result: deleteResult } = await wx.cloud.callFunction({
                 name: 'deleteDiningAppointment',
@@ -1485,7 +1534,7 @@ Page({
               });
               result = deleteResult;
             }
-            if (result.code === 0) {
+            if (result.code === 0 || result.success === true) {
               successCount++;
             } else {
               failCount++;

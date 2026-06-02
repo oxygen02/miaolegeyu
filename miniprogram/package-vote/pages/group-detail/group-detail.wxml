@@ -54,8 +54,9 @@
       </view>
     </view>
 
-    <!-- 参与按钮 -->
+    <!-- 操作按钮区域 -->
     <view class="action-section">
+      <!-- 未参与状态：显示参与按钮 -->
       <button
         class="btn btn-primary {{joining ? 'btn-loading' : ''}}"
         bindtap="joinGroupOrder"
@@ -65,15 +66,53 @@
         <text wx:if="{{!joining}}">参与拼单</text>
         <text wx:else>处理中...</text>
       </button>
-      <button
-        class="btn btn-success"
-        bindtap="joinGroupOrder"
-        disabled="{{joining || selectedOptionIndex === mySelectedOption}}"
-        wx:else
-      >
-        <text wx:if="{{selectedOptionIndex !== mySelectedOption}}">更新选择</text>
-        <text wx:else>已参与</text>
-      </button>
+
+      <!-- 已参与状态：显示多个操作按钮 -->
+      <view wx:else class="action-buttons-group">
+        <!-- 主按钮：更新选择或已参与 -->
+        <button
+          class="btn btn-success"
+          bindtap="joinGroupOrder"
+          disabled="{{joining || selectedOptionIndex === mySelectedOption}}"
+        >
+          <text wx:if="{{selectedOptionIndex !== mySelectedOption}}">更新选择</text>
+          <text wx:else>已参与</text>
+        </button>
+
+        <!-- 次要操作按钮组 -->
+        <view class="secondary-actions">
+          <!-- 取消选择按钮 -->
+          <button
+            class="btn btn-warning {{quitting ? 'btn-loading' : ''}}"
+            bindtap="cancelSelection"
+            disabled="{{quitting || mySelectedOption < 0}}"
+          >
+            <text wx:if="{{!quitting}}">取消选择</text>
+            <text wx:else>处理中...</text>
+          </button>
+
+          <!-- 退出活动按钮 -->
+          <button
+            class="btn btn-danger {{quitting ? 'btn-loading' : ''}}"
+            bindtap="quitGroupOrder"
+            disabled="{{quitting}}"
+          >
+            <text wx:if="{{!quitting}}">退出活动</text>
+            <text wx:else>处理中...</text>
+          </button>
+
+          <!-- 删除活动按钮（仅发起人可见） -->
+          <button
+            class="btn btn-delete {{deleting ? 'btn-loading' : ''}}"
+            bindtap="deleteActivity"
+            disabled="{{deleting}}"
+            wx:if="{{isCreator}}"
+          >
+            <text wx:if="{{!deleting}}">删除活动</text>
+            <text wx:else>删除中...</text>
+          </button>
+        </view>
+      </view>
     </view>
 
     <!-- 提示信息 -->

@@ -22,6 +22,9 @@ Page({
     mySelectedOption: -1,
     totalParticipants: 0,
     joining: false,
+    quitting: false,
+    deleting: false,
+    isCreator: false,
     // 平台名称映射
     PLATFORM_NAMES: PLATFORM_NAMES,
     // 详情弹窗
@@ -155,7 +158,8 @@ Page({
         hasJoined: room.hasJoinedGroupOrder,
         mySelectedOption: room.mySelectedOption,
         selectedOptionIndex: room.mySelectedOption >= 0 ? room.mySelectedOption : -1,
-        totalParticipants
+        totalParticipants,
+        isCreator: room.isCreator || false
       });
     } catch (err) {
       wx.showToast({ title: '加载失败', icon: 'none' });
@@ -237,6 +241,138 @@ Page({
       });
     } finally {
       this.setData({ joining: false });
+    }
+  },
+
+  // 退出拼单活动
+  async quitGroupOrder() {
+    const { roomId, hasJoined } = this.data;
+
+    if (!hasJoined) {
+      wx.showToast({ title: '您还未参与拼单', icon: 'none' });
+      return;
+    }
+
+    wx.showModal({
+      title: '确认退出',
+      content: '确定要退出这个拼单活动吗？',
+      confirmColor: '#FF4757',
+      success: async (res) => {
+        if (res.confirm) {
+          await this.doQuitGroupOrder();
+        }
+      }
+    });
+  },
+
+  // 执行退出拼单
+  async doQuitGroupOrder() {
+    const { roomId } = this.data;
+
+    this.setData({ quitting: true });
+
+    try {
+      wx.showLoading({ title: '退出中...' });
+
+      const { result } = await wx.cloud.callFunction({
+        name: 'quitGroupOrder',
+        data: { roomId }
+      });
+
+      if (result.code !== 0) {
+        throw new Error(result.msg || '退出失败');
+      }
+
+      wx.showToast({ title: '已退出拼单', icon: 'success' });
+
+      // 重置状态并刷新数据
+      this.setData({
+        hasJoined: false,
+        mySelectedOption: -1,
+        selectedOptionIndex: -1
+      });
+      this.loadRoomData();
+
+    } catch (err) {
+      wx.showToast({ title: err.message || '退出失败', icon: 'none' });
+    } finally {
+      this.setData({ quitting: false });
+      wx.hideLoading();
+    }
+  },
+
+  // 取消选择（重置为未参与状态）
+  cancelSelection() {
+    const { hasJoined, mySelectedOption } = this.data;
+
+    if (!hasJoined || mySelectedOption < 0) {
+      wx.showToast({ title: '没有可取消的选择', icon: 'none' });
+      return;
+    }
+
+    wx.showModal({
+      title: '确认取消',
+      content: '确定要取消当前的选择吗？',
+      confirmColor: '#FF4757',
+      success: async (res) => {
+        if (res.confirm) {
+          await this.doQuitGroupOrder();
+        }
+      }
+    });
+  },
+
+  // 删除拼单活动（仅发起人）
+  deleteActivity() {
+    const { roomId, isCreator } = this.data;
+
+    if (!isCreator) {
+      wx.showToast({ title: '只有发起人可以删除活动', icon: 'none' });
+      return;
+    }
+
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除这个拼单活动吗？此操作不可恢复！',
+      confirmColor: '#FF4757',
+      success: async (res) => {
+        if (res.confirm) {
+          await this.doDeleteActivity();
+        }
+      }
+    });
+  },
+
+  // 执行删除活动
+  async doDeleteActivity() {
+    const { roomId } = this.data;
+
+    this.setData({ deleting: true });
+
+    try {
+      wx.showLoading({ title: '删除中...' });
+
+      const { result } = await wx.cloud.callFunction({
+        name: 'deleteRoom',
+        data: { roomId }
+      });
+
+      if (result.code !== 0) {
+        throw new Error(result.msg || '删除失败');
+      }
+
+      wx.showToast({ title: '删除成功', icon: 'success' });
+
+      // 延迟返回上一页
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 1500);
+
+    } catch (err) {
+      wx.showToast({ title: err.message || '删除失败', icon: 'none' });
+    } finally {
+      this.setData({ deleting: false });
+      wx.hideLoading();
     }
   },
 

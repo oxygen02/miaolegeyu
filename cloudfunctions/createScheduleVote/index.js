@@ -52,8 +52,28 @@ exports.main = async (event, context) => {
       return { success: false, error: '请至少选择一个候选日期' };
     }
 
-    if (!timePeriod || !['morning', 'afternoon', 'evening'].includes(timePeriod)) {
-      return { success: false, error: '时段参数无效' };
+    // 时段参数验证和标准化（支持多种输入格式）
+    const timePeriodMap = {
+      'morning': 'morning',
+      'afternoon': 'afternoon',
+      'evening': 'evening',
+      '早上': 'morning',
+      '上午': 'morning',
+      '中午': 'afternoon',
+      '下午': 'afternoon',
+      '晚上': 'evening',
+      '夜间': 'evening'
+    };
+
+    let normalizedTimePeriod = 'afternoon'; // 默认值
+    if (timePeriod && typeof timePeriod === 'string') {
+      const trimmed = timePeriod.trim().toLowerCase();
+      if (timePeriodMap[trimmed]) {
+        normalizedTimePeriod = timePeriodMap[trimmed];
+      } else if (['morning', 'afternoon', 'evening'].includes(trimmed)) {
+        normalizedTimePeriod = trimmed;
+      }
+      // 如果都不匹配，使用默认值而不是报错
     }
 
     // 内容安全检查
@@ -109,7 +129,7 @@ exports.main = async (event, context) => {
       return slots;
     };
 
-    const allSlots = generateTimeSlots(candidateDates, timeRange, timePeriod);
+    const allSlots = generateTimeSlots(candidateDates, timeRange, normalizedTimePeriod);
 
     const result = await db.collection('schedule_votes').add({
       data: {
@@ -118,7 +138,7 @@ exports.main = async (event, context) => {
         creatorOpenId: OPENID,
         candidateDates: candidateDates.map(d => d.trim()).filter(Boolean),
         timeRange: timeRange || {},
-        timePeriod: timePeriod || 'afternoon',
+        timePeriod: normalizedTimePeriod,
         minParticipants: parseInt(minParticipants) || 2,
         deadline: deadline ? new Date(deadline) : null,
         anonymous: anonymous !== false, // 默认匿名

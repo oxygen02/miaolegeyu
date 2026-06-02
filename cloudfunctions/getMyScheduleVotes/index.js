@@ -135,7 +135,17 @@ exports.main = async (event, context) => {
         isCreator,
         hasVoted,
         bestDate,
-        createdAt: vote.createdAt
+        createdAt: vote.createdAt,
+        // 发起人信息
+        creatorNickName: vote.creatorNickName || (vote.participants && vote.participants[0] && vote.participants[0].isHost && vote.participants[0].nickName) || '',
+        creatorAvatarUrl: vote.creatorAvatarUrl || (vote.participants && vote.participants[0] && vote.participants[0].isHost && vote.participants[0].avatarUrl) || '',
+        // 传递participants信息供前端使用
+        participants: vote.participants?.map(p => ({
+          openId: p.openId,
+          nickName: p.nickName,
+          avatarUrl: p.avatarUrl,
+          isHost: p.isHost
+        })) || []
       };
     });
 
