@@ -255,46 +255,46 @@
   opacity: 0.8;
 }
 
-/* 警告按钮（取消选择） */
+/* 警告按钮（取消选择）- 淡橙色 */
 .btn-warning {
-  background: #FF9800 !important;
-  color: #fff !important;
-  border-color: #FF9800 !important;
+  background: #FFD8A6 !important;
+  color: #8B5A2B !important;
+  border-color: #FFB347 !important;
 }
 
 .btn-warning[disabled] {
-  background: #FFB74D !important;
-  color: #fff !important;
-  border-color: #FF9800 !important;
-  box-shadow: 4rpx 4rpx 0 #FF9800 !important;
+  background: #FFE4C4 !important;
+  color: #A0A0A0 !important;
+  border-color: #FFD8A6 !important;
+  box-shadow: 4rpx 4rpx 0 #FFD8A6 !important;
 }
 
-/* 危险按钮（退出活动） */
+/* 危险按钮（退出活动）- 淡红色 */
 .btn-danger {
-  background: #F44336 !important;
-  color: #fff !important;
-  border-color: #F44336 !important;
+  background: #FFB3A7 !important;
+  color: #8B3A3A !important;
+  border-color: #FF9A8B !important;
 }
 
 .btn-danger[disabled] {
-  background: #E57373 !important;
-  color: #fff !important;
-  border-color: #F44336 !important;
-  box-shadow: 4rpx 4rpx 0 #F44336 !important;
+  background: #FFD4C4 !important;
+  color: #A0A0A0 !important;
+  border-color: #FFB3A7 !important;
+  box-shadow: 4rpx 4rpx 0 #FFB3A7 !important;
 }
 
-/* 删除按钮（删除活动） */
+/* 删除按钮（删除活动）- 淡紫色 */
 .btn-delete {
-  background: #9C27B0 !important;
-  color: #fff !important;
-  border-color: #9C27B0 !important;
+  background: #E1BEE7 !important;
+  color: #6A1B9A !important;
+  border-color: #CE93D8 !important;
 }
 
 .btn-delete[disabled] {
-  background: #BA68C8 !important;
-  color: #fff !important;
-  border-color: #9C27B0 !important;
-  box-shadow: 4rpx 4rpx 0 #9C27B0 !important;
+  background: #F3E5F5 !important;
+  color: #A0A0A0 !important;
+  border-color: #E1BEE7 !important;
+  box-shadow: 4rpx 4rpx 0 #E1BEE7 !important;
 }
 
 /* 提示信息 */

@@ -62,7 +62,9 @@ exports.main = async (event, context) => {
       '中午': 'afternoon',
       '下午': 'afternoon',
       '晚上': 'evening',
-      '夜间': 'evening'
+      '夜间': 'evening',
+      'lunch': 'afternoon',
+      'dinner': 'evening'
     };
 
     let normalizedTimePeriod = 'afternoon'; // 默认值
@@ -131,11 +133,26 @@ exports.main = async (event, context) => {
 
     const allSlots = generateTimeSlots(candidateDates, timeRange, normalizedTimePeriod);
 
+    // 获取创建者用户信息
+    let creatorNickName = '';
+    let creatorAvatarUrl = '';
+    try {
+      const { data: users } = await db.collection('users').where({ _openid: OPENID }).limit(1).get();
+      if (users && users.length > 0) {
+        creatorNickName = users[0].nickName || '';
+        creatorAvatarUrl = users[0].avatarUrl || '';
+      }
+    } catch (err) {
+      console.error('获取创建者信息失败:', err);
+    }
+
     const result = await db.collection('schedule_votes').add({
       data: {
         title: title.trim(),
         description: (description || '').trim(),
         creatorOpenId: OPENID,
+        creatorNickName,
+        creatorAvatarUrl,
         candidateDates: candidateDates.map(d => d.trim()).filter(Boolean),
         timeRange: timeRange || {},
         timePeriod: normalizedTimePeriod,

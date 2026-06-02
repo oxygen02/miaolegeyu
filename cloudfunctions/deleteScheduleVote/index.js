@@ -28,22 +28,20 @@ exports.main = async (event, context) => {
       return { success: false, error: '无权限删除此活动' };
     }
 
-    // 使用云数据库事务确保数据一致性
-    const transaction = await db.startTransaction();
-
+    // 直接删除，不使用事务（事务中不支持 .where().get()）
     try {
       // 1. 删除主文档
-      await transaction.collection('schedule_votes').doc(voteId).remove();
+      await db.collection('schedule_votes').doc(voteId).remove();
 
       // 2. 删除关联的参与记录（如果存在单独的集合）
       try {
-        const { data: participants } = await transaction.collection('schedule_vote_participants')
+        const { data: participants } = await db.collection('schedule_vote_participants')
           .where({ voteId: voteId })
           .get();
         
         if (participants && participants.length > 0) {
           for (const participant of participants) {
-            await transaction.collection('schedule_vote_participants').doc(participant._id).remove();
+            await db.collection('schedule_vote_participants').doc(participant._id).remove();
           }
         }
       } catch (err) {
@@ -52,30 +50,26 @@ exports.main = async (event, context) => {
 
       // 3. 删除关联的投票记录（如果存在单独的集合）
       try {
-        const { data: voteRecords } = await transaction.collection('schedule_vote_records')
+        const { data: voteRecords } = await db.collection('schedule_vote_records')
           .where({ voteId: voteId })
           .get();
         
         if (voteRecords && voteRecords.length > 0) {
           for (const record of voteRecords) {
-            await transaction.collection('schedule_vote_records').doc(record._id).remove();
+            await db.collection('schedule_vote_records').doc(record._id).remove();
           }
         }
       } catch (err) {
         console.log('schedule_vote_records 集合不存在或已清空:', err.message);
       }
 
-      // 提交事务
-      await transaction.commit();
-
       return { 
         success: true, 
         message: '活动及其关联数据已彻底删除' 
       };
-    } catch (transactionErr) {
-      // 事务失败时回滚
-      await transaction.rollback();
-      throw transactionErr;
+    } catch (err) {
+      console.error('删除失败:', err);
+      return { success: false, error: err.message || '删除失败' };
     }
   } catch (err) {
     console.error('deleteScheduleVote error:', err);
