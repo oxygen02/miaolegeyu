@@ -76,14 +76,16 @@ Page({
     days,
     hours,
     minutes,
-    // 约饭时间选择
-    appointmentYear: '2026',
+    // 约饭时间选择（双存储：显示值 + 原始数字）
     appointmentDate: '',
+    appointmentDateRaw: '',
     appointmentTime: '',
+    appointmentTimeRaw: '',
     // 截止时间选择
-    deadlineYear: '2026',
     deadlineDate: '',
+    deadlineDateRaw: '',
     deadlineTime: '',
+    deadlineTimeRaw: '',
     // 约束条件
     requirementOptions: [
       { id: 'noAlcohol', name: '不喝酒', selected: false },
@@ -152,17 +154,17 @@ async onLoad(options) {
     }
   },
 
-  // 初始化时间选择器 - 设置为空，让用户自行输入
+  // 初始化时间选择器
   initTimePicker() {
     this.setData({
-      // 约饭时间默认空
-      appointmentYear: '2026',
       appointmentDate: '',
+      appointmentDateRaw: '',
       appointmentTime: '',
-      // 截止时间默认空
-      deadlineYear: '2026',
+      appointmentTimeRaw: '',
       deadlineDate: '',
-      deadlineTime: ''
+      deadlineDateRaw: '',
+      deadlineTime: '',
+      deadlineTimeRaw: ''
     });
   },
 
@@ -844,98 +846,203 @@ async onLoad(options) {
     this.setData({ paymentMode: mode });
   },
 
-  // 约饭时间输入
-  onAppointmentYearInput(e) {
-    let value = e.detail.value;
-    if (value.length > 4) value = value.slice(0, 4);
-    this.setData({ appointmentYear: value });
-  },
+  // 约饭时间输入（月日 | 时分格式，中文显示）
   onAppointmentDateInput(e) {
     let value = e.detail.value;
-    // 只保留数字
-    value = value.replace(/\D/g, '');
-    // 3位数字时自动补零（如428 -> 0428）
-    if (value.length === 3) {
-      value = '0' + value;
+    // 如果值包含中文，说明用户正在编辑格式化后的文本
+    if (/[月日]/.test(value)) {
+      let numbers = value.replace(/\D/g, '');
+      this.setData({ appointmentDate: value, appointmentDateRaw: numbers });
+      return;
     }
-    // 限制4位
-    if (value.length > 4) value = value.substring(0, 4);
-    this.setData({ appointmentDate: value });
+    let numbers = value.replace(/\D/g, '');
+    if (numbers.length > 4) numbers = numbers.substring(0, 4);
+    let displayValue = this.formatDateDisplay(numbers);
+    this.setData({ appointmentDate: displayValue, appointmentDateRaw: numbers });
+  },
+  onAppointmentDateBlur(e) {
+    let value = e.detail.value;
+    let rawValue = value.replace(/\D/g, '');
+    if (rawValue.length === 3) {
+      rawValue = '0' + rawValue;
+    }
+    if (rawValue.length === 4) {
+      const month = parseInt(rawValue.substring(0, 2), 10);
+      const day = parseInt(rawValue.substring(2, 4), 10);
+      if (month < 1 || month > 12 || day < 1 || day > 31 || (month === 0 && day === 0)) {
+        wx.showToast({ title: '月日格式无效，如 0428', icon: 'none' });
+        rawValue = '';
+      }
+    } else if (rawValue.length > 0 && rawValue.length < 3) {
+      rawValue = '';
+    }
+    let displayValue = this.formatDateDisplay(rawValue);
+    this.setData({ appointmentDate: displayValue, appointmentDateRaw: rawValue });
   },
   onAppointmentTimeInput(e) {
     let value = e.detail.value;
-    // 只保留数字
-    value = value.replace(/\D/g, '');
-    if (value.length > 4) value = value.substring(0, 4);
-    this.setData({ appointmentTime: value });
+    // 如果值包含中文，说明用户正在编辑格式化后的文本
+    if (/[时分]/.test(value)) {
+      let numbers = value.replace(/\D/g, '');
+      this.setData({ appointmentTime: value, appointmentTimeRaw: numbers });
+      return;
+    }
+    let numbers = value.replace(/\D/g, '');
+    if (numbers.length > 4) numbers = numbers.substring(0, 4);
+    let displayValue = this.formatTimeDisplay(numbers);
+    this.setData({ appointmentTime: displayValue, appointmentTimeRaw: numbers });
   },
-
-  // 约饭时间输入完成 - 2位数字自动补全为整点
   onAppointmentTimeBlur(e) {
     let value = e.detail.value;
-    // 只保留数字
-    value = value.replace(/\D/g, '');
-    // 如果输入2位数字，自动补全为整点（如18 -> 1800）
-    if (value.length === 2) {
-      value = value + '00';
-      this.setData({ appointmentTime: value });
+    let rawValue = value.replace(/\D/g, '');
+
+    // 规则：输入的数字代表小时数，自动补全为整点
+    // 输入12 -> 1200 (12:00)
+    // 输入6 -> 600 (6:00)
+    // 输入00 -> 0000 (00:00)
+    // 输入1230 -> 1230 (12:30)
+    if (rawValue.length > 0 && rawValue.length <= 2) {
+      // 1-2位数字：补全为4位（代表整点）
+      while (rawValue.length < 4) {
+        rawValue = rawValue + '0';
+      }
+    } else if (rawValue.length === 3) {
+      rawValue = rawValue + '0';
+    } else if (rawValue.length > 4) {
+      rawValue = rawValue.substring(0, 4);
     }
+
+    if (rawValue.length === 4) {
+      const hour = parseInt(rawValue.substring(0, 2), 10);
+      const minute = parseInt(rawValue.substring(2, 4), 10);
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        wx.showToast({ title: '时分格式无效，如 1800', icon: 'none' });
+        rawValue = '';
+      }
+    }
+
+    let displayValue = this.formatTimeDisplay(rawValue);
+    this.setData({ appointmentTime: displayValue, appointmentTimeRaw: rawValue });
   },
 
   // 清空约饭时间
   clearAppointmentTime() {
     this.setData({
-      appointmentYear: '2026',
       appointmentDate: '',
-      appointmentTime: ''
+      appointmentDateRaw: '',
+      appointmentTime: '',
+      appointmentTimeRaw: ''
     });
   },
 
   // 清空截止时间
   clearDeadlineTime() {
     this.setData({
-      deadlineYear: '2026',
       deadlineDate: '',
-      deadlineTime: ''
+      deadlineDateRaw: '',
+      deadlineTime: '',
+      deadlineTimeRaw: ''
     });
   },
 
-  // 截止时间输入
-  onDeadlineYearInput(e) {
-    let value = e.detail.value;
-    if (value.length > 4) value = value.slice(0, 4);
-    this.setData({ deadlineYear: value });
-  },
+  // 截止时间输入（月日 | 时分格式，中文显示）
   onDeadlineDateInput(e) {
     let value = e.detail.value;
-    // 只保留数字
-    value = value.replace(/\D/g, '');
-    // 3位数字时自动补零（如428 -> 0428）
-    if (value.length === 3) {
-      value = '0' + value;
+    if (/[月日]/.test(value)) {
+      let numbers = value.replace(/\D/g, '');
+      this.setData({ deadlineDate: value, deadlineDateRaw: numbers });
+      return;
     }
-    // 限制4位
-    if (value.length > 4) value = value.substring(0, 4);
-    this.setData({ deadlineDate: value });
+    let numbers = value.replace(/\D/g, '');
+    if (numbers.length > 4) numbers = numbers.substring(0, 4);
+    let displayValue = this.formatDateDisplay(numbers);
+    this.setData({ deadlineDate: displayValue, deadlineDateRaw: numbers });
+  },
+  onDeadlineDateBlur(e) {
+    let value = e.detail.value;
+    let rawValue = value.replace(/\D/g, '');
+    if (rawValue.length === 3) {
+      rawValue = '0' + rawValue;
+    }
+    if (rawValue.length === 4) {
+      const month = parseInt(rawValue.substring(0, 2), 10);
+      const day = parseInt(rawValue.substring(2, 4), 10);
+      if (month < 1 || month > 12 || day < 1 || day > 31 || (month === 0 && day === 0)) {
+        wx.showToast({ title: '月日格式无效，如 0428', icon: 'none' });
+        rawValue = '';
+      }
+    } else if (rawValue.length > 0 && rawValue.length < 3) {
+      rawValue = '';
+    }
+    let displayValue = this.formatDateDisplay(rawValue);
+    this.setData({ deadlineDate: displayValue, deadlineDateRaw: rawValue });
   },
   onDeadlineTimeInput(e) {
     let value = e.detail.value;
-    // 只保留数字
-    value = value.replace(/\D/g, '');
-    if (value.length > 4) value = value.substring(0, 4);
-    this.setData({ deadlineTime: value });
+    if (/[时分]/.test(value)) {
+      let numbers = value.replace(/\D/g, '');
+      this.setData({ deadlineTime: value, deadlineTimeRaw: numbers });
+      return;
+    }
+    let numbers = value.replace(/\D/g, '');
+    if (numbers.length > 4) numbers = numbers.substring(0, 4);
+    let displayValue = this.formatTimeDisplay(numbers);
+    this.setData({ deadlineTime: displayValue, deadlineTimeRaw: numbers });
   },
-
-  // 截止时间输入完成 - 2位数字自动补全为整点
   onDeadlineTimeBlur(e) {
     let value = e.detail.value;
-    // 只保留数字
-    value = value.replace(/\D/g, '');
-    // 如果输入2位数字，自动补全为整点（如18 -> 1800）
-    if (value.length === 2) {
-      value = value + '00';
-      this.setData({ deadlineTime: value });
+    let rawValue = value.replace(/\D/g, '');
+
+    // 规则：输入的数字代表小时数，自动补全为整点
+    // 输入12 -> 1200 (12:00)
+    // 输入6 -> 600 (6:00)
+    // 输入00 -> 0000 (00:00)
+    // 输入1230 -> 1230 (12:30)
+    if (rawValue.length > 0 && rawValue.length <= 2) {
+      // 1-2位数字：补全为4位（代表整点）
+      while (rawValue.length < 4) {
+        rawValue = rawValue + '0';
+      }
+    } else if (rawValue.length === 3) {
+      rawValue = rawValue + '0';
+    } else if (rawValue.length > 4) {
+      rawValue = rawValue.substring(0, 4);
     }
+
+    if (rawValue.length === 4) {
+      const hour = parseInt(rawValue.substring(0, 2), 10);
+      const minute = parseInt(rawValue.substring(2, 4), 10);
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        wx.showToast({ title: '时分格式无效，如 1800', icon: 'none' });
+        rawValue = '';
+      }
+    }
+
+    let displayValue = this.formatTimeDisplay(rawValue);
+    this.setData({ deadlineTime: displayValue, deadlineTimeRaw: rawValue });
+  },
+
+  // 格式化方法（复用 create-mode-b 的逻辑）
+  formatDateDisplay(numbers) {
+    if (!numbers) return '';
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length === 3) {
+      const m = numbers.substring(0, 1);
+      const d = numbers.substring(1);
+      return m + '月' + d + '日';
+    }
+    const month = numbers.substring(0, 2);
+    const day = numbers.substring(2);
+    return month + '月' + day + '日';
+  },
+  formatTimeDisplay(numbers) {
+    if (!numbers) return '';
+    // 少于4位数字时直接返回（输入中状态）
+    if (numbers.length < 4) return numbers;
+    // 4位数字：前两位是时，后两位是分（1200 -> 12时00分）
+    const hour = numbers.substring(0, 2);
+    const minute = numbers.substring(2);
+    return hour + '时' + minute + '分';
   },
 
   closeAppointmentModal() {
@@ -1054,34 +1161,33 @@ async onLoad(options) {
   },
 
   async submitAppointment() {
-    const { shop, appointmentYear, appointmentDate, appointmentTime, deadlineYear, deadlineDate, deadlineTime, appointmentNote, maxParticipants, requirementOptions, customRequirement, paymentMode, isAnonymousInitiator } = this.data;
+    const { shop, appointmentDateRaw, appointmentTimeRaw, deadlineDateRaw, deadlineTimeRaw, appointmentNote, maxParticipants, requirementOptions, customRequirement, paymentMode, isAnonymousInitiator } = this.data;
 
     // 验证并格式化日期时间
-    if (!appointmentYear || !appointmentDate || !appointmentTime) {
+    if (!appointmentDateRaw || !appointmentTimeRaw) {
       wx.showToast({ title: '请填写完整约饭时间', icon: 'none' });
       return;
     }
-    if (!deadlineYear || !deadlineDate || !deadlineTime) {
+    if (!deadlineDateRaw || !deadlineTimeRaw) {
       wx.showToast({ title: '请填写完整截止时间', icon: 'none' });
       return;
     }
 
-    // 格式化日期（支持3位自动补零）
-    const formattedAppointmentDate = appointmentDate.length === 3 ? '0' + appointmentDate : appointmentDate;
-    const formattedDeadlineDate = deadlineDate.length === 3 ? '0' + deadlineDate : deadlineDate;
+    // 使用当前年份
+    const currentYear = new Date().getFullYear();
 
     // 构建完整时间字符串（明确指定东八区时区，避免服务端当作 UTC 解析）
-    const appointmentMonth = formattedAppointmentDate.substring(0, 2);
-    const appointmentDay = formattedAppointmentDate.substring(2, 4);
-    const appointmentHour = appointmentTime.substring(0, 2);
-    const appointmentMinute = appointmentTime.substring(2, 4);
-    const fullAppointmentTime = `${appointmentYear}-${appointmentMonth}-${appointmentDay}T${appointmentHour}:${appointmentMinute}:00+08:00`;
+    const appointmentMonth = appointmentDateRaw.substring(0, 2);
+    const appointmentDay = appointmentDateRaw.substring(2, 4);
+    const appointmentHour = appointmentTimeRaw.substring(0, 2);
+    const appointmentMinute = appointmentTimeRaw.substring(2, 4);
+    const fullAppointmentTime = `${currentYear}-${appointmentMonth}-${appointmentDay}T${appointmentHour}:${appointmentMinute}:00+08:00`;
 
-    const deadlineMonth = formattedDeadlineDate.substring(0, 2);
-    const deadlineDay = formattedDeadlineDate.substring(2, 4);
-    const deadlineHour = deadlineTime.substring(0, 2);
-    const deadlineMinute = deadlineTime.substring(2, 4);
-    const fullDeadlineTime = `${deadlineYear}-${deadlineMonth}-${deadlineDay}T${deadlineHour}:${deadlineMinute}:00+08:00`;
+    const deadlineMonth = deadlineDateRaw.substring(0, 2);
+    const deadlineDay = deadlineDateRaw.substring(2, 4);
+    const deadlineHour = deadlineTimeRaw.substring(0, 2);
+    const deadlineMinute = deadlineTimeRaw.substring(2, 4);
+    const fullDeadlineTime = `${currentYear}-${deadlineMonth}-${deadlineDay}T${deadlineHour}:${deadlineMinute}:00+08:00`;
 
     // 验证截止时间不能早于当前时间
     const now = new Date();

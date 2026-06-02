@@ -454,18 +454,29 @@ Page({
     this.setData({ activityTime: displayValue, activityTimeRaw: numbers });
   },
 
-  // 活动时间输入完成 - 2位数字自动补全为整点
+  // 活动时间输入完成 - 自动补全为时分格式
   onTimeBlur(e) {
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
 
-    // 如果输入2位数字，自动补全为整点（如18 -> 1800）
-    if (rawValue.length === 2) {
-      rawValue = rawValue + '00';
+    // 规则：输入的数字代表小时数，自动补全为整点
+    // 输入12 -> 1200 (12:00)
+    // 输入6 -> 600 (6:00)
+    // 输入00 -> 0000 (00:00)
+    // 输入1230 -> 1230 (12:30)
+    if (rawValue.length > 0 && rawValue.length <= 2) {
+      // 1-2位数字：补全为4位（代表整点）
+      while (rawValue.length < 4) {
+        rawValue = rawValue + '0';
+      }
     }
     // 如果输入3位数字，自动补零（如183 -> 1830）
     else if (rawValue.length === 3) {
       rawValue = rawValue + '0';
+    }
+    // 超过4位截取前4位
+    else if (rawValue.length > 4) {
+      rawValue = rawValue.substring(0, 4);
     }
 
     // 重新格式化显示
@@ -475,19 +486,13 @@ Page({
     }
   },
 
-  // 格式化时间显示（1800 -> 18时00分）
+  // 格式化时间显示（1200 -> 12时00分）
   formatTimeDisplay(numbers) {
     if (!numbers) return '';
-    if (numbers.length <= 2) {
+    if (numbers.length < 4) {
       return numbers;
     }
-    // 3位数字：前两位是时，第三位是分（183 -> 18时3分）
-    if (numbers.length === 3) {
-      const h = numbers.substring(0, 2);
-      const m = numbers.substring(2);
-      return h + '时' + m + '分';
-    }
-    // 4位数字：前两位是时，后两位是分（1800 -> 18时00分）
+    // 4位数字：前两位是时，后两位是分（1200 -> 12时00分）
     const hour = numbers.substring(0, 2);
     const minute = numbers.substring(2);
     return hour + '时' + minute + '分';
