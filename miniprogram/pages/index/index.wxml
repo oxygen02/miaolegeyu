@@ -94,7 +94,7 @@
               <image class="feature-icon-image" src="{{imagePaths.banners.faqijucan}}" mode="aspectFit" />
             </view>
             <view class="feature-text-wrapper">
-              <text class="feature-title">聚餐发起</text>
+              <text class="feature-title">聚会发起</text>
               <text class="feature-desc">投票房间创建</text>
             </view>
           </view>

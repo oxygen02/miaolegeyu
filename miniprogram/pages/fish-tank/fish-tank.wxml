@@ -34,7 +34,7 @@ module.exports = {
       <text>全部</text>
     </view>
     <view class="mode-item {{viewMode === 'dining' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="dining">
-      <text>聚餐</text>
+      <text>聚会</text>
     </view>
     <view class="mode-item {{viewMode === 'meal' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="meal">
       <text>约饭</text>
@@ -261,6 +261,22 @@ module.exports = {
     <text class="create-text">发起拼单</text>
   </view>
 
+  <!-- 底部固定批量操作栏 - 仅编辑模式显示 -->
+  <view class="batch-action-bar" wx:if="{{isEditMode}}">
+    <view class="batch-left">
+      <view class="batch-select-all" bindtap="selectAll">
+        <view class="checkbox {{isAllSelected ? 'checked' : ''}}">
+          <text wx:if="{{isAllSelected}}">✓</text>
+        </view>
+        <text class="select-all-text">全选</text>
+      </view>
+      <text class="batch-info">已选 {{selectedCount}} 项</text>
+    </view>
+    <view class="batch-actions">
+      <button class="btn btn-danger btn-small {{selectedCount === 0 ? 'disabled' : ''}}" bindtap="batchDelete">{{batchDeleteText}}</button>
+    </view>
+  </view>
+
   <!-- 创建选项弹窗 -->
   <view class="create-modal" wx:if="{{showCreateModal}}" bindtap="closeCreateModal">
     <view class="modal-content" catchtap="preventBubble">
@@ -286,8 +302,8 @@ module.exports = {
         <view class="create-option" bindtap="createDining">
           <view class="option-icon">🍽️</view>
           <view class="option-info">
-            <text class="option-title">聚餐</text>
-            <text class="option-desc">聚餐发起投票</text>
+            <text class="option-title">聚会</text>
+            <text class="option-desc">聚会发起投票</text>
           </view>
         </view>
       </view>

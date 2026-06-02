@@ -4,7 +4,7 @@ const { HOLIDAY_CONFIG } = getApp().globalData.holidayConfig;
 // ======== Mock 数据（调试用）========
 const MOCK_VOTE = {
   _id: 'mock-vote-001',
-  title: '本周聚餐时间投票',
+  title: '本周聚会时间投票',
   candidateDates: ['2026-05-08', '2026-05-09', '2026-05-10', '2026-05-11', '2026-05-12'],
   timePeriod: 'dinner',
   isExpired: false,
@@ -327,15 +327,15 @@ Page({
             });
             wx.hideLoading();
 
-            // 询问是否创建聚餐
+            // 询问是否创建聚会
             wx.showModal({
               title: '时间已确认',
-              content: `已确认 ${date} ${vote.timePeriod === 'lunch' ? '中午' : '晚上'}，是否立即创建聚餐活动？`,
-              confirmText: '创建聚餐',
+              content: `已确认 ${date} ${vote.timePeriod === 'lunch' ? '中午' : '晚上'}，是否立即创建聚会活动？`,
+              confirmText: '创建聚会',
               cancelText: '仅关闭',
               success: (createRes) => {
                 if (createRes.confirm) {
-                  // 跳转到聚餐创建页（模式A），预填时间信息
+                  // 跳转到聚会创建页（模式A），预填时间信息
                   const params = [
                     `fromScheduleVote=true`,
                     `scheduleDate=${encodeURIComponent(date)}`,

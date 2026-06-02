@@ -246,6 +246,7 @@
   transition: all 0.2s ease;
   box-sizing: border-box;
   width: 100%;
+  position: relative;
 }
 
 .activity-card:active {
@@ -881,7 +882,11 @@
 /* 卡片选中状态 */
 .activity-card.selected {
   background: linear-gradient(135deg, #FFF0E0 0%, #FFE4CC 100%);
-  border-color: #FF9F43;
+  border-top: 3rpx solid #FF9F43 !important;
+  border-left: 3rpx solid #FF9F43 !important;
+  border-bottom: 6rpx solid #FF9F43 !important;
+  border-right: 6rpx solid #FF9F43 !important;
+  box-shadow: 0 0 20rpx rgba(255, 159, 67, 0.4), 3rpx 4rpx 0 rgba(255, 159, 67, 0.3);
 }
 
 /* 批量操作栏 */
@@ -900,6 +905,12 @@
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 1000;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.batch-left {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
 }
 
 .batch-select-all {

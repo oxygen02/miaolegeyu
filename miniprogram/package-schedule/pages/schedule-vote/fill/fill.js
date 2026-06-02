@@ -225,7 +225,7 @@ Page({
     // 构建提示内容
     let content = `该日期您已有以下安排：\n`;
     conflicts.forEach((c, i) => {
-      const typeText = c.type === 'room' ? '聚餐' : '投票';
+      const typeText = c.type === 'room' ? '聚会' : '投票';
       const roleText = c.isCreator ? '（发起）' : '（参与）';
       content += `${i + 1}. ${c.title}${roleText}`;
       if (c.time) content += ` ${c.time}`;

@@ -32,7 +32,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '喵了个鱼 - 聚餐拼单投票小程序',
+      title: '喵了个鱼 - 聚会拼单投票小程序',
       path: '/pages/index/index'
     };
   }

@@ -74,7 +74,7 @@ Page({
 
     // 根据时间段设置默认时间
     const dinnerTime = schedulePeriod === 'lunch' ? '12:00' : '18:00';
-    const title = voteTitle ? `${voteTitle}聚餐` : '';
+    const title = voteTitle ? `${voteTitle}聚会` : '';
 
     this.setData({
       title,
@@ -349,7 +349,7 @@ Page({
         // 如果没有权限，提示用户
         wx.showModal({
           title: '需要授权',
-          content: '开启位置权限后，可从地图选择聚餐地点，也可手动输入',
+          content: '开启位置权限后，可从地图选择聚会地点，也可手动输入',
           confirmText: '去开启',
           cancelText: '手动输入',
           success: (res) => {
@@ -639,7 +639,7 @@ Page({
         }
         wx.showModal({
           title: '需要授权',
-          content: '开启位置权限后，可从地图选择聚餐地点，也可手动输入',
+          content: '开启位置权限后，可从地图选择聚会地点，也可手动输入',
           confirmText: '去开启',
           cancelText: '手动输入',
           success: (res) => {

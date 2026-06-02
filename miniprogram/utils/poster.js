@@ -3,7 +3,7 @@
  *
  * 结果海报设计（V7）：
  * - 画布 750x1150
- * - 顶部色带 200px：渐变 + "聚餐地点已定"
+ * - 顶部色带 200px：渐变 + "聚会地点已定"
  * - 餐厅封面大图 260px：主视觉区，圆角+阴影+底部渐变遮罩+WINNER标签
  * - 信息区：分类标签胶囊 + 地址 + 人均价格
  * - 数据区：80px超大票数 + 环形支持率 + 进度条
@@ -290,7 +290,7 @@ class PosterGenerator {
     ctx.font = 'bold 52px sans-serif';
     ctx.fillStyle = '#FFFFFF';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('聚餐地点已定', cx, 80);
+    ctx.fillText('聚会地点已定', cx, 80);
 
     // --- 色带副标题 ---
     ctx.font = '24px sans-serif';
@@ -531,7 +531,7 @@ class PosterGenerator {
     // slogan
     ctx.font = '18px sans-serif';
     ctx.fillStyle = '#999488';
-    ctx.fillText('让聚餐不再纠结', logoX + logoSize + 12, logoY + logoSize / 2 + 28);
+    ctx.fillText('让聚会不再纠结', logoX + logoSize + 12, logoY + logoSize / 2 + 28);
 
     // ==================== 猫爪印装饰（对应 result-card 的 cat-tail）====================
     let clawImg = null;

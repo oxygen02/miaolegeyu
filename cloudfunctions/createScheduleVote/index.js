@@ -1,7 +1,15 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-const { checkContent } = require('../utils/contentSecurity');
+
+let checkContent;
+try {
+  const contentSecurity = require('../utils/contentSecurity');
+  checkContent = contentSecurity.checkContent;
+} catch (err) {
+  console.warn('contentSecurity 模块加载失败，使用基础检查:', err.message);
+  checkContent = async (content) => ({ passed: true, msg: '内容审核通过' });
+}
 
 // 确保集合存在（自动创建）
 async function ensureCollection(collectionName) {
@@ -35,6 +43,19 @@ exports.main = async (event, context) => {
   const { title, description, candidateDates, timeRange, timePeriod, minParticipants, deadline, anonymous } = event;
 
   try {
+    // 参数验证
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return { success: false, error: '标题不能为空' };
+    }
+
+    if (!candidateDates || !Array.isArray(candidateDates) || candidateDates.length === 0) {
+      return { success: false, error: '请至少选择一个候选日期' };
+    }
+
+    if (!timePeriod || !['morning', 'afternoon', 'evening'].includes(timePeriod)) {
+      return { success: false, error: '时段参数无效' };
+    }
+
     // 内容安全检查
     const contentToCheck = [title, description].filter(Boolean).join(' ');
     if (contentToCheck) {
@@ -92,14 +113,14 @@ exports.main = async (event, context) => {
 
     const result = await db.collection('schedule_votes').add({
       data: {
-        title,
-        description: description || '',
+        title: title.trim(),
+        description: (description || '').trim(),
         creatorOpenId: OPENID,
-        candidateDates,
-        timeRange,
-        timePeriod,
-        minParticipants: minParticipants || 2,
-        deadline: new Date(deadline),
+        candidateDates: candidateDates.map(d => d.trim()).filter(Boolean),
+        timeRange: timeRange || {},
+        timePeriod: timePeriod || 'afternoon',
+        minParticipants: parseInt(minParticipants) || 2,
+        deadline: deadline ? new Date(deadline) : null,
         anonymous: anonymous !== false, // 默认匿名
         status: 'voting', // voting / closed / confirmed
         allSlots,

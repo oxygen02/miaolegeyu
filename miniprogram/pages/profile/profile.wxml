@@ -114,8 +114,8 @@ module.exports = {
           {{currentList === 'favorites' ? '我的收藏' :
             currentList === 'myShops' ? '我的店铺' :
             currentList === 'myAppointments' ? '我的约饭' :
-            currentList === 'myRooms' ? '我发起的聚餐' :
-            currentList === 'myParticipated' ? '我参与的聚餐' :
+            currentList === 'myRooms' ? '我发起的聚会' :
+            currentList === 'myParticipated' ? '我参与的聚会' :
             currentList === 'myScheduleVotes' ? '我的时间投票' : ''}}
         </text>
         <view class="close-btn" bindtap="closeList">×</view>
@@ -187,7 +187,7 @@ module.exports = {
           </view>
         </view>
         <view class="empty-tip" wx:if="{{myParticipated.length === 0}}">
-          <text>还没有参与任何聚餐</text>
+          <text>还没有参与任何聚会</text>
         </view>
         <!-- 底部占位，确保最后一个卡片不被遮挡 -->
         <view style="height: 120rpx;"></view>
@@ -254,7 +254,7 @@ module.exports = {
           </view>
         </view>
         <view class="empty-tip" wx:if="{{myRooms.length === 0}}">
-          <text>还没有发起过聚餐</text>
+          <text>还没有发起过聚会</text>
         </view>
         <!-- 底部占位，确保最后一个卡片不被遮挡 -->
         <view style="height: 120rpx;"></view>

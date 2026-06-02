@@ -339,7 +339,7 @@ Page({
       return;
     }
     wx.showModal({
-      title: '锁定聚餐地点',
+      title: '锁定聚会地点',
       content: '锁定后将停止投票，所有人会收到最终通知。确定现在锁定吗？',
       confirmText: '确认锁定',
       confirmColor: '#FF9F43',

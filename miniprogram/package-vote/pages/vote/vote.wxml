@@ -297,7 +297,7 @@
   <view class="vote-result-section" wx:if="{{showVoteResult}}">
     <result-card
       title="橘仔宣布"
-      subtitle="本次聚餐地点已定"
+      subtitle="本次聚会地点已定"
       poster-image-url="{{voteResult.finalPoster.imageUrl}}"
       platform-source="{{voteResult.finalPoster.platformSource}}"
       show-vote-stats="{{true}}"

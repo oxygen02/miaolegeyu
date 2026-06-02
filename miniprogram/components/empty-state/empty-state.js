@@ -54,8 +54,8 @@ Component({
       },
       order: {
         title: '暂无订单',
-        description: '还没有参与任何聚餐活动',
-        buttonText: '发起聚餐',
+        description: '还没有参与任何聚会活动',
+        buttonText: '发起聚会',
         icon: 'order'
       },
       message: {

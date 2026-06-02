@@ -259,11 +259,11 @@ const cuisineType = `${topMatch.categoryName}-${topMatch.subCategoryName}`;
 
     // 构建日历事件数据
     const eventData = {
-      title: room.title || '聚餐',
+      title: room.title || '聚会',
       startTime: dateInfo.startTime,
       endTime: dateInfo.endTime,
       location: poster.address || '',
-      description: `聚餐地点：${poster.name || ''}\n地址：${poster.address || ''}\n来自：喵了个鱼小程序`,
+      description: `聚会地点：${poster.name || ''}\n地址：${poster.address || ''}\n来自：喵了个鱼小程序`,
       alarmOffset: 3600 // 提前1小时提醒
     };
 
@@ -441,7 +441,7 @@ const cuisineType = `${topMatch.categoryName}-${topMatch.subCategoryName}`;
         votePercent: winner.votePercent || 0
       },
       finalPoster: winner.imageUrl ? { imageUrl: winner.imageUrl } : null,
-      roomTitle: room.title || '聚餐投票',
+      roomTitle: room.title || '聚会投票',
       roomTime: (room.activityDate && room.activityTime) ? (room.activityDate + ' ' + room.activityTime) : (room.activityDate || room.activityTime || winner.time || ''),
       roomAddress: room.location?.name || room.location || '',
       participants: room.participants || [],

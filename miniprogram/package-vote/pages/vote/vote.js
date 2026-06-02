@@ -1698,7 +1698,7 @@ Page({
 
     const posterData = {
       type: 'share',
-      roomTitle: room.title || '聚餐投票',
+      roomTitle: room.title || '聚会投票',
       roomCode: room.roomCode || room.code || '',
       roomPassword: room.password || '',
       needPassword: room.needPassword || false,
@@ -1760,7 +1760,7 @@ Page({
 onShareAppMessage() {
 const { room, roomId } = this.data;
 return {
-title: `「${room?.title || '聚餐投票'}」快来一起选餐厅！`,
+title: `「${room?.title || '聚会投票'}」快来一起选餐厅！`,
 path: `/package-vote/pages/vote/vote?roomId=${roomId}`,
 imageUrl: room?.finalPoster?.imageUrl || room?.candidatePosters?.[0]?.imageUrl || ''
 };

@@ -128,13 +128,13 @@
             <text class="host-label" wx:if="{{item.isHost}}">房主</text>
           </view>
           <text class="mem-status {{item.isVoted ? 'done' : ''}}">
-            {{item.isVoted ? '已完成投票' : '等待投票中 · 可催一下'}}
+            {{item.isVoted ? '已完成投票' : '等待投票中 · 可分享邀请'}}
           </text>
         </view>
         <view class="mem-btn">
           <view class="tag-btn view" wx:if="{{!isAnonymous && item.isVoted}}">查看</view>
           <view class="tag-btn done" wx:if="{{isAnonymous && item.isVoted}}">已完成</view>
-          <view class="tag-btn remind" wx:if="{{!item.isVoted}}" catchtap="remindMember" data-id="{{item.id}}">催一下</view>
+          <view class="tag-btn remind" wx:if="{{!item.isVoted}}" catchtap="remindMember" data-id="{{item.id}}">分享邀请</view>
         </view>
       </view>
     </view>
@@ -156,7 +156,7 @@
       </view>
       <view class="tip">
         <view class="tip-dot"></view>
-        <text>锁定后所有人将收到最终聚餐地点通知</text>
+        <text>锁定后所有人将收到最终聚会地点通知</text>
       </view>
       <view class="tip" wx:if="{{isAnonymous}}">
         <view class="tip-dot purple"></view>

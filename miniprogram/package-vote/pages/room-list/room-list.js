@@ -511,7 +511,7 @@ Page({
           votePercent: winner.votePercent || 0
         },
         finalPoster: winner.imageUrl ? { imageUrl: winner.imageUrl } : null,
-        roomTitle: room.title || '聚餐投票',
+        roomTitle: room.title || '聚会投票',
         roomTime: timeDisplay,
         roomAddress: room.location?.name || room.location || '',
         participants: room.participants || [],
@@ -531,7 +531,7 @@ Page({
         type: 'result',
         mode: room.mode || 'a',
         winner: {
-          name: room.title || '聚餐投票',
+          name: room.title || '聚会投票',
           image: '',
           address: room.location?.name || room.location || '待定',
           category: '美食',
@@ -540,7 +540,7 @@ Page({
           votePercent: 0
         },
         finalPoster: null,
-        roomTitle: room.title || '聚餐投票',
+        roomTitle: room.title || '聚会投票',
         roomTime: timeDisplay,
         roomAddress: room.location?.name || room.location || '',
         participants: room.participants || [],

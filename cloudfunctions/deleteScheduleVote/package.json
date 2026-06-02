@@ -1,0 +1,1 @@
+{"name": "deleteScheduleVote", "version": "1.0.0", "description": "删除时间投票活动", "main": "index.js", "dependencies": {"wx-server-sdk": "3.0.0"}}

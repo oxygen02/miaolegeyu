@@ -156,7 +156,7 @@
       </view>
       <view class="tip">
         <view class="tip-dot"></view>
-        <text>锁定后所有人将收到最终聚餐地点通知</text>
+        <text>锁定后所有人将收到最终聚会地点通知</text>
       </view>
       <view class="tip" wx:if="{{isAnonymous}}">
         <view class="tip-dot purple"></view>
@@ -169,7 +169,7 @@
   <view class="card result-card-wrapper" wx:if="{{roomStatus === 'locked'}}">
     <result-card
       title="橘仔宣布"
-      subtitle="本次聚餐地点已定"
+      subtitle="本次聚会地点已定"
       poster-image-url="{{winner.image}}"
       shop-name="{{winner.name}}"
       address="{{winner.address}}"

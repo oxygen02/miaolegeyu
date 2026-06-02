@@ -303,13 +303,11 @@ Page({
 
   remindMember(e) {
     const id = e.currentTarget.dataset.id;
-    wx.showModal({
-      title: CONTROL_TEXTS.modal.remindTitle,
-      content: CONTROL_TEXTS.modal.remindContent,
-      success: (res) => {
-        if (res.confirm) {
-          wx.showToast({ title: CONTROL_TEXTS.toast.remindSent, icon: 'success' });
-        }
+    const shareUrl = `/package-vote/pages/vote/vote?roomId=${this.data.roomId}`;
+    wx.setClipboardData({
+      data: shareUrl,
+      success: () => {
+        wx.showToast({ title: CONTROL_TEXTS.toast.shareSuccess, icon: 'success' });
       }
     });
   },

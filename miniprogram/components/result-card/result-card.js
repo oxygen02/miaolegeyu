@@ -9,7 +9,7 @@ Component({
     },
     subtitle: {
       type: String,
-      value: '本次聚餐地点已定'
+      value: '本次聚会地点已定'
     },
     // 海报图片
     posterImageUrl: {

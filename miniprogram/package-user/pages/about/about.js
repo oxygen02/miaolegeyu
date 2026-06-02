@@ -6,12 +6,12 @@ Page({
     imagePaths: {},
     version: '1.0.0',
     appName: '喵了个鱼',
-    description: '熟人聚餐决策助手',
+    description: '熟人聚会决策助手',
     features: [
       {
         icon: imagePaths.icons.toupiaojuece,
-        title: '聚餐决策',
-        desc: '快速创建聚餐活动，邀请好友投票参与'
+        title: '聚会决策',
+        desc: '快速创建聚会活动，邀请好友投票参与'
       },
       {
         icon: imagePaths.icons.tuijian,
@@ -21,7 +21,7 @@ Page({
       {
         icon: imagePaths.icons.hudong,
         title: '好友互动',
-        desc: '邀请好友一起决策，让聚餐更有趣'
+        desc: '邀请好友一起决策，让聚会更有趣'
       },
       {
         icon: imagePaths.icons.gexingtouxiang,

@@ -2,7 +2,7 @@
   <!-- 顶部渐变区域 -->
   <view class="header-section">
     <view class="header-content">
-      <text class="page-title">聚餐发起</text>
+      <text class="page-title">聚会发起</text>
       <text class="page-subtitle">选择一种方式开始</text>
     </view>
 

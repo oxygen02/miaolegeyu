@@ -38,7 +38,7 @@
         </view>
         <view class="paragraph">
           <text class="bold">1.2 位置信息</text>
-          <text>为了推荐附近的餐厅和显示聚餐地点，我们可能获取您的地理位置信息。您可以随时在手机设置中关闭位置权限。</text>
+          <text>为了推荐附近的餐厅和显示聚会地点，我们可能获取您的地理位置信息。您可以随时在手机设置中关闭位置权限。</text>
         </view>
         <view class="paragraph">
           <text class="bold">1.3 使用数据</text>
@@ -52,7 +52,7 @@
           <text>我们收集的信息主要用于以下目的：</text>
           <view class="list">
             <text class="list-item">• 提供和维护服务</text>
-            <text class="list-item">• 实现聚餐投票和拼单功能</text>
+            <text class="list-item">• 实现聚会投票和拼单功能</text>
             <text class="list-item">• 推荐附近的餐厅</text>
             <text class="list-item">• 发送服务通知</text>
             <text class="list-item">• 分析用户行为以优化服务</text>
@@ -144,7 +144,7 @@
         <view class="paragraph">
           <text>本服务提供以下功能：</text>
           <view class="list">
-            <text class="list-item">• 创建聚餐房间</text>
+            <text class="list-item">• 创建聚会房间</text>
             <text class="list-item">• 发起投票决策</text>
             <text class="list-item">• 分享邀请好友</text>
             <text class="list-item">• 推荐餐厅</text>

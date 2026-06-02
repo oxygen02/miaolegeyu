@@ -705,7 +705,7 @@ Page({
   // 分享
   onShareAppMessage() {
     return {
-      title: '喵了个鱼 - 聚餐投票神器',
+      title: '喵了个鱼 - 聚会投票神器',
       path: '/pages/index/index',
       imageUrl: imagePaths.banners.faqijucan || ''
     };
@@ -714,7 +714,7 @@ Page({
   // 分享到朋友圈
   onShareTimeline() {
     return {
-      title: '喵了个鱼 - 聚餐投票神器',
+      title: '喵了个鱼 - 聚会投票神器',
       query: '',
       imageUrl: imagePaths.banners.faqijucan || ''
     };

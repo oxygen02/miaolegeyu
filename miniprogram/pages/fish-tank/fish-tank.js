@@ -381,7 +381,7 @@ Page({
       const rooms = allRooms.map(room => {
         // 根据 mode 确定类型
         let type = 'dining';
-        let typeName = '聚餐';
+        let typeName = '聚会';
         if (room.mode === 'group') {
           type = 'group';
           typeName = '拼单';
@@ -390,7 +390,7 @@ Page({
           typeName = '约饭';
         } else if (room.mode === 'pick_for_them' || room.mode === 'b') {
           type = 'dining';
-          typeName = '聚餐';
+          typeName = '聚会';
         }
         const isGroup = room.mode === 'group';
         const isMeal = room.mode === 'meal';
@@ -444,8 +444,8 @@ Page({
           currentAmount: room.currentAmount || 0,
           isCreator: isCreator,
           creatorOpenId: room.creatorOpenId,
-          creatorNickName: room.creatorNickName || '未知用户',
-          creatorAvatarUrl: room.creatorAvatarUrl || imagePaths.decorations.catAvatarIcon,
+          creatorNickName: room.creatorNickName || room.creatorName || (room.participants && room.participants[0] && room.participants[0].isHost && room.participants[0].nickName) || '神秘喵友',
+          creatorAvatarUrl: room.creatorAvatarUrl || (room.participants && room.participants[0] && room.participants[0].isHost && room.participants[0].avatarUrl) || imagePaths.decorations.catAvatarIcon,
           // 拼单参与者头像
           participantAvatars: room.participantAvatars || []
         };
@@ -619,7 +619,7 @@ Page({
       const rooms = allMyRooms.map(room => {
         // 根据 mode 确定类型
         let type = 'dining';
-        let typeName = '聚餐';
+        let typeName = '聚会';
         if (room.mode === 'group') {
           type = 'group';
           typeName = '拼单';
@@ -628,7 +628,7 @@ Page({
           typeName = '约饭';
         } else if (room.mode === 'pick_for_them' || room.mode === 'b') {
           type = 'dining';
-          typeName = '聚餐';
+          typeName = '聚会';
         }
         const isGroup = room.mode === 'group';
         const isMeal = room.mode === 'meal';
@@ -668,8 +668,8 @@ Page({
           minAmount: room.minAmount,
           currentAmount: room.currentAmount || 0,
           isCreator: true,
-          creatorNickName: room.creatorNickName || '未知用户',
-          creatorAvatarUrl: room.creatorAvatarUrl || imagePaths.decorations.catAvatarIcon
+          creatorNickName: room.creatorNickName || room.creatorName || (room.participants && room.participants[0] && room.participants[0].isHost && room.participants[0].nickName) || '神秘喵友',
+          creatorAvatarUrl: room.creatorAvatarUrl || (room.participants && room.participants[0] && room.participants[0].isHost && room.participants[0].avatarUrl) || imagePaths.decorations.catAvatarIcon
         };
       });
 
@@ -845,7 +845,7 @@ Page({
       const rooms = allParticipatedRooms.map(room => {
         // 根据 mode 确定类型
         let type = 'dining';
-        let typeName = '聚餐';
+        let typeName = '聚会';
         if (room.mode === 'group') {
           type = 'group';
           typeName = '拼单';
@@ -854,7 +854,7 @@ Page({
           typeName = '约饭';
         } else if (room.mode === 'pick_for_them' || room.mode === 'b') {
           type = 'dining';
-          typeName = '聚餐';
+          typeName = '聚会';
         }
         const isGroup = room.mode === 'group';
         // 确保 shopName 是字符串

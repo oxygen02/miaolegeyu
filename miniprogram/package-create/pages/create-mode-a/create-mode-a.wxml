@@ -18,15 +18,15 @@
 
   <!-- 表单卡片 - 使用"你们来定"的字段布局 -->
   <view class="form-card card anim-slide-up" style="animation-delay:0.1s">
-    <!-- 聚餐标题和聚餐地点范围 - 同一行 -->
+    <!-- 聚会标题和聚会地点范围 - 同一行 -->
     <view class="form-group combined-fields">
       <view class="field-section">
-        <text class="section-label">聚餐标题</text>
-        <input class="input field-input" placeholder="如：周五部门聚餐" value="{{title}}" bindinput="onTitleInput" />
+        <text class="section-label">聚会标题</text>
+        <input class="input field-input" placeholder="如：周五部门聚会" value="{{title}}" bindinput="onTitleInput" />
       </view>
       <view class="divider"></view>
       <view class="field-section location-section">
-        <text class="section-label">聚餐地点范围</text>
+        <text class="section-label">聚会地点范围</text>
         <view class="location-content-compact">
           <input 
             class="input field-input location-input-compact" 

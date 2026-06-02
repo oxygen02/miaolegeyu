@@ -1016,7 +1016,7 @@ Page({
       const room = [...(this.data.myRooms || []), ...(this.data.myParticipated || [])]
         .find(r => r.roomId === roomId);
       return {
-        title: room ? `「${room.title || '聚餐投票'}」快来一起选餐厅！` : '快来一起选餐厅！',
+        title: room ? `「${room.title || '聚会投票'}」快来一起选餐厅！` : '快来一起选餐厅！',
         path: `/package-vote/pages/vote/vote?roomId=${roomId}`,
         imageUrl: room?.finalPoster || (room?.candidatePosters?.[0]?.imageUrl) || ''
       };
@@ -1120,7 +1120,7 @@ Page({
   async deleteRoom(roomId) {
     const res = await wx.showModal({
       title: '确认删除',
-      content: '确定要删除这个聚餐吗？删除后不可恢复',
+      content: '确定要删除这个聚会吗？删除后不可恢复',
       confirmColor: '#FF6B6B'
     });
 
@@ -1150,7 +1150,7 @@ Page({
   async quitRoom(roomId) {
     const res = await wx.showModal({
       title: '确认取消',
-      content: '确定要取消参与这个聚餐吗？',
+      content: '确定要取消参与这个聚会吗？',
       confirmColor: '#FF6B6B'
     });
 

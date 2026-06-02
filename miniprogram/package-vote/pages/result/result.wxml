@@ -13,7 +13,7 @@
       <block wx:if="{{room.mode === 'a'}}">
         <result-card
           title="橘仔宣布"
-          subtitle="本次聚餐地点已定"
+          subtitle="本次聚会地点已定"
           poster-image-url="{{room.finalPoster.imageUrl}}"
           platform-source="{{room.finalPoster.platformSource}}"
           show-vote-stats="{{true}}"
