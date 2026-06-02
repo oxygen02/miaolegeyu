@@ -410,41 +410,30 @@ Page({
     }
   },
 
-  // 格式化日期显示（0424 -> 04月24日）
+  // 格式化日期显示（608 -> 6月8日，64 -> 6月4日）
   formatDateDisplay(numbers) {
     if (!numbers) return '';
-    if (numbers.length === 1) {
-      return numbers;
+    // 补齐到4位再解析
+    let padded = numbers;
+    while (padded.length < 4 && padded.length > 0) {
+      padded = '0' + padded;
     }
-    // 2位数字：第一位是月，第二位是日（53 -> 5月3日）
-    if (numbers.length === 2) {
-      const m = numbers.substring(0, 1);
-      const d = numbers.substring(1);
-      return m + '月' + d + '日';
-    }
-    // 3位数字：第一位是月，后两位是日（424 -> 4月24日）
-    if (numbers.length === 3) {
-      const m = numbers.substring(0, 1);
-      const d = numbers.substring(1);
-      return m + '月' + d + '日';
-    }
-    // 4位数字：前两位是月，后两位是日（0424 -> 04月24日）
-    const month = numbers.substring(0, 2);
-    const day = numbers.substring(2);
+    if (padded.length < 4) return numbers; // 输入中，不足4位且无法补齐
+    const month = parseInt(padded.substring(0, 2), 10);
+    const day = parseInt(padded.substring(2, 4), 10);
     return month + '月' + day + '日';
   },
 
   // 手动输入活动时间
   onTimeInput(e) {
     let value = e.detail.value;
-    
-    // 如果值包含中文（时、分），说明用户正在编辑格式化后的文本，直接保存
+
+    // 如果值包含中文（时、分），说明用户正在编辑格式化后的文本，保持原样
     if (/[时分]/.test(value)) {
-      let numbers = value.replace(/\D/g, '');
-      this.setData({ activityTime: value, activityTimeRaw: numbers });
+      this.setData({ activityTime: value });
       return;
     }
-    
+
     // 纯数字输入，进行格式化
     let numbers = value.replace(/\D/g, '');
     // 限制4位
@@ -459,12 +448,18 @@ Page({
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
 
+    // 如果没有有效数字，清空
+    if (!rawValue || rawValue.length === 0) {
+      this.setData({ activityTime: '', activityTimeRaw: '' });
+      return;
+    }
+
     // 规则：输入的数字代表小时数，自动补全为整点
     // 输入12 -> 1200 (12:00)
     // 输入6 -> 600 (6:00)
     // 输入00 -> 0000 (00:00)
     // 输入1230 -> 1230 (12:30)
-    if (rawValue.length > 0 && rawValue.length <= 2) {
+    if (rawValue.length <= 2) {
       // 1-2位数字：补全为4位（代表整点）
       while (rawValue.length < 4) {
         rawValue = rawValue + '0';
@@ -479,37 +474,47 @@ Page({
       rawValue = rawValue.substring(0, 4);
     }
 
-    // 重新格式化显示
-    if (rawValue.length >= 2) {
-      let displayValue = this.formatTimeDisplay(rawValue);
-      this.setData({ activityTime: displayValue, activityTimeRaw: rawValue });
+    // 验证时间有效性
+    if (rawValue.length === 4) {
+      const hour = parseInt(rawValue.substring(0, 2), 10);
+      const minute = parseInt(rawValue.substring(2, 4), 10);
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        wx.showToast({ title: '时分格式无效，如 1800', icon: 'none' });
+        this.setData({ activityTime: '', activityTimeRaw: '' });
+        return;
+      }
     }
+
+    // 重新格式化显示
+    let displayValue = this.formatTimeDisplay(rawValue);
+    this.setData({ activityTime: displayValue, activityTimeRaw: rawValue });
   },
 
-  // 格式化时间显示（1200 -> 12时00分）
+  // 格式化时间显示（12 -> 12时00分，1200 -> 12时00分）
   formatTimeDisplay(numbers) {
     if (!numbers) return '';
-    if (numbers.length < 4) {
-      return numbers;
+    // 补齐到4位再解析
+    let padded = numbers;
+    while (padded.length < 4 && padded.length > 0) {
+      padded = padded + '0';
     }
-    // 4位数字：前两位是时，后两位是分（1200 -> 12时00分）
-    const hour = numbers.substring(0, 2);
-    const minute = numbers.substring(2);
+    if (padded.length < 4) return numbers; // 输入中，不足4位且无法补齐
+    const hour = parseInt(padded.substring(0, 2), 10);
+    const minute = padded.substring(2);
     return hour + '时' + minute + '分';
   },
 
   // 手动输入投票截止日期
   onDeadlineDateInput(e) {
     let value = e.detail.value;
-    
-    // 如果值包含中文（月、日），说明用户正在编辑格式化后的文本，直接保存
+
+    // 如果值包含中文（月、日），说明用户正在编辑格式化后的文本，保持原样
     if (/[月日]/.test(value)) {
-      let numbers = value.replace(/\D/g, '');
-      this.setData({ deadlineDate: value, deadlineDateRaw: numbers });
+      this.setData({ deadlineDate: value });
       this.updateDeadlineText();
       return;
     }
-    
+
     // 纯数字输入，进行格式化
     let numbers = value.replace(/\D/g, '');
     // 限制4位
@@ -520,28 +525,39 @@ Page({
     this.updateDeadlineText();
   },
 
-  // 截止日期输入完成 - 2位和3位数字自动补零
+  // 截止日期输入完成 - 自动补全为月日格式
   onDeadlineDateBlur(e) {
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
 
-    // 2位数字时，补零为4位（53 -> 0503）
-    if (rawValue.length === 2) {
-      const month = rawValue.substring(0, 1);
-      const day = rawValue.substring(1);
-      rawValue = '0' + month + '0' + day;
+    // 如果没有有效数字，清空
+    if (!rawValue || rawValue.length === 0) {
+      this.setData({ deadlineDate: '', deadlineDateRaw: '' });
+      this.updateDeadlineText();
+      return;
     }
-    // 3位数字时，首位补零
-    else if (rawValue.length === 3) {
+
+    // 补齐到4位数字（608 -> 0608）
+    while (rawValue.length < 4) {
       rawValue = '0' + rawValue;
     }
 
-    // 重新格式化显示（只要有输入就更新，包括2位）
-    if (rawValue.length >= 2) {
-      let displayValue = this.formatDateDisplay(rawValue);
-      this.setData({ deadlineDate: displayValue, deadlineDateRaw: rawValue });
-      this.updateDeadlineText();
+    // 验证日期有效性
+    if (rawValue.length === 4) {
+      const month = parseInt(rawValue.substring(0, 2), 10);
+      const day = parseInt(rawValue.substring(2, 4), 10);
+      if (month < 1 || month > 12 || day < 1 || day > 31) {
+        wx.showToast({ title: '月日格式无效，如 0608', icon: 'none' });
+        this.setData({ deadlineDate: '', deadlineDateRaw: '' });
+        this.updateDeadlineText();
+        return;
+      }
     }
+
+    // 重新格式化显示
+    let displayValue = this.formatDateDisplay(rawValue);
+    this.setData({ deadlineDate: displayValue, deadlineDateRaw: rawValue });
+    this.updateDeadlineText();
   },
 
   // 手动输入投票截止时间

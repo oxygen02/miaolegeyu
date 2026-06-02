@@ -849,12 +849,12 @@ async onLoad(options) {
   // 约饭时间输入（月日 | 时分格式，中文显示）
   onAppointmentDateInput(e) {
     let value = e.detail.value;
-    // 如果值包含中文，说明用户正在编辑格式化后的文本
+    // 如果值包含中文，说明用户正在编辑格式化后的文本，保持原样不处理
     if (/[月日]/.test(value)) {
-      let numbers = value.replace(/\D/g, '');
-      this.setData({ appointmentDate: value, appointmentDateRaw: numbers });
+      this.setData({ appointmentDate: value });
       return;
     }
+    // 纯数字输入，进行格式化
     let numbers = value.replace(/\D/g, '');
     if (numbers.length > 4) numbers = numbers.substring(0, 4);
     let displayValue = this.formatDateDisplay(numbers);
@@ -863,30 +863,40 @@ async onLoad(options) {
   onAppointmentDateBlur(e) {
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
-    if (rawValue.length === 3) {
+
+    // 如果没有有效数字，清空
+    if (!rawValue || rawValue.length === 0) {
+      this.setData({ appointmentDate: '', appointmentDateRaw: '' });
+      return;
+    }
+
+    // 补齐到4位数字
+    while (rawValue.length < 4) {
       rawValue = '0' + rawValue;
     }
+
+    // 验证日期有效性
     if (rawValue.length === 4) {
       const month = parseInt(rawValue.substring(0, 2), 10);
       const day = parseInt(rawValue.substring(2, 4), 10);
-      if (month < 1 || month > 12 || day < 1 || day > 31 || (month === 0 && day === 0)) {
-        wx.showToast({ title: '月日格式无效，如 0428', icon: 'none' });
-        rawValue = '';
+      if (month < 1 || month > 12 || day < 1 || day > 31) {
+        wx.showToast({ title: '月日格式无效，如 0608', icon: 'none' });
+        this.setData({ appointmentDate: '', appointmentDateRaw: '' });
+        return;
       }
-    } else if (rawValue.length > 0 && rawValue.length < 3) {
-      rawValue = '';
     }
+
     let displayValue = this.formatDateDisplay(rawValue);
     this.setData({ appointmentDate: displayValue, appointmentDateRaw: rawValue });
   },
   onAppointmentTimeInput(e) {
     let value = e.detail.value;
-    // 如果值包含中文，说明用户正在编辑格式化后的文本
+    // 如果值包含中文，说明用户正在编辑格式化后的文本，保持原样不处理
     if (/[时分]/.test(value)) {
-      let numbers = value.replace(/\D/g, '');
-      this.setData({ appointmentTime: value, appointmentTimeRaw: numbers });
+      this.setData({ appointmentTime: value });
       return;
     }
+    // 纯数字输入，进行格式化
     let numbers = value.replace(/\D/g, '');
     if (numbers.length > 4) numbers = numbers.substring(0, 4);
     let displayValue = this.formatTimeDisplay(numbers);
@@ -948,9 +958,9 @@ async onLoad(options) {
   // 截止时间输入（月日 | 时分格式，中文显示）
   onDeadlineDateInput(e) {
     let value = e.detail.value;
+    // 如果值包含中文，保持原样不处理
     if (/[月日]/.test(value)) {
-      let numbers = value.replace(/\D/g, '');
-      this.setData({ deadlineDate: value, deadlineDateRaw: numbers });
+      this.setData({ deadlineDate: value });
       return;
     }
     let numbers = value.replace(/\D/g, '');
@@ -961,27 +971,37 @@ async onLoad(options) {
   onDeadlineDateBlur(e) {
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
-    if (rawValue.length === 3) {
+
+    // 如果没有有效数字，清空
+    if (!rawValue || rawValue.length === 0) {
+      this.setData({ deadlineDate: '', deadlineDateRaw: '' });
+      return;
+    }
+
+    // 补齐到4位数字
+    while (rawValue.length < 4) {
       rawValue = '0' + rawValue;
     }
+
+    // 验证日期有效性
     if (rawValue.length === 4) {
       const month = parseInt(rawValue.substring(0, 2), 10);
       const day = parseInt(rawValue.substring(2, 4), 10);
-      if (month < 1 || month > 12 || day < 1 || day > 31 || (month === 0 && day === 0)) {
-        wx.showToast({ title: '月日格式无效，如 0428', icon: 'none' });
-        rawValue = '';
+      if (month < 1 || month > 12 || day < 1 || day > 31) {
+        wx.showToast({ title: '月日格式无效，如 0608', icon: 'none' });
+        this.setData({ deadlineDate: '', deadlineDateRaw: '' });
+        return;
       }
-    } else if (rawValue.length > 0 && rawValue.length < 3) {
-      rawValue = '';
     }
+
     let displayValue = this.formatDateDisplay(rawValue);
     this.setData({ deadlineDate: displayValue, deadlineDateRaw: rawValue });
   },
   onDeadlineTimeInput(e) {
     let value = e.detail.value;
+    // 如果值包含中文，保持原样不处理
     if (/[时分]/.test(value)) {
-      let numbers = value.replace(/\D/g, '');
-      this.setData({ deadlineTime: value, deadlineTimeRaw: numbers });
+      this.setData({ deadlineTime: value });
       return;
     }
     let numbers = value.replace(/\D/g, '');
@@ -1022,27 +1042,34 @@ async onLoad(options) {
     this.setData({ deadlineTime: displayValue, deadlineTimeRaw: rawValue });
   },
 
-  // 格式化方法（复用 create-mode-b 的逻辑）
+  // 格式化方法
+  // 月日格式化：608 -> 06月08日，64 -> 06月04日
   formatDateDisplay(numbers) {
     if (!numbers) return '';
-    if (numbers.length <= 2) return numbers;
-    if (numbers.length === 3) {
-      const m = numbers.substring(0, 1);
-      const d = numbers.substring(1);
-      return m + '月' + d + '日';
+    // 补齐到4位再解析
+    let padded = numbers;
+    while (padded.length < 4 && padded.length > 0) {
+      padded = '0' + padded;
     }
-    const month = numbers.substring(0, 2);
-    const day = numbers.substring(2);
-    return month + '月' + day + '日';
+    if (padded.length < 4) return numbers; // 输入中，不足4位且无法补齐
+    const month = padded.substring(0, 2);
+    const day = padded.substring(2);
+    // 去掉前导零显示（06月08日 -> 6月8日）
+    return parseInt(month, 10) + '月' + parseInt(day, 10) + '日';
   },
+  // 时分格式化：12 -> 12时00分，6 -> 6时00分，1200 -> 12时00分
   formatTimeDisplay(numbers) {
     if (!numbers) return '';
-    // 少于4位数字时直接返回（输入中状态）
-    if (numbers.length < 4) return numbers;
-    // 4位数字：前两位是时，后两位是分（1200 -> 12时00分）
-    const hour = numbers.substring(0, 2);
-    const minute = numbers.substring(2);
-    return hour + '时' + minute + '分';
+    // 补齐到4位再解析
+    let padded = numbers;
+    while (padded.length < 4 && padded.length > 0) {
+      padded = padded + '0';
+    }
+    if (padded.length < 4) return numbers; // 输入中，不足4位且无法补齐
+    const hour = padded.substring(0, 2);
+    const minute = padded.substring(2);
+    // 去掉前导零显示（06时00分 -> 6时00分）
+    return parseInt(hour, 10) + '时' + minute + '分';
   },
 
   closeAppointmentModal() {
