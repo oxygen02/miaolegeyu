@@ -202,12 +202,27 @@ Page({
   async doLogin() {
     wx.showLoading({ title: '登录中...' });
     try {
+      // 尝试获取位置信息（用于自动同步城市）
+      let latitude = null;
+      let longitude = null;
+      try {
+        const locationRes = await wx.getLocation({
+          type: 'gcj02'
+        });
+        latitude = locationRes.latitude;
+        longitude = locationRes.longitude;
+      } catch (locErr) {
+        console.log('获取位置信息失败，跳过城市同步:', locErr);
+      }
+
       const { result } = await wx.cloud.callFunction({
         name: 'userLogin',
         data: {
           nickName: this.data.nickName.trim(),
           avatarUrl: this.data.selectedAvatarUrl,
-          isCustom: true
+          isCustom: true,
+          latitude,
+          longitude
         }
       });
 
@@ -216,6 +231,11 @@ Page({
         const userData = { ...result.data, isLogin: true };
         const auth = getApp().globalData.auth;
         auth.setUserInfo(userData);
+
+        // 如果后端返回了城市信息，同步到本地
+        if (result.data.userCity) {
+          wx.setStorageSync('userCity', result.data.userCity);
+        }
 
         wx.showToast({ title: '登录成功', icon: 'success' });
         setTimeout(() => {

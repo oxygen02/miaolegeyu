@@ -86,7 +86,7 @@ exports.main = async (event) => {
           page: `/pages/vote/vote?roomId=${roomId}`,
           data: {
             thing1: { value: truncateString(roomTitle || '聚餐投票', 20) }, // 投票地址 → 房间标题
-            time2: { value: formatDateTime(room.deadline || Date.now() + 3600000) }, // 到期时间
+            time2: { value: formatDateTime(room.deadline || room.voteDeadline || Date.now() + 3600000) }, // 到期时间
             thing3: { value: '发起人提醒您尽快投票，点击参与投票' } // 备注
           },
           miniprogramState: 'formal'

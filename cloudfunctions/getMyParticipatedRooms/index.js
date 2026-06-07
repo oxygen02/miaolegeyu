@@ -74,8 +74,8 @@ exports.main = async (event) => {
 
       // 检查是否已过期（deadline已过且状态不是locked）
       let effectiveStatus = room.status || 'voting';
-      if (effectiveStatus === 'voting' && room.deadline) {
-        const deadlineDate = new Date(room.deadline);
+      if (effectiveStatus === 'voting' && (room.deadline || room.voteDeadline)) {
+        const deadlineDate = new Date(room.deadline || room.voteDeadline);
         if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
           effectiveStatus = 'ended';
         }
@@ -92,8 +92,8 @@ exports.main = async (event) => {
         location: room.location || '',
         creatorName: creator.nickName || room.creatorNickName || '未知用户',
         creatorAvatar: creator.avatarUrl || room.creatorAvatarUrl || '',
-        creatorId: room.creatorOpenId,
         isCreator: room.creatorOpenId === wxContext.OPENID,
+        // 注意：不返回 creatorOpenId 等敏感字段
         createdAt: room.createdAt
       };
     });

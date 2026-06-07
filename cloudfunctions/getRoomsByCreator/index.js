@@ -56,8 +56,8 @@ exports.main = async (event) => {
 
       // 检查是否已过期（deadline已过且状态不是locked）
       let effectiveStatus = room.status || 'voting';
-      if (effectiveStatus === 'voting' && room.deadline) {
-        const deadlineDate = new Date(room.deadline);
+      if (effectiveStatus === 'voting' && (room.deadline || room.voteDeadline)) {
+        const deadlineDate = new Date(room.deadline || room.voteDeadline);
         if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
           effectiveStatus = 'ended';
         }

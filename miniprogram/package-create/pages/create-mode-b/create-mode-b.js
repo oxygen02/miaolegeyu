@@ -32,7 +32,11 @@ Page({
     // 是否启用餐厅推荐
     enableRestaurantRecommend: false,
     // 是否可以提交
-    canSubmit: false
+    canSubmit: false,
+    // 隐私设置
+    visibility: 'friends', // friends: 仅好友可见, share: 仅通过分享可见
+    showDataRetentionTip: false, // 是否显示数据保留提示
+    agreeDefault: false, // 是否勾选"下次不再显示"
   },
 
   onLoad(options) {
@@ -43,6 +47,51 @@ Page({
       this.setData({ isEditMode: true, editRoomId: options.roomId });
       this.loadRoomData(options.roomId);
     }
+    // 检查是否首次创建活动，显示数据保留提示
+    this.checkDataRetentionTip();
+  },
+
+  // 检查是否显示数据保留提示
+  checkDataRetentionTip() {
+    const hasAgreeDefault = wx.getStorageSync('dataRetentionAgreeDefault');
+    // 如果用户之前勾选了"默认同意"，则不再显示
+    if (hasAgreeDefault) {
+      return;
+    }
+    
+    const hasShownTip = wx.getStorageSync('dataRetentionTipShown');
+    if (!hasShownTip) {
+      this.setData({ showDataRetentionTip: true });
+    }
+  },
+
+  // 关闭数据保留提示
+  closeDataRetentionTip() {
+    const { agreeDefault } = this.data;
+    
+    // 如果勾选了"下次不再显示"，则永久记住
+    if (agreeDefault) {
+      wx.setStorageSync('dataRetentionTipShown', true);
+      wx.setStorageSync('dataRetentionAgreeDefault', true);
+    } else {
+      // 否则只记录本次已显示（下次还会显示）
+      wx.setStorageSync('dataRetentionTipShown', true);
+    }
+    
+    this.setData({ showDataRetentionTip: false });
+  },
+
+  // 切换"默认同意"选项
+  toggleAgreeDefault() {
+    this.setData({
+      agreeDefault: !this.data.agreeDefault
+    });
+  },
+
+  // 切换可见性设置
+  onVisibilityChange(e) {
+    const visibility = e.currentTarget.dataset.value;
+    this.setData({ visibility });
   },
 
   // 标记表单是否被修改过
@@ -334,12 +383,22 @@ Page({
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
 
-    // 3位数字时，首位补零
     if (rawValue.length === 3) {
       rawValue = '0' + rawValue;
     }
 
-    // 只要有内容就更新，确保验证能通过
+    // 验证月日有效性
+    if (rawValue.length === 4) {
+      const month = parseInt(rawValue.substring(0, 2), 10);
+      const day = parseInt(rawValue.substring(2, 4), 10);
+      if (month < 1 || month > 12 || day < 1 || day > 31 || (month === 0 && day === 0)) {
+        wx.showToast({ title: '月日格式无效，如 0428', icon: 'none' });
+        rawValue = '';
+      }
+    } else if (rawValue.length > 0 && rawValue.length < 4) {
+      rawValue = '';
+    }
+
     let displayValue = this.formatDateDisplay(rawValue);
     this.setData({ dinnerDate: displayValue, dinnerDateRaw: rawValue }, () => {
       this.markAsModified();
@@ -370,12 +429,22 @@ Page({
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
 
-    // 2位数字自动补全为整点
     if (rawValue.length === 2) {
       rawValue = rawValue + '00';
     }
 
-    // 只要有内容就更新，确保验证能通过
+    // 验证时分有效性
+    if (rawValue.length === 4) {
+      const hour = parseInt(rawValue.substring(0, 2), 10);
+      const minute = parseInt(rawValue.substring(2, 4), 10);
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59 || (hour === 0 && minute === 0)) {
+        wx.showToast({ title: '时分格式无效，如 1800', icon: 'none' });
+        rawValue = '';
+      }
+    } else if (rawValue.length > 0 && rawValue.length < 4) {
+      rawValue = '';
+    }
+
     let displayValue = this.formatTimeDisplay(rawValue);
     this.setData({ dinnerTime: displayValue, dinnerTimeRaw: rawValue }, () => {
       this.markAsModified();
@@ -408,7 +477,18 @@ Page({
       rawValue = '0' + rawValue;
     }
 
-    // 只要有内容就更新，确保验证能通过
+    // 验证月日有效性
+    if (rawValue.length === 4) {
+      const month = parseInt(rawValue.substring(0, 2), 10);
+      const day = parseInt(rawValue.substring(2, 4), 10);
+      if (month < 1 || month > 12 || day < 1 || day > 31 || (month === 0 && day === 0)) {
+        wx.showToast({ title: '月日格式无效，如 0428', icon: 'none' });
+        rawValue = '';
+      }
+    } else if (rawValue.length > 0 && rawValue.length < 4) {
+      rawValue = '';
+    }
+
     let displayValue = this.formatDateDisplay(rawValue);
     this.setData({ deadlineDate: displayValue, deadlineDateRaw: rawValue }, () => {
       this.markAsModified();
@@ -441,7 +521,18 @@ Page({
       rawValue = rawValue + '00';
     }
 
-    // 只要有内容就更新，确保验证能通过
+    // 验证时分有效性
+    if (rawValue.length === 4) {
+      const hour = parseInt(rawValue.substring(0, 2), 10);
+      const minute = parseInt(rawValue.substring(2, 4), 10);
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59 || (hour === 0 && minute === 0)) {
+        wx.showToast({ title: '时分格式无效，如 1800', icon: 'none' });
+        rawValue = '';
+      }
+    } else if (rawValue.length > 0 && rawValue.length < 4) {
+      rawValue = '';
+    }
+
     let displayValue = this.formatTimeDisplay(rawValue);
     this.setData({ deadlineTime: displayValue, deadlineTimeRaw: rawValue }, () => {
       this.markAsModified();
@@ -636,6 +727,9 @@ this.markAsModified();
         // 创建模式
         const roomId = generateRoomId();
         const userInfo = wx.getStorageSync('userInfo') || {};
+        // 获取用户城市
+        const userCity = wx.getStorageSync('userCity') || null;
+        
         result = await wx.cloud.callFunction({
           name: 'createRoom',
           timeout: 60000,
@@ -652,7 +746,17 @@ this.markAsModified();
             roomPassword: this.data.needPassword ? this.data.roomPassword : '',
             enableRestaurantRecommend: this.data.enableRestaurantRecommend,
             creatorNickName: userInfo.nickName || '',
-            creatorAvatarUrl: userInfo.avatarUrl || ''
+            creatorAvatarUrl: userInfo.avatarUrl || '',
+            // 隐私设置
+            visibility: this.data.visibility,
+            city: userCity ? {
+              country: userCity.country,
+              countryCode: userCity.countryCode,
+              region: userCity.region,
+              city: userCity.city,
+              cityCode: userCity.cityCode,
+              isDomestic: userCity.isDomestic
+            } : null
           }
         });
       }

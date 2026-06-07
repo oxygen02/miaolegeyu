@@ -59,8 +59,11 @@ exports.main = async (event, context) => {
           return { success: false, error: '房间不存在或已删除' };
         }
         const room = roomRes.data[0];
+        // 级联删除所有关联数据
         await db.collection('rooms').doc(room._id).remove();
         await db.collection('room_participants').where({ roomId: contentId }).remove();
+        await db.collection('votes').where({ roomId: contentId }).remove();
+        await db.collection('group_order_participants').where({ roomId: contentId }).remove();
         deletedInfo = { title: room.title, creatorOpenId: room.creatorOpenId };
         break;
       }
@@ -83,7 +86,10 @@ exports.main = async (event, context) => {
         if (!voteRes.data) {
           return { success: false, error: '投票不存在' };
         }
+        // 级联删除关联数据
         await db.collection('schedule_votes').doc(contentId).remove();
+        await db.collection('schedule_vote_participants').where({ voteId: contentId }).remove();
+        await db.collection('schedule_vote_records').where({ voteId: contentId }).remove();
         deletedInfo = { title: voteRes.data.title, creatorOpenId: voteRes.data.creatorOpenId };
         break;
       }
@@ -95,7 +101,9 @@ exports.main = async (event, context) => {
         if (!aptRes.data) {
           return { success: false, error: '活动不存在' };
         }
+        // 级联删除关联数据
         await db.collection('dining_appointments').doc(contentId).remove();
+        await db.collection('dining_appointment_participants').where({ appointmentId: contentId }).remove();
         deletedInfo = { title: aptRes.data.shopName, creatorOpenId: aptRes.data.initiatorOpenId };
         break;
       }

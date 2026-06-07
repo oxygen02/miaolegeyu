@@ -18,8 +18,12 @@ Page({
     optionStats: [],
     loading: true,
     hasJoined: false,
-    selectedOptionIndex: -1,
+    selectedOptionIndices: [], // 多选：已选择的选项索引数组
+    selectedOptionIndex: -1, // 兼容旧逻辑
     mySelectedOption: -1,
+    mySelectedOptions: [], // 多选：服务端返回的我已选的选项
+    isSelectionChanged: false, // 选择是否已更改（用于控制更新按钮）
+    optionSelections: [], // 每个选项的选中状态 [{selected: bool, joined: bool}, ...]
     totalParticipants: 0,
     joining: false,
     quitting: false,
@@ -31,6 +35,49 @@ Page({
     showDetailModal: false,
     currentOption: null,
     currentOptionIndex: -1
+  },
+
+  // 比较两个数组是否相同
+  _arraysEqual(a, b) {
+    if (a.length !== b.length) return false;
+    return a.every((val, i) => val === b[i]);
+  },
+
+  // 更新选择是否变更的状态
+  _updateSelectionChanged(selectedOptionIndices) {
+    const { mySelectedOptions } = this.data;
+    const changed = !this._arraysEqual(selectedOptionIndices, mySelectedOptions);
+    this.setData({ isSelectionChanged: changed });
+  },
+
+  // 计算每个选项的选中状态（供 WXML 使用）
+  // status: 'joined'（已确认）| 'pending'（待提交更改）| 'cancelled'（已取消待提交）| 'normal'（未选中）
+  _updateOptionSelections(selectedOptionIndices) {
+    const { options, mySelectedOptions, isSelectionChanged, hasJoined } = this.data;
+    const optionSelections = options.map((_, idx) => {
+      const currentlySelected = selectedOptionIndices.indexOf(idx) >= 0;
+      const wasJoined = mySelectedOptions.indexOf(idx) >= 0;
+      
+      let status = 'normal';
+      if (hasJoined) {
+        if (currentlySelected && wasJoined) {
+          status = 'joined'; // 已确认（没改过）
+        } else if (currentlySelected && !wasJoined) {
+          status = 'pending'; // 新选中（待提交）
+        } else if (!currentlySelected && wasJoined) {
+          status = 'cancelled'; // 取消了已选（待提交）
+        }
+      } else if (currentlySelected) {
+        status = 'pending'; // 新选中（未参与过）
+      }
+      
+      return {
+        selected: currentlySelected,
+        joined: wasJoined,
+        status // 新增：精确状态
+      };
+    });
+    this.setData({ optionSelections });
   },
 
   previewImage(e) {
@@ -86,18 +133,37 @@ Page({
     });
   },
 
-  // 选择当前选项并关闭弹窗
+  // 选择当前选项并关闭弹窗（多选 toggle）
   selectAndClose() {
-    const { currentOptionIndex } = this.data;
+    const { currentOptionIndex, selectedOptionIndices, hasJoined } = this.data;
     if (currentOptionIndex < 0) return;
 
+    let newSelections;
+    if (hasJoined) {
+      // 已参与时，弹窗底部显示"切换到此选项"
+      newSelections = [currentOptionIndex];
+    } else {
+      // 未参与时，toggle 选择
+      newSelections = [...selectedOptionIndices];
+      const pos = newSelections.indexOf(currentOptionIndex);
+      if (pos >= 0) {
+        newSelections.splice(pos, 1);
+      } else {
+        newSelections.push(currentOptionIndex);
+      }
+      newSelections.sort((a, b) => a - b);
+    }
+
     this.setData({
-      selectedOptionIndex: currentOptionIndex,
+      selectedOptionIndices: newSelections,
+      selectedOptionIndex: newSelections.length > 0 ? newSelections[0] : -1,
       showDetailModal: false
     });
+    this._updateSelectionChanged(newSelections);
+    this._updateOptionSelections(newSelections);
 
     wx.showToast({
-      title: `已选择选项${currentOptionIndex + 1}`,
+      title: `已选${newSelections.length}个选项`,
       icon: 'none'
     });
   },
@@ -150,6 +216,11 @@ Page({
         count: statsMap[idx] !== undefined ? statsMap[idx] : 0
       }));
 
+      // 多选支持：从服务端获取已选选项列表
+      const serverSelectedOptions = (room.mySelectedOptions && room.mySelectedOptions.length > 0)
+        ? room.mySelectedOptions
+        : (room.mySelectedOption >= 0 ? [room.mySelectedOption] : []);
+
       this.setData({
         room,
         options: processedOptions,
@@ -157,55 +228,60 @@ Page({
         loading: false,
         hasJoined: room.hasJoinedGroupOrder,
         mySelectedOption: room.mySelectedOption,
-        selectedOptionIndex: room.mySelectedOption >= 0 ? room.mySelectedOption : -1,
+        mySelectedOptions: serverSelectedOptions,
+        selectedOptionIndex: serverSelectedOptions.length > 0 ? serverSelectedOptions[0] : -1,
+        selectedOptionIndices: serverSelectedOptions, // 多选：初始化为已选的选项
         totalParticipants,
         isCreator: room.isCreator || false
       });
+      this._updateSelectionChanged(serverSelectedOptions);
+      this._updateOptionSelections(serverSelectedOptions);
     } catch (err) {
       wx.showToast({ title: '加载失败', icon: 'none' });
       this.setData({ loading: false });
     }
   },
 
-  // 选择拼单选项
+  // 选择拼单选项（多选 toggle 模式）
   selectOption(e) {
     const { index } = e.currentTarget.dataset;
+    const idx = Number(index);
+    let { selectedOptionIndices } = this.data;
 
-    // 如果已经参与过，提示先取消参与
-    if (this.data.hasJoined) {
-      wx.showModal({
-        title: '提示',
-        content: '您已经参与过拼单，是否更改选择？',
-        success: (res) => {
-          if (res.confirm) {
-            this.setData({
-              selectedOptionIndex: index,
-              hasJoined: false // 允许重新选择
-            });
-          }
-        }
-      });
-      return;
+    // 直接 toggle 选择状态（已参与或未参与统一处理）
+    const newSelections = [...selectedOptionIndices];
+    const pos = newSelections.indexOf(idx);
+    if (pos >= 0) {
+      newSelections.splice(pos, 1); // 取消选择
+    } else {
+      newSelections.push(idx); // 新增选择
     }
+    newSelections.sort((a, b) => a - b);
 
     this.setData({
-      selectedOptionIndex: index
+      selectedOptionIndices: newSelections,
+      selectedOptionIndex: newSelections.length > 0 ? newSelections[0] : -1
     });
+    this._updateSelectionChanged(newSelections);
+    this._updateOptionSelections(newSelections);
 
     wx.showToast({
-      title: `已选择选项${index + 1}，请点击参与拼单`,
-      icon: 'none'
+      title: newSelections.length > 0
+        ? `已选${newSelections.length}个选项`
+        : '已取消所有选择',
+      icon: 'none',
+      duration: 1200
     });
   },
 
-  // 参与拼单
+  // 参与拼单（支持多选提交）
   async joinGroupOrder() {
-    const { selectedOptionIndex, roomId, hasJoined, mySelectedOption } = this.data;
+    const { selectedOptionIndices, roomId, hasJoined } = this.data;
 
     // 检查是否选择了选项
-    if (selectedOptionIndex < 0) {
+    if (!selectedOptionIndices || selectedOptionIndices.length === 0) {
       wx.showToast({
-        title: '请先选择一个选项',
+        title: '请至少选择一个选项',
         icon: 'none'
       });
       return;
@@ -218,7 +294,7 @@ Page({
         name: 'joinGroupOrder',
         data: {
           roomId,
-          selectedOptionIndex
+          selectedOptionIndices // 传多选数组
         }
       });
 
@@ -289,7 +365,9 @@ Page({
       this.setData({
         hasJoined: false,
         mySelectedOption: -1,
-        selectedOptionIndex: -1
+        mySelectedOptions: [],
+        selectedOptionIndex: -1,
+        selectedOptionIndices: []
       });
       this.loadRoomData();
 
@@ -299,27 +377,6 @@ Page({
       this.setData({ quitting: false });
       wx.hideLoading();
     }
-  },
-
-  // 取消选择（重置为未参与状态）
-  cancelSelection() {
-    const { hasJoined, mySelectedOption } = this.data;
-
-    if (!hasJoined || mySelectedOption < 0) {
-      wx.showToast({ title: '没有可取消的选择', icon: 'none' });
-      return;
-    }
-
-    wx.showModal({
-      title: '确认取消',
-      content: '确定要取消当前的选择吗？',
-      confirmColor: '#FF4757',
-      success: async (res) => {
-        if (res.confirm) {
-          await this.doQuitGroupOrder();
-        }
-      }
-    });
   },
 
   // 删除拼单活动（仅发起人）

@@ -21,6 +21,11 @@ Page({
     currentOptionIndex: 0,
     // 是否可以提交
     canSubmitFlag: false,
+    
+    // 隐私设置
+    visibility: 'friends', // friends: 仅好友可见, share: 仅通过分享可见
+    showDataRetentionTip: false, // 是否显示数据保留提示
+    agreeDefault: false, // 是否勾选"下次不再显示"
 
     // 时间选择器
     timeRange: [['今天','明天','后天'], ['10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00']],
@@ -40,6 +45,51 @@ Page({
     this.updateDeadlineText(1);
     // 初始化提交状态
     this.checkSubmitStatus();
+    // 检查是否首次创建活动，显示数据保留提示
+    this.checkDataRetentionTip();
+  },
+
+  // 检查是否显示数据保留提示
+  checkDataRetentionTip() {
+    const hasAgreeDefault = wx.getStorageSync('dataRetentionAgreeDefault');
+    // 如果用户之前勾选了"默认同意"，则不再显示
+    if (hasAgreeDefault) {
+      return;
+    }
+    
+    const hasShownTip = wx.getStorageSync('dataRetentionTipShown');
+    if (!hasShownTip) {
+      this.setData({ showDataRetentionTip: true });
+    }
+  },
+
+  // 关闭数据保留提示
+  closeDataRetentionTip() {
+    const { agreeDefault } = this.data;
+    
+    // 如果勾选了"下次不再显示"，则永久记住
+    if (agreeDefault) {
+      wx.setStorageSync('dataRetentionTipShown', true);
+      wx.setStorageSync('dataRetentionAgreeDefault', true);
+    } else {
+      // 否则只记录本次已显示（下次还会显示）
+      wx.setStorageSync('dataRetentionTipShown', true);
+    }
+    
+    this.setData({ showDataRetentionTip: false });
+  },
+
+  // 切换"默认同意"选项
+  toggleAgreeDefault() {
+    this.setData({
+      agreeDefault: !this.data.agreeDefault
+    });
+  },
+
+  // 切换可见性设置
+  onVisibilityChange(e) {
+    const visibility = e.currentTarget.dataset.value;
+    this.setData({ visibility });
   },
 
   // 切换选项
@@ -66,7 +116,7 @@ Page({
 
   // 删除选项
   deleteOption(e) {
-    const index = e.currentTarget.dataset.index;
+    const index = Number(e.currentTarget.dataset.index);
     const { shopOptions, currentOptionIndex } = this.data;
     
     if (shopOptions.length <= 1) {
@@ -350,8 +400,21 @@ wx.showToast({ title: '请至少完成一个选项（标题、图片、时间、
 return;
 }
 
-// 内容安全检查
+// 验证所有选项的截止时间不能早于当前时间
 const { shopOptions } = this.data;
+for (let i = 0; i < shopOptions.length; i++) {
+  const option = shopOptions[i];
+  // 只验证填写了标题的选项
+  if (option.title && option.title.trim() !== '' && option.deadlineText) {
+    const [day, time] = option.deadlineText.split(' ');
+    if (!this.isValidDeadline(day, time)) {
+      wx.showToast({ title: `选项${i + 1}的截止时间不能早于当前时间`, icon: 'none', duration: 2500 });
+      return;
+    }
+  }
+}
+
+// 内容安全检查
 const contentToCheck = shopOptions.map(o => o.title).filter(Boolean).join(' ');
 if (contentToCheck) {
   const isContentSafe = await checkContentWithToast(contentToCheck);
@@ -411,6 +474,8 @@ wx.showLoading({ title: '创建中...', mask: true });
 
       // 获取用户信息
       const userInfo = wx.getStorageSync('userInfo') || {};
+      // 获取用户城市
+      const userCity = wx.getStorageSync('userCity') || null;
 
       // 创建拼单房间
       await wx.cloud.callFunction({
@@ -422,7 +487,17 @@ wx.showLoading({ title: '创建中...', mask: true });
           options: optionsWithImages,
           optionCount: optionsWithImages.length,
           creatorNickName: userInfo.nickName || '',
-          creatorAvatarUrl: userInfo.avatarUrl || ''
+          creatorAvatarUrl: userInfo.avatarUrl || '',
+          // 隐私设置
+          visibility: this.data.visibility,
+          city: userCity ? {
+            country: userCity.country,
+            countryCode: userCity.countryCode,
+            region: userCity.region,
+            city: userCity.city,
+            cityCode: userCity.cityCode,
+            isDomestic: userCity.isDomestic
+          } : null
         }
       });
 

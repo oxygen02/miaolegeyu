@@ -1,5 +1,6 @@
 const app = getApp();
-const cuisineCategories = getApp().globalData.cuisineCategories;
+const _rawCuisineCategories = getApp().globalData.cuisineCategories;
+const cuisineCategories = Array.isArray(_rawCuisineCategories) ? _rawCuisineCategories : [];
 const audioManager = getApp().globalData.audioManager;
 const { withLock } = getApp().globalData.debounce;
 const { checkContentWithToast } = require('../../../utils/contentSecurity');
@@ -67,7 +68,9 @@ Page({
     posterData: null,
     // 投票结果通知
     showVoteResult: false,
-    voteResult: {}
+    voteResult: {},
+    // 分享来源（谁分享的链接）
+    shareFrom: ''
   },
 
   async onLoad(options) {
@@ -83,8 +86,33 @@ Page({
       }
     });
 
-    const { roomId } = options;
-    this.setData({ roomId });
+    // 解析参数：支持 roomId 直接传入或 shareCode 分享码
+    let { roomId, shareFrom, shareCode } = options;
+
+    // 如果传入的是 shareCode，先解析获取 roomId
+    if (shareCode && !roomId) {
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'getAllRooms',
+          data: { shareCode, limit: 1 }
+        });
+        if (result && result.success && result.rooms && result.rooms.length > 0) {
+          roomId = result.rooms[0].roomId;
+          console.log('[vote] 通过 shareCode 解析到 roomId:', roomId);
+        } else {
+          wx.showToast({ title: '分享链接已过期', icon: 'none' });
+          setTimeout(() => wx.navigateBack(), 1500);
+          return;
+        }
+      } catch (err) {
+        console.error('[vote] 解析 shareCode 失败:', err);
+        wx.showToast({ title: '链接解析失败', icon: 'none' });
+        setTimeout(() => wx.navigateBack(), 1500);
+        return;
+      }
+    }
+
+    this.setData({ roomId, shareFrom: shareFrom || '' });
 
     // 获取屏幕宽度
     const sysInfo = wx.getSystemInfoSync();
@@ -346,7 +374,10 @@ Page({
 
       const { result } = await wx.cloud.callFunction({
         name: 'getRoom',
-        data: { roomId }
+        data: {
+          roomId,
+          isFromShare: this.data.shareFrom === '1' || this.data.shareFrom === 1
+        }
       });
 
       if (result.code !== 0) {
@@ -367,7 +398,58 @@ Page({
         return;
       }
 
-      const mode = room.mode || 'a';
+      // 无密码房间：如果尚未加入，自动加入（携带分享来源）
+      if (!room.isParticipant && !room.isCreator) {
+        try {
+          await wx.cloud.callFunction({
+            name: 'joinRoom',
+            data: {
+              roomId,
+              shareFrom: this.data.shareFrom || ''
+            }
+          });
+          console.log('[vote] 无密码房间自动加入成功');
+        } catch (joinErr) {
+          console.warn('[vote] 无密码房间自动加入失败（仍可继续浏览）:', joinErr);
+          // 不阻塞用户浏览，仅记录日志
+        }
+      }
+
+      // 兼容旧数据：通过 mode 字段 + 数据特征双重判断
+      // 旧 Mode A 活动可能被错误存储为 mode='pick_for_them'
+      // 通过 candidatePosters（Mode A 特有）和 cuisineOptions（Mode B 特有）来辅助判断
+      const rawMode = room.mode || 'a';
+      const hasCandidatePosters = !!(room.candidatePosters && room.candidatePosters.length > 0);
+      const hasCuisineOptions = !!room.cuisineOptions;
+
+      let mode;
+      if (rawMode === 'b') {
+        // 明确的 Mode B
+        mode = 'b';
+      } else if (rawMode === 'a') {
+        // 明确的 Mode A
+        mode = 'a';
+      } else if (rawMode === 'pick_for_them') {
+        // 旧数据：需要根据实际内容判断
+        if (hasCuisineOptions && !hasCandidatePosters) {
+          // 有菜系选项但没有候选海报 → 真正的 Mode B
+          mode = 'b';
+          console.log('[vote] 旧数据 pick_for_them → 判定为 Mode B（有cuisineOptions无candidatePosters）');
+        } else if (hasCandidatePosters) {
+          // 有候选海报 → 实际是 Mode A（被错误标记为 pick_for_them）
+          mode = 'a';
+          console.log('[vote] 旧数据 pick_for_them → 兼容修正为 Mode A（有candidatePosters）');
+        } else {
+          // 无法判断，默认按 Mode A 处理（因为 pick_for_them 原本是 create-mode-b 的值）
+          mode = 'b';
+          console.log('[vote] 旧数据 pick_for_them → 默认判定为 Mode B（无明确特征）');
+        }
+      } else {
+        mode = 'a'; // 默认 Mode A
+      }
+
+      console.log('[vote] room.mode:', JSON.stringify(room.mode), 'rawMode:', rawMode, '最终判断:', mode,
+        'hasCandidatePosters:', hasCandidatePosters, 'hasCuisineOptions:', hasCuisineOptions);
 
       if (mode === 'b') {
         const categoryCards = cuisineCategories.map((cat, index) => ({
@@ -500,12 +582,13 @@ Page({
     wx.showLoading({ title: '加入中...' });
 
     try {
-      // 调用 joinRoom 云函数，传入密码
+      // 调用 joinRoom 云函数，传入密码和分享来源
       const { result } = await wx.cloud.callFunction({
         name: 'joinRoom',
         data: {
           roomId,
-          password: inputPassword
+          password: inputPassword,
+          shareFrom: this.data.shareFrom || ''
         }
       });
 
@@ -1088,7 +1171,26 @@ Page({
     const newVisibleSubCategoryCards = newSubCategoryCards.filter(s => !s.isHidden);
     
     // 找到当前选中项在可见列表中的位置
-    const newSwiperCurrent = newVisibleSubCategoryCards.findIndex(s => s.index === sub.index);
+    let newSwiperCurrent = newVisibleSubCategoryCards.findIndex(s => s.index === sub.index);
+    
+    // 自动跳转逻辑：如果当前是选择操作（不是取消），且当前大类已选完
+    // 则跳转到下一个大类的第一个未选细类
+    if (!isSelected && newVisibleSubCategoryCards.length > 0) {
+      // 获取当前大类在可见列表中的范围
+      const currentCategoryItems = newVisibleSubCategoryCards.filter(s => String(s.categoryId) === categoryId);
+      const currentCategoryHasMore = currentCategoryItems.some(s => !s.isSelected);
+      
+      // 如果当前大类没有更多未选项，找下一个大类的第一项
+      if (!currentCategoryHasMore) {
+        // 找到当前位置之后的第一个不同大类的细类
+        const nextCategoryIndex = newVisibleSubCategoryCards.findIndex((s, idx) => {
+          return idx > newSwiperCurrent && String(s.categoryId) !== categoryId;
+        });
+        if (nextCategoryIndex >= 0) {
+          newSwiperCurrent = nextCategoryIndex;
+        }
+      }
+    }
 
     this.setData({
       selectedSubCategories: newSelectedSubCategories,
@@ -1482,8 +1584,18 @@ Page({
         const currentSelected = selectedSubCategories[category.id] || [];
         const catIndex = categoryIndexMap[category.id];
         category.subCategories.forEach((sub, subIndex) => {
+          // 将 cloud:// 路径转换为 CDN HTTPS URL
+          let imagePath = sub.image;
+          if (imagePath && imagePath.startsWith('cloud://')) {
+            // cloud://cloud1-d4gfy27bn0f3f5346/cuisine-images/xxx.png
+            // → https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la/cuisine-images/xxx.png
+            imagePath = imagePath.replace(
+              'cloud://cloud1-d4gfy27bn0f3f5346',
+              'https://636c-cloud1-d4gfy27bn0f3f5346-1432191043.tcb.qcloud.la'
+            );
+          }
           // 使用在线图片作为默认图片（确保图片可以正常显示）
-          const imagePath = sub.image || `https://picsum.photos/400/600?random=${catIndex * 10 + subIndex}`;
+          imagePath = imagePath || `https://picsum.photos/400/600?random=${catIndex * 10 + subIndex}`;
           allSubCategories.push({
             ...sub,
             index: index++,
@@ -1756,12 +1868,12 @@ Page({
   onPosterShareFriend(e) {
   },
 
-  // 分享投票页面
+  // 分享投票页面 - 通过分享链接进入的用户可绕过好友限制
 onShareAppMessage() {
 const { room, roomId } = this.data;
 return {
 title: `「${room?.title || '聚会投票'}」快来一起选餐厅！`,
-path: `/package-vote/pages/vote/vote?roomId=${roomId}`,
+path: `/package-vote/pages/vote/vote?roomId=${roomId}&shareFrom=1`,
 imageUrl: room?.finalPoster?.imageUrl || room?.candidatePosters?.[0]?.imageUrl || ''
 };
 },

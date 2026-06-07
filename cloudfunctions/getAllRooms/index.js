@@ -31,7 +31,7 @@ function containsSensitive(text) {
 
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
-  const { limit = 50, mode = '' } = event;
+  const { limit = 50, mode = '', shareCode = '' } = event;
 
   // 检查用户登录态
   if (!wxContext.OPENID) {
@@ -44,17 +44,20 @@ exports.main = async (event) => {
 
   try {
     const now = new Date();
-    
-    let whereClause = {
-      status: 'voting', // 只显示进行中的活动
-      voteDeadline: _.gt(now) // 过滤已过期的活动（截止时间大于当前时间）
+    const currentOpenId = wxContext.OPENID;
+
+    // 基础查询条件：只显示进行中的活动
+    let baseWhereClause = {
+      status: 'voting',
+      voteDeadline: _.gt(now)
     };
 
     // 根据模式筛选（兼容旧数据：mode 'b' 也视为聚餐模式）
     if (mode === 'group') {
-      whereClause.mode = 'group';
+      baseWhereClause.mode = 'group';
     } else if (mode === 'dining') {
-      whereClause.mode = _.in(['pick_for_them', 'b']);
+      // 聚餐模式：包括 "你们来定"(pick_for_them/b) 和 "我选好了"(a)
+      baseWhereClause.mode = _.in(['pick_for_them', 'b', 'a']);
     } else if (mode === 'meal') {
       // 约饭模式不查询 rooms 集合，返回空
       return {
@@ -62,13 +65,71 @@ exports.main = async (event) => {
         rooms: []
       };
     } else if (mode === '' || mode === 'all') {
-      // 全部模式：查询 group、pick_for_them 和 b
-      whereClause.mode = _.in(['group', 'pick_for_them', 'b']);
+      // 全部模式：查询 group、pick_for_them、b 和 a（我选好了）
+      baseWhereClause.mode = _.in(['group', 'pick_for_them', 'b', 'a']);
     }
 
-    // 获取所有进行中的房间（只返回必要字段，脱敏处理）
+    // 如果有分享码，通过分享链查询
+    if (shareCode) {
+      return await queryByShareChain(shareCode, baseWhereClause, limit);
+    }
+
+    // 获取当前用户信息（好友列表和城市）
+    let userInfo = null;
+    try {
+      const { data: users } = await db.collection('users')
+        .where({ _openid: currentOpenId })
+        .limit(1)
+        .field({
+          friendOpenids: true,
+          userCity: true
+        })
+        .get();
+
+      if (users && users.length > 0) {
+        userInfo = users[0];
+      }
+    } catch (err) {
+      console.error('获取用户信息失败:', err);
+    }
+
+    // 获取用户曾通过分享链访问过的房间ID（确保分享传播性）
+    let sharedRoomIds = [];
+    try {
+      const { data: visitedChains } = await db.collection('shareChains')
+        .where(_.or([
+          { creatorOpenId: currentOpenId },  // 我发起的分享
+          _.and([
+            { expireTime: _.gt(now) },  // 分享链未过期
+            _.or([
+              { sourceOpenid: currentOpenId },  // 我是分享接收者（旧字段）
+              { visitorOpenids: currentOpenId }  // 我是访问者（新字段）
+            ])
+          ])
+        ]))
+        .field({ targetId: true, roomId: true })
+        .limit(50)
+        .get();
+
+      if (visitedChains && visitedChains.length > 0) {
+        sharedRoomIds = [...new Set(visitedChains.map(c => c.targetId || c.roomId).filter(Boolean))];
+      }
+    } catch (err) {
+      console.error('获取分享链记录失败:', err);
+    }
+
+    // 构建隐私过滤条件（传入分享过的房间ID）
+    const privacyWhereClause = buildPrivacyWhereClause(currentOpenId, userInfo, sharedRoomIds);
+
+    // 合并基础条件和隐私条件
+    const finalWhereClause = _.and([
+      baseWhereClause,
+      privacyWhereClause
+    ]);
+
+    // 获取符合条件的房间
     const { data: rooms } = await db.collection('rooms')
-      .where(whereClause)
+      .where(finalWhereClause)
       .field({
         _id: true,
         roomId: true,
@@ -89,7 +150,9 @@ exports.main = async (event) => {
         candidatePosters: true,
         creatorOpenId: true,
         creatorNickName: true,
-        creatorAvatarUrl: true
+        creatorAvatarUrl: true,
+        visibility: true,
+        city: true
       })
       .orderBy('createdAt', 'desc')
       .limit(limit)
@@ -203,7 +266,7 @@ exports.main = async (event) => {
       shopImage: room.shopImage,
       platform: room.platform,
       minAmount: room.minAmount,
-      deadline: room.deadline,
+      deadline: room.deadline || room.voteDeadline,
       createdAt: room.createdAt,
       voteDeadline: room.voteDeadline,
       finalPoster: room.finalPoster,
@@ -211,6 +274,8 @@ exports.main = async (event) => {
       participantCount: participantCounts[room.roomId] || 0,
       creatorNickName: room.creatorNickName || '',
       creatorAvatarUrl: room.creatorAvatarUrl || '',
+      visibility: room.visibility || 'friends',
+      city: room.city || null,
       // 拼单参与者头像
       participantAvatars: participantAvatars[room.roomId] || []
       // 注意：不返回 creatorOpenId 等敏感字段
@@ -229,3 +294,116 @@ exports.main = async (event) => {
     };
   }
 };
+
+/**
+ * 构建隐私过滤条件
+ * 规则：
+ * 1. 自己创建的活动始终可见
+ * 2. "仅好友可见"的活动：仅好友创建的可看（同城逻辑已移除，严格按好友关系）
+ * 3. "仅通过分享"的活动：不在列表中显示（只能通过分享链接进入）
+ * 4. 公开活动（visibility: 'public' 或无 visibility 字段的旧数据）：全部可见
+ * 5. 分享传播性：用户曾通过分享链访问过的房间（sharedRoomIds）也对其可见
+ */
+function buildPrivacyWhereClause(currentOpenId, userInfo, sharedRoomIds = []) {
+  const friendOpenids = userInfo?.friendOpenids || [];
+
+  // 条件1：自己创建的活动始终可见
+  const myRooms = { creatorOpenId: currentOpenId };
+
+  // 条件2：好友创建的"仅好友可见"活动
+  const friendsVisibleRooms = _.and([
+    { visibility: 'friends' },
+    { creatorOpenId: _.in(friendOpenids) }
+  ]);
+
+  // 条件3：公开活动（包括无 visibility 字段的旧数据）
+  const publicRooms = _.or([
+    { visibility: 'public' },
+    { visibility: _.exists(false) }
+  ]);
+
+  // 条件4（新增）：分享传播性 - 用户曾通过分享链访问过的房间
+  // 对于 visibility='friends' 的活动，如果该房间在 sharedRoomIds 中，也对当前用户可见
+  let sharedVisibleRooms = null;
+  if (sharedRoomIds && sharedRoomIds.length > 0) {
+    sharedVisibleRooms = _.and([
+      { roomId: _.in(sharedRoomIds) }
+    ]);
+  }
+
+  // 组合条件：自己的活动 OR 好友的"仅好友可见"活动 OR 公开活动 OR 分享过的活动
+  let conditions = [myRooms, friendsVisibleRooms, publicRooms];
+  if (sharedVisibleRooms) {
+    conditions.push(sharedVisibleRooms);
+  }
+
+  return _.or(conditions);
+}
+
+/**
+ * 通过分享链查询房间
+ */
+async function queryByShareChain(shareCode, baseWhereClause, limit) {
+  try {
+    // 查询分享链记录
+    const { data: chains } = await db.collection('shareChains')
+      .where({
+        shareCode: shareCode,
+        expireTime: _.gt(new Date())
+      })
+      .limit(1)
+      .get();
+
+    if (!chains || chains.length === 0) {
+      return {
+        success: false,
+        error: '分享链接已过期或不存在',
+        rooms: []
+      };
+    }
+
+    const chain = chains[0];
+    
+    // 查询被分享的房间
+    const { data: rooms } = await db.collection('rooms')
+      .where(_.and([
+        baseWhereClause,
+        { roomId: chain.roomId }
+      ]))
+      .limit(1)
+      .get();
+
+    if (!rooms || rooms.length === 0) {
+      return {
+        success: false,
+        error: '活动已结束或不存在',
+        rooms: []
+      };
+    }
+
+    // 记录访问者信息（可选）
+    try {
+      await db.collection('shareChains').doc(chain._id).update({
+        data: {
+          visitCount: _.inc(1),
+          lastVisitTime: new Date()
+        }
+      });
+    } catch (err) {
+      console.error('更新分享链访问次数失败:', err);
+    }
+
+    return {
+      success: true,
+      rooms: rooms,
+      isFromShare: true
+    };
+  } catch (err) {
+    console.error('通过分享链查询失败:', err);
+    return {
+      success: false,
+      error: err.message,
+      rooms: []
+    };
+  }
+}

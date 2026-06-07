@@ -1,0 +1,168 @@
+<view class="container">
+  <!-- 标题区域 -->
+  <view class="header-section">
+    <image class="privacy-icon" src="{{imagePaths.decorations.catAvatarIcon}}" mode="aspectFit"/>
+    <text class="main-title">隐私保护说明</text>
+    <text class="sub-title">为了更好地保护您的隐私，我们需要向您说明数据使用方式</text>
+  </view>
+
+  <!-- 隐私说明卡片 -->
+  <view class="privacy-cards">
+    <!-- 好友关系 -->
+    <view class="privacy-card">
+      <view class="card-header">
+        <view class="icon-wrapper friends">
+          <text class="icon">👥</text>
+        </view>
+        <text class="card-title">好友关系</text>
+      </view>
+      <view class="card-content">
+        <text class="desc-text">我们使用以下方式建立好友关系：</text>
+        <view class="feature-list">
+          <view class="feature-item">
+            <text class="dot">•</text>
+            <text class="text">微信通讯录好友（需授权）</text>
+          </view>
+          <view class="feature-item">
+            <text class="dot">•</text>
+            <text class="text">同玩好友（也使用本小程序的好友）</text>
+          </view>
+          <view class="feature-item">
+            <text class="dot">•</text>
+            <text class="text">分享链接建立的关系</text>
+          </view>
+        </view>
+        <text class="purpose">用途：实现"仅好友可见"的活动隐私设置</text>
+      </view>
+    </view>
+
+    <!-- 地理位置 -->
+    <view class="privacy-card">
+      <view class="card-header">
+        <view class="icon-wrapper location">
+          <text class="icon">📍</text>
+        </view>
+        <text class="card-title">地理位置</text>
+      </view>
+      <view class="card-content">
+        <text class="desc-text">我们获取您的城市信息：</text>
+        <view class="feature-list">
+          <view class="feature-item">
+            <text class="dot">•</text>
+            <text class="text">自动定位：获取当前所在城市</text>
+          </view>
+          <view class="feature-item">
+            <text class="dot">•</text>
+            <text class="text">手动选择：支持国内外城市</text>
+          </view>
+        </view>
+        <text class="purpose">用途：展示同城活动，支持海外用户</text>
+      </view>
+    </view>
+
+    <!-- 数据保留 -->
+    <view class="privacy-card">
+      <view class="card-header">
+        <view class="icon-wrapper data">
+          <text class="icon">🗑️</text>
+        </view>
+        <text class="card-title">数据保留</text>
+      </view>
+      <view class="card-content">
+        <text class="desc-text">您的活动数据保留政策：</text>
+        <view class="feature-list">
+          <view class="feature-item">
+            <text class="dot">•</text>
+            <text class="text">进行中活动：永久保留</text>
+          </view>
+          <view class="feature-item">
+            <text class="dot">•</text>
+            <text class="text">已结束活动：30天后自动清理</text>
+          </view>
+          <view class="feature-item">
+            <text class="dot">•</text>
+            <text class="text">分享链接：7天有效期</text>
+          </view>
+        </view>
+        <text class="purpose">目的：保护隐私，减少数据堆积</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 授权按钮区域 -->
+  <view class="auth-section">
+    <text class="auth-title">请选择授权方式</text>
+    
+    <!-- 好友关系授权 -->
+    <view class="auth-item">
+      <view class="auth-info">
+        <text class="auth-name">好友关系</text>
+        <text class="auth-status {{friendAuthStatus}}">{{friendAuthText}}</text>
+      </view>
+      <button 
+        class="auth-btn {{friendAuthorized ? 'authorized' : ''}}" 
+        bindtap="authorizeFriends"
+        disabled="{{friendAuthorized}}"
+      >
+        {{friendAuthorized ? '已授权' : '去授权'}}
+      </button>
+    </view>
+
+    <!-- 地理位置授权 -->
+    <view class="auth-item">
+      <view class="auth-info">
+        <text class="auth-name">地理位置</text>
+        <text class="auth-status {{locationAuthStatus}}">{{locationAuthText}}</text>
+      </view>
+      <button 
+        class="auth-btn {{locationAuthorized ? 'authorized' : ''}}" 
+        bindtap="authorizeLocation"
+        disabled="{{locationAuthorized}}"
+      >
+        {{locationAuthorized ? '已授权' : '去授权'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 城市选择（授权后显示） -->
+  <view class="city-section" wx:if="{{locationAuthorized && !citySelected}}">
+    <text class="section-title">选择您的城市</text>
+    <view class="city-options">
+      <button class="city-btn" bindtap="autoLocateCity">
+        <text class="btn-icon">📍</text>
+        <text class="btn-text">自动定位</text>
+      </button>
+      <button class="city-btn" bindtap="manualSelectCity">
+        <text class="btn-icon">🔍</text>
+        <text class="btn-text">手动选择</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 已选城市显示 -->
+  <view class="selected-city" wx:if="{{citySelected}}">
+    <text class="city-label">当前城市：</text>
+    <text class="city-name">{{selectedCity.country}} {{selectedCity.city}}</text>
+    <text class="change-city" bindtap="changeCity">修改</text>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="footer-actions">
+    <button class="btn btn-secondary" bindtap="skipAuth">暂不授权</button>
+    <button class="btn btn-primary {{canEnter ? '' : 'disabled'}}" bindtap="enterApp">
+      {{canEnter ? '进入小程序' : '请至少授权一项'}}
+    </button>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tips">
+    <text class="tip-text">💡 提示：您可以在"我的-设置"中随时修改授权状态</text>
+  </view>
+</view>
+
+<!-- 城市选择弹窗 -->
+<city-picker 
+  show="{{showCityPicker}}" 
+  bind:confirm="onCityConfirm"
+  bind:cancel="onCityCancel"
+/>

@@ -505,11 +505,11 @@
 }
 
 .btn-small {
-  padding: 12rpx 24rpx;
-  font-size: 24rpx;
-  border-radius: 24rpx;
-  min-width: 120rpx;
-  font-weight: 600;
+  padding: 8rpx 18rpx;
+  font-size: 22rpx;
+  border-radius: 20rpx;
+  min-width: 100rpx;
+  font-weight: 500;
 }
 
 .btn-large {
@@ -1039,6 +1039,43 @@
   color: #fff;
   border: 3rpx solid #666;
   box-shadow: 2rpx 2rpx 0 #666;
+}
+
+/* 分享按钮 - 蓝色系，与主色互补 */
+.btn-share {
+  background: #5DADE2;
+  color: #fff;
+  border: 2rpx solid #3498DB;
+  box-shadow: 2rpx 2rpx 0 #2980B9;
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+}
+
+.btn-share::after {
+  display: none;
+}
+
+.btn-share:active {
+  box-shadow: 1rpx 1px 0 #2980B9;
+  transform: translateY(1rpx);
+}
+
+/* 按钮行容器 - 让多个按钮横向排列 */
+.action-btns-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: nowrap;
+}
+
+/* 按钮列容器 - 让多个按钮纵向排列（分享在上，参加在下） */
+.action-btns-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
 }
 
 /* 自定义底部导航栏 - 蜡笔像素风 */

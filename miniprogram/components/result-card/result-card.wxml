@@ -41,7 +41,7 @@
     </view>
 
     <!-- 信息卡片 -->
-    <view class="info-card" wx:if="{{shopName || time || address}}">
+    <view class="info-card" wx:if="{{shopName || time || address || roomAddition}}">
       <!-- 店名 -->
       <view class="info-row" wx:if="{{shopName}}">
         <image class="info-icon" src="{{imagePaths.icons.meituantubiao}}" mode="aspectFit"/>

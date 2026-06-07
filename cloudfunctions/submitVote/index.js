@@ -36,11 +36,11 @@ exports.main = async (event, context) => {
     const room = roomResult.data[0];
 
     // 2. 检查房间状态（包括是否已过期）
-    const now = new Date();
+    const checkNow = new Date();
     let effectiveStatus = room.status || 'voting';
-    if (effectiveStatus === 'voting' && room.deadline) {
-      const deadlineDate = new Date(room.deadline);
-      if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
+    if (effectiveStatus === 'voting' && (room.deadline || room.voteDeadline)) {
+      const deadlineDate = new Date(room.deadline || room.voteDeadline);
+      if (!isNaN(deadlineDate.getTime()) && deadlineDate <= checkNow) {
         effectiveStatus = 'ended';
       }
     }

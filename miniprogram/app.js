@@ -9,6 +9,7 @@ const cuisineCategories = require('./data/cuisineCategories');
 const holidayConfig = require('./config/holidayConfig');
 const poster = require('./utils/poster');
 const tracker = require('./utils/tracker');
+const preloadManager = require('./utils/preloadManager');
 
 App({
   globalData: {
@@ -20,11 +21,12 @@ App({
     Validator,
     debounce,
     uuid,
-    cuisineCategories,
+    cuisineCategories: cuisineCategories.cuisineCategories || [],
     holidayConfig,
     CDN_BASE,
     poster,
     tracker,
+    preloadManager,
   },
 
   onLaunch: function () {
@@ -40,8 +42,65 @@ App({
     this.initNetworkListener();
     audioManager.init();
     tracker.initPerformanceMonitor();
+    preloadManager.startIdleScheduler();
     // checkUpdate 可能触发网络请求，延迟执行避免阻塞
     setTimeout(() => this.checkUpdate(), 2000);
+
+    // 延迟预加载：启动 3 秒后，用户如果在首页，后台预加载喵不喵数据
+    setTimeout(() => {
+      const pages = getCurrentPages();
+      if (pages.length > 0) {
+        const currentPage = pages[pages.length - 1].route || '';
+        preloadManager.smartPreload(currentPage);
+      }
+    }, 3000);
+
+    // 定期刷新好友列表（每天一次）
+    this.syncFriendsIfNeeded();
+  },
+
+  // 按需同步好友列表
+  async syncFriendsIfNeeded() {
+    try {
+      const lastSyncTime = wx.getStorageSync('lastFriendSyncTime');
+      const now = Date.now();
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      // 如果从未同步，或距离上次同步超过1天
+      if (!lastSyncTime || (now - lastSyncTime > oneDay)) {
+        console.log('[App] 开始同步好友列表...');
+
+        // 获取同玩好友
+        let gameFriends = [];
+        try {
+          const friendData = await wx.getFriendCloudStorage({
+            keyList: ['score']
+          });
+          if (friendData && friendData.data) {
+            gameFriends = friendData.data.map(item => item.openid).filter(Boolean);
+          }
+        } catch (err) {
+          console.log('[App] 获取同玩好友失败:', err);
+        }
+
+        // 同步到后端
+        const { result } = await wx.cloud.callFunction({
+          name: 'userLogin',
+          data: {
+            action: 'syncFriends',
+            gameFriends: gameFriends
+          }
+        });
+
+        if (result && result.success) {
+          wx.setStorageSync('lastFriendSyncTime', now);
+          wx.setStorageSync('friendOpenids', result.friendOpenids || []);
+          console.log('[App] 好友列表同步成功:', result.friendOpenids?.length || 0, '位好友');
+        }
+      }
+    } catch (err) {
+      console.error('[App] 同步好友列表失败:', err);
+    }
   },
 
   _initAfterCloudReady() {

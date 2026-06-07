@@ -36,6 +36,10 @@ Page({
     locationText: '',
     dinnerDate: '',
     dinnerTime: '',
+    // 隐私设置
+    visibility: 'friends', // friends: 仅好友可见, share: 仅通过分享可见
+    showDataRetentionTip: false, // 是否显示数据保留提示
+    agreeDefault: false, // 是否勾选"下次不再显示"
   },
 
   onLoad(options) {
@@ -50,6 +54,51 @@ Page({
     if (options.fromScheduleVote === 'true' && options.scheduleDate) {
       this.fillFromScheduleVote(options);
     }
+    // 检查是否首次创建活动，显示数据保留提示
+    this.checkDataRetentionTip();
+  },
+
+  // 检查是否显示数据保留提示
+  checkDataRetentionTip() {
+    const hasAgreeDefault = wx.getStorageSync('dataRetentionAgreeDefault');
+    // 如果用户之前勾选了"默认同意"，则不再显示
+    if (hasAgreeDefault) {
+      return;
+    }
+    
+    const hasShownTip = wx.getStorageSync('dataRetentionTipShown');
+    if (!hasShownTip) {
+      this.setData({ showDataRetentionTip: true });
+    }
+  },
+
+  // 关闭数据保留提示
+  closeDataRetentionTip() {
+    const { agreeDefault } = this.data;
+    
+    // 如果勾选了"下次不再显示"，则永久记住
+    if (agreeDefault) {
+      wx.setStorageSync('dataRetentionTipShown', true);
+      wx.setStorageSync('dataRetentionAgreeDefault', true);
+    } else {
+      // 否则只记录本次已显示（下次还会显示）
+      wx.setStorageSync('dataRetentionTipShown', true);
+    }
+    
+    this.setData({ showDataRetentionTip: false });
+  },
+
+  // 切换"默认同意"选项
+  toggleAgreeDefault() {
+    this.setData({
+      agreeDefault: !this.data.agreeDefault
+    });
+  },
+
+  // 切换可见性设置
+  onVisibilityChange(e) {
+    const visibility = e.currentTarget.dataset.value;
+    this.setData({ visibility });
   },
 
   // 从时间投票预填数据
@@ -428,19 +477,16 @@ Page({
   onTimeInput(e) {
     let value = e.detail.value;
 
-    // 如果值包含中文（时、分），说明用户正在编辑格式化后的文本，保持原样
+    // 如果值包含中文（时、分），说明是格式化后的值，保持原样不干预
     if (/[时分]/.test(value)) {
       this.setData({ activityTime: value });
       return;
     }
 
-    // 纯数字输入，进行格式化
+    // 纯数字输入：保持数字原样存入，不在输入过程中转为中文格式
     let numbers = value.replace(/\D/g, '');
-    // 限制4位
     if (numbers.length > 4) numbers = numbers.substring(0, 4);
-    // 格式化为时分显示
-    let displayValue = this.formatTimeDisplay(numbers);
-    this.setData({ activityTime: displayValue, activityTimeRaw: numbers });
+    this.setData({ activityTime: numbers, activityTimeRaw: numbers });
   },
 
   // 活动时间输入完成 - 自动补全为时分格式
@@ -564,7 +610,7 @@ Page({
   onDeadlineTimeInput(e) {
     let value = e.detail.value;
 
-    // 如果值包含中文（时、分），说明用户正在编辑格式化后的文本，直接保存
+    // 如果值包含中文（时、分），说明是格式化后的值，保持原样不干预
     if (/[时分]/.test(value)) {
       let numbers = value.replace(/\D/g, '');
       this.setData({ deadlineTime: value, deadlineTimeRaw: numbers });
@@ -572,13 +618,10 @@ Page({
       return;
     }
 
-    // 纯数字输入，进行格式化
+    // 纯数字输入：保持数字原样存入，不在输入过程中转为中文格式
     let numbers = value.replace(/\D/g, '');
-    // 限制4位
     if (numbers.length > 4) numbers = numbers.substring(0, 4);
-    // 格式化为时分显示
-    let displayValue = this.formatTimeDisplay(numbers);
-    this.setData({ deadlineTime: displayValue, deadlineTimeRaw: numbers });
+    this.setData({ deadlineTime: numbers, deadlineTimeRaw: numbers });
     this.updateDeadlineText();
   },
 
@@ -706,25 +749,42 @@ Page({
   // 聚餐时间输入
   onDinnerTimeInput(e) {
     let value = e.detail.value;
+    // 如果包含中文说明是格式化后的值，保持原样不干预
     if (/[时分]/.test(value)) {
       let numbers = value.replace(/\D/g, '');
       this.setData({ dinnerTime: value, dinnerTimeRaw: numbers }, () => this.checkFormValid());
       return;
     }
+    // 纯数字输入：保持数字原样存入，不在输入过程中转为中文格式
     let numbers = value.replace(/\D/g, '');
     if (numbers.length > 4) numbers = numbers.substring(0, 4);
-    let displayValue = this.formatTimeDisplay(numbers);
-    this.setData({ dinnerTime: displayValue, dinnerTimeRaw: numbers }, () => this.checkFormValid());
+    this.setData({ dinnerTime: numbers, dinnerTimeRaw: numbers }, () => this.checkFormValid());
   },
 
   onDinnerTimeBlur(e) {
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
+    // 没有输入内容则跳过
+    if (!rawValue || rawValue.length === 0) return;
+    // 自动补全：2位补为整点(12->1200)，3位补零(123->1230)
     if (rawValue.length === 2) {
       rawValue = rawValue + '00';
     } else if (rawValue.length === 3) {
       rawValue = rawValue + '0';
+    } else if (rawValue.length > 4) {
+      rawValue = rawValue.substring(0, 4);
     }
+    // 验证时间有效性
+    if (rawValue.length === 4) {
+      const hour = parseInt(rawValue.substring(0, 2), 10);
+      const minute = parseInt(rawValue.substring(2, 4), 10);
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        wx.showToast({ title: '时分格式无效，如 1800', icon: 'none' });
+        this.setData({ dinnerTime: '', dinnerTimeRaw: '' }, () => this.checkFormValid());
+        return;
+      }
+    }
+    // 格式化显示
     if (rawValue.length >= 2) {
       let displayValue = this.formatTimeDisplay(rawValue);
       this.setData({ dinnerTime: displayValue, dinnerTimeRaw: rawValue }, () => this.checkFormValid());
@@ -764,28 +824,48 @@ Page({
   // 投票截止时间输入
   onDeadlineTimeInput(e) {
     let value = e.detail.value;
+    // 如果包含中文说明是格式化后的值，保持原样不干预
     if (/[时分]/.test(value)) {
       let numbers = value.replace(/\D/g, '');
       this.setData({ deadlineTime: value, deadlineTimeRaw: numbers }, () => this.checkFormValid());
       return;
     }
+    // 纯数字输入：保持数字原样存入，不在输入过程中转为中文格式
     let numbers = value.replace(/\D/g, '');
     if (numbers.length > 4) numbers = numbers.substring(0, 4);
-    let displayValue = this.formatTimeDisplay(numbers);
-    this.setData({ deadlineTime: displayValue, deadlineTimeRaw: numbers }, () => this.checkFormValid());
+    this.setData({ deadlineTime: numbers, deadlineTimeRaw: numbers }, () => this.checkFormValid());
   },
 
   onDeadlineTimeBlur(e) {
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
+    // 没有输入内容则跳过
+    if (!rawValue || rawValue.length === 0) return;
+    // 自动补全：2位补为整点(12->1200)，3位补零(123->1230)
     if (rawValue.length === 2) {
       rawValue = rawValue + '00';
     } else if (rawValue.length === 3) {
       rawValue = rawValue + '0';
+    } else if (rawValue.length > 4) {
+      rawValue = rawValue.substring(0, 4);
     }
+    // 验证时间有效性
+    if (rawValue.length === 4) {
+      const hour = parseInt(rawValue.substring(0, 2), 10);
+      const minute = parseInt(rawValue.substring(2, 4), 10);
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        wx.showToast({ title: '时分格式无效，如 1800', icon: 'none' });
+        this.setData({ deadlineTime: '', deadlineTimeRaw: '' }, () => this.checkFormValid());
+        return;
+      }
+    }
+    // 格式化显示并更新截止时间文本
     if (rawValue.length >= 2) {
       let displayValue = this.formatTimeDisplay(rawValue);
-      this.setData({ deadlineTime: displayValue, deadlineTimeRaw: rawValue }, () => this.checkFormValid());
+      this.setData({ deadlineTime: displayValue, deadlineTimeRaw: rawValue }, () => {
+        this.checkFormValid();
+        this.updateDeadlineText();
+      });
     }
   },
 
@@ -952,8 +1032,11 @@ Page({
       } else {
         // 获取用户信息
         const userInfo = wx.getStorageSync('userInfo') || {};
+        // 获取用户城市
+        const userCity = wx.getStorageSync('userCity') || null;
         
         // 创建模式
+        console.log('[create-mode-a] 创建活动，传入 mode:', 'a');
         result = await wx.cloud.callFunction({
           name: 'createRoom',
           timeout: 60000,
@@ -963,15 +1046,26 @@ Page({
             peopleCount: parseInt(peopleCount) || 0,
             activityDate: fullActivityDate,
             activityTime: fullActivityTime,
-            mode: 'pick_for_them',
+            mode: 'a',
             candidatePosters: uploadedPosters,
             voteDeadline: voteDeadline.toISOString(),
             timeAuxiliary,
             creatorNickName: userInfo.nickName || '',
             creatorAvatarUrl: userInfo.avatarUrl || '',
-            paymentMode: finalPaymentMode
+            paymentMode: finalPaymentMode,
+            // 隐私设置
+            visibility: this.data.visibility,
+            city: userCity ? {
+              country: userCity.country,
+              countryCode: userCity.countryCode,
+              region: userCity.region,
+              city: userCity.city,
+              cityCode: userCity.cityCode,
+              isDomestic: userCity.isDomestic
+            } : null
           }
         });
+        console.log('[create-mode-a] 创建结果:', result.result);
       }
 
       if (result.result.code !== 0) throw new Error(result.result.msg);

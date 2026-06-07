@@ -5,11 +5,44 @@ const _ = db.command;
 
 exports.main = async (event, context) => {
   const { page = 1, pageSize = 10, cuisine = 'all' } = event;
+  
+  // 获取用户信息（用于同城过滤）
+  let userCity = '';
+  try {
+    const wxContext = cloud.getWXContext();
+    if (wxContext.OPENID) {
+      const { data: users } = await db.collection('users')
+        .where({ _openid: wxContext.OPENID })
+        .limit(1)
+        .field({ userCity: true })
+        .get();
+      
+      if (users && users.length > 0 && users[0].userCity) {
+        userCity = users[0].userCity.city || '';
+      }
+    }
+  } catch (err) {
+    console.error('获取用户城市失败:', err);
+  }
 
   try {
-    let query = db.collection('shops').where({
-      status: 'active'
-    });
+    // 基础查询条件
+    let baseConditions = [
+      { status: 'active' }
+    ];
+    
+    // 如果用户设置了城市，优先展示同城店铺
+    if (userCity) {
+      baseConditions.push(
+        _.or([
+          { city: userCity },          // 同城店铺
+          { city: '' },                // 未设置城市的店铺（兼容旧数据）
+          { city: _.exists(false) }    // 没有城市字段的店铺
+        ])
+      );
+    }
+
+    let query = db.collection('shops').where(_.and(baseConditions));
 
     // 如果指定了菜系，添加筛选条件
     // 支持同义词映射：shaokao -> ['shaokao', 'bbq', 'snack'] (烧烤包含小吃)

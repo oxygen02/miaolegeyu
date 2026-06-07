@@ -325,10 +325,48 @@ Page({
       return;
     }
 
+    // 验证截止时间不能早于当前时间
+    if (deadlineDate && deadlineTime) {
+      const now = new Date();
+      const deadlineStr = `${deadlineDate}T${deadlineTime}:00+08:00`;
+      if (new Date(deadlineStr) <= now) {
+        wx.showToast({ title: '截止时间不能早于当前时间', icon: 'none' });
+        return;
+      }
+    }
+
+    // 验证截止时间不能晚于最早候选日期
+    if (selectedDates.length > 0 && deadlineDate) {
+      // 找到最早的候选日期
+      const sortedDates = [...selectedDates].sort();
+      const earliestDate = sortedDates[0]; // "2026-06-06"
+      
+      // 解析时间段的开始时间
+      const timeRangeStr = timePeriod === 'lunch' 
+        ? (timeRange?.lunch || '12:00-14:00') 
+        : (timeRange?.dinner || '18:00-21:00');
+      const startTime = timeRangeStr.split('-')[0]; // "12:00"
+      
+      // 最早候选日期的活动开始时间
+      const activityStart = `${earliestDate}T${startTime}:00+08:00`;
+      
+      // 截止时间
+      const deadlineStr = `${deadlineDate}T${deadlineTime}:00+08:00`;
+      
+      if (new Date(deadlineStr) >= new Date(activityStart)) {
+        wx.showToast({ 
+          title: '截止时间不能晚于最早候选日期的活动开始时间', 
+          icon: 'none',
+          duration: 2500
+        });
+        return;
+      }
+    }
+
     this.setData({ loading: true });
 
     try {
-      const deadline = `${deadlineDate}T${deadlineTime}:00`;
+      const deadline = `${deadlineDate}T${deadlineTime}:00+08:00`;
       // 确保 timeRange 格式正确
       const safeTimeRange = {
         lunch: (timeRange && timeRange.lunch) || '12:00-14:00',

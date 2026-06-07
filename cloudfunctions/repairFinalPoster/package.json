@@ -1,0 +1,9 @@
+{
+  "name": "repairFinalPoster",
+  "version": "1.0.0",
+  "description": "修复已锁定活动的 finalPoster 缺失时间/地址字段",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

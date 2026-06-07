@@ -30,32 +30,63 @@ function containsSensitive(text) {
 }
 
 exports.main = async (event) => {
-  const { limit = 100, status = 'active', shopId } = event;
-  const { OPENID } = cloud.getWXContext();
+  const { limit = 100, status = 'active', shopId, shareCode = '' } = event;
+  const { OPENID: currentOpenId } = cloud.getWXContext();
 
   try {
-    // 构建查询条件
-    let whereClause = {};
-
     const now = new Date();
+    
+    // 基础查询条件
+    let baseWhereClause = {};
     
     // 根据状态筛选
     if (status === 'active') {
-      whereClause.status = 'active';
-      // 过滤已过期的活动（截止时间大于当前时间）
-      whereClause.deadline = _.gt(now);
+      baseWhereClause.status = 'active';
+      baseWhereClause.deadline = _.gt(now);
     } else if (status === 'completed') {
-      whereClause.status = 'completed';
+      baseWhereClause.status = 'completed';
     }
 
     // 如果指定了店铺ID，添加店铺筛选
     if (shopId) {
-      whereClause.shopId = shopId;
+      baseWhereClause.shopId = shopId;
     }
+
+    // 如果有分享码，通过分享链查询
+    if (shareCode) {
+      return await queryByShareChain(shareCode, baseWhereClause);
+    }
+
+    // 获取当前用户信息（好友列表和城市）
+    let userInfo = null;
+    try {
+      if (currentOpenId) {
+        const { data: users } = await db.collection('users')
+          .where({ _openid: currentOpenId })
+          .limit(1)
+          .field({
+            friendOpenids: true,
+            userCity: true
+          })
+          .get();
+        
+        if (users && users.length > 0) {
+          userInfo = users[0];
+        }
+      }
+    } catch (err) {
+      console.error('获取用户信息失败:', err);
+    }
+
+    // 构建隐私过滤条件
+    const privacyConditions = buildPrivacyConditions(currentOpenId, userInfo);
+
+    // 合并基础条件和隐私条件
+    const finalWhereClause = _.and([baseWhereClause, ...privacyConditions]);
 
     // 获取约饭活动
     const { data: appointments } = await db.collection('dining_appointments')
-      .where(whereClause)
+      .where(finalWhereClause)
       .orderBy('createTime', 'desc')
       .limit(limit)
       .get();
@@ -113,22 +144,28 @@ exports.main = async (event) => {
       return {
         _id: apt._id,
         roomId: apt._id,
+        shopId: apt.shopId || '',
         title: apt.shopName || '约饭活动',
         status: 'voting',
         mode: 'meal',
         shopName: apt.shopName || '未知店铺',
         shopImage: shopImage,
         location: apt.shopName || '',
-        activityTime: apt.appointmentTime ? new Date(apt.appointmentTime).toLocaleString() : '时间待定',
-        deadline: apt.deadline ? new Date(apt.deadline).toLocaleString() : '',
+        appointmentTime: apt.appointmentTime, // 原始时间值（供前端格式化）
+        activityTime: apt.appointmentTime ? apt.appointmentTime : '时间待定',
+        deadline: apt.deadline ? apt.deadline : '',
+        // 计算剩余时间（毫秒），供前端倒计时使用
+        remainingTime: apt.deadline ? new Date(apt.deadline).getTime() - Date.now() : 0,
         participantCount: participants.length,
         maxParticipants: apt.maxParticipants || 0,
         note: apt.note || '',
-        paymentMode: apt.paymentMode || 'AA',
+        paymentMode: apt.paymentMode || '',
         createdAt: apt.createTime,
         creatorNickName: apt.initiatorName || '神秘喵友',
         creatorAvatarUrl: apt.initiatorAvatar || '',
         initiatorOpenId: apt.initiatorOpenId || '',
+        initiatorName: apt.initiatorName || '神秘喵友',
+        initiatorAvatar: apt.initiatorAvatar || '',
         participants: participants,
         isAppointment: true
       };
@@ -147,3 +184,104 @@ exports.main = async (event) => {
     };
   }
 };
+
+/**
+ * 构建隐私过滤条件
+ * 规则：
+ * 1. 自己创建的活动始终可见
+ * 2. 好友创建的活动可见
+ * 3. 同城活动可见（如果用户设置了城市）
+ */
+function buildPrivacyConditions(currentOpenId, userInfo) {
+  const friendOpenids = userInfo?.friendOpenids || [];
+  const userCity = userInfo?.userCity?.city || '';
+
+  // 条件1：自己创建的活动
+  const myAppointments = { initiatorOpenId: currentOpenId };
+
+  // 条件2：好友创建的活动
+  const friendsAppointments = { initiatorOpenId: _.in(friendOpenids) };
+
+  // 条件3：同城活动（如果用户设置了城市）
+  let sameCityAppointments = null;
+  if (userCity) {
+    sameCityAppointments = { city: userCity };
+  }
+
+  // 组合条件：自己的 OR 好友的 OR 同城的
+  const conditions = [myAppointments, friendsAppointments];
+  if (sameCityAppointments) {
+    conditions.push(sameCityAppointments);
+  }
+
+  return [_.or(conditions)];
+}
+
+/**
+ * 通过分享链查询约饭活动
+ */
+async function queryByShareChain(shareCode, baseWhereClause) {
+  try {
+    // 查询分享链记录
+    const { data: chains } = await db.collection('shareChains')
+      .where({
+        shareCode: shareCode,
+        type: 'dining_appointment',  // 约饭活动类型
+        expireTime: _.gt(new Date())
+      })
+      .limit(1)
+      .get();
+
+    if (!chains || chains.length === 0) {
+      return {
+        success: false,
+        error: '分享链接已过期或不存在',
+        appointments: []
+      };
+    }
+
+    const chain = chains[0];
+    
+    // 查询被分享的约饭活动
+    const { data: appointments } = await db.collection('dining_appointments')
+      .where(_.and([
+        baseWhereClause,
+        { _id: chain.targetId }
+      ]))
+      .limit(1)
+      .get();
+
+    if (!appointments || appointments.length === 0) {
+      return {
+        success: false,
+        error: '活动已结束或不存在',
+        appointments: []
+      };
+    }
+
+    // 记录访问信息（简化处理，实际需要组装完整数据）
+    try {
+      await db.collection('shareChains').doc(chain._id).update({
+        data: {
+          visitCount: _.inc(1),
+          lastVisitTime: new Date()
+        }
+      });
+    } catch (err) {
+      console.error('更新分享链访问次数失败:', err);
+    }
+
+    return {
+      success: true,
+      appointments: appointments,
+      isFromShare: true
+    };
+  } catch (err) {
+    console.error('通过分享链查询约饭活动失败:', err);
+    return {
+      success: false,
+      error: err.message,
+      appointments: []
+    };
+  }
+}

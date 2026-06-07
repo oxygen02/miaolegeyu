@@ -52,7 +52,14 @@ Page({
 
       // 获取投票统计
       let voteStats = null;
-      if (room.mode === 'b') {
+      // 兼容旧数据
+      let isModeB = room.mode === 'b';
+      if (room.mode === 'pick_for_them') {
+        const hasCuisineOptions = !!room.cuisineOptions;
+        const hasCandidatePosters = !!(room.candidatePosters && room.candidatePosters.length > 0);
+        isModeB = hasCuisineOptions && !hasCandidatePosters;
+      }
+      if (isModeB) {
         const { result: statsResult } = await wx.cloud.callFunction({
           name: 'countVotes',
           data: { roomId: this.data.roomId }

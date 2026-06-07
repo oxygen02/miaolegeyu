@@ -1,7 +1,7 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-const { checkContent } = require('../utils/contentSecurity');
+const { checkContent } = require('./contentSecurity');
 
 exports.main = async (event, context) => {
   const { shopId, name, cuisine, cuisineName, avgPrice, location, reason, tips, platformUrl, rating, images, isAnonymous } = event;

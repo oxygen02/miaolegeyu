@@ -1,6 +1,29 @@
 const { imagePaths } = getApp().globalData;
 const audioManager = getApp().globalData.audioManager;
 const { withLock } = getApp().globalData.debounce;
+const preloadManager = getApp().globalData.preloadManager;
+
+// 统一的时间格式化函数
+function formatDeadline(dateVal) {
+  if (!dateVal) return '';
+  let date;
+  if (typeof dateVal === 'object' && dateVal.$date) {
+    date = new Date(dateVal.$date);
+  } else if (typeof dateVal === 'object' && dateVal._date) {
+    date = new Date(dateVal._date);
+  } else {
+    date = new Date(dateVal);
+  }
+  if (isNaN(date.getTime())) return '';
+  // 直接读取本地时间（北京时区），不加额外偏移
+  const m = (date.getMonth() + 1) + '月' + date.getDate() + '日';
+  const h = date.getHours().toString().padStart(2, '0');
+  const min = date.getMinutes().toString().padStart(2, '0');
+  return `${m} ${h}:${min}`;
+}
+
+// formatDeadlineFull 是 formatDeadline 的别名（保持向后兼容）
+const formatDeadlineFull = formatDeadline;
 
 // 敏感词库（与云函数保持一致）
 const SENSITIVE_WORDS = [
@@ -61,7 +84,9 @@ Page({
     selectedCount: 0,
     batchDeleteText: '删除',
     currentTab: 1,
-    animatingTab: -1
+    animatingTab: -1,
+    // 分享数据（用于约饭活动分享）
+    shareData: null
   },
 
   onLoad(options) {
@@ -81,8 +106,23 @@ Page({
       this.setData({ viewMode: 'group' });
     }
     
-    // 清除旧缓存，确保不显示违规内容
-    this.clearSensitiveCache();
+    // 不再每次都清除缓存！只清除过期的违规缓存
+    // this.clearSensitiveCache(); // 移除：避免每次进入都清缓存导致重新请求
+    
+    // 注册预加载器（供 app.js 后台调用）
+    this._registerPreloaders();
+    
+    // 优先使用预加载数据秒开
+    const preloaded = preloadManager.getCache('fish-tank');
+    if (preloaded && preloaded.ongoingActivities) {
+      const filtered = filterSensitiveActivities(preloaded.ongoingActivities);
+      this.setData({
+        ongoingActivities: filtered,
+        ongoingCount: filtered.length
+      });
+      // 标记已消费，后台静默刷新
+      preloadManager.consume('fish-tank');
+    }
     
     this.loadData();
     // 防抖：加入活动
@@ -108,8 +148,23 @@ Page({
   onShow() {
     // 更新 tabBar 选中状态
     this.updateTabBarSelected();
-    // 每次显示时刷新数据
-    this.loadData();
+    // 通知预加载管理器用户有交互
+    if (preloadManager) preloadManager.touch();
+    
+    // 智能刷新：只在数据为空或缓存过期时才重新加载
+    // 避免每次切 tab 都全量请求（原逻辑每次 onShow 都 loadData）
+    const hasData = this.data.ongoingActivities.length > 0 
+      || this.data.myActivities.length > 0 
+      || this.data.participatedActivities.length > 0;
+    
+    if (!hasData) {
+      // 首次进入或数据被清空，需要加载
+      this.loadData();
+    } else {
+      // 有旧数据时，后台静默刷新（不阻塞 UI）
+      this._silentRefresh();
+    }
+    
     // 启动截止时间倒计时定时器
     this.startFishTankDeadlineTimer();
   },
@@ -217,13 +272,8 @@ Page({
       let timeStr = '时间待定';
       if (vote.deadline) {
         try {
-          const d = new Date(vote.deadline);
-          if (!isNaN(d.getTime())) {
-            const m = (d.getMonth() + 1) + '月' + d.getDate() + '日';
-            const h = d.getHours().toString().padStart(2, '0');
-            const min = d.getMinutes().toString().padStart(2, '0');
-            timeStr = `截止 ${m} ${h}:${min}`;
-          }
+          const formatted = formatDeadline(vote.deadline);
+          if (formatted) timeStr = `截止 ${formatted}`;
         } catch (e) { /* ignore */ }
       }
 
@@ -315,63 +365,59 @@ Page({
     }
 
     try {
-      // 如果是全部模式，同时查询 rooms 和 dining_appointments
+      // 如果是全部模式，同时查询 rooms、dining_appointments、scheduleVotes（并行！）
       let allRooms = [];
       
-      // 查询 rooms 集合（聚餐和拼单）
-      const { result: roomsResult } = await wx.cloud.callFunction({
-        name: 'getAllRooms',
-        data: { 
-          limit: 100,
-          mode: viewMode === 'all' ? 'all' : viewMode
-        }
-      });
-
-      if (roomsResult.success && roomsResult.rooms) {
-        allRooms = [...roomsResult.rooms];
-      }
-      
-      // 如果是全部模式，再查询 dining_appointments
-      if (viewMode === 'all') {
-        try {
-          const { result: diningResult } = await wx.cloud.callFunction({
-            name: 'getDiningAppointments',
-            data: { limit: 100 }
-          });
-          
-          if (diningResult.success && diningResult.appointments) {
-            // 将约饭活动转换为统一格式
-            const diningRooms = diningResult.appointments.map(apt => ({
-              _id: apt._id,
-              roomId: apt._id,
-              title: apt.shopName || '约饭活动',
-              status: 'voting',
-              mode: 'meal',
-              activityTime: apt.appointmentTime,
-              deadline: apt.deadline,
-              location: apt.shopName,
-              shopName: apt.shopName,
-              shopImage: '',
-              participantCount: apt.participantCount || 0,
-              creatorNickName: apt.initiatorName || '神秘喵友',
-              creatorAvatarUrl: apt.initiatorAvatar || ''
-            }));
-            allRooms = [...allRooms, ...diningRooms];
+      // 并行发起所有请求
+      const [roomsResult, diningResult, scheduleVotesResult] = await Promise.allSettled([
+        // 1. 查询 rooms 集合（聚餐和拼单）
+        wx.cloud.callFunction({
+          name: 'getAllRooms',
+          data: { 
+            limit: 100,
+            mode: viewMode === 'all' ? 'all' : viewMode
           }
-        } catch (diningErr) {
-        }
+        }),
+        // 2. 查询约饭活动（全部模式下）
+        viewMode === 'all' 
+          ? wx.cloud.callFunction({ name: 'getDiningAppointments', data: { limit: 100 } })
+          : Promise.resolve({ result: { success: false } }),
+        // 3. 查询时间投票（全部模式下）
+        viewMode === 'all'
+          ? this.loadScheduleVotes('all')
+          : Promise.resolve([])
+      ]);
+
+      // 处理 rooms 结果
+      if (roomsResult.status === 'fulfilled' && roomsResult.value.result?.success && roomsResult.value.result.rooms) {
+        allRooms = [...roomsResult.value.result.rooms];
       }
 
-      // 如果是全部模式，混入时间投票
-      if (viewMode === 'all') {
-        try {
-          const scheduleVotes = await this.loadScheduleVotes('all');
-          const ongoingVotes = scheduleVotes.filter(v => v.status === 'voting');
-          // 过滤违规投票
-          const filteredVotes = filterSensitiveActivities(ongoingVotes);
-          allRooms = [...allRooms, ...filteredVotes];
-        } catch (svErr) {
-        }
+      // 处理约饭结果
+      if (diningResult.status === 'fulfilled' && diningResult.value.result?.success && diningResult.value.result.appointments) {
+        const diningRooms = diningResult.value.result.appointments.map(apt => ({
+          _id: apt._id,
+          roomId: apt._id,
+          title: apt.shopName || '约饭活动',
+          status: 'voting',
+          mode: 'meal',
+          activityTime: apt.appointmentTime,
+          deadline: apt.deadline,
+          location: apt.shopName,
+          shopName: apt.shopName,
+          shopImage: '',
+          participantCount: apt.participantCount || 0,
+          creatorNickName: apt.initiatorName || '神秘喵友',
+          creatorAvatarUrl: apt.initiatorAvatar || ''
+        }));
+        allRooms = [...allRooms, ...diningRooms];
+      }
+
+      // 处理时间投票结果
+      if (scheduleVotesResult.status === 'fulfilled' && Array.isArray(scheduleVotesResult.value)) {
+        const ongoingVotes = scheduleVotesResult.value.filter(v => v.status === 'voting');
+        const filteredVotes = filterSensitiveActivities(ongoingVotes);
+        allRooms = [...allRooms, ...filteredVotes];
       }
 
       // 获取当前用户openid
@@ -407,14 +453,8 @@ Page({
         let timeStr = room.deadline || room.voteDeadline || room.activityTime || '时间待定';
         if (timeStr && timeStr !== '时间待定') {
           try {
-            const date = new Date(timeStr);
-            if (!isNaN(date.getTime())) {
-              const month = date.getMonth() + 1;
-              const day = date.getDate();
-              const hours = date.getHours().toString().padStart(2, '0');
-              const minutes = date.getMinutes().toString().padStart(2, '0');
-              timeStr = `${month}月${day}日 ${hours}:${minutes}`;
-            }
+            const formatted = formatDeadlineFull(timeStr);
+            if (formatted) timeStr = formatted;
           } catch (e) {
           }
         }
@@ -512,13 +552,8 @@ Page({
           let timeStr = apt.deadline || '时间待定';
           if (timeStr !== '时间待定') {
             try {
-              const d = new Date(timeStr);
-              if (!isNaN(d.getTime())) {
-                const m = (d.getMonth() + 1) + '月' + d.getDate() + '日';
-                const h = d.getHours().toString().padStart(2, '0');
-                const min = d.getMinutes().toString().padStart(2, '0');
-                timeStr = m + ' ' + h + ':' + min;
-              }
+              const formatted = formatDeadline(apt.deadline);
+              if (formatted) timeStr = formatted;
             } catch (e) { /* ignore */ }
           }
           // 判断是否是创建者
@@ -591,56 +626,53 @@ Page({
     try {
       let allMyRooms = [];
       
-      // 查询 rooms 集合
-      const { result } = await wx.cloud.callFunction({
-        name: 'getMyRooms',
-        data: {
-          mode: this.data.viewMode === 'all' ? '' : this.data.viewMode
-        }
-      });
+      // 并行查询 rooms、dining_appointments、scheduleVotes
+      const [roomsResult, diningResult, scheduleVotesResult] = await Promise.allSettled([
+        wx.cloud.callFunction({
+          name: 'getMyRooms',
+          data: {
+            mode: this.data.viewMode === 'all' ? '' : this.data.viewMode
+          }
+        }),
+        // 全部模式下才查约饭和时间投票
+        this.data.viewMode === 'all'
+          ? wx.cloud.callFunction({ name: 'getMyDiningAppointments' })
+          : Promise.resolve({ result: { success: false } }),
+        this.data.viewMode === 'all'
+          ? this.loadScheduleVotes('created')
+          : Promise.resolve([])
+      ]);
 
-      if (result.code === 0 && result.data) {
-        allMyRooms = [...result.data];
+      // 处理 rooms 结果
+      if (roomsResult.status === 'fulfilled' && roomsResult.value?.result?.code === 0 && roomsResult.value.result.data) {
+        allMyRooms = [...roomsResult.value.result.data];
       }
       
-      // 如果是全部模式，再查询 dining_appointments
-      if (this.data.viewMode === 'all') {
-        try {
-          const { result: diningResult } = await wx.cloud.callFunction({
-            name: 'getMyDiningAppointments'
-          });
-          
-          if (diningResult.success && diningResult.appointments) {
-            const diningRooms = diningResult.appointments.map(apt => ({
-              _id: apt._id,
-              roomId: apt._id,
-              title: apt.shopName || '约饭活动',
-              status: 'voting',
-              mode: 'meal',
-              activityTime: apt.appointmentTime,
-              deadline: apt.deadline,
-              location: apt.shopName,
-              shopName: apt.shopName,
-              shopImage: '',
-              participantCount: apt.participantCount || 0,
-              creatorNickName: apt.initiatorName || '神秘喵友',
-              creatorAvatarUrl: apt.initiatorAvatar || ''
-            }));
-            allMyRooms = [...allMyRooms, ...diningRooms];
-          }
-        } catch (diningErr) {
-        }
+      // 处理约饭结果
+      if (diningResult.status === 'fulfilled' && diningResult.value?.result?.success && diningResult.value.result.appointments) {
+        const diningRooms = diningResult.value.result.appointments.map(apt => ({
+          _id: apt._id,
+          roomId: apt._id,
+          shopId: apt.shopId || '',
+          title: apt.shopName || '约饭活动',
+          status: 'voting',
+          mode: 'meal',
+          activityTime: apt.appointmentTime,
+          deadline: apt.deadline,
+          location: apt.shopName,
+          shopName: apt.shopName,
+          shopImage: '',
+          participantCount: apt.participantCount || 0,
+          creatorNickName: apt.initiatorName || '神秘喵友',
+          creatorAvatarUrl: apt.initiatorAvatar || ''
+        }));
+        allMyRooms = [...allMyRooms, ...diningRooms];
       }
 
-      // 如果是全部模式，混入时间投票
-      if (this.data.viewMode === 'all') {
-        try {
-          const scheduleVotes = await this.loadScheduleVotes('created');
-          // 过滤违规投票
-          const filteredVotes = filterSensitiveActivities(scheduleVotes);
-          allMyRooms = [...allMyRooms, ...filteredVotes];
-        } catch (svErr) {
-        }
+      // 处理时间投票结果
+      if (scheduleVotesResult.status === 'fulfilled' && Array.isArray(scheduleVotesResult.value)) {
+        const filteredVotes = filterSensitiveActivities(scheduleVotesResult.value);
+        allMyRooms = [...allMyRooms, ...filteredVotes];
       }
 
       
@@ -673,14 +705,8 @@ Page({
         let timeStr = room.voteDeadlineStr || room.deadline || room.activityTime || '时间待定';
         if (timeStr && timeStr !== '时间待定' && !room.voteDeadlineStr) {
           try {
-            const date = new Date(timeStr);
-            if (!isNaN(date.getTime())) {
-              const month = date.getMonth() + 1;
-              const day = date.getDate();
-              const hours = date.getHours().toString().padStart(2, '0');
-              const minutes = date.getMinutes().toString().padStart(2, '0');
-              timeStr = `${month}月${day}日 ${hours}:${minutes}`;
-            }
+            const formatted = formatDeadlineFull(timeStr);
+            if (formatted) timeStr = formatted;
           } catch (e) {
           }
         }
@@ -689,6 +715,7 @@ Page({
           type: type,
           typeName: typeName,
           title: room.title,
+          shopId: room.shopId || '',
           shopName: isMeal ? room.shopName : shopName,
           time: timeStr,
           participantCount: room.participantCount || 0,
@@ -748,13 +775,8 @@ Page({
           let timeStr = apt.deadline || '时间待定';
           if (timeStr !== '时间待定') {
             try {
-              const d = new Date(timeStr);
-              if (!isNaN(d.getTime())) {
-                const m = (d.getMonth() + 1) + '月' + d.getDate() + '日';
-                const h = d.getHours().toString().padStart(2, '0');
-                const min = d.getMinutes().toString().padStart(2, '0');
-                timeStr = m + ' ' + h + ':' + min;
-              }
+              const formatted = formatDeadline(apt.deadline);
+              if (formatted) timeStr = formatted;
             } catch (e) { /* ignore */ }
           }
           return {
@@ -820,21 +842,29 @@ Page({
     try {
       let allParticipatedRooms = [];
       
-      // 查询 rooms 集合
-      const { result } = await wx.cloud.callFunction({
-        name: 'getRecentRooms',
-        data: {
-          limit: 100,
-          mode: this.data.viewMode === 'all' ? '' : this.data.viewMode
-        }
-      });
-      
+      // 并行查询 rooms、dining_appointments、scheduleVotes
+      const [roomsResult, diningResult, scheduleVotesResult] = await Promise.allSettled([
+        wx.cloud.callFunction({
+          name: 'getRecentRooms',
+          data: {
+            limit: 100,
+            mode: this.data.viewMode === 'all' ? '' : this.data.viewMode
+          }
+        }),
+        // 全部模式下才查约饭和时间投票
+        this.data.viewMode === 'all'
+          ? wx.cloud.callFunction({ name: 'getDiningAppointments' })
+          : Promise.resolve({ result: { success: false } }),
+        this.data.viewMode === 'all'
+          ? this.loadScheduleVotes('participated')
+          : Promise.resolve([])
+      ]);
 
-      if (result.success && result.rooms) {
-        // 根据 viewMode 过滤房间
-        let filteredRooms = result.rooms;
+      // 处理 rooms 结果
+      if (roomsResult.status === 'fulfilled' && roomsResult.value?.result?.success && roomsResult.value.result.rooms) {
+        let filteredRooms = roomsResult.value.result.rooms;
         if (this.data.viewMode !== 'all') {
-          filteredRooms = result.rooms.filter(room => {
+          filteredRooms = filteredRooms.filter(room => {
             if (this.data.viewMode === 'group') return room.mode === 'group';
             if (this.data.viewMode === 'dining') return room.mode === 'pick_for_them' || room.mode === 'b';
             return true;
@@ -843,50 +873,36 @@ Page({
         allParticipatedRooms = [...filteredRooms];
       }
       
-      // 如果是全部模式，再查询 dining_appointments
-      if (this.data.viewMode === 'all') {
-        try {
-          const { result: diningResult } = await wx.cloud.callFunction({
-            name: 'getDiningAppointments'
-          });
-          
-          if (diningResult.success && diningResult.appointments) {
-            const myOpenId = getApp().globalData.openid;
-            // 过滤出我参与的（排除我发起的）
-            const participated = diningResult.appointments.filter(apt => {
-              return apt.participants && apt.participants.some(p => p.openId === myOpenId);
-            });
-            
-            const diningRooms = participated.map(apt => ({
-              _id: apt._id,
-              roomId: apt._id,
-              title: apt.shopName || '约饭活动',
-              status: 'voting',
-              mode: 'meal',
-              activityTime: apt.appointmentTime,
-              deadline: apt.deadline,
-              location: apt.shopName,
-              shopName: apt.shopName,
-              shopImage: '',
-              participantCount: apt.participantCount || 0,
-              creatorNickName: apt.initiatorName || '神秘喵友',
-              creatorAvatarUrl: apt.initiatorAvatar || ''
-            }));
-            allParticipatedRooms = [...allParticipatedRooms, ...diningRooms];
-          }
-        } catch (diningErr) {
-        }
+      // 处理约饭结果（过滤出我参与的，排除我发起的）
+      if (diningResult.status === 'fulfilled' && diningResult.value?.result?.success && diningResult.value.result.appointments) {
+        const myOpenId = getApp().globalData.openid || wx.getStorageSync('openid');
+        const participated = diningResult.value.result.appointments.filter(apt => {
+          return apt.participants && apt.participants.some(p => p.openId === myOpenId);
+        });
+        
+        const diningRooms = participated.map(apt => ({
+          _id: apt._id,
+          roomId: apt._id,
+          shopId: apt.shopId || '',
+          title: apt.shopName || '约饭活动',
+          status: 'voting',
+          mode: 'meal',
+          activityTime: apt.appointmentTime,
+          deadline: apt.deadline,
+          location: apt.shopName,
+          shopName: apt.shopName,
+          shopImage: '',
+          participantCount: apt.participantCount || 0,
+          creatorNickName: apt.initiatorName || '神秘喵友',
+          creatorAvatarUrl: apt.initiatorAvatar || ''
+        }));
+        allParticipatedRooms = [...allParticipatedRooms, ...diningRooms];
       }
 
-      // 如果是全部模式，混入时间投票
-      if (this.data.viewMode === 'all') {
-        try {
-          const scheduleVotes = await this.loadScheduleVotes('participated');
-          // 过滤违规投票
-          const filteredVotes = filterSensitiveActivities(scheduleVotes);
-          allParticipatedRooms = [...allParticipatedRooms, ...filteredVotes];
-        } catch (svErr) {
-        }
+      // 处理时间投票结果
+      if (scheduleVotesResult.status === 'fulfilled' && Array.isArray(scheduleVotesResult.value)) {
+        const filteredVotes = filterSensitiveActivities(scheduleVotesResult.value);
+        allParticipatedRooms = [...allParticipatedRooms, ...filteredVotes];
       }
 
 
@@ -918,14 +934,8 @@ Page({
         let timeStr = isScheduleVoteType ? (room.time || '') : (room.deadline || room.activityTime || '时间待定');
         if (!isScheduleVoteType && timeStr && timeStr !== '时间待定') {
           try {
-            const date = new Date(timeStr);
-            if (!isNaN(date.getTime())) {
-              const month = date.getMonth() + 1;
-              const day = date.getDate();
-              const hours = date.getHours().toString().padStart(2, '0');
-              const minutes = date.getMinutes().toString().padStart(2, '0');
-              timeStr = `${month}月${day}日 ${hours}:${minutes}`;
-            }
+            const formatted = formatDeadlineFull(timeStr);
+            if (formatted) timeStr = formatted;
           } catch (e) {
           }
         }
@@ -934,6 +944,7 @@ Page({
           type: type,
           typeName: typeName,
           title: room.title,
+          shopId: room.shopId || '',
           shopName: shopName,
           time: timeStr,
           participantCount: room.participantCount || 0,
@@ -990,13 +1001,8 @@ Page({
           let timeStr = apt.deadline || '时间待定';
           if (timeStr !== '时间待定') {
             try {
-              const d = new Date(timeStr);
-              if (!isNaN(d.getTime())) {
-                const m = (d.getMonth() + 1) + '月' + d.getDate() + '日';
-                const h = d.getHours().toString().padStart(2, '0');
-                const min = d.getMinutes().toString().padStart(2, '0');
-                timeStr = m + ' ' + h + ':' + min;
-              }
+              const formatted = formatDeadline(apt.deadline);
+              if (formatted) timeStr = formatted;
             } catch (e) { /* ignore */ }
           }
           return {
@@ -1129,13 +1135,22 @@ Page({
       const activity = this.data.ongoingActivities.find(a => a.id === roomId) ||
                        this.data.myActivities.find(a => a.id === roomId) ||
                        this.data.participatedActivities.find(a => a.id === roomId);
+      console.log('点击约饭活动:', { roomId, activity, activityShopId: activity?.shopId });
       const shopId = activity?.shopId;
       if (shopId) {
         wx.navigateTo({
           url: `/package-shop/pages/shop-detail/shop-detail?id=${shopId}`
         });
       } else {
-        wx.showToast({ title: '店铺信息缺失', icon: 'none' });
+        // 如果没有shopId，尝试用roomId（即appointment的_id）直接跳转到店铺详情页
+        // 店铺详情页会根据appointmentId加载约饭信息
+        console.warn('约饭活动缺少shopId，尝试使用roomId跳转:', roomId);
+        wx.navigateTo({
+          url: `/package-shop/pages/shop-detail/shop-detail?appointmentId=${roomId}`,
+          fail: () => {
+            wx.showToast({ title: '店铺信息缺失', icon: 'none' });
+          }
+        });
       }
     } else if (type === 'scheduleVote') {
       // 时间投票 - 跳转到填写页面
@@ -1254,7 +1269,14 @@ Page({
           }
         });
       } else {
-        wx.showToast({ title: '店铺信息缺失', icon: 'none' });
+        // 如果没有shopId，尝试用appointmentId跳转
+        console.warn('goToDetail约饭活动缺少shopId:', { roomId, activity });
+        wx.navigateTo({
+          url: `/package-shop/pages/shop-detail/shop-detail?appointmentId=${roomId}`,
+          fail: () => {
+            wx.showToast({ title: '店铺信息缺失', icon: 'none' });
+          }
+        });
       }
     } else {
       // 聚餐投票活动
@@ -1347,6 +1369,102 @@ Page({
     return {
       title: '来喵不喵一起拼单',
       path: '/pages/fish-tank/fish-tank'
+    };
+  },
+
+  // 分享约饭活动
+  shareAppointment(e) {
+    const { id, title, shopname, type } = e.currentTarget.dataset;
+    
+    // 如果不是约饭类型，不处理
+    if (type !== 'meal') return;
+
+    // 构建分享内容
+    const shareTitle = title && title !== '约饭活动' 
+      ? `来一起吃饭吧！${title}` 
+      : (shopname ? `来${shopname}一起约饭吧！` : '来喵不喵一起约饭吧！');
+    
+    // 通过按钮触发分享菜单
+    // 使用 wx.showShareMenu + 手动方式或直接调用分享
+    this.setData({
+      shareData: {
+        appointmentId: id,
+        title: shareTitle,
+        shopName: shopname || ''
+      }
+    });
+
+    // 触发分享菜单（通过模拟右上角分享行为）
+    // 小程序中需要用户主动点击分享按钮，这里我们用 showActionSheet 提示
+    wx.showActionSheet({
+      itemList: ['发送给朋友', '分享到朋友圈'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          // 发送给朋友 - 触发 onShareAppMessage
+          // 由于无法直接调起分享，显示提示引导用户使用右上角分享
+          wx.showToast({ title: '请点击右上角「...」分享给朋友', icon: 'none', duration: 2000 });
+        } else if (res.tapIndex === 1) {
+          // 分享到朋友圈 - 触发 onShareTimeline
+          wx.showToast({ title: '请点击右上角「...」分享到朋友圈', icon: 'none', duration: 2000 });
+        }
+      }
+    });
+  },
+
+  // 重写 onShareAppMessage 以支持约饭活动分享（支持 button open-type=share 触发）
+  onShareAppMessage(e) {
+    // 优先从触发事件的 dataset 获取数据（button open-type=share 触发时）
+    const ds = e?.target?.dataset || {};
+    const id = ds.id || '';
+    const title = ds.title || '';
+    const shopname = ds.shopname || '';
+    const type = ds.type || '';
+    
+    // 如果是从约饭分享按钮触发的
+    if (type === 'meal' && id) {
+      const shareTitle = title && title !== '约饭活动'
+        ? `来一起吃饭吧！${title}`
+        : (shopname ? `来${shopname}一起约饭吧！` : '来喵不喵一起约饭吧！');
+      
+      console.log('[fish-tank] 触发约饭分享:', { id, title, shopname });
+      return {
+        title: shareTitle,
+        path: `/package-shop/pages/shop-detail/shop-detail?appointmentId=${id}`,
+        imageUrl: ''
+      };
+    }
+    
+    // 如果有预设的分享数据（兼容旧逻辑）
+    const { shareData } = this.data;
+    if (shareData && shareData.appointmentId) {
+      return {
+        title: shareData.title || '来喵不喵一起约饭',
+        path: `/package-shop/pages/shop-detail/shop-detail?appointmentId=${shareData.appointmentId}`,
+        imageUrl: ''
+      };
+    }
+
+    // 默认分享
+    return {
+      title: '来喵不喵一起拼单',
+      path: '/pages/fish-tank/fish-tank'
+    };
+  },
+
+  // 支持分享到朋友圈
+  onShareTimeline() {
+    const { shareData } = this.data;
+    
+    if (shareData && shareData.appointmentId) {
+      return {
+        title: shareData.title || '来喵不喵一起约饭',
+        query: `appointmentId=${shareData.appointmentId}`,
+        imageUrl: ''
+      };
+    }
+
+    return {
+      title: '来喵不喵一起拼单约饭'
     };
   },
 
@@ -1670,6 +1788,107 @@ Page({
       clearInterval(this._fishTankDeadlineTimer);
       this._fishTankDeadlineTimer = null;
     }
+  },
+
+  // ========== 预加载 & 静默刷新 ==========
+
+  /**
+   * 后台静默刷新：不显示 loading，失败无提示
+   * 用于 onShow 时有旧数据的情况，后台更新数据后无缝替换
+   */
+  async _silentRefresh() {
+    if (this._silentRefreshing) return;
+    this._silentRefreshing = true;
+
+    try {
+      await Promise.all([
+        this.loadOngoingRooms(),
+        this.loadMyRooms(),
+        this.loadParticipatedRooms()
+      ]);
+    } catch (err) {
+      // 静默失败，不影响用户体验
+      console.warn('[fish-tank] 静默刷新失败:', err.message);
+    } finally {
+      this._silentRefreshing = false;
+    }
+  },
+
+  /**
+   * 注册预加载器到全局预加载管理器
+   * app.js 可以在用户操作其它页面时调用这些 loader 后台加载数据
+   */
+  _registerPreloaders() {
+    if (!preloadManager) return;
+
+    const self = this;
+
+    // 注册"正在进行"的预加载器
+    preloadManager.registerLoader('fish-tank', async () => {
+      const viewMode = self.data.viewMode || 'all';
+      
+      try {
+        const [roomsResult, diningResult, scheduleVotesResult] = await Promise.allSettled([
+          wx.cloud.callFunction({ name: 'getAllRooms', data: { limit: 100, mode: viewMode === 'all' ? 'all' : viewMode } }),
+          viewMode === 'all' ? wx.cloud.callFunction({ name: 'getDiningAppointments', data: { limit: 100 } }) : Promise.resolve({ result: { success: false } }),
+          viewMode === 'all' ? self.loadScheduleVotes('all') : Promise.resolve([])
+        ]);
+
+        let allRooms = [];
+        if (roomsResult.status === 'fulfilled' && roomsResult.value?.result?.success && roomsResult.value.result.rooms) {
+          allRooms = [...roomsResult.value.result.rooms];
+        }
+        if (diningResult.status === 'fulfilled' && diningResult.value?.result?.success && diningResult.value.result.appointments) {
+          const diningRooms = diningResult.value.result.appointments.map(apt => ({
+            _id: apt._id, roomId: apt._id, title: apt.shopName || '约饭活动', status: 'voting',
+            mode: 'meal', deadline: apt.deadline, location: apt.shopName, shopName: apt.shopName,
+            shopImage: '', participantCount: apt.participantCount || 0,
+            creatorNickName: apt.initiatorName || '神秘喵友', creatorAvatarUrl: apt.initiatorAvatar || ''
+          }));
+          allRooms = [...allRooms, ...diningRooms];
+        }
+        if (scheduleVotesResult.status === 'fulfilled' && Array.isArray(scheduleVotesResult.value)) {
+          const ongoingVotes = scheduleVotesResult.value.filter(v => v.status === 'voting');
+          allRooms = [...allRooms, ...ongoingVotes];
+        }
+
+        // 格式化（精简版，只做必要处理）
+        const myOpenId = getApp().globalData.openid || wx.getStorageSync('openid');
+        const rooms = allRooms.map(room => {
+          let type = 'dining', typeName = '聚会';
+          if (room.isScheduleVote || room.type === 'scheduleVote') { type = 'scheduleVote'; typeName = '时间投票'; }
+          else if (room.mode === 'group') { type = 'group'; typeName = '拼单'; }
+          else if (room.mode === 'meal') { type = 'meal'; typeName = '约饭'; }
+          
+          let timeStr = room.deadline || room.activityTime || '时间待定';
+          let shopName = room.isScheduleVote ? (room.shopName || '') : (room.mode === 'group' ? (room.shopName || '外卖拼单') : (room.location || room.shopName || '地点待定'));
+          
+          return {
+            id: room.roomId || room.id, type, typeName, title: room.title,
+            shopName: room.isScheduleVote ? room.shopName : (room.mode === 'meal' ? room.shopName : shopName),
+            time: room.isScheduleVote ? (room.time || timeStr) : timeStr,
+            participantCount: room.participantCount || 0,
+            image: room.isScheduleVote ? (imagePaths.banners.taiyakiIcon) : (room.shopImage || imagePaths.banners.taiyakiIcon),
+            status: room.status, statusName: room.status === 'voting' ? '进行中' : '已结束',
+            roomId: room.roomId, platform: room.platform,
+            isCreator: room.creatorOpenId === myOpenId || room.isCreator === true,
+            creatorNickName: room.isCreator ? '我' : (room.creatorNickName || '神秘喵友'),
+            creatorAvatarUrl: room.creatorAvatarUrl || imagePaths.decorations.catAvatarIcon,
+            participantAvatars: room.participantAvatars || []
+          };
+        });
+
+        const processed = self.processActivitiesDeadline(rooms);
+        const filtered = filterSensitiveActivities(processed);
+
+        return {
+          ongoingActivities: filtered,
+          ongoingCount: filtered.length
+        };
+      } catch (err) {
+        return null;
+      }
+    });
   },
 
   // 打开地图导航

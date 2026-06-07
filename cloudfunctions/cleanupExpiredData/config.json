@@ -1,12 +1,1 @@
-{
-  "permissions": {
-    "openapi": []
-  },
-  "triggers": [
-    {
-      "name": "cleanupTrigger",
-      "type": "timer",
-      "config": "0 0 3 * * * *"
-    }
-  ]
-}
+{"permissions": {"openapi": []}, "triggers": [{"name": "cleanupExpiredDataTrigger", "type": "timer", "config": "0 0 3 * * * *"}]}

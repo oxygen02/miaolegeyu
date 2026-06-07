@@ -86,7 +86,14 @@ Page({
 
       // 获取投票统计（Mode B 需要）
       let voteStats = null;
-      if (room.mode === 'b' && room.status === 'locked') {
+      // 兼容旧数据
+      let isModeB = room.mode === 'b';
+      if (room.mode === 'pick_for_them') {
+        const hasCuisineOptions = !!room.cuisineOptions;
+        const hasCandidatePosters = !!(room.candidatePosters && room.candidatePosters.length > 0);
+        isModeB = hasCuisineOptions && !hasCandidatePosters;
+      }
+      if (isModeB && room.status === 'locked') {
         const statsResult = await wx.cloud.callFunction({
           name: 'countVotes',
           data: { roomId: this.data.roomId }
@@ -98,6 +105,7 @@ Page({
 
       this.setData({
         room,
+        mode: isModeB ? 'b' : 'a', // 修正后的 mode，供 wxml 使用
         isCreator: room.isCreator,
         voteStats,
         loading: false

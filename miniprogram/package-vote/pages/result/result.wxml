@@ -10,7 +10,7 @@
     <!-- 主要内容区域 -->
     <view class="result-content">
       <!-- Mode A: 海报投票结果 -->
-      <block wx:if="{{room.mode === 'a'}}">
+      <block wx:if="{{mode === 'a'}}">
         <result-card
           title="橘仔宣布"
           subtitle="本次聚会地点已定"
@@ -43,7 +43,7 @@
       </block>
 
       <!-- Mode B: 分类投票结果 -->
-      <block wx:if="{{room.mode === 'b' && voteStats}}">
+      <block wx:if="{{mode === 'b' && voteStats}}">
         <view class="modeb-result-section">
           <view class="best-matches-card" wx:if="{{voteStats.bestMatches.length > 0}}">
             <text class="section-title">最佳匹配</text>
@@ -104,7 +104,7 @@
       </block>
 
       <!-- 无结果状态 -->
-      <block wx:if="{{!room.finalPoster && room.mode !== 'b'}}">
+      <block wx:if="{{!room.finalPoster && mode !== 'b'}}">
         <view class="no-result-section">
           <image class="no-result-avatar" src="{{imagePaths.banners.faqijucan}}" mode="aspectFill"/>
           <text class="no-result-text">还没有最终结果哦</text>

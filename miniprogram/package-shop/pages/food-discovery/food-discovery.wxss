@@ -12,14 +12,14 @@
   left: 0;
   right: 0;
   z-index: 10;
-  background: linear-gradient(180deg, #FF9F43 0%, #FFB347 100%);
 }
 
-/* 顶部标题区 */
+/* 顶部标题区（含搜索框）- 橘色背景精确包裹 */
 .header-section {
-  padding: calc(40rpx + env(safe-area-inset-top)) 32rpx 24rpx;
+  padding: calc(40rpx + env(safe-area-inset-top)) 32rpx 16rpx;
   position: relative;
   overflow: hidden;
+  background: linear-gradient(180deg, #FF9F43 0%, #FFB347 100%);
 }
 
 /* 猫尾巴 - 歪歪的在右下角 */
@@ -46,17 +46,14 @@
   text-shadow: 2rpx 4rpx 8rpx rgba(0,0,0,0.2);
 }
 
-/* 搜索框 */
-.search-section {
-  padding: 0 32rpx 20rpx;
-}
-
+/* 搜索框 - 在header-section内部，紧贴副标题 */
 .search-box {
   display: flex;
   align-items: center;
   background: rgba(255,255,255,0.9);
   border-radius: 40rpx;
   padding: 16rpx 24rpx;
+  margin-top: 16rpx;
 }
 
 .search-icon {
@@ -95,11 +92,13 @@
   display: block;
 }
 
-/* 菜系筛选 - 两行高频标签 + 展开/收起 */
+/* 菜系筛选 - 紧贴搜索框 */
 .cuisine-filter {
   background: rgba(255,255,255,0.95);
   padding: 16rpx 20rpx;
   border-bottom: 2rpx solid rgba(255,159,67,0.1);
+  margin-top: 0;
+  border-radius: 0;
 }
 
 .cuisine-list {

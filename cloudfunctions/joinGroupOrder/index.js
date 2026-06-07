@@ -4,7 +4,7 @@ const db = cloud.database();
 const _ = db.command;
 
 exports.main = async (event) => {
-  const { roomId, selectedOptionIndex, note = '' } = event;
+  const { roomId, selectedOptionIndices, selectedOptionIndex, note = '' } = event;
   const { OPENID } = cloud.getWXContext();
 
   // 参数校验
@@ -12,9 +12,24 @@ exports.main = async (event) => {
     return { code: -1, msg: '用户未登录' };
   }
 
-  if (!roomId || selectedOptionIndex === undefined) {
+  if (!roomId) {
     return { code: -1, msg: '参数错误' };
   }
+
+  // 兼容旧版单选参数：支持 selectedOptionIndex（单选）或 selectedOptionIndices（多选数组）
+  let finalSelectedIndices = selectedOptionIndices;
+  if (finalSelectedIndices === undefined || finalSelectedIndices === null) {
+    if (selectedOptionIndex !== undefined && selectedOptionIndex !== null) {
+      finalSelectedIndices = [selectedOptionIndex];
+    } else {
+      finalSelectedIndices = [];
+    }
+  }
+  // 确保是数组且去重、排序
+  if (!Array.isArray(finalSelectedIndices)) {
+    finalSelectedIndices = [finalSelectedIndices];
+  }
+  finalSelectedIndices = [...new Set(finalSelectedIndices)].sort((a, b) => a - b);
 
   try {
     // 获取房间信息
@@ -28,11 +43,17 @@ exports.main = async (event) => {
     }
 
     const room = rooms[0];
-    const isCreator = room.creatorOpenId === OPENID;
 
     // 检查房间状态
     if (room.status !== 'voting') {
       return { code: -1, msg: '拼单已结束' };
+    }
+
+    // 校验选项索引是否合法
+    const optionsCount = (room.options || []).length;
+    const invalidIndices = finalSelectedIndices.filter(idx => idx < 0 || idx >= optionsCount);
+    if (invalidIndices.length > 0) {
+      return { code: -1, msg: `无效的选项索引: ${invalidIndices.join(', ')}` };
     }
 
     // 检查是否已参与（发起人也可以参与自己的拼单）
@@ -47,7 +68,9 @@ exports.main = async (event) => {
       // 已参与过，更新选择
       await db.collection('group_order_participants').doc(existingParticipants[0]._id).update({
         data: {
-          selectedOptionIndex,
+          selectedOptionIndices: finalSelectedIndices,
+          // 兼容旧字段
+          selectedOptionIndex: finalSelectedIndices.length > 0 ? finalSelectedIndices[0] : -1,
           note,
           updatedAt: db.serverDate()
         }
@@ -56,7 +79,8 @@ exports.main = async (event) => {
       return {
         code: 0,
         msg: '更新成功',
-        isUpdate: true
+        isUpdate: true,
+        selectedOptionIndices: finalSelectedIndices
       };
     }
 
@@ -65,14 +89,16 @@ exports.main = async (event) => {
       data: {
         roomId,
         openid: OPENID,
-        selectedOptionIndex,
+        selectedOptionIndices: finalSelectedIndices,
+        // 兼容旧字段
+        selectedOptionIndex: finalSelectedIndices.length > 0 ? finalSelectedIndices[0] : -1,
         note,
         joinedAt: db.serverDate(),
         updatedAt: db.serverDate()
       }
     });
 
-    // 增加房间参与人数
+    // 增加房间参与人数（仅首次参与时增加）
     await db.collection('rooms').doc(room._id).update({
       data: {
         participantCount: _.inc(1),
@@ -83,7 +109,8 @@ exports.main = async (event) => {
     return {
       code: 0,
       msg: '参与成功',
-      isUpdate: false
+      isUpdate: false,
+      selectedOptionIndices: finalSelectedIndices
     };
 
   } catch (err) {

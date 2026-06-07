@@ -1,7 +1,7 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-const { checkContent } = require('../utils/contentSecurity');
+const { checkContent } = require('./contentSecurity');
 
 exports.main = async (event, context) => {
   console.log('云函数被调用，接收数据:', event);

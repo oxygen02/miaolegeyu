@@ -79,6 +79,20 @@
       <text class="payment-hint" wx:if="{{paymentMode === 'hidden'}}">选中后成员投票时不会看到付款方式，默认发起人请客</text>
     </view>
 
+<!-- 隐私设置 - 可见性 -->
+<view class="form-group privacy-section">
+<text class="section-label">活动可见性</text>
+<view class="visibility-options">
+<view class="visibility-option {{visibility === 'friends' ? 'selected' : ''}}" data-value="friends" bindtap="onVisibilityChange">
+<text class="option-title">仅好友可见</text>
+</view>
+<view class="visibility-divider"></view>
+<view class="visibility-option {{visibility === 'share' ? 'selected' : ''}}" data-value="share" bindtap="onVisibilityChange">
+<text class="option-title">仅通过分享</text>
+</view>
+</view>
+</view>
+
     <!-- 匿名投票和房间密码 - 同一行对齐 -->
     <view class="form-group switch-row-combined">
       <view class="switch-item">
@@ -153,6 +167,41 @@
         </view>
       </view>
       <button class="btn-confirm" bindtap="confirmPlatform">确定</button>
+    </view>
+  </view>
+
+  <!-- 数据保留提示弹窗 -->
+  <view class="popup" wx:if="{{showDataRetentionTip}}">
+    <view class="popup-mask" bindtap="closeDataRetentionTip"></view>
+    <view class="popup-content data-retention-content">
+      <text class="popup-title">数据保留说明</text>
+      <view class="retention-info">
+        <text class="retention-text">为保护您的隐私和减少数据堆积：</text>
+        <view class="retention-list">
+          <view class="retention-item">
+            <text class="item-icon check-icon">✓</text>
+            <text class="item-text">进行中的活动永久保留</text>
+          </view>
+          <view class="retention-item">
+            <text class="item-icon time-icon">·</text>
+            <text class="item-text">已结束的活动30天后自动清理</text>
+          </view>
+          <view class="retention-item">
+            <text class="item-icon link-icon">·</text>
+            <text class="item-text">分享链接7天有效期</text>
+          </view>
+        </view>
+        <text class="retention-notice">创建活动即表示您同意此数据保留政策</text>
+        
+        <!-- 下次不再显示选项 -->
+        <view class="agree-option" bindtap="toggleAgreeDefault">
+          <view class="checkbox {{agreeDefault ? 'checked' : ''}}">
+            <text wx:if="{{agreeDefault}}" class="check-mark">✓</text>
+          </view>
+          <text class="agree-text">下次不再显示，默认同意以上规则</text>
+        </view>
+      </view>
+      <button class="btn-confirm" bindtap="closeDataRetentionTip">我知道了</button>
     </view>
   </view>
 </view>

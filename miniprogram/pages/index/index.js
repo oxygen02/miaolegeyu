@@ -1,6 +1,7 @@
 const { imagePaths } = getApp().globalData;
 const audioManager = getApp().globalData.audioManager;
 const app = getApp();
+const preloadManager = app.globalData.preloadManager;
 
 // 鱼的配置
 const FISH_COUNT = 5;
@@ -85,6 +86,11 @@ Page({
 
   onShow() {
     this.updateTabBarSelected();
+    // 用户在首页操作时，后台预加载喵不喵数据
+    if (preloadManager) {
+      preloadManager.touch();
+      preloadManager.smartPreload('pages/index/index');
+    }
     if (this.data._dataLoaded) {
       this._loadDataAsync();
     }
@@ -142,23 +148,42 @@ Page({
       }
     } catch (e) { /* 忽略缓存读取错误 */ }
 
-    // 2. 请求最新数据
+    // 2. 请求最新数据：优先获取自己参与过的，如果没有则获取公开活动
+    let rooms = [];
+
     try {
-      const { result } = await this._callWithTimeout('getRecentRooms', { limit: 5 }, 10000);
-      if (result.success) {
-        const rooms = (result.rooms || []).map(room => ({
-          ...room,
-          statusText: this.getStatusText(room.status),
-          posterUrl: room.candidatePosters?.[0]?.imageUrl || imagePaths.banners.taiyakiIcon
-        }));
-        this.setData({ recentRooms: rooms });
-        // 写入缓存
-        wx.setStorageSync(CACHE_KEY, rooms);
-        wx.setStorageSync(CACHE_TIME, Date.now());
+      // 2.1 先尝试获取自己参与过的活动
+      const { result: recentResult } = await this._callWithTimeout('getRecentRooms', { limit: 5 }, 10000);
+      if (recentResult.success && recentResult.rooms && recentResult.rooms.length > 0) {
+        rooms = recentResult.rooms;
       }
     } catch (err) {
-      console.error('[首页] loadRecentRooms 失败:', err);
-      // 网络失败时，缓存数据已显示，用户无感知
+      console.error('[首页] getRecentRooms 失败:', err);
+    }
+
+    // 2.2 如果没有参与过的活动，获取公开活动
+    if (rooms.length === 0) {
+      try {
+        const { result: allResult } = await this._callWithTimeout('getAllRooms', { limit: 5, mode: 'all' }, 10000);
+        if (allResult.success && allResult.rooms && allResult.rooms.length > 0) {
+          rooms = allResult.rooms;
+        }
+      } catch (err) {
+        console.error('[首页] getAllRooms 失败:', err);
+      }
+    }
+
+    // 3. 格式化并显示
+    if (rooms.length > 0) {
+      const formattedRooms = rooms.map(room => ({
+        ...room,
+        statusText: this.getStatusText(room.status),
+        posterUrl: room.candidatePosters?.[0]?.imageUrl || imagePaths.banners.taiyakiIcon
+      }));
+      this.setData({ recentRooms: formattedRooms });
+      // 写入缓存
+      wx.setStorageSync(CACHE_KEY, formattedRooms);
+      wx.setStorageSync(CACHE_TIME, Date.now());
     }
   },
 

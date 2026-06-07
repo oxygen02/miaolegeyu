@@ -43,27 +43,24 @@
       </view>
     </view>
 
-    <view class="anon-row" bindtap="toggleAnonymous">
-      <view class="anon-icon {{isAnonymous ? 'active' : ''}}">
-        <image src="{{imagePaths.icons.mask}}" mode="aspectFit" />
+    <view class="anon-row">
+      <view class="anon-top">
+        <view class="anon-left" bindtap="toggleAnonymous">
+          <view class="anon-icon {{isAnonymous ? 'active' : ''}}">
+            <image src="{{imagePaths.icons.mask}}" mode="aspectFit" />
+          </view>
+          <text class="anon-title">匿名投票</text>
+        </view>
+        <view class="anon-right">
+          <switch checked="{{isAnonymous}}" color="#FF9F43" bindchange="toggleAnonymous" />
+          <view class="code-box" catchtap="copyRoomCode">
+            <text class="code-label">房间号</text>
+            <text class="code-val">{{roomCode}}</text>
+            <image src="{{imagePaths.icons.copy}}" mode="aspectFit" />
+          </view>
+        </view>
       </view>
-      <view class="anon-text">
-        <text class="anon-title">匿名投票</text>
-        <text class="anon-desc">{{isAnonymous ? '开启中：所有人互不可见投票身份' : '关闭中：投票身份对全员可见'}}</text>
-      </view>
-      <switch checked="{{isAnonymous}}" color="#FF9F43" />
-    </view>
-
-    <view class="code-row">
-      <view class="code-box" bindtap="copyRoomCode">
-        <text class="code-label">房间号</text>
-        <text class="code-val">{{roomCode}}</text>
-        <image src="{{imagePaths.icons.copy}}" mode="aspectFit" />
-      </view>
-      <view class="share-btn" bindtap="shareRoom">
-        <image src="{{imagePaths.icons.shareW}}" mode="aspectFit" />
-        <text>邀请</text>
-      </view>
+      <text class="anon-desc">{{isAnonymous ? '开启中：所有人互不可见投票身份' : '关闭中：投票身份对全员可见'}}</text>
     </view>
   </view>
 
@@ -77,10 +74,31 @@
         <view class="progress-bar" style="width: {{progressPercent}}%"></view>
       </view>
       <view class="progress-text">
-        <text>{{votedCount}}/{{participants.length}}</text>
+        <text>{{votedCount}}/{{participants.length}} 已投票</text>
         <text class="pct">{{progressPercent}}%</text>
       </view>
     </view>
+<view class="stats-row">
+  <view class="stat-item">
+    <text class="stat-num">{{participants.length}}</text>
+    <text class="stat-label">已参与</text>
+  </view>
+  <view class="stat-divider"></view>
+  <view class="stat-item">
+    <text class="stat-num">{{shareCount}}</text>
+    <text class="stat-label">邀请次数</text>
+  </view>
+  <view class="stat-divider"></view>
+  <view class="stat-item">
+    <text class="stat-num">{{entryJoinCount}}</text>
+    <text class="stat-label">邀请加入</text>
+  </view>
+  <view class="stat-divider"></view>
+  <view class="stat-item">
+    <text class="stat-num">{{joinRate}}%</text>
+    <text class="stat-label">转化率</text>
+  </view>
+</view>
     <view class="anon-hint" wx:if="{{isAnonymous}}">
       <image src="{{imagePaths.icons.mask}}" mode="aspectFit" />
       <text>匿名模式下仅展示票数聚合，不公开个人选择</text>
@@ -134,7 +152,6 @@
         <view class="mem-btn">
           <view class="tag-btn view" wx:if="{{!isAnonymous && item.isVoted}}">查看</view>
           <view class="tag-btn done" wx:if="{{isAnonymous && item.isVoted}}">已完成</view>
-          <view class="tag-btn remind" wx:if="{{!item.isVoted}}" catchtap="remindMember" data-id="{{item.id}}">分享邀请</view>
         </view>
       </view>
     </view>
@@ -208,8 +225,8 @@
     <image src="{{imagePaths.icons.lock}}" mode="aspectFit" />
     <text>{{roomStatus === 'locked' ? '已锁定' : (roomStatus === 'ended' ? '已过期' : '锁定结果')}}</text>
   </view>
-  <view class="b-btn green" bindtap="shareToFriends">
+  <button class="b-btn green" open-type="share" plain="true">
     <image src="{{imagePaths.icons.shareW}}" mode="aspectFit" />
     <text>邀请好友</text>
-  </view>
+  </button>
 </view>

@@ -55,7 +55,8 @@ exports.main = async (event) => {
     if (mode === 'group') {
       whereClause.mode = 'group';
     } else if (mode === 'dining') {
-      whereClause.mode = _.in(['pick_for_them', 'b']);
+      // 聚餐模式：包括 "你们来定"(pick_for_them/b) 和 "我选好了"(a)
+      whereClause.mode = _.in(['pick_for_them', 'b', 'a']);
     } else if (mode === 'meal') {
       whereClause.mode = 'meal';
     }
@@ -85,8 +86,9 @@ exports.main = async (event) => {
           }
           if (mode === 'group') {
             fallbackWhere.mode = 'group';
-          } else if (mode === 'dining') {
-            fallbackWhere.mode = _.in(['pick_for_them', 'b']);
+} else if (mode === 'dining') {
+      // 聚餐模式：包括 "你们来定"(pick_for_them/b) 和 "我选好了"(a)
+      fallbackWhere.mode = _.in(['pick_for_them', 'b', 'a']);
           } else if (mode === 'meal') {
             fallbackWhere.mode = 'meal';
           }
@@ -254,8 +256,8 @@ exports.main = async (event) => {
 
       // 检查是否已过期（deadline已过且状态不是locked）
       let effectiveStatus = room.status || 'voting';
-      if (effectiveStatus === 'voting' && room.deadline) {
-        const deadlineDate = new Date(room.deadline);
+      if (effectiveStatus === 'voting' && (room.deadline || room.voteDeadline)) {
+        const deadlineDate = new Date(room.deadline || room.voteDeadline);
         if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
           effectiveStatus = 'ended';
         }
@@ -289,7 +291,7 @@ exports.main = async (event) => {
         shopImage: room.shopImage,
         platform: room.platform,
         minAmount: room.minAmount,
-        deadline: room.deadline,
+        deadline: room.deadline || room.voteDeadline,
         createdAt: room.createdAt,
         voteDeadline: room.voteDeadline,
         voteDeadlineStr: voteDeadlineStr,

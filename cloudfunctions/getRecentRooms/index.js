@@ -61,7 +61,8 @@ exports.main = async (event) => {
     if (mode === 'group') {
       roomWhereClause.mode = 'group';
     } else if (mode === 'dining') {
-      roomWhereClause.mode = _.in(['pick_for_them', 'b']);
+      // 聚餐模式：包括 "你们来定"(pick_for_them/b) 和 "我选好了"(a)
+      roomWhereClause.mode = _.in(['pick_for_them', 'b', 'a']);
     } else if (mode === 'meal') {
       roomWhereClause.mode = 'meal';
     }
@@ -90,8 +91,8 @@ exports.main = async (event) => {
 
       // 检查是否已过期（deadline已过且状态不是locked）
       let effectiveStatus = room.status || 'voting';
-      if (effectiveStatus === 'voting' && room.deadline) {
-        const deadlineDate = new Date(room.deadline);
+      if (effectiveStatus === 'voting' && (room.deadline || room.voteDeadline)) {
+        const deadlineDate = new Date(room.deadline || room.voteDeadline);
         if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
           effectiveStatus = 'ended';
         }
@@ -108,8 +109,8 @@ exports.main = async (event) => {
         createdAt: room.createdAt,
         location: room.location,
         activityTime: room.activityTime,
-        participantCount: room.participantCount || 0,
-        creatorOpenId: room.creatorOpenId
+        participantCount: room.participantCount || 0
+        // 注意：不返回 creatorOpenId 等敏感字段
       };
     }).filter(Boolean);
     

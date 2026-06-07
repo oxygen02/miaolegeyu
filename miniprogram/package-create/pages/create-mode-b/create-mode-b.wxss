@@ -611,3 +611,200 @@ align-self: center;
 .submit-btn::after {
   display: none !important;
 }
+
+/* 隐私设置 - 可见性选项 */
+.privacy-section {
+  margin-bottom: 24rpx;
+}
+
+.visibility-options {
+  display: flex;
+  align-items: center;
+  background: #FAF7F2;
+  border-radius: 16rpx;
+  padding: 8rpx;
+  gap: 0;
+}
+
+.visibility-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 16rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.visibility-option.selected {
+  background: rgba(255, 159, 67, 0.15);
+  border-color: #FF9F43;
+}
+
+.visibility-option .option-title {
+  font-size: 28rpx;
+  color: #8A8A8A;
+}
+
+.visibility-option.selected .option-title {
+  color: #D4652A;
+  font-weight: 500;
+}
+
+.visibility-divider {
+  width: 2rpx;
+  height: 40rpx;
+  background: #E0E0E0;
+  flex-shrink: 0;
+}
+
+/* 数据保留提示弹窗 */
+.data-retention-content {
+  padding: 40rpx 32rpx;
+}
+
+.retention-info {
+  margin-bottom: 32rpx;
+}
+
+.retention-text {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.retention-list {
+  background: #F5F5F5;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.retention-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.retention-item:last-child {
+  margin-bottom: 0;
+}
+
+.item-icon {
+  font-size: 28rpx;
+  margin-right: 16rpx;
+  width: 40rpx;
+  text-align: center;
+}
+
+.item-text {
+  font-size: 26rpx;
+  color: #3D3D3D;
+}
+
+.retention-notice {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+  font-style: italic;
+  margin-bottom: 24rpx;
+}
+
+/* 下次不再显示选项 */
+.agree-option {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  margin-bottom: 16rpx;
+}
+
+.checkbox {
+  width: 36rpx;
+  height: 36rpx;
+  border: 2rpx solid #ccc;
+  border-radius: 6rpx;
+  margin-right: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.checkbox.checked {
+  background: #FF9F43;
+  border-color: #FF9F43;
+}
+
+.check-mark {
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: bold;
+}
+
+.agree-text {
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* 弹窗 */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.popup-content {
+  position: relative;
+  width: 560rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  z-index: 1;
+}
+
+.popup-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #3D3D3D;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.btn-confirm {
+  width: 100%;
+  height: 88rpx;
+  background: #FF9F43;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 88rpx;
+}
+
+.btn-confirm::after {
+  display: none;
+}

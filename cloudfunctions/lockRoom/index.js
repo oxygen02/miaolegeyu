@@ -35,8 +35,8 @@ exports.main = async (event) => {
     }
 
     // 检查是否已过期
-    if (room.deadline) {
-      const deadlineDate = new Date(room.deadline);
+    if (room.deadline || room.voteDeadline) {
+      const deadlineDate = new Date(room.deadline || room.voteDeadline);
       const now = new Date();
       if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
         return { code: -1, msg: '活动已过期，无法锁定' };

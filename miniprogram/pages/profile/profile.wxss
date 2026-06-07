@@ -12,10 +12,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48rpx 32rpx 64rpx;
+  padding: 32rpx 32rpx 48rpx;
   background: linear-gradient(180deg, #FF9F43 0%, #FFB347 100%);
   position: relative;
-  min-height: 280rpx;
+  min-height: 200rpx;
 }
 
 /* 猫尾巴装饰 */
@@ -51,8 +51,8 @@
 }
 
 .user-avatar {
-  width: 120rpx;
-  height: 120rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 50%;
   border: 4rpx solid #fff;
   overflow: hidden;

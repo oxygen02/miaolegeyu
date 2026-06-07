@@ -376,11 +376,14 @@ Page({
 
   // 格式化倒计时
   formatCountdown(remainingTime) {
-    if (remainingTime <= 0) return '已截止';
+    // 防御：remainingTime 可能是 undefined/null/非数字/字符串
+    if (remainingTime === undefined || remainingTime === null || remainingTime === '') return '';
+    const num = Number(remainingTime);
+    if (isNaN(num) || num <= 0) return '已截止';
 
-    const hours = Math.floor(remainingTime / (1000 * 60 * 60));
-    const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+    const hours = Math.floor(num / (1000 * 60 * 60));
+    const minutes = Math.floor((num % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((num % (1000 * 60)) / 1000);
 
     if (hours > 0) {
       return `剩余 ${hours}时${minutes}分`;

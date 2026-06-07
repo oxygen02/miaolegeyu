@@ -108,7 +108,7 @@ async function sendDeadlineReminder(room) {
             roomId: room._id,
             data: {
               roomTitle: room.title,
-              deadline: formatDateTime(room.deadline),
+              deadline: formatDateTime(room.deadline || room.voteDeadline),
               participantCount: participants.data.length,
               location: room.location || '待定'
             }
@@ -323,10 +323,19 @@ async function autoLockExpiredRooms(now) {
         if (room.candidatePosters && room.candidatePosters.length > 0) {
           const winnerIndex = parseInt(winner);
           if (!isNaN(winnerIndex) && room.candidatePosters[winnerIndex]) {
-            finalPoster = room.candidatePosters[winnerIndex];
+            finalPoster = {
+              ...room.candidatePosters[winnerIndex],
+              // 从房间数据中合并时间和地址（autoLock 时补充）
+              time: room.activityDate && room.activityTime ? `${room.activityDate} ${room.activityTime}` : '',
+              address: room.location?.name || room.location || ''
+            };
           } else if (maxVotes === 0) {
             // 无人投票，默认选第一个
-            finalPoster = room.candidatePosters[0];
+            finalPoster = {
+              ...room.candidatePosters[0],
+              time: room.activityDate && room.activityTime ? `${room.activityDate} ${room.activityTime}` : '',
+              address: room.location?.name || room.location || ''
+            };
           }
         }
         

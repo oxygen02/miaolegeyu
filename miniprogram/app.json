@@ -63,7 +63,8 @@
         "pages/about/about",
         "pages/feedback/feedback",
         "pages/report/report",
-        "pages/privacy/privacy"
+        "pages/privacy/privacy",
+        "pages/privacy-auth/privacy-auth"
       ]
     }
   ],
@@ -109,6 +110,7 @@
   ],
   "lazyCodeLoading": "requiredComponents",
   "usingComponents": {
-    "empty-state": "components/empty-state/empty-state"
+    "empty-state": "components/empty-state/empty-state",
+    "city-picker": "components/city-picker/city-picker"
   }
 }

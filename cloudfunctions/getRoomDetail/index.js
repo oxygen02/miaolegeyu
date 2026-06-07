@@ -15,10 +15,11 @@ exports.main = async (event) => {
   }
 
   try {
-    // 并行查询房间信息和参与者列表
-    const [roomResult, participantsResult] = await Promise.all([
+    // 并行查询房间信息、参与者列表、分享记录
+    const [roomResult, participantsResult, shareRecordsResult] = await Promise.all([
       db.collection('rooms').where({ roomId }).limit(1).get(),
-      db.collection('room_participants').where({ roomId }).get()
+      db.collection('room_participants').where({ roomId }).get(),
+      db.collection('share_records').where({ roomId }).limit(500).get()
     ]);
 
     if (!roomResult.data || roomResult.data.length === 0) {
@@ -131,11 +132,20 @@ exports.main = async (event) => {
     const unvotedCount = totalCount - votedCount;
     const progressPercent = totalCount > 0 ? Math.round((votedCount / totalCount) * 100) : 0;
 
+    // 邀请统计
+    const shareRecords = shareRecordsResult.data || [];
+    const shareCount = shareRecords.length;                          // 累计邀请次数（含重复分享）
+    // 分享入口：通过分享链接打开并成功加入的人数（去重）
+    const entryRecords = shareRecords.filter(r => r.shareType === 'entry');
+    const entryJoinCount = new Set(entryRecords.map(r => r.joinerOpenId)).size;
+    // 邀请转化率 = 通过分享加入的人数 / 分享次数
+    const joinRate = shareCount > 0 ? Math.round((entryJoinCount / shareCount) * 100) : (totalCount > 0 ? 100 : 0);
+
     // 检查是否已过期（deadline已过且状态不是locked）
     const now = new Date();
     let effectiveStatus = room.status || 'voting';
-    if (effectiveStatus === 'voting' && room.deadline) {
-      const deadlineDate = new Date(room.deadline);
+    if (effectiveStatus === 'voting' && (room.deadline || room.voteDeadline)) {
+      const deadlineDate = new Date(room.deadline || room.voteDeadline);
       if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
         effectiveStatus = 'ended';
       }
@@ -160,7 +170,7 @@ exports.main = async (event) => {
         status: effectiveStatus,
         originalStatus: room.status || 'voting',
         isAnonymous: room.isAnonymous || false,
-        deadline: room.deadline || null,
+        deadline: room.deadline || room.voteDeadline || null,
         // 移除敏感字段 creatorOpenId，前端已通过 isCreator 判断权限
         participants: enrichedParticipants,
         mode: room.mode || 'a',
@@ -169,7 +179,11 @@ exports.main = async (event) => {
           totalCount,
           votedCount,
           unvotedCount,
-          progressPercent
+          progressPercent,
+          // 邀请统计
+          shareCount,       // 累计邀请次数（分享按钮点击次数）
+          entryJoinCount,   // 通过分享链接加入的人数（去重）
+          joinRate          // 邀请转化率（通过分享加入的人数/邀请次数 %）
         },
         topOptions
       },

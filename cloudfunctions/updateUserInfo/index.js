@@ -4,7 +4,7 @@ const db = cloud.database();
 
 let checkContent;
 try {
-  const contentSecurity = require('../utils/contentSecurity');
+  const contentSecurity = require('./contentSecurity');
   checkContent = contentSecurity.checkContent;
 } catch (err) {
   console.warn('contentSecurity 模块加载失败，使用基础检查:', err.message);

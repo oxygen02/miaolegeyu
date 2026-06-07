@@ -142,15 +142,17 @@ module.exports = {
               <text class="sv-participant-count">{{item.participantCount}}人已填写</text>
             </view>
           </view>
-          <view class="activity-right" catchtap="onRightAreaTap">
+          <view class="activity-right">
             <text class="activity-status {{item.status}}">{{item.statusName}}</text>
             <view class="activity-stats" wx:if="{{item.type === 'group'}}">
               <text class="stats-text">已凑 ¥{{item.currentAmount}}/¥{{item.targetAmount}}</text>
             </view>
             <view class="spacer" wx:else></view>
-            <!-- 正常模式：显示参加/填写按钮 -->
-            <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{!isEditMode && item.type !== 'scheduleVote'}}">立即参加</button>
-            <button class="btn btn-schedule btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{!isEditMode && item.type === 'scheduleVote'}}">去填写</button>
+            <!-- 正常模式：显示参加/分享/填写按钮 -->
+            <view class="action-btns-col" wx:if="{{!isEditMode}}">
+              <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{item.type !== 'scheduleVote'}}">立即参加</button>
+              <button class="btn btn-schedule btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{item.type === 'scheduleVote'}}">去填写</button>
+            </view>
             <!-- 编辑模式：自己发起的显示删除，其他的显示退出 -->
             <button class="btn btn-danger btn-small" catchtap="deleteRoom" data-id="{{item.id}}" data-title="{{item.title}}" wx:if="{{isEditMode && item.isCreator}}">删除</button>
             <button class="btn btn-danger btn-small" catchtap="quitActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{isEditMode && !item.isCreator}}">退出</button>
@@ -193,11 +195,15 @@ module.exports = {
               <text class="activity-participants sv-participant-count" wx:if="{{item.type === 'scheduleVote'}}">{{item.participantCount}}人已填写</text>
             </view>
           </view>
-          <view class="activity-right" catchtap="onRightAreaTap">
+          <view class="activity-right">
             <text class="activity-status {{item.status}}">{{item.statusName}}</text>
             <view class="spacer"></view>
-            <button class="btn btn-secondary btn-small" catchtap="goToManage" data-id="{{item.id}}" wx:if="{{!isEditMode && item.type !== 'scheduleVote'}}">管理</button>
-            <button class="btn btn-schedule btn-small" catchtap="goToManage" data-id="{{item.id}}" wx:if="{{!isEditMode && item.type === 'scheduleVote'}}">查看结果</button>
+            <view class="action-btns-col" wx:if="{{!isEditMode}}">
+              <button class="btn btn-secondary btn-small" catchtap="goToManage" data-id="{{item.id}}" wx:if="{{item.type !== 'scheduleVote'}}">管理</button>
+              <button class="btn btn-schedule btn-small" catchtap="goToManage" data-id="{{item.id}}" wx:if="{{item.type === 'scheduleVote'}}">查看结果</button>
+            </view>
+            <button class="btn btn-danger btn-small" catchtap="deleteRoom" data-id="{{item.id}}" data-title="{{item.title}}" wx:if="{{isEditMode && item.isCreator}}">删除</button>
+            <button class="btn btn-danger btn-small" catchtap="quitActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{isEditMode && !item.isCreator}}">退出</button>
           </view>
         </view>
       </view>

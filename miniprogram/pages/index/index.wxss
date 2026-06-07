@@ -6,7 +6,7 @@
   background: #FFF8F0;
   display: flex;
   flex-direction: column;
-  padding: 0 4vw calc(180rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(180rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   position: relative;
   overflow-y: auto;
@@ -19,7 +19,6 @@
   left: 0;
   right: 0;
   padding: calc(6vh + env(safe-area-inset-top)) 0 0;
-  margin: 0 -4vw;
   overflow: visible;
   min-height: 320rpx;
   z-index: 10;
@@ -212,6 +211,7 @@
   z-index: 10;
   min-height: 200rpx;
   margin-top: -60rpx;
+  padding: 0 4vw;
 }
 
 /* ---------- Banner轮播 - 蜡笔像素风 ---------- */
@@ -550,7 +550,7 @@
 /* ---------- 底部功能卡片区域 - 图标化风格 ---------- */
 .feature-section {
   margin-top: 40rpx;
-  padding-bottom: 2vh;
+  padding: 0 4vw 2vh;
   flex-shrink: 0;
   position: relative;
   z-index: 10;
@@ -559,13 +559,13 @@
 .feature-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 /* 图标化卡片 - 白色底色 + 三层弥散阴影 */
 .feature-card {
   position: relative;
-  border-radius: 24rpx;
+  border-radius: 20rpx;
   background: #fff;
   box-shadow:
     0 2rpx 8rpx rgba(0, 0, 0, 0.04),
@@ -573,7 +573,8 @@
     0 16rpx 48rpx rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
   overflow: hidden;
-  min-height: 200rpx;
+  min-height: 180rpx;
+  max-height: 220rpx;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -607,12 +608,12 @@
 }
 
 .card-inner {
-  padding: 24rpx 28rpx;
+  padding: 18rpx 20rpx;
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
   justify-content: space-between !important;
-  gap: 16rpx;
+  gap: 12rpx;
   width: 100%;
   box-sizing: border-box;
   flex: 1;
@@ -622,30 +623,31 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 20rpx;
+  gap: 16rpx;
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .feature-icon-wrapper {
-  width: 96rpx;
-  height: 96rpx;
+  width: 72rpx !important;
+  height: 72rpx !important;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  flex-shrink: 0 !important;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
 }
 
 .feature-icon-image {
-  width: 56rpx;
-  height: 56rpx;
+  width: 44rpx !important;
+  height: 44rpx !important;
 }
 
 .feature-icon-image.large-icon {
-  width: 64rpx;
-  height: 64rpx;
+  width: 52rpx !important;
+  height: 52rpx !important;
 }
 
 .feature-emoji {
@@ -663,21 +665,29 @@
   justify-content: center !important;
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .feature-title {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 700;
   color: #3D3D3D;
-  margin-bottom: 8rpx;
+  margin-bottom: 6rpx;
   text-align: left !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 .feature-desc {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: rgba(138, 138, 138, 0.8);
   text-align: left !important;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 /* 右侧箭头 */
@@ -694,38 +704,53 @@
   .app-title {
     font-size: 44rpx;
   }
-  
+
   .app-subtitle {
     font-size: 24rpx;
   }
-  
+
   .cat-container {
     width: 120rpx;
     height: 120rpx;
   }
-  
+
   .banner-swiper {
     height: 140rpx;
   }
-  
+
   .banner-icon-bg {
     width: 76rpx;
     height: 76rpx;
   }
-  
+
   .banner-title {
     font-size: 28rpx;
   }
-  
+
+  .feature-card {
+    min-height: 160rpx;
+    max-height: 200rpx;
+  }
+
   .card-inner {
-    padding: 20rpx 12rpx;
+    padding: 14rpx 16rpx !important;
   }
-  
+
   .feature-icon-wrapper {
-    width: 64rpx;
-    height: 64rpx;
+    width: 64rpx !important;
+    height: 64rpx !important;
   }
-  
+
+  .feature-icon-image {
+    width: 40rpx !important;
+    height: 40rpx !important;
+  }
+
+  .feature-icon-image.large-icon {
+    width: 48rpx !important;
+    height: 48rpx !important;
+  }
+
   .feature-title {
     font-size: 26rpx;
     text-align: left !important;
@@ -737,12 +762,30 @@
   }
 }
 
+/* ---------- 适配窄屏手机（小宽度）---------- */
+/* 安卓小屏手机通常宽度较小 */
+.feature-card {
+  /* 确保卡片内容不溢出 */
+  overflow: hidden;
+}
+
+.card-inner {
+  /* 减小内边距以适应窄屏 */
+  padding: 16rpx 18rpx !important;
+  gap: 10rpx !important;
+}
+
+.feature-left {
+  gap: 12rpx !important;
+}
+
 /* ---------- 游动的小鱼区域 ---------- */
 .fish-tank {
   position: relative;
   height: 120rpx;
   margin-top: 20rpx;
   margin-bottom: 0;
+  padding: 0 4vw;
   overflow: hidden;
   z-index: 5;
 }

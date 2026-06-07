@@ -125,23 +125,51 @@ async onLoad(options) {
     // 获取当前用户信息（用于弹幕头像）
     this.loadCurrentUserInfo();
 
-    const { id, openAppointment } = options;
+    const { id, appointmentId, openAppointment } = options;
+    
     if (id) {
+      // 通过店铺ID加载（原有逻辑）
       this.initTimePicker();
-      // 先加载店铺详情，确保页面基本数据加载完成
       await this.loadShopDetail(id);
-      // 然后并行加载约饭相关数据
       await Promise.all([
         this.loadAppointment(id),
         this.loadHistoryAppointments(id)
       ]);
       
-      // 如果传入openAppointment参数，自动打开约饭弹窗
       if (openAppointment === '1') {
         if (this.data.shop) {
           this.onCreateAppointment();
         }
       }
+    } else if (appointmentId) {
+      // 通过约饭活动ID加载（兜底方案）
+      console.log('通过appointmentId加载店铺:', appointmentId);
+      this.initTimePicker();
+      
+      try {
+        // 先获取约饭活动信息，从中得到shopId
+        const { result } = await wx.cloud.callFunction({
+          name: 'getDiningAppointments',
+          data: {}
+        });
+        
+        if (result.success && result.appointments) {
+          const apt = result.appointments.find(a => a._id === appointmentId || a.roomId === appointmentId);
+          if (apt && apt.shopId) {
+            await this.loadShopDetail(apt.shopId);
+            await Promise.all([
+              this.loadAppointment(apt.shopId),
+              this.loadHistoryAppointments(apt.shopId)
+            ]);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('通过appointmentId加载失败:', err);
+      }
+      
+      // 如果找不到，显示提示但不返回，让用户能看到页面
+      wx.showToast({ title: '约饭信息加载失败', icon: 'none' });
     } else {
       wx.showToast({ title: '店铺ID不存在', icon: 'none' });
       wx.navigateBack();
@@ -622,18 +650,23 @@ async onLoad(options) {
         const appointment = result.appointments[0];
         const isInitiator = appointment.initiatorOpenId === result.openid;
 
-        // 计算剩余时间
-        const deadline = new Date(appointment.deadline);
+        // 解析截止时间（云数据库 Date 存储为 UTC，需转东八区）
+        let deadlineDate = this.parseCloudDate(appointment.deadline);
+        console.log('[deadline调试] 原始值:', JSON.stringify(appointment.deadline), '解析后:', deadlineDate.toISOString());
+
         const now = new Date();
-        const remainingTime = deadline.getTime() - now.getTime();
+        const remainingTime = deadlineDate.getTime() - now.getTime();
         appointment.remainingTime = remainingTime > 0 ? remainingTime : 0;
+
+        // 直接用 parseCloudDate 的结果格式化 deadlineStr
+        const deadlineStr = this.formatDateTimeFromDate(deadlineDate);
 
 
         this.setData({
           appointment: {
             ...appointment,
             appointmentTimeStr: this.formatDateTime(appointment.appointmentTime),
-            deadlineStr: this.formatDateTime(appointment.deadline),
+            deadlineStr: deadlineStr,
             countdownText: this.formatCountdown(appointment.remainingTime),
             isFull: appointment.maxParticipants > 0 && appointment.participants.length >= appointment.maxParticipants
           },
@@ -712,6 +745,45 @@ async onLoad(options) {
     }
   },
 
+  // 解析云数据库日期（处理 UTC 存储导致的时区偏移）
+  parseCloudDate(dateVal) {
+    if (!dateVal) return new Date();
+    let date;
+    if (dateVal instanceof Date) {
+      date = dateVal;
+    } else if (typeof dateVal === 'object' && dateVal.$date) {
+      // 云数据库 $date 格式，通常是 UTC 时间字符串
+      date = new Date(dateVal.$date);
+      // $date 是 UTC，直接加8小时转东八区
+      return new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    } else if (typeof dateVal === 'object' && dateVal._date) {
+      date = new Date(dateVal._date);
+      return new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    } else if (typeof dateVal === 'string') {
+      // 字符串格式：可能是 toLocaleString() 的结果（UTC时间被当字符串传回）
+      // 或 ISO 格式
+      date = new Date(dateVal);
+      if (isNaN(date.getTime())) return new Date();
+      // 如果字符串包含 UTC 标记或是纯 toLocaleString 结果，需要加8小时
+      // 判断：如果字符串不含时区信息且来自云函数 toLocaleString，则它是 UTC 时间显示
+      return new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    } else {
+      date = new Date(dateVal);
+    }
+    if (isNaN(date.getTime())) return new Date();
+    return date;
+  },
+
+  // 从已解析的 Date 对象格式化显示（不再做时区转换）
+  formatDateTimeFromDate(date) {
+    if (!date || isNaN(date.getTime())) return '';
+    const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
+    const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
+    const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
+    const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+    return `${month}月${day}日 ${hour}:${minute}`;
+  },
+
   formatDateTime(dateStr) {
     if (!dateStr) return '';
 
@@ -723,7 +795,7 @@ async onLoad(options) {
     } else if (typeof dateStr === 'number') {
       date = new Date(dateStr);
     } else if (typeof dateStr === 'object' && dateStr !== null) {
-      // 云数据库 Date 类型序列化后的格式
+      // 云数据库 Date 类型序列化后的格式（$date 为 UTC 时间）
       if (dateStr.$date) {
         date = new Date(dateStr.$date);
       } else if (dateStr._date) {
@@ -739,10 +811,12 @@ async onLoad(options) {
       return '';
     }
 
-    const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
-    const day = (date.getDate() < 10 ? '0' : '') + date.getDate();
-    const hour = (date.getHours() < 10 ? '0' : '') + date.getHours();
-    const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+    // 修正云数据库 UTC 存储导致的8小时偏移（直接加8小时，不用 getTimezoneOffset 抵消）
+    const localDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    const month = (localDate.getMonth() + 1 < 10 ? '0' : '') + (localDate.getMonth() + 1);
+    const day = (localDate.getDate() < 10 ? '0' : '') + localDate.getDate();
+    const hour = (localDate.getHours() < 10 ? '0' : '') + localDate.getHours();
+    const minute = (localDate.getMinutes() < 10 ? '0' : '') + localDate.getMinutes();
     return `${month}月${day}日 ${hour}:${minute}`;
   },
 
@@ -816,8 +890,16 @@ async onLoad(options) {
     this.initTimePicker(); // 初始化时间选择器
     this.setData({
       showAppointmentModal: true,
+      // 重置所有时间相关字段
+      appointmentDate: '',
+      appointmentDateRaw: '',
       appointmentTime: '',
+      appointmentTimeRaw: '',
+      deadlineDate: '',
+      deadlineDateRaw: '',
       deadlineTime: '',
+      deadlineTimeRaw: '',
+      // 重置其他字段
       appointmentNote: '',
       maxParticipants: '',
       customRequirement: '',
@@ -846,14 +928,17 @@ async onLoad(options) {
     this.setData({ paymentMode: mode });
   },
 
-  // 约饭时间输入（月日 | 时分格式，中文显示）
+  // 约饭时间输入（月日 | 时分格式，中文显示）- 参考create-mode-b写法
   onAppointmentDateInput(e) {
     let value = e.detail.value;
-    // 如果值包含中文，说明用户正在编辑格式化后的文本，保持原样不处理
+    
+    // 如果值包含中文（月、日），说明用户正在编辑格式化后的文本
     if (/[月日]/.test(value)) {
-      this.setData({ appointmentDate: value });
+      let numbers = value.replace(/\D/g, '');
+      this.setData({ appointmentDate: value, appointmentDateRaw: numbers });
       return;
     }
+    
     // 纯数字输入，进行格式化
     let numbers = value.replace(/\D/g, '');
     if (numbers.length > 4) numbers = numbers.substring(0, 4);
@@ -864,14 +949,8 @@ async onLoad(options) {
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
 
-    // 如果没有有效数字，清空
-    if (!rawValue || rawValue.length === 0) {
-      this.setData({ appointmentDate: '', appointmentDateRaw: '' });
-      return;
-    }
-
-    // 补齐到4位数字
-    while (rawValue.length < 4) {
+    // 3位数字补齐为4位（608 -> 0608）
+    if (rawValue.length === 3) {
       rawValue = '0' + rawValue;
     }
 
@@ -879,11 +958,12 @@ async onLoad(options) {
     if (rawValue.length === 4) {
       const month = parseInt(rawValue.substring(0, 2), 10);
       const day = parseInt(rawValue.substring(2, 4), 10);
-      if (month < 1 || month > 12 || day < 1 || day > 31) {
+      if (month < 1 || month > 12 || day < 1 || day > 31 || (month === 0 && day === 0)) {
         wx.showToast({ title: '月日格式无效，如 0608', icon: 'none' });
-        this.setData({ appointmentDate: '', appointmentDateRaw: '' });
-        return;
+        rawValue = '';
       }
+    } else if (rawValue.length > 0 && rawValue.length < 4) {
+      rawValue = '';
     }
 
     let displayValue = this.formatDateDisplay(rawValue);
@@ -891,11 +971,14 @@ async onLoad(options) {
   },
   onAppointmentTimeInput(e) {
     let value = e.detail.value;
-    // 如果值包含中文，说明用户正在编辑格式化后的文本，保持原样不处理
+    
+    // 如果值包含中文（时、分），说明用户正在编辑格式化后的文本
     if (/[时分]/.test(value)) {
-      this.setData({ appointmentTime: value });
+      let numbers = value.replace(/\D/g, '');
+      this.setData({ appointmentTime: value, appointmentTimeRaw: numbers });
       return;
     }
+    
     // 纯数字输入，进行格式化
     let numbers = value.replace(/\D/g, '');
     if (numbers.length > 4) numbers = numbers.substring(0, 4);
@@ -906,29 +989,28 @@ async onLoad(options) {
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
 
-    // 规则：输入的数字代表小时数，自动补全为整点
-    // 输入12 -> 1200 (12:00)
-    // 输入6 -> 600 (6:00)
-    // 输入00 -> 0000 (00:00)
-    // 输入1230 -> 1230 (12:30)
-    if (rawValue.length > 0 && rawValue.length <= 2) {
-      // 1-2位数字：补全为4位（代表整点）
-      while (rawValue.length < 4) {
-        rawValue = rawValue + '0';
-      }
-    } else if (rawValue.length === 3) {
-      rawValue = rawValue + '0';
-    } else if (rawValue.length > 4) {
-      rawValue = rawValue.substring(0, 4);
-    }
-
+    // 不再自动补全2位为4位，让用户自行输入完整时分
+    // 只验证有效性，不改变用户输入
     if (rawValue.length === 4) {
       const hour = parseInt(rawValue.substring(0, 2), 10);
       const minute = parseInt(rawValue.substring(2, 4), 10);
       if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-        wx.showToast({ title: '时分格式无效，如 1800', icon: 'none' });
+        wx.showToast({ title: '时分无效，如 1200 表示12点', icon: 'none' });
         rawValue = '';
       }
+    } else if (rawValue.length === 2) {
+      // 2位数字视为有效的小时数（整点），保持原值不补全
+      const hour = parseInt(rawValue, 10);
+      if (hour < 0 || hour > 23) {
+        wx.showToast({ title: '小时应在 00-23 之间', icon: 'none' });
+        rawValue = '';
+      }
+    } else if (rawValue.length === 1 || rawValue.length === 3) {
+      // 1位或3位数字，保持原值不做处理（等待用户继续输入）
+    } else if (rawValue.length > 4) {
+      rawValue = rawValue.substring(0, 4);
+    } else {
+      rawValue = '';
     }
 
     let displayValue = this.formatTimeDisplay(rawValue);
@@ -955,14 +1037,17 @@ async onLoad(options) {
     });
   },
 
-  // 截止时间输入（月日 | 时分格式，中文显示）
+  // 截止时间输入（月日 | 时分格式，中文显示）- 参考create-mode-b写法
   onDeadlineDateInput(e) {
     let value = e.detail.value;
-    // 如果值包含中文，保持原样不处理
+    
+    // 如果值包含中文（月、日），说明用户正在编辑格式化后的文本
     if (/[月日]/.test(value)) {
-      this.setData({ deadlineDate: value });
+      let numbers = value.replace(/\D/g, '');
+      this.setData({ deadlineDate: value, deadlineDateRaw: numbers });
       return;
     }
+    
     let numbers = value.replace(/\D/g, '');
     if (numbers.length > 4) numbers = numbers.substring(0, 4);
     let displayValue = this.formatDateDisplay(numbers);
@@ -972,14 +1057,8 @@ async onLoad(options) {
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
 
-    // 如果没有有效数字，清空
-    if (!rawValue || rawValue.length === 0) {
-      this.setData({ deadlineDate: '', deadlineDateRaw: '' });
-      return;
-    }
-
-    // 补齐到4位数字
-    while (rawValue.length < 4) {
+    // 3位数字补齐为4位（608 -> 0608）
+    if (rawValue.length === 3) {
       rawValue = '0' + rawValue;
     }
 
@@ -987,11 +1066,12 @@ async onLoad(options) {
     if (rawValue.length === 4) {
       const month = parseInt(rawValue.substring(0, 2), 10);
       const day = parseInt(rawValue.substring(2, 4), 10);
-      if (month < 1 || month > 12 || day < 1 || day > 31) {
+      if (month < 1 || month > 12 || day < 1 || day > 31 || (month === 0 && day === 0)) {
         wx.showToast({ title: '月日格式无效，如 0608', icon: 'none' });
-        this.setData({ deadlineDate: '', deadlineDateRaw: '' });
-        return;
+        rawValue = '';
       }
+    } else if (rawValue.length > 0 && rawValue.length < 4) {
+      rawValue = '';
     }
 
     let displayValue = this.formatDateDisplay(rawValue);
@@ -999,11 +1079,14 @@ async onLoad(options) {
   },
   onDeadlineTimeInput(e) {
     let value = e.detail.value;
-    // 如果值包含中文，保持原样不处理
+    
+    // 如果值包含中文（时、分），说明用户正在编辑格式化后的文本
     if (/[时分]/.test(value)) {
-      this.setData({ deadlineTime: value });
+      let numbers = value.replace(/\D/g, '');
+      this.setData({ deadlineTime: value, deadlineTimeRaw: numbers });
       return;
     }
+    
     let numbers = value.replace(/\D/g, '');
     if (numbers.length > 4) numbers = numbers.substring(0, 4);
     let displayValue = this.formatTimeDisplay(numbers);
@@ -1013,63 +1096,68 @@ async onLoad(options) {
     let value = e.detail.value;
     let rawValue = value.replace(/\D/g, '');
 
-    // 规则：输入的数字代表小时数，自动补全为整点
-    // 输入12 -> 1200 (12:00)
-    // 输入6 -> 600 (6:00)
-    // 输入00 -> 0000 (00:00)
-    // 输入1230 -> 1230 (12:30)
-    if (rawValue.length > 0 && rawValue.length <= 2) {
-      // 1-2位数字：补全为4位（代表整点）
-      while (rawValue.length < 4) {
-        rawValue = rawValue + '0';
-      }
-    } else if (rawValue.length === 3) {
-      rawValue = rawValue + '0';
-    } else if (rawValue.length > 4) {
-      rawValue = rawValue.substring(0, 4);
-    }
-
+    // 不再自动补全2位为4位，让用户自行输入完整时分
     if (rawValue.length === 4) {
       const hour = parseInt(rawValue.substring(0, 2), 10);
       const minute = parseInt(rawValue.substring(2, 4), 10);
       if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-        wx.showToast({ title: '时分格式无效，如 1800', icon: 'none' });
+        wx.showToast({ title: '时分无效，如 1200 表示12点', icon: 'none' });
         rawValue = '';
       }
+    } else if (rawValue.length === 2) {
+      // 2位数字视为有效的小时数（整点），保持原值不补全
+      const hour = parseInt(rawValue, 10);
+      if (hour < 0 || hour > 23) {
+        wx.showToast({ title: '小时应在 00-23 之间', icon: 'none' });
+        rawValue = '';
+      }
+    } else if (rawValue.length === 1 || rawValue.length === 3) {
+      // 保持原值不做处理
+    } else if (rawValue.length > 4) {
+      rawValue = rawValue.substring(0, 4);
+    } else {
+      rawValue = '';
     }
 
     let displayValue = this.formatTimeDisplay(rawValue);
     this.setData({ deadlineTime: displayValue, deadlineTimeRaw: rawValue });
   },
 
-  // 格式化方法
-  // 月日格式化：608 -> 06月08日，64 -> 06月04日
+  // 格式化方法 - 参考create-mode-b写法
+  // 月日格式化：608 -> 6月8日，0608 -> 6月8日，64 -> 6月4日
   formatDateDisplay(numbers) {
     if (!numbers) return '';
-    // 补齐到4位再解析
-    let padded = numbers;
-    while (padded.length < 4 && padded.length > 0) {
-      padded = '0' + padded;
+    if (numbers.length <= 2) {
+      return numbers;
     }
-    if (padded.length < 4) return numbers; // 输入中，不足4位且无法补齐
-    const month = padded.substring(0, 2);
-    const day = padded.substring(2);
-    // 去掉前导零显示（06月08日 -> 6月8日）
-    return parseInt(month, 10) + '月' + parseInt(day, 10) + '日';
+    // 3位数字：第一位是月，后两位是日
+    if (numbers.length === 3) {
+      const m = numbers.substring(0, 1);
+      const d = numbers.substring(1);
+      return m + '月' + d + '日';
+    }
+    // 4位数字
+    const month = numbers.substring(0, 2);
+    const day = numbers.substring(2);
+    return month + '月' + day + '日';
   },
-  // 时分格式化：12 -> 12时00分，6 -> 6时00分，1200 -> 12时00分
+  // 时分格式化 - 参考create-mode-b写法
+  // 12 -> 12，6 -> 6，123 -> 12时3分，1200 -> 12时00分
   formatTimeDisplay(numbers) {
     if (!numbers) return '';
-    // 补齐到4位再解析
-    let padded = numbers;
-    while (padded.length < 4 && padded.length > 0) {
-      padded = padded + '0';
+    if (numbers.length <= 2) {
+      return numbers;
     }
-    if (padded.length < 4) return numbers; // 输入中，不足4位且无法补齐
-    const hour = padded.substring(0, 2);
-    const minute = padded.substring(2);
-    // 去掉前导零显示（06时00分 -> 6时00分）
-    return parseInt(hour, 10) + '时' + minute + '分';
+    // 3位数字
+    if (numbers.length === 3) {
+      const h = numbers.substring(0, 2);
+      const m = numbers.substring(2);
+      return h + '时' + m + '分';
+    }
+    // 4位数字
+    const hour = numbers.substring(0, 2);
+    const minute = numbers.substring(2);
+    return hour + '时' + minute + '分';
   },
 
   closeAppointmentModal() {
@@ -1187,8 +1275,54 @@ async onLoad(options) {
     this.setData({ appointmentNote: e.detail.value });
   },
 
+  // 解析月日raw值为标准MMDD格式（处理3位和4位数字）
+  parseDateRaw(rawValue) {
+    if (!rawValue) return '';
+    // 先过滤非数字字符（防止异常字符如E等）
+    let numbers = String(rawValue).replace(/\D/g, '');
+    if (!numbers) return '';
+    // 3位数字补前导零：608 -> 0608
+    if (numbers.length === 3) {
+      numbers = '0' + numbers;
+    }
+    if (numbers.length !== 4) return '';
+    // 验证有效性
+    const month = parseInt(numbers.substring(0, 2), 10);
+    const day = parseInt(numbers.substring(2, 4), 10);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return '';
+    return numbers;
+  },
+
+  // 解析时分raw值为标准HHMM格式（处理2位、3位、4位数字）
+  parseTimeRaw(rawValue) {
+    if (!rawValue) return '';
+    // 先过滤非数字字符（防止异常字符如E等）
+    let numbers = String(rawValue).replace(/\D/g, '');
+    if (!numbers) return '';
+    // 2位数字补00：12 -> 1200
+    if (numbers.length === 2) {
+      numbers = numbers + '00';
+    }
+    // 3位数字补0：123 -> 1230
+    else if (numbers.length === 3) {
+      numbers = numbers + '0';
+    }
+    if (numbers.length !== 4) return '';
+    // 验证有效性
+    const hour = parseInt(numbers.substring(0, 2), 10);
+    const minute = parseInt(numbers.substring(2, 4), 10);
+    if (hour > 23 || minute > 59) return '';
+    return numbers;
+  },
+
   async submitAppointment() {
     const { shop, appointmentDateRaw, appointmentTimeRaw, deadlineDateRaw, deadlineTimeRaw, appointmentNote, maxParticipants, requirementOptions, customRequirement, paymentMode, isAnonymousInitiator } = this.data;
+
+    // 验证店铺信息
+    if (!shop || !shop._id) {
+      wx.showToast({ title: '店铺信息异常，请刷新页面', icon: 'none' });
+      return;
+    }
 
     // 验证并格式化日期时间
     if (!appointmentDateRaw || !appointmentTimeRaw) {
@@ -1203,17 +1337,31 @@ async onLoad(options) {
     // 使用当前年份
     const currentYear = new Date().getFullYear();
 
+    // 解析为标准格式（处理3位数字等情况）
+    console.log('原始时间值:', { appointmentDateRaw, appointmentTimeRaw, deadlineDateRaw, deadlineTimeRaw });
+    const appointmentParsed = this.parseDateRaw(appointmentDateRaw);
+    const timeParsed = this.parseTimeRaw(appointmentTimeRaw);
+    const deadlineParsed = this.parseDateRaw(deadlineDateRaw);
+    const deadlineTimeParsed = this.parseTimeRaw(deadlineTimeRaw);
+
+    console.log('解析后时间值:', { appointmentParsed, timeParsed, deadlineParsed, deadlineTimeParsed });
+
+    if (!appointmentParsed || !timeParsed || !deadlineParsed || !deadlineTimeParsed) {
+      wx.showToast({ title: '时间格式无效，请重新输入', icon: 'none' });
+      return;
+    }
+
     // 构建完整时间字符串（明确指定东八区时区，避免服务端当作 UTC 解析）
-    const appointmentMonth = appointmentDateRaw.substring(0, 2);
-    const appointmentDay = appointmentDateRaw.substring(2, 4);
-    const appointmentHour = appointmentTimeRaw.substring(0, 2);
-    const appointmentMinute = appointmentTimeRaw.substring(2, 4);
+    const appointmentMonth = appointmentParsed.substring(0, 2);
+    const appointmentDay = appointmentParsed.substring(2, 4);
+    const appointmentHour = timeParsed.substring(0, 2);
+    const appointmentMinute = timeParsed.substring(2, 4);
     const fullAppointmentTime = `${currentYear}-${appointmentMonth}-${appointmentDay}T${appointmentHour}:${appointmentMinute}:00+08:00`;
 
-    const deadlineMonth = deadlineDateRaw.substring(0, 2);
-    const deadlineDay = deadlineDateRaw.substring(2, 4);
-    const deadlineHour = deadlineTimeRaw.substring(0, 2);
-    const deadlineMinute = deadlineTimeRaw.substring(2, 4);
+    const deadlineMonth = deadlineParsed.substring(0, 2);
+    const deadlineDay = deadlineParsed.substring(2, 4);
+    const deadlineHour = deadlineTimeParsed.substring(0, 2);
+    const deadlineMinute = deadlineTimeParsed.substring(2, 4);
     const fullDeadlineTime = `${currentYear}-${deadlineMonth}-${deadlineDay}T${deadlineHour}:${deadlineMinute}:00+08:00`;
 
     // 验证截止时间不能早于当前时间
@@ -1228,15 +1376,6 @@ async onLoad(options) {
       return;
     }
 
-    // 内容安全检查：约饭备注和自定义要求
-    const contentToCheck = [appointmentNote, customRequirement].filter(Boolean).join(' ');
-    if (contentToCheck) {
-      const isContentSafe = await checkContentWithToast(contentToCheck);
-      if (!isContentSafe) {
-        return;
-      }
-    }
-
     const requirements = requirementOptions
       .filter(item => item.selected && item.id !== 'custom')
       .map(item => item.name);
@@ -1244,6 +1383,15 @@ async onLoad(options) {
     wx.showLoading({ title: '提交中...' });
 
     try {
+      // 内容安全检查：约饭备注和自定义要求
+      const contentToCheck = [appointmentNote, customRequirement].filter(Boolean).join(' ');
+      if (contentToCheck) {
+        const isContentSafe = await checkContentWithToast(contentToCheck);
+        if (!isContentSafe) {
+          wx.hideLoading();
+          return;
+        }
+      }
       const userInfo = wx.getStorageSync('userInfo') || {};
       const { result } = await wx.cloud.callFunction({
         name: 'createDiningAppointment',
@@ -1262,15 +1410,19 @@ async onLoad(options) {
         }
       });
 
+      console.log('createDiningAppointment 返回结果:', result);
+      
       if (result.success) {
         wx.showToast({ title: '发起成功', icon: 'success' });
         this.closeAppointmentModal();
         this.loadAppointment(shop._id);
       } else {
-        wx.showToast({ title: result.error || '发起失败', icon: 'none' });
+        console.error('发起约饭失败:', result.error);
+        wx.showToast({ title: result.error || '发起失败', icon: 'none', duration: 3000 });
       }
     } catch (err) {
-      wx.showToast({ title: '发起失败', icon: 'none' });
+      console.error('发起约饭异常:', err);
+      wx.showToast({ title: '发起失败: ' + (err.message || '网络错误'), icon: 'none', duration: 3000 });
     } finally {
       wx.hideLoading();
     }

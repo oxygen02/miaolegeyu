@@ -6,7 +6,7 @@ const _ = db.command;
 
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
-  const { roomId, nickName = '', avatarUrl = '', password = '' } = event;
+  const { roomId, nickName = '', avatarUrl = '', password = '', shareFrom = '' } = event;
 
   // 1. 校验登录态
   if (!wxContext.OPENID) {
@@ -35,8 +35,8 @@ exports.main = async (event) => {
       // 4. 检查房间状态（包括是否已过期）
       const now = new Date();
       let effectiveStatus = room.status || 'voting';
-      if (effectiveStatus === 'voting' && room.deadline) {
-        const deadlineDate = new Date(room.deadline);
+      if (effectiveStatus === 'voting' && (room.deadline || room.voteDeadline)) {
+        const deadlineDate = new Date(room.deadline || room.voteDeadline);
         if (!isNaN(deadlineDate.getTime()) && deadlineDate <= now) {
           effectiveStatus = 'ended';
         }
@@ -46,7 +46,48 @@ exports.main = async (event) => {
         return { code: -1, msg: '房间已结束或已锁定，无法加入' };
       }
 
-      // 5. 验证密码（如果房间设置了密码）
+      // 5. 可见性校验：检查用户是否有权限加入该房间
+      const isCreator = room.creatorOpenId === wxContext.OPENID;
+      if (!isCreator) {
+        const visibility = room.visibility || 'friends';
+
+        // "仅通过分享"的活动：检查是否通过分享链访问
+        if (visibility === 'share') {
+          // 如果是通过分享链接加入的（shareFrom 参数），允许加入
+          // 否则拒绝
+          if (!shareFrom) {
+            await transaction.rollback();
+            return { code: 403, msg: '该活动仅通过分享链接加入' };
+          }
+        }
+
+        // "仅好友可见"的活动：检查是否是好友
+        if (visibility === 'friends') {
+          let isFriend = false;
+          try {
+            // 查询当前用户的好友列表
+            const { data: users } = await db.collection('users')
+              .where({ _openid: wxContext.OPENID })
+              .field({ friendOpenids: true })
+              .limit(1)
+              .get();
+            if (users && users.length > 0) {
+              const friendOpenids = users[0].friendOpenids || [];
+              isFriend = friendOpenids.includes(room.creatorOpenId);
+            }
+          } catch (err) {
+            console.error('获取好友列表失败:', err);
+          }
+
+          if (!isFriend) {
+            await transaction.rollback();
+            return { code: 403, msg: '该活动仅好友可加入' };
+          }
+        }
+        // "公开"活动（visibility === 'public' 或无 visibility 字段）：允许加入
+      }
+
+      // 6. 验证密码（如果房间设置了密码）
       if (room.needPassword && room.roomPassword) {
         if (!password) {
           await transaction.rollback();
@@ -60,7 +101,7 @@ exports.main = async (event) => {
         }
       }
 
-      // 6. 检查房间是否已满员
+      // 7. 检查房间是否已满员
       const participantResult = await transaction.collection('room_participants')
         .where({ roomId })
         .get();
@@ -71,7 +112,7 @@ exports.main = async (event) => {
         return { code: -1, msg: '房间已满员' };
       }
 
-      // 7. 检查用户是否已在房间内（防止重复加入）
+      // 8. 检查用户是否已在房间内（防止重复加入）
       const existingParticipant = participantResult.data.find(
         p => p.openid === wxContext.OPENID
       );
@@ -81,7 +122,7 @@ exports.main = async (event) => {
         return { code: -1, msg: '您已在该房间中' };
       }
       
-      // 7. 原子操作：添加参与者记录
+      // 9. 原子操作：添加参与者记录
       await transaction.collection('room_participants').add({
         data: {
           roomId,
@@ -95,7 +136,7 @@ exports.main = async (event) => {
         }
       });
       
-      // 8. 原子操作：增加房间参与人数
+      // 10. 原子操作：增加房间参与人数
       await transaction.collection('rooms').doc(room._id).update({
         data: {
           participantCount: _.inc(1),
@@ -105,6 +146,22 @@ exports.main = async (event) => {
       
       // 提交事务
       await transaction.commit();
+
+      // 异步记录分享入口（通过谁的分享链接加入的，不阻塞主流程）
+      if (shareFrom && shareFrom !== wxContext.OPENID) {
+        db.collection('share_records').add({
+          data: {
+            roomId,
+            sharerOpenId: shareFrom,        // 分享人
+            joinerOpenId: wxContext.OPENID,   // 通过分享链接加入的人
+            shareType: 'entry',               // 类型：通过分享链接进入并加入
+            source: 'share_link',             // 来源：分享卡片打开
+            createTime: db.serverDate()
+          }
+        }).catch(err => {
+          console.warn('[joinRoom] 记录分享入口失败（不影响主流程）:', err);
+        });
+      }
       
       return {
         code: 0,

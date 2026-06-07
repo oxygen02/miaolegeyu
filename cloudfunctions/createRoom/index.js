@@ -159,7 +159,10 @@ exports.main = async (event) => {
     optionCount,
     needPassword,
     roomPassword,
-    enableRestaurantRecommend
+    enableRestaurantRecommend,
+    // 隐私设置
+    visibility,
+    city
   } = event;
 
   if (!wxContext.OPENID) {
@@ -259,7 +262,10 @@ exports.main = async (event) => {
       finalPoster: null,
       createdAt: db.serverDate(),
       updatedAt: db.serverDate(),
-      expireAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      expireAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      // 隐私设置
+      visibility: visibility || 'friends',
+      city: city || null
     };
 
     console.log('roomData.candidatePosters:', roomData.candidatePosters);

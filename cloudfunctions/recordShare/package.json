@@ -1,0 +1,1 @@
+{"name": "recordShare", "version": "1.0.0", "description": "记录分享邀请事件", "main": "index.js", "dependencies": {"wx-server-sdk": "latest"}}

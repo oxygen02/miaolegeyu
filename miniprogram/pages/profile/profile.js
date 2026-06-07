@@ -8,6 +8,7 @@ const auth = getApp().globalData.auth;
 const { imagePaths } = getApp().globalData;
 const app = getApp();
 const { checkContentWithToast } = require('../../utils/contentSecurity');
+const preloadManager = app.globalData.preloadManager;
 
 Page({
   data: {
@@ -55,6 +56,11 @@ Page({
   onShow() {
     this.checkLoginStatus();
     this.updateTabBarSelected();
+    // 用户在我的页面时，后台预加载喵不喵数据
+    if (preloadManager) {
+      preloadManager.touch();
+      preloadManager.smartPreload('pages/profile/profile');
+    }
     if (this.data.userInfo.isLogin) {
       this.loadStats();
       if (this.data.currentList === 'myRooms') {
@@ -1099,9 +1105,22 @@ Page({
     const hasActivityDate = room && room.activityDate;
     const hasDinnerTime = room && room.dinnerTime;
 
-    // 优先使用 mode 字段判断
-    const isModeB = mode === 'pick_for_them';
-    const isModeA = mode === 'group' || mode === '';
+    // 优先使用 mode 字段判断（兼容旧数据）
+    let isModeB = mode === 'b';
+    let isModeA = mode === 'a';
+    if (mode === 'pick_for_them') {
+      // 旧数据兼容：pick_for_them 需要通过数据特征判断
+      if (hasPosters) {
+        isModeA = true; // 有候选海报 → 实际是 Mode A
+        console.log('[profile] editRoom 旧数据兼容: pick_for_them + hasPosters → Mode A');
+      } else {
+        isModeB = true; // 无候选海报 → Mode B
+      }
+    } else if (!isModeA && !isModeB) {
+      // 其他未知模式，通过特征兜底
+      isModeA = hasPosters || (!isModeB && (hasActivityDate || hasDinnerTime));
+      isModeB = !isModeA;
+    }
 
     if (isModeB || (hasDinnerTime && !hasPosters)) {
       // 模式B：你们来定
@@ -1305,7 +1324,7 @@ Page({
     return `${hour}:${minute}`;
   },
 
-    goToSettings() {
+  goToSettings() {
     wx.navigateTo({ url: '/package-user/pages/settings/settings' });
   },
 
