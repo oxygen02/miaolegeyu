@@ -191,7 +191,12 @@ exports.main = async (event) => {
             optionStats: groupOptionStats,
             shopImage: room.shopImage || '',
             shopName: room.shopName || ''
-          } : {})
+          } : {
+            // 非拼单模式：返回候选海报供用户浏览和投票
+            candidatePosters: room.candidatePosters || [],
+            finalPoster: room.finalPoster || null,
+            totalVoters: room.totalVoters || participants.length
+          })
         },
         msg: '获取成功（未加入房间）'
       };

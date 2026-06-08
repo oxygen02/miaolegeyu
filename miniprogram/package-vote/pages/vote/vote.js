@@ -408,7 +408,19 @@ Page({
               shareFrom: this.data.shareFrom || ''
             }
           });
-          console.log('[vote] 无密码房间自动加入成功');
+          console.log('[vote] 无密码房间自动加入成功，重新加载房间数据');
+          // 加入成功后重新获取完整房间数据（包含 isParticipant=true 和完整 posters）
+          const { result: refreshResult } = await wx.cloud.callFunction({
+            name: 'getRoom',
+            data: {
+              roomId,
+              isFromShare: this.data.shareFrom === '1' || this.data.shareFrom === 1
+            }
+          });
+          if (refreshResult.code === 0) {
+            room = refreshResult.data;
+            console.log('[vote] 重新加载房间数据成功，isParticipant:', room.isParticipant);
+          }
         } catch (joinErr) {
           console.warn('[vote] 无密码房间自动加入失败（仍可继续浏览）:', joinErr);
           // 不阻塞用户浏览，仅记录日志
