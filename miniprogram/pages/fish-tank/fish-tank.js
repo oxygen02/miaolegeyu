@@ -145,26 +145,38 @@ Page({
     }
   },
 
+  // 清除所有活动列表缓存（用于强制刷新）
+  clearFishTankCache() {
+    this.clearSensitiveCache();
+  },
+
   onShow() {
     // 更新 tabBar 选中状态
     this.updateTabBarSelected();
     // 通知预加载管理器用户有交互
     if (preloadManager) preloadManager.touch();
-    
-    // 智能刷新：只在数据为空或缓存过期时才重新加载
-    // 避免每次切 tab 都全量请求（原逻辑每次 onShow 都 loadData）
-    const hasData = this.data.ongoingActivities.length > 0 
-      || this.data.myActivities.length > 0 
-      || this.data.participatedActivities.length > 0;
-    
-    if (!hasData) {
-      // 首次进入或数据被清空，需要加载
+
+    // 检查是否需要强制刷新（从投票/活动页面返回时）
+    if (this._needsRefresh) {
+      this._needsRefresh = false;
+      // 清除缓存，强制重新加载
+      this.clearFishTankCache();
       this.loadData();
     } else {
-      // 有旧数据时，后台静默刷新（不阻塞 UI）
-      this._silentRefresh();
+      // 智能刷新：只在数据为空或缓存过期时才重新加载
+      const hasData = this.data.ongoingActivities.length > 0
+        || this.data.myActivities.length > 0
+        || this.data.participatedActivities.length > 0;
+
+      if (!hasData) {
+        // 首次进入或数据被清空，需要加载
+        this.loadData();
+      } else {
+        // 有旧数据时，后台静默刷新（不阻塞 UI）
+        this._silentRefresh();
+      }
     }
-    
+
     // 启动截止时间倒计时定时器
     this.startFishTankDeadlineTimer();
   },
@@ -1127,6 +1139,9 @@ Page({
   async joinActivity(e) {
     const roomId = e.currentTarget.dataset.id;
     const type = e.currentTarget.dataset.type;
+
+    // 标记需要刷新（从活动页面返回时会强制刷新数据）
+    this._needsRefresh = true;
 
     if (type === 'group') {
       // 拼单活动 - 显示确认弹窗
