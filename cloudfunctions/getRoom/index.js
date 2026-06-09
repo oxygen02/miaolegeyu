@@ -55,9 +55,22 @@ exports.main = async (event) => {
     // 权限校验：检查用户是否是房间参与者或创建者
     const isCreator = room.creatorOpenId === wxContext.OPENID;
 
-    // 可见性校验：如果不是创建者，需要检查可见性权限
+    // 先检查用户是否是参与者（在可见性检查之前，因为参与者应该始终能访问）
+    let isParticipant = false;
+    try {
+      const participantCheck = await db.collection('room_participants')
+        .where({ roomId, openid: wxContext.OPENID })
+        .limit(1)
+        .get();
+      isParticipant = participantCheck.data.length > 0;
+    } catch (err) {
+      console.error('检查参与者状态失败:', err);
+    }
+
+    // 可见性校验：如果不是创建者且不是参与者，需要检查可见性权限
     // 注意：通过分享链接进入的用户（isFromShare=true）可绕过好友限制
-    if (!isFromShare && !isCreator) {
+    // 参与者（包括之前参与过退出的）可以重新进入
+    if (!isFromShare && !isCreator && !isParticipant) {
       const visibility = room.visibility || 'friends';
 
       // "仅通过分享"的活动：拒绝直接访问，必须通过分享链
@@ -114,8 +127,10 @@ exports.main = async (event) => {
       console.error('获取参与者失败:', err);
     }
 
-    // 检查用户是否在参与者列表中
-    let isParticipant = participants.some(p => p.openid === wxContext.OPENID);
+    // 检查用户是否在参与者列表中（复用之前的查询结果）
+    if (!isParticipant) {
+      isParticipant = participants.some(p => p.openid === wxContext.OPENID);
+    }
 
     // 对于拼单模式，还要检查 group_order_participants
     let isGroupOrderParticipant = false;

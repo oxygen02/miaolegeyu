@@ -153,7 +153,6 @@ module.exports = {
               <!-- 聚餐/拼单活动按钮 -->
               <block wx:if="{{item.type !== 'scheduleVote'}}">
                 <button class="btn btn-warning btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{item.hasVoted}}">修改投票</button>
-                <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:elif="{{item.hasJoined}}">去投票</button>
                 <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:else>立即参加</button>
               </block>
               <!-- 时间投票按钮 -->
