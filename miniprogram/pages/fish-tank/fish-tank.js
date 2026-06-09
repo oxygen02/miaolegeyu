@@ -532,6 +532,10 @@ Page({
           hasVoted: room.hasVoted || false,
           hasJoined: room.hasJoined || false
         };
+        // 调试日志：检查 hasVoted 是否从云函数正确返回
+        if (room.roomId) {
+          console.log(`[fish-tank-debug] 房间${room.roomId}: hasVoted=${room.hasVoted}, hasJoined=${room.hasJoined}, 原始room keys=${Object.keys(room).filter(k => k.includes('has') || k.includes('vote')).join(',')}`);
+        }
       });
 
       const processed = this.processActivitiesDeadline(rooms);
