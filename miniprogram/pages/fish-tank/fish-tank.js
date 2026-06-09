@@ -159,10 +159,12 @@ Page({
     // 检查是否需要强制刷新（从投票/活动页面返回时）
     if (this._needsRefresh) {
       this._needsRefresh = false;
+      this._forceRefresh = true; // 传递给 loadData -> loadOngoingRooms
       // 清除缓存，强制重新加载
       this.clearFishTankCache();
       this.loadData();
     } else {
+      this._forceRefresh = false;
       // 智能刷新：只在数据为空或缓存过期时才重新加载
       const hasData = this.data.ongoingActivities.length > 0
         || this.data.myActivities.length > 0
@@ -329,25 +331,35 @@ Page({
   },
 
   // 加载正在进行的活动（所有进行中的）
-  async loadOngoingRooms() {
+  async loadOngoingRooms(forceRefresh = false) {
     const viewMode = this.data.viewMode;
     const CACHE_KEY = `fish_ongoing_${viewMode}`;
     const CACHE_TIME = `fish_ongoing_${viewMode}_time`;
     const CACHE_EXPIRY = 3 * 60 * 1000; // 缓存3分钟
 
-    // 1. 先显示缓存数据（如果有且未过期）
-    try {
-      const cached = wx.getStorageSync(CACHE_KEY);
-      const cachedTime = wx.getStorageSync(CACHE_TIME);
-      if (cached && cachedTime && (Date.now() - cachedTime < CACHE_EXPIRY)) {
-        // 过滤缓存中的违规内容
-        const filteredActivities = filterSensitiveActivities(cached.ongoingActivities);
-        this.setData({
-          ongoingActivities: filteredActivities,
-          ongoingCount: filteredActivities.length
-        });
-      }
-    } catch (e) { /* 忽略缓存读取错误 */ }
+    // 使用实例变量传递的强制刷新标记（优先级更高）
+    if (this._forceRefresh) {
+      forceRefresh = true;
+      this._forceRefresh = false; // 消费后重置
+    }
+
+    // 1. 先显示缓存数据（如果有且未过期，且非强制刷新）
+    if (!forceRefresh) {
+      try {
+        const cached = wx.getStorageSync(CACHE_KEY);
+        const cachedTime = wx.getStorageSync(CACHE_TIME);
+        if (cached && cachedTime && (Date.now() - cachedTime < CACHE_EXPIRY)) {
+          // 过滤缓存中的违规内容
+          const filteredActivities = filterSensitiveActivities(cached.ongoingActivities);
+          this.setData({
+            ongoingActivities: filteredActivities,
+            ongoingCount: filteredActivities.length
+          });
+        }
+      } catch (e) { /* 忽略缓存读取错误 */ }
+    } else {
+      console.log('[fish-tank] 强制刷新模式，跳过缓存');
+    }
 
     // 2. 请求最新数据
     // 如果是约饭模式，调用不同的云函数
@@ -541,6 +553,11 @@ Page({
       const processed = this.processActivitiesDeadline(rooms);
       // 过滤违规内容
       const filteredProcessed = filterSensitiveActivities(processed);
+      // 最终数据日志：确认 hasVoted 是否正确传递到 setData
+      console.log('[fish-tank-debug] 最终 setData 数据:');
+      filteredProcessed.forEach(item => {
+        console.log(`  → id=${item.id}, hasVoted=${item.hasVoted}, hasJoined=${item.hasJoined}, type=${item.type}`);
+      });
       this.setData({
         ongoingActivities: filteredProcessed,
         ongoingCount: filteredProcessed.length
