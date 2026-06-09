@@ -42,8 +42,14 @@ exports.main = async (event) => {
       .orderBy('joinedAt', 'desc')
       .limit(limit)
       .get();
-    
+
     const roomIds = participantResult.data.map(p => p.roomId);
+
+    // 构建用户在各房间的投票状态映射
+    const userVoteStatus = {};
+    participantResult.data.forEach(p => {
+      userVoteStatus[p.roomId] = p.status; // 'voted' 或 'joined'
+    });
     
     if (roomIds.length === 0) {
       return {
@@ -109,7 +115,10 @@ exports.main = async (event) => {
         createdAt: room.createdAt,
         location: room.location,
         activityTime: room.activityTime,
-        participantCount: room.participantCount || 0
+        participantCount: room.participantCount || 0,
+        // 当前用户在该房间的参与/投票状态
+        hasVoted: userVoteStatus[room.roomId] === 'voted',
+        hasJoined: !!userVoteStatus[room.roomId]
         // 注意：不返回 creatorOpenId 等敏感字段
       };
     }).filter(Boolean);

@@ -515,7 +515,10 @@ Page({
           creatorNickName: isCreator ? '我' : creatorInfo.nickName,
           creatorAvatarUrl: creatorInfo.avatarUrl,
           // 拼单参与者头像
-          participantAvatars: room.participantAvatars || []
+          participantAvatars: room.participantAvatars || [],
+          // 投票状态
+          hasVoted: room.hasVoted || false,
+          hasJoined: room.hasJoined || false
         };
       });
 
@@ -959,7 +962,10 @@ Page({
           platform: room.platform,
           minAmount: room.minAmount,
           currentAmount: room.currentAmount || 0,
-          isCreator: false
+          isCreator: false,
+          // 投票状态
+          hasVoted: room.hasVoted || false,
+          hasJoined: room.hasJoined || false
         };
       });
 

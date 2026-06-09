@@ -184,19 +184,24 @@ exports.main = async (event) => {
     // 获取所有房间ID
     const roomIds = validRooms.map(room => room.roomId);
 
-    // 批量获取参与者数量
+    // 批量获取参与者数量和当前用户的投票状态
     let participantCounts = {};
+    let userVoteStatus = {}; // roomId -> 'voted' | 'joined' | null
     try {
       const { data: participants } = await db.collection('room_participants')
         .where({
           roomId: _.in(roomIds)
         })
-        .field({ roomId: true })
+        .field({ roomId: true, openid: true, status: true })
         .get();
 
       // 统计每个房间的参与者数量
       participants.forEach(p => {
         participantCounts[p.roomId] = (participantCounts[p.roomId] || 0) + 1;
+        // 记录当前用户的投票状态
+        if (p.openid === currentOpenId) {
+          userVoteStatus[p.roomId] = p.status; // 'voted' 或 'joined'
+        }
       });
     } catch (err) {
       console.error('获取参与者数量失败:', err);
@@ -277,7 +282,10 @@ exports.main = async (event) => {
       visibility: room.visibility || 'friends',
       city: room.city || null,
       // 拼单参与者头像
-      participantAvatars: participantAvatars[room.roomId] || []
+      participantAvatars: participantAvatars[room.roomId] || [],
+      // 当前用户在该房间的参与/投票状态
+      hasVoted: userVoteStatus[room.roomId] === 'voted',
+      hasJoined: !!userVoteStatus[room.roomId]
       // 注意：不返回 creatorOpenId 等敏感字段
     }));
 
