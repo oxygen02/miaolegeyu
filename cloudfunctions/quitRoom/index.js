@@ -41,7 +41,8 @@ exports.main = async (event) => {
       .doc(participant._id)
       .remove();
 
-    // 如果是发起人退出，尝试转移发起人身份给其他参与者
+    // 如果是发起人退出，且还有其他参与者，才转移发起人身份
+    // 发起人自己退出时保留 creatorOpenId 不变，方便重新进入
     if (isCreator && room) {
       const otherParticipants = await db.collection('room_participants')
         .where({ roomId, openid: db.command.neq(wxContext.OPENID) })
@@ -49,12 +50,12 @@ exports.main = async (event) => {
         .get();
 
       if (otherParticipants.data.length > 0) {
-        // 将发起人身份转移给第一个其他参与者
+        // 有其他参与者时，将发起人身份转移给第一个其他参与者
         await db.collection('room_participants')
           .doc(otherParticipants.data[0]._id)
           .update({ data: { role: 'creator' } });
 
-        // 更新房间的 creatorOpenId
+        // 更新房间的 creatorOpenId（仅在有接替者时转移）
         await db.collection('rooms')
           .where({ roomId })
           .update({
@@ -63,17 +64,9 @@ exports.main = async (event) => {
               updatedAt: db.serverDate()
             }
           });
-      } else {
-        // 没有其他参与者，标记为无发起人状态但保留活动
-        await db.collection('rooms')
-          .where({ roomId })
-          .update({
-            data: {
-              creatorOpenId: '',
-              updatedAt: db.serverDate()
-            }
-          });
       }
+      // 注意：没有其他参与者时，不修改 creatorOpenId
+      // 原创建者可以随时重新进入活动
     }
 
     // 更新房间参与人数

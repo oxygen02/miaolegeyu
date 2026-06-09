@@ -74,6 +74,7 @@ exports.main = async (event) => {
     // 可见性校验：如果不是创建者且不是参与者，需要检查可见性权限
     // 注意：通过分享链接进入的用户（isFromShare=true）可绕过好友限制
     // 参与者（包括之前参与过退出的）可以重新进入
+    // 特殊情况：creatorOpenId为空的旧数据（发起人退出后被清空），放宽限制
     if (!isFromShare && !isCreator && !isParticipant) {
       const visibility = room.visibility || 'friends';
 
@@ -86,7 +87,8 @@ exports.main = async (event) => {
       }
 
       // "仅好友可见"的活动：检查是否是好友
-      if (visibility === 'friends') {
+      // 但如果是旧数据（creatorOpenId为空）或房间无参与者，放行以兼容
+      if (visibility === 'friends' && room.creatorOpenId) {
         // 获取当前用户的好友列表
         let isFriend = false;
         try {
@@ -111,6 +113,7 @@ exports.main = async (event) => {
         }
       }
       // "公开"活动（visibility === 'public' 或无 visibility 字段）：允许访问
+      // creatorOpenId为空的旧数据：也允许访问（兼容已退出发起人的重新进入）
     }
 
     // 获取参与者列表
