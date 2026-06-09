@@ -62,7 +62,8 @@ exports.main = async (event) => {
         }
 
         // "仅好友可见"的活动：检查是否是好友
-        if (visibility === 'friends') {
+        // 兼容旧数据：creatorOpenId为空时跳过好友检查（发起人退出后重新加入场景）
+        if (visibility === 'friends' && room.creatorOpenId) {
           let isFriend = false;
           try {
             // 查询当前用户的好友列表
@@ -84,7 +85,7 @@ exports.main = async (event) => {
             return { code: 403, msg: '该活动仅好友可加入' };
           }
         }
-        // "公开"活动（visibility === 'public' 或无 visibility 字段）：允许加入
+        // "公开"活动或creatorOpenId为空的旧数据：允许加入
       }
 
       // 6. 验证密码（如果房间设置了密码）
