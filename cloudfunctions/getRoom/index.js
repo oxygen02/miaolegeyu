@@ -54,6 +54,9 @@ exports.main = async (event) => {
 
     // 权限校验：检查用户是否是房间参与者或创建者
     const isCreator = room.creatorOpenId === wxContext.OPENID;
+    console.log('[getRoom] 权限检查 - 当前用户OPENID:', wxContext.OPENID);
+    console.log('[getRoom] 权限检查 - 房间creatorOpenId:', room.creatorOpenId);
+    console.log('[getRoom] 权限检查 - isCreator:', isCreator);
 
     // 先检查用户是否是参与者（在可见性检查之前，因为参与者应该始终能访问）
     let isParticipant = false;
@@ -63,6 +66,7 @@ exports.main = async (event) => {
         .limit(1)
         .get();
       isParticipant = participantCheck.data.length > 0;
+      console.log('[getRoom] 权限检查 - isParticipant:', isParticipant);
     } catch (err) {
       console.error('检查参与者状态失败:', err);
     }
