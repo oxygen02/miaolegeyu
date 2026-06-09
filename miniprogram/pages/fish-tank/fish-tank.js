@@ -710,6 +710,7 @@ Page({
           } catch (e) {
           }
         }
+        const _isCreator = room.creatorOpenId === myOpenId;
         return {
           id: room.roomId,
           type: type,
@@ -726,7 +727,7 @@ Page({
           platform: room.platform,
           minAmount: room.minAmount,
           currentAmount: room.currentAmount || 0,
-          isCreator: true,
+          isCreator: _isCreator,
           // 获取发起人信息
           creatorNickName: (() => {
             if (room.creatorNickName) return room.creatorNickName;
@@ -735,7 +736,7 @@ Page({
               const host = room.participants.find(p => p.isHost === true);
               if (host && host.nickName) return host.nickName;
             }
-            return '我';
+            return _isCreator ? '我' : (room.creatorNickName || '发起人');
           })(),
           creatorAvatarUrl: (() => {
             if (room.creatorAvatarUrl) return room.creatorAvatarUrl;
@@ -793,7 +794,7 @@ Page({
             status: apt.status,
             statusName: '进行中',
             roomId: apt._id,
-            isCreator: true,
+            isCreator: apt.initiatorOpenId === myOpenId,
             creatorNickName: apt.initiatorName || '神秘喵友',
             creatorAvatarUrl: apt.initiatorAvatar || imagePaths.decorations.catAvatarIcon
           };
