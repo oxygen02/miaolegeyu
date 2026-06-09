@@ -34,6 +34,13 @@ exports.main = async (event) => {
       return { code: -1, msg: '房间已锁定或已取消' };
     }
 
+    // 检查最低参与人数（至少需要2人参与才可锁定，防止单人锁定）
+    const participantResult = await db.collection('room_participants').where({ roomId }).count();
+    const totalParticipants = participantResult.total || 0;
+    if (totalParticipants < 2) {
+      return { code: -1, msg: `至少需要2人参与才能锁定结果，当前仅${totalParticipants}人` };
+    }
+
     // 检查是否已过期
     if (room.deadline || room.voteDeadline) {
       const deadlineDate = new Date(room.deadline || room.voteDeadline);

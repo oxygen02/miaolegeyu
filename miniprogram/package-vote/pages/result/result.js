@@ -103,8 +103,25 @@ Page({
         }
       }
 
+      // 补充 finalPoster 数据完整性（从 candidatePosters 中获取）
+      let finalPoster = room.finalPoster || null;
+      if (!finalPoster && room.status === 'locked' && room.candidatePosters && room.candidatePosters.length > 0) {
+        // 如果 finalPoster 为空但房间已锁定，尝试用第一个候选海报
+        finalPoster = { ...room.candidatePosters[0] };
+      }
+      if (finalPoster && !finalPoster.imageUrl) {
+        // 尝试从 candidatePosters 中匹配
+        const candidates = room.candidatePosters || [];
+        for (const c of candidates) {
+          if (c.name === finalPoster.name || c.shopName === finalPoster.shopName) {
+            finalPoster = { ...finalPoster, ...c };
+            break;
+          }
+        }
+      }
+
       this.setData({
-        room,
+        room: { ...room, ...(finalPoster ? { finalPoster } : {}) },
         mode: isModeB ? 'b' : 'a', // 修正后的 mode，供 wxml 使用
         isCreator: room.isCreator,
         voteStats,

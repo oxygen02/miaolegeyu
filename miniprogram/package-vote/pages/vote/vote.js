@@ -384,7 +384,7 @@ Page({
         throw new Error(result.msg);
       }
 
-      const room = result.data;
+      let room = result.data;
 
       // 检查是否需要密码且未加入
       if (room.needPassword && !room.isParticipant && !room.isCreator) {
@@ -1549,14 +1549,36 @@ Page({
             voteResult: result.data.room || {}
           });
         } else {
-          // 否则跳转到结果页
-          const submitTimer = setTimeout(() => {
-            wx.redirectTo({
-              url: `/package-vote/pages/result/result?roomId=${this.data.roomId}`
-            });
-          }, 1500);
-          this._timers = this._timers || [];
-          this._timers.push(submitTimer);
+          // 仅在房间已锁定时才跳转到结果页，否则留在当前页提示用户
+          const roomStatus = this.data.room.status || this.data.room.originalStatus;
+          if (roomStatus === 'locked') {
+            const submitTimer = setTimeout(() => {
+              wx.redirectTo({
+                url: `/package-vote/pages/result/result?roomId=${this.data.roomId}`
+              });
+            }, 1500);
+            this._timers = this._timers || [];
+            this._timers.push(submitTimer);
+          } else {
+            // 房间未锁定，提示用户可以继续邀请好友或等待他人投票
+            setTimeout(() => {
+              wx.showModal({
+                title: '投票成功',
+                content: '您的投票已提交！快去邀请好友一起投票吧~',
+                confirmText: '去邀请',
+                cancelText: '知道了',
+                success: (modalRes) => {
+                  if (modalRes.confirm) {
+                    // 跳转到控制台页面进行分享邀请
+                    wx.redirectTo({
+                      url: `/package-vote/pages/control/control?roomId=${this.data.roomId}`
+                    });
+                  }
+                  // 取消则留在当前页面
+                }
+              });
+            }, 500);
+          }
         }
       } else {
         throw new Error(result.error || result.msg);

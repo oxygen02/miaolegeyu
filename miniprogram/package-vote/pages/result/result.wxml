@@ -111,6 +111,15 @@
           <text class="no-result-hint">等橘仔选好了会通知你~</text>
         </view>
       </block>
+
+      <!-- 结果数据不完整提示（有finalPoster但缺少关键信息） -->
+      <block wx:if="{{room.finalPoster && !room.finalPoster.imageUrl && mode === 'a'}}">
+        <view class="no-result-section">
+          <image class="no-result-avatar" src="{{imagePaths.banners.faqijucan}}" mode="aspectFill"/>
+          <text class="no-result-text">结果数据不完整</text>
+          <text class="no-result-hint">发起人可能尚未完成锁定操作，请稍后再试</text>
+        </view>
+      </block>
     </view>
   </block>
 
