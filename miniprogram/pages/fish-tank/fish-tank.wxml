@@ -148,10 +148,18 @@ module.exports = {
               <text class="stats-text">已凑 ¥{{item.currentAmount}}/¥{{item.targetAmount}}</text>
             </view>
             <view class="spacer" wx:else></view>
-            <!-- 正常模式：显示参加/分享/填写按钮 -->
+            <!-- 正常模式：显示参加/修改投票/填写/退出按钮 -->
             <view class="action-btns-col" wx:if="{{!isEditMode}}">
-              <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{item.type !== 'scheduleVote'}}">立即参加</button>
+              <!-- 聚餐/拼单活动按钮 -->
+              <block wx:if="{{item.type !== 'scheduleVote'}}">
+                <button class="btn btn-warning btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{item.hasVoted}}">修改投票</button>
+                <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:elif="{{item.hasJoined}}">去投票</button>
+                <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:else>立即参加</button>
+              </block>
+              <!-- 时间投票按钮 -->
               <button class="btn btn-schedule btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{item.type === 'scheduleVote'}}">去填写</button>
+              <!-- 退出按钮 -->
+              <button class="btn btn-exit btn-small" catchtap="quitActivity" data-id="{{item.id}}" data-type="{{item.type}}">退出</button>
             </view>
             <!-- 编辑模式：自己发起的显示删除，其他的显示退出 -->
             <button class="btn btn-danger btn-small" catchtap="deleteRoom" data-id="{{item.id}}" data-title="{{item.title}}" wx:if="{{isEditMode && item.isCreator}}">删除</button>

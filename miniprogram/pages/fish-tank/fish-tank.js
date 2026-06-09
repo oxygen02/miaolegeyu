@@ -728,6 +728,9 @@ Page({
           minAmount: room.minAmount,
           currentAmount: room.currentAmount || 0,
           isCreator: _isCreator,
+          // 投票状态
+          hasVoted: room.hasVoted || false,
+          hasJoined: room.hasJoined || false,
           // 获取发起人信息
           creatorNickName: (() => {
             if (room.creatorNickName) return room.creatorNickName;

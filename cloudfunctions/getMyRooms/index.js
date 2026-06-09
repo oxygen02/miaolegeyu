@@ -127,17 +127,23 @@ exports.main = async (event) => {
     // 批量获取参与者信息和数量
     let participantCounts = {};
     let participantAvatars = {}; // 存储每个房间的参与者头像
+    // 批量查询当前用户在各房间的投票状态
+    let userVoteStatus = {}; // roomId -> 'voted' | 'joined' | null
     try {
       const { data: participants } = await db.collection('room_participants')
         .where({
           roomId: _.in(roomIds)
         })
-        .field({ roomId: true, openid: true })
+        .field({ roomId: true, openid: true, status: true })
         .get();
-      
+
       // 统计每个房间的参与者数量
       participants.forEach(p => {
         participantCounts[p.roomId] = (participantCounts[p.roomId] || 0) + 1;
+        // 记录当前用户的投票状态
+        if (p.openid === OPENID) {
+          userVoteStatus[p.roomId] = p.status; // 'voted' 或 'joined'
+        }
       });
 
       // 获取所有参与者的 openid
@@ -310,7 +316,10 @@ exports.main = async (event) => {
         paymentMode: room.paymentMode || '',
         dinnerTime: room.appointmentDate || room.dinnerTime || null,
         appointmentDate: room.appointmentDate || room.dinnerTime || null,
-        enableRestaurantRecommend: room.enableRestaurantRecommend || false
+        enableRestaurantRecommend: room.enableRestaurantRecommend || false,
+        // 当前用户在该房间的参与/投票状态
+        hasVoted: userVoteStatus[room.roomId] === 'voted',
+        hasJoined: !!userVoteStatus[room.roomId]
       };
     });
 

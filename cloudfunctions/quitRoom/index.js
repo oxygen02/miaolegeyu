@@ -30,20 +30,52 @@ exports.main = async (event) => {
     }
     
     const participant = participantResult.data[0];
-    
-    // 发起人不能退出，只能删除活动
-    if (participant.role === 'creator') {
-      return {
-        code: -1,
-        msg: '发起人不能退出，请使用删除功能'
-      };
-    }
-    
+    const isCreator = participant.role === 'creator';
+
+    // 获取房间信息
+    const roomResult = await db.collection('rooms').where({ roomId }).get();
+    const room = roomResult.data[0];
+
     // 删除参与记录
     await db.collection('room_participants')
       .doc(participant._id)
       .remove();
-    
+
+    // 如果是发起人退出，尝试转移发起人身份给其他参与者
+    if (isCreator && room) {
+      const otherParticipants = await db.collection('room_participants')
+        .where({ roomId, openid: db.command.neq(wxContext.OPENID) })
+        .limit(1)
+        .get();
+
+      if (otherParticipants.data.length > 0) {
+        // 将发起人身份转移给第一个其他参与者
+        await db.collection('room_participants')
+          .doc(otherParticipants.data[0]._id)
+          .update({ data: { role: 'creator' } });
+
+        // 更新房间的 creatorOpenId
+        await db.collection('rooms')
+          .where({ roomId })
+          .update({
+            data: {
+              creatorOpenId: otherParticipants.data[0].openid,
+              updatedAt: db.serverDate()
+            }
+          });
+      } else {
+        // 没有其他参与者，标记为无发起人状态但保留活动
+        await db.collection('rooms')
+          .where({ roomId })
+          .update({
+            data: {
+              creatorOpenId: '',
+              updatedAt: db.serverDate()
+            }
+          });
+      }
+    }
+
     // 更新房间参与人数
     await db.collection('rooms')
       .where({ roomId })
