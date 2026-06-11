@@ -9,7 +9,7 @@ const LEVELS = [
   { value: 3, label: '首选', class: 'level-best' }
 ];
 
-const MIN_REQUIRED_DATES = 2;
+const MIN_REQUIRED_DATES = 1;  // 至少选择1天即可提交
 
 Page({
   data: {
