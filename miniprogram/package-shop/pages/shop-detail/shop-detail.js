@@ -142,33 +142,54 @@ async onLoad(options) {
         }
       }
     } else if (appointmentId) {
-      // 通过约饭活动ID加载（兜底方案）
-      console.log('通过appointmentId加载店铺:', appointmentId);
+      // 通过约饭活动ID加载（分享链接进入）
+      console.log('通过appointmentId加载约饭:', appointmentId);
       this.initTimePicker();
-      
+
       try {
-        // 先获取约饭活动信息，从中得到shopId
+        // 通过appointmentId直接查询约饭活动（绕过隐私过滤）
         const { result } = await wx.cloud.callFunction({
           name: 'getDiningAppointments',
-          data: {}
+          data: { appointmentId }
         });
-        
-        if (result.success && result.appointments) {
-          const apt = result.appointments.find(a => a._id === appointmentId || a.roomId === appointmentId);
-          if (apt && apt.shopId) {
+
+        if (result.success && result.appointments && result.appointments.length > 0) {
+          const apt = result.appointments[0];
+          if (apt.shopId) {
             await this.loadShopDetail(apt.shopId);
-            await Promise.all([
-              this.loadAppointment(apt.shopId),
-              this.loadHistoryAppointments(apt.shopId)
-            ]);
+            // 直接用已查到的数据设置约饭信息（不再重复调用loadAppointment）
+            const isInitiator = apt.initiatorOpenId === result.openid;
+            let deadlineDate = this.parseCloudDate(apt.deadline);
+            const now = new Date();
+            const remainingTime = deadlineDate.getTime() - now.getTime();
+            const deadlineStr = this.formatDateTimeFromDate(deadlineDate);
+
+            this.setData({
+              appointment: {
+                ...apt,
+                appointmentTimeStr: this.formatDateTime(apt.appointmentTime),
+                deadlineStr: deadlineStr,
+                countdownText: this.formatCountdown(remainingTime > 0 ? remainingTime : 0),
+                isFull: apt.maxParticipants > 0 && apt.participants.length >= apt.maxParticipants
+              },
+              isInitiator,
+              appointmentLoaded: true
+            });
+
+            if (remainingTime > 0) {
+              this.startCountdown({ ...apt, remainingTime });
+            }
+
+            // 加载历史组团记录
+            await this.loadHistoryAppointments(apt.shopId);
             return;
           }
         }
       } catch (err) {
         console.error('通过appointmentId加载失败:', err);
       }
-      
-      // 如果找不到，显示提示但不返回，让用户能看到页面
+
+      // 如果找不到，显示提示但不返回
       wx.showToast({ title: '约饭信息加载失败', icon: 'none' });
     } else {
       wx.showToast({ title: '店铺ID不存在', icon: 'none' });
@@ -375,10 +396,14 @@ async onLoad(options) {
 
   // 分享功能
   onShareAppMessage() {
-    const { shop } = this.data;
+    const { shop, appointment } = this.data;
+    // 如果有活跃的约饭活动，携带appointmentId让接收方直接定位到该活动
+    const appointmentParam = appointment && !appointment.isCompleted ? `&appointmentId=${appointment._id || appointment.roomId}` : '';
     return {
-      title: `${shop.name} - 喵了个鱼美食推荐`,
-      path: `/package-shop/pages/shop-detail/shop-detail?id=${shop._id}`,
+      title: appointment && !appointment.isCompleted
+        ? `${shop.name} - 约饭报名中，快来参加！`
+        : `${shop.name} - 喵了个鱼美食推荐`,
+      path: `/package-shop/pages/shop-detail/shop-detail?id=${shop._id}${appointmentParam}`,
       imageUrl: shop.images && shop.images.length > 0 ? shop.images[0] : ''
     };
   },
@@ -639,11 +664,16 @@ async onLoad(options) {
   },
 
   // 加载约饭报名
-  async loadAppointment(shopId) {
+  async loadAppointment(shopId, targetAppointmentId) {
     try {
+      // 如果指定了appointmentId（通过分享链接进入），直接按ID查询
+      const requestData = targetAppointmentId
+        ? { appointmentId: targetAppointmentId }
+        : { shopId };
+
       const { result } = await wx.cloud.callFunction({
         name: 'getDiningAppointments',
-        data: { shopId }
+        data: requestData
       });
 
       if (result.success && result.appointments && result.appointments.length > 0) {

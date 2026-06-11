@@ -1289,3 +1289,73 @@
   transform: translateY(2rpx) !important;
   box-shadow: 2rpx 2rpx 0 #3D3D3D !important;
 }
+
+/* ========== 只读模式样式 ========== */
+.readonly-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 24rpx;
+  margin: 16rpx 24rpx 0;
+  background: linear-gradient(135deg, #FFF5E6, #FFE8CC);
+  border-radius: 12rpx;
+  border: 2rpx solid #FFD699;
+}
+
+.readonly-text {
+  font-size: 24rpx;
+  color: #B8860B;
+  font-weight: 500;
+}
+
+.readonly-edit-btn {
+  padding: 8rpx 24rpx;
+  background: #FF9F43;
+  border-radius: 20rpx;
+}
+
+.readonly-edit-btn text {
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+.readonly-swiper {
+  position: relative;
+}
+
+.readonly-swiper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+}
+
+.readonly-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.readonly-edit-cta {
+  padding: 20rpx 48rpx;
+  background: #FF9F43;
+  border-radius: 40rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 159, 67, 0.4);
+}
+
+.readonly-edit-cta text {
+  font-size: 28rpx;
+  color: #fff;
+  font-weight: 600;
+}

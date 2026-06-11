@@ -378,7 +378,7 @@ Page({
   // 跳转到指定房间
   goToRoomById(roomId) {
     wx.navigateTo({
-      url: `/package-vote/pages/vote/vote?roomId=${roomId}`
+      url: `/package-vote/pages/vote/vote?roomId=${roomId}&shareFrom=1`
     });
   },
 

@@ -63,7 +63,9 @@ exports.main = async (event) => {
 
         // "仅好友可见"的活动：检查是否是好友
         // 兼容旧数据：creatorOpenId为空时跳过好友检查（发起人退出后重新加入场景）
-        if (visibility === 'friends' && room.creatorOpenId) {
+        // 关键：如果用户是通过分享链接进入的（shareFrom存在），直接放行
+        //       分享本身就是一种授权，不需要额外的好友关系验证
+        if (visibility === 'friends' && room.creatorOpenId && !shareFrom) {
           let isFriend = false;
           try {
             // 查询当前用户的好友列表

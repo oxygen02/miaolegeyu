@@ -305,6 +305,12 @@
           </button>
         </view>
 
+        <!-- 再发起一个约饭（同一店铺可并行多个） -->
+        <view class="create-another-section" bindtap="onCreateAppointment">
+          <image class="hint-icon" src="{{imagePaths.misc.catPawIcon}}" mode="aspectFit" />
+          <text class="create-another-text">再发一个约饭</text>
+        </view>
+
         <!-- 发起者评价区域（组团完成后显示） -->
         <view class="rating-section" wx:if="{{appointment.isCompleted && appointment.rating}}">
           <text class="rating-title">发起者评价</text>
@@ -398,26 +404,20 @@
         </view>
         <view class="form-item combined-time-row">
           <view class="time-section">
-            <view class="section-label-row">
-              <text class="section-label">约饭时间</text>
-              <text class="clear-btn" bindtap="clearAppointmentTime">清空</text>
-            </view>
+            <text class="section-label">约饭时间</text>
             <view class="date-inputs-row">
               <input class="date-input" type="text" maxlength="6" placeholder="月日" value="{{appointmentDate}}" bindinput="onAppointmentDateInput" bindblur="onAppointmentDateBlur" />
               <text class="date-separator">|</text>
-              <input class="date-input" type="text" maxlength="6" placeholder="时分" value="{{appointmentTime}}" bindinput="onAppointmentTimeInput" bindblur="onAppointmentTimeBlur" />
+              <input class="date-input" type="text" maxlength="5" placeholder="时分" value="{{appointmentTime}}" bindinput="onAppointmentTimeInput" bindblur="onAppointmentTimeBlur" />
             </view>
           </view>
           <view class="time-divider"></view>
           <view class="time-section">
-            <view class="section-label-row">
-              <text class="section-label">报名截止</text>
-              <text class="clear-btn" bindtap="clearDeadlineTime">清空</text>
-            </view>
+            <text class="section-label">报名截止</text>
             <view class="date-inputs-row">
               <input class="date-input" type="text" maxlength="6" placeholder="月日" value="{{deadlineDate}}" bindinput="onDeadlineDateInput" bindblur="onDeadlineDateBlur" />
               <text class="date-separator">|</text>
-              <input class="date-input" type="text" maxlength="6" placeholder="时分" value="{{deadlineTime}}" bindinput="onDeadlineTimeInput" bindblur="onDeadlineTimeBlur" />
+              <input class="date-input" type="text" maxlength="5" placeholder="时分" value="{{deadlineTime}}" bindinput="onDeadlineTimeInput" bindblur="onDeadlineTimeBlur" />
             </view>
           </view>
         </view>

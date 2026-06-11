@@ -17,6 +17,7 @@
       <view class="vote-meta">
         <text class="meta-tag">{{voteData.timePeriod === 'lunch' ? '中午' : '晚上'}}</text>
         <text class="meta-tag {{voteData.anonymous ? 'tag-anonymous' : ''}}">{{voteData.anonymous ? '匿名' : '实名'}}</text>
+        <text class="meta-tag meta-count" wx:if="{{participantCount > 0}}">{{participantCount}} 人已填写</text>
       </view>
     </view>
 

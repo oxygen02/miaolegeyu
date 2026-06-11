@@ -5,6 +5,9 @@
   padding-bottom: 20rpx;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* 顶部固定区域 */
@@ -21,6 +24,9 @@
   flex-direction: column;
   gap: 12rpx;
   overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 图片居中操作按钮组 */
@@ -102,7 +108,7 @@
   margin: 24rpx;
   border-radius: 20rpx;
   /* 改为 visible 避免裁剪弹幕动画；圆角通过 clip-path 实现 */
-  overflow: visible;
+  overflow: hidden;
   border: 3rpx solid #E8D5C4;
   box-shadow: 0 4rpx 16rpx rgba(180, 140, 100, 0.15);
 }
@@ -110,7 +116,7 @@
 .image-swiper {
   height: 100%;
   border-radius: 18rpx;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .shop-image {
@@ -142,6 +148,7 @@
   border-radius: 20rpx;
   border: 2rpx solid #D4E5F7;
   box-shadow: 0 3rpx 14rpx rgba(70, 130, 200, 0.08);
+  overflow: hidden;
 }
 
 .shop-header {
@@ -177,6 +184,7 @@
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
   margin-bottom: 12rpx;
   gap: 24rpx;  /* 列间距 */
+  overflow: hidden;
 }
 
 .info-col {
@@ -231,6 +239,7 @@
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
   margin-bottom: 16rpx;
   gap: 16rpx;
+  overflow: hidden;
 }
 
 .location-label {
@@ -302,6 +311,7 @@
   padding: 16rpx 20rpx;
   margin-bottom: 12rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  overflow: hidden;
 }
 
 .recommenders-label {
@@ -313,9 +323,9 @@
 
 .recommenders-list {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 12rpx;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .recommender-item {
@@ -326,9 +336,7 @@
   padding: 6rpx 10rpx;
   border-radius: 24rpx;
   border: 1rpx solid rgba(0,0,0,0.05);
-  flex: 1;
-  justify-content: center;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .recommender-avatar {
@@ -400,6 +408,9 @@
   padding: 16rpx 20rpx;
   margin-bottom: 12rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 各个区块 */
@@ -430,12 +441,14 @@
 /* 推荐理由、推荐人和评价按钮合并区域 */
 .reason-uploader-section {
   padding: 20rpx 24rpx;
+  overflow: hidden;
 }
 
 .reason-uploader-row {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 12rpx;
 }
 
 .reason-uploader-row .info-col {
@@ -446,13 +459,16 @@
 }
 
 .reason-col {
-  flex: 0 0 auto;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .reason-col .reason-text {
   font-size: 24rpx;
   color: #666;
   line-height: 1.6;
+  word-break: break-all;
 }
 
 .uploader-col {
@@ -753,6 +769,23 @@
   align-items: center;
   gap: 16rpx;
   margin-top: 12rpx;
+  width: 100%;
+}
+
+/* 再发起一个约饭入口 */
+.create-another-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 16rpx;
+  padding: 16rpx 0;
+}
+
+.create-another-text {
+  font-size: 24rpx;
+  color: #FF9F43;
+  font-weight: 600;
 }
 
 /* 邀请好友按钮 - 参考 control 底部栏绿色按钮风格 */
@@ -1261,7 +1294,7 @@
 
 .date-input {
   flex: 1;
-  max-width: 130rpx;
+  min-width: 0;
   height: 52rpx;
   background: #fff;
   border-radius: 8rpx;

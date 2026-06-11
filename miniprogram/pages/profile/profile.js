@@ -1023,7 +1023,7 @@ Page({
         .find(r => r.roomId === roomId);
       return {
         title: room ? `「${room.title || '聚会投票'}」快来一起选餐厅！` : '快来一起选餐厅！',
-        path: `/package-vote/pages/vote/vote?roomId=${roomId}`,
+        path: `/package-vote/pages/vote/vote?roomId=${roomId}&shareFrom=1`,
         imageUrl: room?.finalPoster || (room?.candidatePosters?.[0]?.imageUrl) || ''
       };
     }

@@ -37,14 +37,23 @@
     <image class="header-tail" src="{{imagePaths.banners.maoweiba}}" mode="aspectFit" />
   </view>
 
+  <!-- 只读模式提示条 -->
+  <view class="readonly-banner" wx:if="{{isReadonly}}">
+    <text class="readonly-text">当前为已提交状态的查看</text>
+    <view class="readonly-edit-btn" catchtap="enableEdit">
+      <text>修改投票</text>
+    </view>
+  </view>
+
   <!-- ========== Mode A: 海报投票（抖音式上下滑动） ========== -->
   <block wx:if="{{mode === 'a'}}">
-    <view class="swiper-wrapper-a">
-      <swiper 
-        class="full-swiper" 
+    <view class="swiper-wrapper-a {{isReadonly ? 'readonly-swiper' : ''}}">
+      <swiper
+        class="full-swiper"
         vertical
-        bindchange="onCardChange"
+        bindchange="{{isReadonly ? '' : 'onCardChange'}}"
         current="{{currentIndex}}"
+        disabled="{{isReadonly}}"
       >
         <swiper-item wx:for="{{posters}}" wx:key="index">
           <view class="full-card {{index < posters.length - 1 ? 'has-next' : ''}}">
@@ -74,8 +83,8 @@
         </swiper-item>
       </swiper>
 
-      <!-- 操作栏 - 固定在 swiper 右侧，不随卡片切换移动 -->
-      <view class="action-bar">
+      <!-- 操作栏 - 固定在 swiper 右侧，只读模式隐藏 -->
+      <view class="action-bar" wx:if="{{!isReadonly}}">
         <view class="action-btn action-prev" catchtap="onPrev" data-index="{{currentIndex}}">
           <text class="btn-icon">↑</text>
           <text class="btn-label">上张</text>
@@ -108,6 +117,13 @@
 
   <!-- ========== Mode B: 两级餐饮分类选择（网格快速选择） ========== -->
   <block wx:if="{{mode === 'b'}}">
+    <!-- 只读模式下覆盖层，阻止所有交互 -->
+    <view class="readonly-overlay" wx:if="{{isReadonly}}" catchtap="enableEdit">
+      <view class="readonly-edit-cta">
+        <text>点击修改投票</text>
+      </view>
+    </view>
+
     <!-- 第一级：大类选择 - 4×5网格 -->
     <block wx:if="{{currentStep === 'category'}}">
       <view class="category-grid-container">

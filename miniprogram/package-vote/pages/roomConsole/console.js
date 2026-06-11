@@ -268,7 +268,7 @@ Page({
   onShareAppMessage() {
     return {
       title: `「${this.data.roomTitle}」快来一起选餐厅！`,
-      path: `/package-vote/pages/vote/vote?roomId=${this.data.roomCode}`,
+      path: `/package-vote/pages/vote/vote?roomId=${this.data.roomCode}&shareFrom=1`,
       imageUrl: imagePaths.banners.faqijucan || ''
     };
   },

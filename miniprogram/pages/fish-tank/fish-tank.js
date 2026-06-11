@@ -300,6 +300,7 @@ Page({
         location: vote.location || '',
         time: timeStr,
         participantCount: vote.participantCount || 0,
+        hasVoted: vote.hasVoted || false,
         image: imagePaths.banners.taiyakiIcon,
         status: vote.isExpired ? 'ended' : 'voting',
         statusName: vote.isExpired ? '已截止' : '进行中',
@@ -1207,9 +1208,9 @@ Page({
         url: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${roomId}&title=${encodeURIComponent(activity?.title || '')}`
       });
     } else {
-      // 聚餐活动 - 跳转到投票页
+      // 聚餐活动 - 跳转到投票页（携带分享来源标识）
       wx.navigateTo({
-        url: `/package-vote/pages/vote/vote?roomId=${roomId}`
+        url: `/package-vote/pages/vote/vote?roomId=${roomId}&shareFrom=1`
       });
     }
   },
@@ -1275,9 +1276,11 @@ Page({
   goToActivityDetail(e) {
     const roomId = e.currentTarget.dataset.id;
     const type = e.currentTarget.dataset.type;
+    const hasVoted = e.currentTarget.dataset.hasVoted;
+    const hasJoined = e.currentTarget.dataset.hasJoined;
     const activity = this.data.ongoingActivities.find(a => a.id === roomId) ||
-                     this.data.myActivities.find(a => a.id === roomId) ||
-                     this.data.participatedActivities.find(a => a.id === roomId);
+                   this.data.myActivities.find(a => a.id === roomId) ||
+                   this.data.participatedActivities.find(a => a.id === roomId);
 
     if (!roomId) {
       wx.showToast({ title: '房间ID无效', icon: 'none' });
@@ -1287,15 +1290,30 @@ Page({
     // 优先使用传入的 type 参数，如果没有则使用查找结果的 type
     const activityType = type || activity?.type;
 
+    // 判断是否已参与（用于决定是否以只读模式打开）
+    const isParticipated = hasVoted || hasJoined || activity?.hasVoted || activity?.hasJoined;
+
     // 根据活动类型跳转到不同页面
     if (activityType === 'scheduleVote') {
-      // 时间投票 - 跳转到结果页（使用voteId参数）
-      wx.navigateTo({
-        url: `/package-schedule/pages/schedule-vote/result/result?voteId=${roomId}`,
-        fail: (err) => {
-          wx.showToast({ title: '页面跳转失败', icon: 'none' });
-        }
-      });
+      // 时间投票 - 未参与跳转填写页，已参与跳转结果页
+      const hasVotedSchedule = activity?.hasVoted || activity?.participantCount > 0;
+      if (hasVotedSchedule) {
+        // 已参与过（包括发起人自己填写后），查看结果
+        wx.navigateTo({
+          url: `/package-schedule/pages/schedule-vote/result/result?voteId=${roomId}`,
+          fail: (err) => {
+            wx.showToast({ title: '页面跳转失败', icon: 'none' });
+          }
+        });
+      } else {
+        // 未参与，先去填写
+        wx.navigateTo({
+          url: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${roomId}&title=${encodeURIComponent(activity?.title || '')}`,
+          fail: (err) => {
+            wx.showToast({ title: '页面跳转失败', icon: 'none' });
+          }
+        });
+      }
     } else if (activityType === 'group') {
       // 拼单活动 - 跳转到拼单详情页
       wx.navigateTo({
@@ -1315,7 +1333,6 @@ Page({
           }
         });
       } else {
-        // 如果没有shopId，尝试用appointmentId跳转
         console.warn('goToDetail约饭活动缺少shopId:', { roomId, activity });
         wx.navigateTo({
           url: `/package-shop/pages/shop-detail/shop-detail?appointmentId=${roomId}`,
@@ -1325,9 +1342,13 @@ Page({
         });
       }
     } else {
-      // 聚餐投票活动
+      // 聚餐投票活动 - 已参与则只读模式，否则正常投票页
+      // 非发起人通过卡片进入，视为分享来源（可绕过仅好友可见限制）
+      const isCreatorAccess = activity?.isCreator || false;
+      const readonlyParam = isParticipated ? '&readonly=1' : '';
+      const shareFromParam = (!isCreatorAccess && !isParticipated) ? '&shareFrom=1' : '';
       wx.navigateTo({
-        url: `/package-vote/pages/vote/vote?roomId=${roomId}`,
+        url: `/package-vote/pages/vote/vote?roomId=${roomId}${readonlyParam}${shareFromParam}`,
         fail: (err) => {
           wx.showToast({ title: '跳转失败', icon: 'none' });
         }
@@ -1761,10 +1782,15 @@ Page({
   onCardTap(e) {
     const { id, index, type, listType } = e.currentTarget.dataset;
     const { isEditMode } = this.data;
-    
+
     if (!isEditMode) {
-      // 非编辑模式下，进入详情页
-      this.goToActivityDetail({ currentTarget: { dataset: { id, type } } });
+      // 查找活动获取参与状态
+      const listKey = listType === 'ongoing' ? 'ongoingActivities' :
+                      listType === 'my' ? 'myActivities' :
+                      listType === 'participated' ? 'participatedActivities' : 'historyActivities';
+      const activity = this.data[listKey]?.[index];
+      // 非编辑模式下，进入详情页（携带参与状态）
+      this.goToActivityDetail({ currentTarget: { dataset: { id, type, hasVoted: activity?.hasVoted, hasJoined: activity?.hasJoined } } });
     } else {
       // 编辑模式下，切换选中状态
       this.toggleSelect({ currentTarget: { dataset: { index, type: listType } } });

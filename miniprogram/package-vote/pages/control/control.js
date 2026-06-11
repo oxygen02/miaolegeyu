@@ -603,7 +603,7 @@ Page({
     // 降级：使用原始 roomId
     return {
       title: this.data.roomTitle,
-      path: `/package-vote/pages/vote/vote?roomId=${this.data.roomId}`,
+      path: `/package-vote/pages/vote/vote?roomId=${this.data.roomId}&shareFrom=1`,
       imageUrl: imagePaths.misc.juzeAvatar
     };
   },

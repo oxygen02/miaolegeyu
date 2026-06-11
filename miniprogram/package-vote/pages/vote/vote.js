@@ -70,7 +70,9 @@ Page({
     showVoteResult: false,
     voteResult: {},
     // 分享来源（谁分享的链接）
-    shareFrom: ''
+    shareFrom: '',
+    // 只读模式（已参与用户查看自己的投票结果）
+    isReadonly: false
   },
 
   async onLoad(options) {
@@ -87,7 +89,12 @@ Page({
     });
 
     // 解析参数：支持 roomId 直接传入或 shareCode 分享码
-    let { roomId, shareFrom, shareCode } = options;
+    let { roomId, shareFrom, shareCode, readonly } = options;
+
+    // 只读模式
+    if (readonly === '1' || readonly === 1 || readonly === true) {
+      this.setData({ isReadonly: true });
+    }
 
     // 如果传入的是 shareCode，先解析获取 roomId
     if (shareCode && !roomId) {
@@ -99,6 +106,8 @@ Page({
         if (result && result.success && result.rooms && result.rooms.length > 0) {
           roomId = result.rooms[0].roomId;
           console.log('[vote] 通过 shareCode 解析到 roomId:', roomId);
+          // 通过分享码进入，视为分享来源（绕过好友限制）
+          shareFrom = shareFrom || '1';
         } else {
           wx.showToast({ title: '分享链接已过期', icon: 'none' });
           setTimeout(() => wx.navigateBack(), 1500);
@@ -376,7 +385,8 @@ Page({
         name: 'getRoom',
         data: {
           roomId,
-          isFromShare: this.data.shareFrom === '1' || this.data.shareFrom === 1
+          // 任何非空的 shareFrom 值都视为来自分享链接（包括 openId、'1' 等）
+          isFromShare: !!this.data.shareFrom
         }
       });
 
@@ -414,7 +424,7 @@ Page({
             name: 'getRoom',
             data: {
               roomId,
-              isFromShare: this.data.shareFrom === '1' || this.data.shareFrom === 1
+              isFromShare: !!this.data.shareFrom
             }
           });
           if (refreshResult.code === 0) {
@@ -510,11 +520,65 @@ Page({
         });
       }
 
+      // 只读模式：恢复用户已提交的投票状态
+      if (this.data.isReadonly && room.myVoteDetail) {
+        this._applyReadonlyState(room);
+      }
+
       wx.hideLoading();
     } catch (err) {
       wx.hideLoading();
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
     }
+  },
+
+  // 只读模式：恢复用户已提交的投票状态到UI
+  _applyReadonlyState(room) {
+    const detail = room.myVoteDetail;
+    if (!detail) return;
+
+    if (this.data.mode === 'a') {
+      // Mode A: 恢复 liked/vetoed 状态
+      const posters = this.data.posters.map((p, index) => ({
+        ...p,
+        isLiked: detail.likedIndices.includes(index),
+        isVetoed: detail.vetoedIndices.includes(index)
+      }));
+      // 跳到最后一张已操作的卡片，或保持第一张
+      const lastLikedIndex = detail.likedIndices.length > 0
+        ? Math.max(...detail.likedIndices)
+        : (detail.vetoedIndices.length > 0 ? Math.max(...detail.vetoedIndices) : 0);
+      this.setData({
+        posters,
+        currentIndex: Math.min(lastLikedIndex + 1, posters.length - 1),
+        likedIndices: detail.likedIndices || [],
+        vetoedIndices: detail.vetoedIndices || []
+      });
+    } else if (this.data.mode === 'b') {
+      // Mode B: 恢复分类选择状态
+      const categoryCards = this.data.categoryCards.map(cat => ({
+        ...cat,
+        isSelected: detail.selectedCategoryIds.includes(cat.id || cat.index)
+      }));
+      this.setData({
+        categoryCards,
+        selectedCategoryIds: detail.selectedCategoryIds || [],
+        selectedSubCategories: detail.selectedSubCategories || {},
+        selectedHardTaboos: detail.selectedHardTaboos || []
+      });
+      // 如果已选了大类，进入细类选择步骤
+      if (detail.selectedCategoryIds && detail.selectedCategoryIds.length > 0) {
+        this.setData({ currentStep: 'subcategory' });
+      }
+    }
+
+    console.log('[vote] 已恢复只读投票状态', detail);
+  },
+
+  // 退出只读模式，允许编辑修改投票
+  enableEdit() {
+    this.setData({ isReadonly: false });
+    console.log('[vote] 已退出只读模式，可编辑');
   },
 
   // 处理模拟房间数据
@@ -607,21 +671,21 @@ Page({
       wx.hideLoading();
       this.setData({ isJoining: false });
 
-      if (result.code === 0) {
-        // 加入成功，关闭密码弹窗并重新加载房间数据
+      if (result.code === 0 || result.msg === '您已在该房间中') {
+        // 加入成功 或 已在房间中：关闭密码弹窗并重新加载房间数据
         this.setData({
           showPasswordModal: false,
           inputPassword: ''
         });
-        wx.showToast({ title: '加入成功', icon: 'success' });
-        // 重新加载房间数据
+        wx.showToast({ title: result.code === 0 ? '加入成功' : '欢迎回来', icon: 'success' });
+        // 重新加载房间数据（确保拿到完整的参与者状态和海报数据）
         const pwTimer = setTimeout(() => {
           this.loadRoomData(roomId);
         }, 1000);
         this._timers = this._timers || [];
         this._timers.push(pwTimer);
       } else {
-        wx.showToast({ title: result.msg || '密码错误', icon: 'none' });
+        wx.showToast({ title: result.msg || '加入失败', icon: 'none' });
       }
     } catch (err) {
       wx.hideLoading();

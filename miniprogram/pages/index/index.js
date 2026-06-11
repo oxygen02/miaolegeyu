@@ -394,7 +394,7 @@ Page({
   enterRoom(e) {
     const { id } = e.currentTarget.dataset;
     audioManager.playPawTap();
-    wx.navigateTo({ url: `/package-vote/pages/vote/vote?roomId=${id}` });
+    wx.navigateTo({ url: `/package-vote/pages/vote/vote?roomId=${id}&shareFrom=1` });
   },
 
   viewAllRecent() {
@@ -408,7 +408,7 @@ Page({
         // 约饭活动 - 跳转到店铺详情页
         wx.navigateTo({ url: `/package-shop/pages/shop-detail/shop-detail?id=${shopId}` });
       } else {
-        wx.navigateTo({ url: `/package-vote/pages/vote/vote?roomId=${appointmentId}` });
+        wx.navigateTo({ url: `/package-vote/pages/vote/vote?roomId=${appointmentId}&shareFrom=1` });
       }
       return;
     }

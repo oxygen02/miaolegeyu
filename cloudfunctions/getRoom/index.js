@@ -72,49 +72,56 @@ exports.main = async (event) => {
     }
 
     // 可见性校验：如果不是创建者且不是参与者，需要检查可见性权限
-    // 注意：通过分享链接进入的用户（isFromShare=true）可绕过好友限制
-    // 参与者（包括之前参与过退出的）可以重新进入
-    // 特殊情况：creatorOpenId为空的旧数据（发起人退出后被清空），放宽限制
-    if (!isFromShare && !isCreator && !isParticipant) {
-      const visibility = room.visibility || 'friends';
+  // 注意：通过分享链接进入的用户（isFromShare=true）可绕过好友限制
+  // 参与者（包括之前参与过退出的）可以重新进入
+  // 特殊情况：creatorOpenId为空的旧数据（发起人退出后被清空），放宽限制
+  console.log('[getRoom] 可见性检查 - isFromShare:', isFromShare, 'isCreator:', isCreator, 'isParticipant:', isParticipant, 'visibility:', room.visibility || 'friends');
 
-      // "仅通过分享"的活动：拒绝直接访问，必须通过分享链
-      if (visibility === 'share') {
+  if (!isFromShare && !isCreator && !isParticipant) {
+    const visibility = room.visibility || 'friends';
+
+    // "仅通过分享"的活动：拒绝直接访问，必须通过分享链接
+    if (visibility === 'share') {
+      console.log('[getRoom] 拒绝访问 - 该活动仅通过分享链接访问, visibility=share');
+      return {
+        code: 403,
+        msg: '该活动仅通过分享链接访问'
+      };
+    }
+
+    // "仅好友可见"的活动：检查是否是好友
+    // 但如果是旧数据（creatorOpenId为空）或房间无参与者，放行以兼容
+    // 关键：如果用户是通过分享链接进入的（isFromShare=true），直接放行
+    if (visibility === 'friends' && room.creatorOpenId && !isFromShare) {
+      // 获取当前用户的好友列表
+      let isFriend = false;
+      try {
+        const { data: users } = await db.collection('users')
+          .where({ _openid: wxContext.OPENID })
+          .field({ friendOpenids: true })
+          .limit(1)
+          .get();
+        if (users && users.length > 0) {
+          const friendOpenids = users[0].friendOpenids || [];
+          isFriend = friendOpenids.includes(room.creatorOpenId);
+        }
+      } catch (err) {
+        console.error('获取好友列表失败:', err);
+      }
+
+      if (!isFriend) {
+        console.log('[getRoom] 拒绝访问 - 该活动仅好友可见, 非好友用户尝试访问, creatorOpenId:', room.creatorOpenId);
         return {
           code: 403,
-          msg: '该活动仅通过分享链接访问'
+          msg: '该活动仅好友可见'
         };
       }
-
-      // "仅好友可见"的活动：检查是否是好友
-      // 但如果是旧数据（creatorOpenId为空）或房间无参与者，放行以兼容
-      if (visibility === 'friends' && room.creatorOpenId) {
-        // 获取当前用户的好友列表
-        let isFriend = false;
-        try {
-          const { data: users } = await db.collection('users')
-            .where({ _openid: wxContext.OPENID })
-            .field({ friendOpenids: true })
-            .limit(1)
-            .get();
-          if (users && users.length > 0) {
-            const friendOpenids = users[0].friendOpenids || [];
-            isFriend = friendOpenids.includes(room.creatorOpenId);
-          }
-        } catch (err) {
-          console.error('获取好友列表失败:', err);
-        }
-
-        if (!isFriend) {
-          return {
-            code: 403,
-            msg: '该活动仅好友可见'
-          };
-        }
-      }
-      // "公开"活动（visibility === 'public' 或无 visibility 字段）：允许访问
-      // creatorOpenId为空的旧数据：也允许访问（兼容已退出发起人的重新进入）
     }
+    // "公开"活动（visibility === 'public' 或无 visibility 字段）：允许访问
+    // creatorOpenId为空的旧数据：也允许访问（兼容已退出发起人的重新进入）
+  } else {
+    console.log('[getRoom] 放行访问 - 原因:', isFromShare ? '来自分享链接' : (isCreator ? '是创建者' : '是参与者'));
+  }
 
     // 获取参与者列表
     let participants = [];
@@ -236,6 +243,19 @@ exports.main = async (event) => {
     const currentParticipant = participants.find(p => p.openid === wxContext.OPENID);
     const hasVoted = currentParticipant && currentParticipant.status === 'voted';
 
+    // 获取当前用户的投票详情（用于只读模式展示）
+    let myVoteDetail = null;
+    if (currentParticipant) {
+      myVoteDetail = {
+        likedIndices: currentParticipant.likedIndices || [],
+        vetoedIndices: currentParticipant.vetoedIndices || [],
+        // Mode B 投票详情
+        selectedCategoryIds: currentParticipant.selectedCategoryIds || [],
+        selectedSubCategories: currentParticipant.selectedSubCategories || {},
+        selectedHardTaboos: currentParticipant.selectedHardTaboos || []
+      };
+    }
+
     // 如果是拼单模式，获取拼单参与数据
     let groupOrderParticipants = [];
     let optionStats = [];
@@ -311,7 +331,9 @@ exports.main = async (event) => {
         optionStats,
         hasJoinedGroupOrder,
         mySelectedOption,
-        mySelectedOptions
+        mySelectedOptions,
+        // 当前用户的投票详情（用于只读模式展示）
+        myVoteDetail
       },
       msg: '获取成功'
     };

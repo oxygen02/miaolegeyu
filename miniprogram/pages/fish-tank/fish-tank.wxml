@@ -150,11 +150,9 @@ module.exports = {
             <view class="spacer" wx:else></view>
             <!-- 正常模式：显示参加/修改投票/填写/退出按钮 -->
             <view class="action-btns-col" wx:if="{{!isEditMode}}">
-              <!-- 调试：临时显示 hasVoted 值（确认后删除此行） -->
-              <text style="color:red;font-size:20px;margin:2px 0;" wx:if="{{item.type !== 'scheduleVote'}}">[DEBUG hasVoted={{item.hasVoted}} joined={{item.hasJoined}}]</text>
               <!-- 聚餐/拼单活动按钮 -->
               <block wx:if="{{item.type !== 'scheduleVote'}}">
-                <button class="btn btn-warning btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{item.hasVoted}}">修改投票</button>
+                <button class="btn btn-warning btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:if="{{item.hasVoted || item.hasJoined}}">修改投票</button>
                 <button class="btn btn-primary btn-small" catchtap="joinActivity" data-id="{{item.id}}" data-type="{{item.type}}" wx:else>立即参加</button>
               </block>
               <!-- 时间投票按钮 -->

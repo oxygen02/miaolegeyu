@@ -114,6 +114,8 @@ exports.main = async (event, context) => {
 
     const vote = votes[0];
 
+    console.log('[getScheduleVote] 查询到投票:', vote._id, '参与者数:', (vote.participants || []).length);
+
     // 计算共识
     const consensusSlots = calculateConsensus(vote.participants || [], vote.allSlots || []);
 
@@ -125,6 +127,8 @@ exports.main = async (event, context) => {
     // 检查当前用户是否已参与
     const myParticipation = vote.participants?.find(p => p.openId === OPENID);
     const myVote = vote.votes?.find(v => v.openId === OPENID);
+
+    console.log('[getScheduleVote] 当前用户:', OPENID, '是否参与:', !!myParticipation, '是否投票:', !!myVote);
 
     // 匿名处理
     let participants = vote.participants || [];

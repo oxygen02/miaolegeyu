@@ -146,25 +146,39 @@ Page({
         data: { voteId }
       });
 
+      console.log('[result] getScheduleVote 返回:', JSON.stringify({
+        success: result.success,
+        voteTitle: result.vote?.title,
+        participantCount: result.participants?.length,
+        hasMyParticipation: !!result.myParticipation,
+        isCreator: result.vote?.isCreator
+      }));
+
       if (result.success) {
         const vote = result.vote;
         const weeks = this.generateWeeks(vote.candidateDates);
-        const participants = this.processParticipants(vote.participants || [], vote.candidateDates);
+        // 使用云函数返回的 participants（经过匿名处理），而非 vote 对象中的原始数据
+        const participants = this.processParticipants(result.participants || [], vote.candidateDates);
         const summary = this.calcSummary(participants, vote.candidateDates);
         const recommendations = this.calcRecommendations(summary, vote.candidateDates);
 
-        // 检查当前用户是否已参与
-        const hasParticipated = participants.some(p => p.openId === vote.creatorOpenId || p.name !== '匿名用户');
-        
+        console.log('[result] 处理后数据:', {
+          weeksCount: weeks.length,
+          participantsCount: participants.length,
+          recommendationsCount: recommendations.length
+        });
+
+        // 使用服务端返回的 myParticipation/myVote 判断当前用户是否已参与
         this.setData({
           vote,
           weeks,
           participants,
           summary,
           recommendations,
-          hasParticipated: result.myParticipation ? true : false
+          hasParticipated: !!(result.myParticipation || result.myVote)
         });
       } else {
+        console.error('[result] getScheduleVote 失败:', result.error);
         wx.showToast({ title: result.error || '加载失败', icon: 'none' });
       }
     } catch (err) {
@@ -359,21 +373,21 @@ Page({
     });
   },
 
-  // 查看我的时间投票列表
+  // 查看我的时间投票列表（profile 是 tabBar 页面，必须用 switchTab）
   goMyScheduleVotes() {
-    wx.navigateTo({
+    wx.switchTab({
       url: '/pages/profile/profile'
     });
   },
 
   // 分享
 onShareAppMessage() {
-const { vote, voteId } = this.data;
-return {
-title: `📅 ${vote?.title || '时间投票'}`,
-path: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${voteId}&title=${encodeURIComponent(vote?.title || '')}`,
-imageUrl: imagePaths.banners.faqijucan
-};
+  const { vote, voteId } = this.data;
+  return {
+    title: `📅 ${vote?.title || '时间投票'}`,
+    path: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${voteId}&shareFrom=1`,
+    imageUrl: imagePaths.banners.faqijucan
+  };
 },
 
 // 举报时间投票

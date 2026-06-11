@@ -30,10 +30,81 @@ function containsSensitive(text) {
 }
 
 exports.main = async (event) => {
-  const { limit = 100, status = 'active', shopId, shareCode = '' } = event;
+  const { limit = 100, status = 'active', shopId, shareCode = '', appointmentId } = event;
   const { OPENID: currentOpenId } = cloud.getWXContext();
 
   try {
+    // 如果指定了 appointmentId（通过分享链接进入），直接按ID查询，不做隐私过滤
+    if (appointmentId) {
+      console.log('[getDiningAppointments] 通过appointmentId直查:', appointmentId);
+      const { data: aptData } = await db.collection('dining_appointments')
+        .where({ _id: appointmentId })
+        .limit(1)
+        .get();
+
+      if (!aptData || aptData.length === 0) {
+        return { success: false, error: '约饭活动不存在或已删除', appointments: [] };
+      }
+
+      const apt = aptData[0];
+      const participants = (apt.participants || []).map(p => ({
+        openId: p.openid || p.openId,
+        name: p.name || '神秘喵友',
+        avatar: p.avatar || ''
+      }));
+
+      // 获取店铺图片
+      let shopImage = '';
+      try {
+        const { data: shops } = await db.collection('shops')
+          .where({ _id: apt.shopId })
+          .limit(1)
+          .get();
+        if (shops && shops.length > 0) {
+          shopImage = shops[0].image || shops[0].coverImage || shops[0].posterImage || '';
+        }
+      } catch (e) { /* ignore */ }
+
+      let deadlineDate = new Date(apt.deadline);
+      if (!apt.tzFixed) {
+        deadlineDate = new Date(deadlineDate.getTime() - 8 * 60 * 60 * 1000);
+      }
+      const now = new Date();
+      const remainingTime = deadlineDate.getTime() - now.getTime();
+
+      return {
+        success: true,
+        appointments: [{
+          _id: apt._id,
+          roomId: apt._id,
+          shopId: apt.shopId || '',
+          title: apt.shopName || '约饭活动',
+          status: 'voting',
+          mode: 'meal',
+          shopName: apt.shopName || '未知店铺',
+          shopImage: shopImage,
+          location: apt.shopName || '',
+          appointmentTime: apt.appointmentTime,
+          activityTime: apt.appointmentTime ? apt.appointmentTime : '时间待定',
+          deadline: apt.deadline ? apt.deadline : '',
+          remainingTime: remainingTime > 0 ? remainingTime : 0,
+          participantCount: participants.length,
+          maxParticipants: apt.maxParticipants || 0,
+          note: apt.note || '',
+          paymentMode: apt.paymentMode || '',
+          createdAt: apt.createTime,
+          creatorNickName: apt.initiatorName || '神秘喵友',
+          creatorAvatarUrl: apt.initiatorAvatar || '',
+          initiatorOpenId: apt.initiatorOpenId || '',
+          initiatorName: apt.initiatorName || '神秘喵友',
+          initiatorAvatar: apt.initiatorAvatar || '',
+          participants: participants,
+          isAppointment: true,
+          isFromShare: true
+        }]
+      };
+    }
+
     const now = new Date();
     
     // 基础查询条件

@@ -28,6 +28,13 @@
 
     <!-- ====== 汇总视图 ====== -->
     <block wx:if="{{viewMode === 'summary'}}">
+      <!-- 暂无参与数据提示 -->
+      <view class="notice-card anim-slide-up delay-2" wx:if="{{participants.length === 0}}">
+        <text class="notice-text">还没有人填写时间，快去邀请好友吧</text>
+        <button class="btn btn-small btn-primary" bindtap="goFill">去填写</button>
+        <button class="btn btn-small btn-outline" open-type="share" style="margin-top: 12rpx;">邀请好友填写</button>
+      </view>
+
       <!-- 推荐日期 -->
       <view class="recommend-section anim-slide-up delay-2" wx:if="{{recommendations.length > 0}}">
         <view class="section-title">🏆 推荐日期</view>

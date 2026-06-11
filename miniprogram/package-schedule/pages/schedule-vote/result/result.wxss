@@ -201,16 +201,18 @@
 }
 
 .confirm-btn {
-  position: absolute;
-  bottom: -16rpx;
-  right: 24rpx;
   font-size: 24rpx;
-  padding: 10rpx 24rpx;
+  line-height: 56rpx;
+  height: 56rpx;
+  padding: 0 28rpx;
   background: var(--primary);
   color: #fff;
-  border-radius: 24rpx;
+  border-radius: 28rpx;
   border: 3rpx solid #3D3D3D;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .confirm-btn::after {

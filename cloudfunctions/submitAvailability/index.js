@@ -20,6 +20,8 @@ exports.main = async (event, context) => {
 
     const vote = votes[0];
 
+    console.log('[submitAvailability] 投票ID:', voteId, '当前参与者数:', (vote.participants || []).length, '操作用户:', OPENID);
+
     // 检查是否已截止
     const now = new Date();
     const deadline = new Date(vote.deadline);
@@ -64,6 +66,8 @@ exports.main = async (event, context) => {
         updatedAt: db.serverDate()
       }
     });
+
+    console.log('[submitAvailability] 提交成功! 更新后参与者数:', participants.length);
 
     return {
       success: true,

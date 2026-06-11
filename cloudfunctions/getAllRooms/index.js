@@ -371,13 +371,11 @@ async function queryByShareChain(shareCode, baseWhereClause, limit) {
     }
 
     const chain = chains[0];
-    
-    // 查询被分享的房间
+
+    // 通过分享码进入时，直接按roomId精确查询，不做隐私过滤
+    // （分享码本身已验证合法性，持有者应有权访问）
     const { data: rooms } = await db.collection('rooms')
-      .where(_.and([
-        baseWhereClause,
-        { roomId: chain.roomId }
-      ]))
+      .where({ roomId: chain.roomId })
       .limit(1)
       .get();
 

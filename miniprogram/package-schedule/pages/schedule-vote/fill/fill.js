@@ -27,11 +27,15 @@ Page({
     dateConflicts: {},
     MIN_REQUIRED_DATES,
     filledCount: 0,
+    // 已参与人数
+    participantCount: 0,
     // 冲突提示弹窗
     showConflictModal: false,
     conflictModalData: null,
     // 待处理的选中操作（用户确认后执行）
-    pendingSelect: null
+    pendingSelect: null,
+    // 本地缓存 key 前缀
+    CACHE_PREFIX: 'schedule_fill_'
   },
 
   onLoad(options) {
@@ -59,12 +63,20 @@ Page({
         this.setData({
           voteData: vote,
           weeks,
-          dateStates
+          dateStates,
+          participantCount: vote.participantCount || result.participants?.length || 0
         });
 
-        // 恢复已提交数据
+        // 恢复已提交数据（服务端已保存的）
         if (result.myParticipation) {
           this.restoreParticipation(result.myParticipation, weeks);
+        }
+
+        // 本地草稿优先级更高（用户未提交的最新修改）
+        const draftStates = this._loadDraft();
+        if (draftStates) {
+          this.setData({ dateStates: draftStates });
+          console.log('[fill] 使用本地草稿恢复');
         }
 
         this.updateSummary();
@@ -186,6 +198,47 @@ Page({
     this.setData({ dateStates });
   },
 
+  // ====== 本地草稿缓存（防止意外退出丢失）======
+  // 获取当前投票的缓存 key
+  _cacheKey() {
+    return `${this.data.CACHE_PREFIX}${this.data.voteId}`;
+  },
+
+  // 保存草稿到本地存储
+  _saveDraft() {
+    try {
+      wx.setStorageSync(this._cacheKey(), {
+        voteId: this.data.voteId,
+        dateStates: this.data.dateStates,
+        savedAt: Date.now()
+      });
+    } catch (e) {
+      // 缓存写入失败不影响主流程
+    }
+  },
+
+  // 从本地存储加载草稿
+  _loadDraft() {
+    try {
+      const cached = wx.getStorageSync(this._cacheKey());
+      if (cached && cached.voteId === this.data.voteId && cached.dateStates) {
+        // 缓存有效期 7 天
+        if (Date.now() - cached.savedAt < 7 * 24 * 60 * 60 * 1000) {
+          console.log('[fill] 恢复本地草稿');
+          return cached.dateStates;
+        }
+      }
+    } catch (e) { /* ignore */ }
+    return null;
+  },
+
+  // 清除草稿缓存
+  _clearDraft() {
+    try {
+      wx.removeStorageSync(this._cacheKey());
+    } catch (e) { /* ignore */ }
+  },
+
   // 选择/取消级别
   selectLevel(e) {
     const { date, level } = e.currentTarget.dataset;
@@ -198,6 +251,7 @@ Page({
       dateStates[date] = null;
       this.setData({ dateStates });
       this.updateSummary();
+      this._saveDraft();
       return;
     }
 
@@ -215,6 +269,7 @@ Page({
     dateStates[date] = targetLevel;
     this.setData({ dateStates });
     this.updateSummary();
+    this._saveDraft();
   },
 
   // 显示冲突提示
@@ -247,6 +302,7 @@ Page({
           dateStates[date] = targetLevel;
           this.setData({ dateStates });
           this.updateSummary();
+          this._saveDraft();
         }
       }
     });
@@ -310,6 +366,8 @@ Page({
       });
 
       if (result.success) {
+        // 提交成功，清除本地草稿
+        this._clearDraft();
         wx.showToast({ title: '提交成功', icon: 'success' });
         setTimeout(() => {
         wx.redirectTo({
@@ -338,7 +396,7 @@ Page({
     const { voteData, voteId } = this.data;
     return {
       title: `📅 ${voteData?.title || '时间投票'} - 来选择你的可用时间`,
-      path: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${voteId}&title=${encodeURIComponent(voteData?.title || '')}`,
+      path: `/package-schedule/pages/schedule-vote/fill/fill?voteId=${voteId}&title=${encodeURIComponent(voteData?.title || '')}&shareFrom=1`,
       imageUrl: imagePaths.banners.faqijucan
     };
   }
