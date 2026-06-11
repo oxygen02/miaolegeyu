@@ -51,9 +51,8 @@
               </view>
             </view>
             <view class="rec-score">{{item.okRate * 100}}%</view>
-            <!-- 发起人确认按钮 -->
-            <button class="confirm-btn" wx:if="{{vote.isCreator && !vote.isExpired && index === 0}}"
-                    bindtap="confirmDate" data-date="{{item.date}}">确认选这个</button>
+            <!-- 首选日期标签 -->
+            <view class="preferred-badge" wx:if="{{index === 0}}">首选日期</view>
           </view>
         </view>
       </view>
