@@ -261,7 +261,11 @@
 /* 级别列基础背景 */
 .cell-level {
   min-height: 110rpx;
+  min-width: 120rpx;
+  padding: 20rpx 8rpx;
   background: transparent;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .cell-level.level-conflict { background: #F8F8F8; }
@@ -363,8 +367,8 @@
   left: 0;
   right: 0;
   padding: 20rpx 32rpx;
-  background: linear-gradient(to top, var(--bg) 80%, transparent);
-  z-index: 100;
+  background: var(--bg);
+  z-index: 10;
   display: flex;
   flex-direction: column;
   gap: 12rpx;
