@@ -455,12 +455,17 @@
 /* 按钮 */
 .btn-small {
   font-size: 24rpx;
-  padding: 12rpx 28rpx !important;
-  border-radius: 24rpx !important;
+  padding: 0 28rpx !important;
+  height: 64rpx !important;
+  line-height: 58rpx !important;
+  border-radius: 32rpx !important;
   white-space: nowrap !important;
   min-width: 120rpx !important;
   border: 3rpx solid #3D3D3D !important;
-  box-shadow: 2rpx 2px 0 #3D3D3D !important;
+  box-shadow: 2rpx 2rpx 0 #3D3D3D !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .btn-primary {
