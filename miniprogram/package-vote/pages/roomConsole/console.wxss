@@ -11,7 +11,9 @@ page {
   height: 220rpx;
   background: linear-gradient(135deg, #FFB75E 0%, #FF9F43 50%, #E8913A 100%);
   border-radius: 0 0 48rpx 48rpx;
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 50;
   overflow: hidden;
 }
 

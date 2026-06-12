@@ -521,6 +521,11 @@ Page({
       }
 
       // 只读模式：恢复用户已提交的投票状态
+      // 如果服务端返回了 myVoteDetail，说明用户已投过票，自动进入只读模式
+      if (room.myVoteDetail && !this.data.isReadonly) {
+        console.log('[vote] 检测到用户已投票，自动切换到只读模式');
+        this.setData({ isReadonly: true });
+      }
       if (this.data.isReadonly && room.myVoteDetail) {
         this._applyReadonlyState(room);
       }

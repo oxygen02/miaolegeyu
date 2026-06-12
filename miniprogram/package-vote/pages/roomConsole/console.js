@@ -89,15 +89,22 @@ Page({
     wx.cloud.callFunction({
       name: 'getRoomDetail',
       data: { roomId },
-      timeout: 5000
+      timeout: 8000
     }).then(res => {
+      console.log('[console] getRoomDetail 返回:', JSON.stringify(res.result).substring(0, 500));
       if (res.result && res.result.code === 0 && res.result.data) {
         const room = res.result.data;
         const isAnon = room.isAnonymous || false;
-        const participants = (room.participants || []).map((p, idx) => ({
+        const rawParticipants = room.participants || [];
+        console.log('[console] 原始参与者数量:', rawParticipants.length);
+
+        // 使用服务端计算的统计数据（优先级高于前端二次计算）
+        const stats = room.stats || {};
+        const participants = rawParticipants.map((p, idx) => ({
           ...p,
           anonName: ANON_NAMES[idx % ANON_NAMES.length] + (idx >= ANON_NAMES.length ? (idx + 1) : '')
         }));
+
         this.setData({
           roomCode: room.roomCode || '',
           roomTitle: room.title || '',
@@ -107,9 +114,18 @@ Page({
           statusText: this.getStatusText(room.status),
           isAnonymous: isAnon,
           participants: participants,
-          voteDeadline: room.deadline || room.voteDeadline || null
+          voteDeadline: room.deadline || room.voteDeadline || null,
+          // 优先使用服务端统计
+          votedCount: stats.votedCount != null ? stats.votedCount : undefined,
+          unvotedCount: stats.unvotedCount != null ? stats.unvotedCount : undefined,
+          progressPercent: stats.progressPercent != null ? stats.progressPercent : undefined,
+          topOptions: room.topOptions || []
         });
-        this.calculateStats(participants);
+
+        // 只有当服务端没有返回统计时才用前端计算兜底
+        if (stats.votedCount == null) {
+          this.calculateStats(participants);
+        }
         this.startCountdown();
         if (room.status === 'voting') {
           this.fetchVoteStats(roomId);
@@ -117,8 +133,15 @@ Page({
         if (room.status === 'locked') {
           this.loadLockedResult(roomId);
         }
+      } else {
+        // 服务端返回异常
+        console.warn('[console] getRoomDetail 异常:', res.result?.msg || '未知错误');
+        if (res.result?.code === 403) {
+          wx.showToast({ title: '仅房主可查看控制台', icon: 'none' });
+        }
       }
     }).catch(err => {
+      console.error('[console] getRoomDetail 网络异常:', err);
     });
   },
 

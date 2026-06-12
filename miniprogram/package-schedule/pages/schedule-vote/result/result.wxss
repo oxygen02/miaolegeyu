@@ -202,11 +202,9 @@
 
 /* 首选日期标签 */
 .preferred-badge {
-  font-size: 22rpx;
-  line-height: 1.4;
-  height: auto;
-  min-height: 56rpx;
-  padding: 10rpx 24rpx;
+  height: 56rpx;
+  line-height: 50rpx;
+  padding: 0 24rpx;
   background: var(--primary);
   color: #fff;
   border-radius: 28rpx;
@@ -215,10 +213,13 @@
   white-space: nowrap;
   flex-shrink: 0;
   margin-left: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-sizing: border-box;
   box-shadow: 2rpx 2rpx 0 #3D3D3D;
+}
+
+.preferred-badge-text {
+  font-size: 22rpx;
+  line-height: 50rpx;
 }
 
 /* 汇总矩阵 */
