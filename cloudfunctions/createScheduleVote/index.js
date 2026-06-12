@@ -161,7 +161,7 @@ exports.main = async (event, context) => {
         timePeriod: normalizedTimePeriod,
         minParticipants: parseInt(minParticipants) || 2,
         deadline: deadline ? new Date(deadline) : null,
-        anonymous: anonymous !== false, // 默认匿名
+        anonymous: !!anonymous, // 按实际传入值，默认不匿名
         status: 'voting', // voting / closed / confirmed
         allSlots,
         participants: [],

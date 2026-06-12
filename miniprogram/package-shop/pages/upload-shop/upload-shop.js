@@ -541,7 +541,9 @@ Page({
         platformUrl: this.data.platformUrl.trim(),
         rating: this.data.rating,
         images: imageFileIDs,  // 确保使用有效的fileIDs
-        isAnonymous: this.data.isAnonymous
+        isAnonymous: this.data.isAnonymous,
+        uploaderName: this.data.isAnonymous ? '' : (wx.getStorageSync('nickName') || ''),
+        uploaderAvatar: this.data.isAnonymous ? '' : (wx.getStorageSync('avatarUrl') || '')
       };
 
       let result;

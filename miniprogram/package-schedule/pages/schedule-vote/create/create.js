@@ -29,7 +29,7 @@ Page({
     // 截止日期选项
     deadlineDateOptions: [],
     // 匿名投票
-    anonymous: true,
+    anonymous: false,
     loading: false
   },
 
