@@ -13,7 +13,7 @@
   flex-direction: column;
   align-items: center;
   padding: 32rpx 32rpx 48rpx;
-  background: linear-gradient(180deg, #FF9F43 0%, #FFB347 100%);
+  background: linear-gradient(180deg, #FF9F43 0%, #FFB347 70%, #FFF8F0 100%);
   position: relative;
   min-height: 200rpx;
 }
