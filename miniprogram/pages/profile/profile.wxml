@@ -40,6 +40,9 @@ module.exports = {
 
   <!-- 数据统计 - 紧凑五列 -->
   <view class="stats-section">
+    <view class="console-title">
+      <text class="console-title-text">发起人控制台</text>
+    </view>
     <view class="stats-grid">
       <view class="stat-item" bindtap="showMyRooms">
         <text class="stat-num">{{stats.myRooms}}</text>
