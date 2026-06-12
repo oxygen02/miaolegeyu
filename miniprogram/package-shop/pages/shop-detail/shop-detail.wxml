@@ -29,7 +29,7 @@
         <!-- 图片居中操作按钮组 -->
         <view class="image-actions-center">
           <view class="action-btn-circle" wx:if="{{shop.platformUrl}}" bindtap="openPlatformLink">
-            <image class="action-icon-svg" src="/assets/images/shop-icon.svg" mode="aspectFit" />
+            <text class="action-text-btn">平台</text>
           </view>
           <view class="action-btn-circle" bindtap="toggleFavorite">
             <text class="action-icon {{isFavorited ? 'favorited' : ''}}">{{isFavorited ? '★' : '☆'}}</text>

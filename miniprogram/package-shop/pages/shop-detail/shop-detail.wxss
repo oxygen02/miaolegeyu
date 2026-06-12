@@ -101,6 +101,12 @@
   height: 40rpx;
 }
 
+.action-text-btn {
+  font-size: 22rpx;
+  color: #FF9F43;
+  font-weight: 600;
+}
+
 /* 图片区域 - 高度增加120px(240rpx) */
 .image-section {
   position: relative;
