@@ -77,6 +77,8 @@ exports.main = async (event) => {
           .get();
 
         const fallbackRoomIds = creatorParticipants.map(p => p.roomId).filter(Boolean);
+        console.log('[getMyRooms] 备选查询(role=creator)找到房间数:', fallbackRoomIds.length);
+
         if (fallbackRoomIds.length > 0) {
           let fallbackWhere = { roomId: _.in(fallbackRoomIds) };
           if (status === 'voting') {
@@ -94,6 +96,29 @@ exports.main = async (event) => {
           }
           const fallbackRes = await db.collection('rooms').where(fallbackWhere).orderBy('createdAt', 'desc').get();
           rooms = fallbackRes.data || [];
+          console.log('[getMyRooms] 备选查询返回房间数:', rooms.length);
+        }
+
+        // 第二层兜底：如果 role=creator 也查不到，尝试查 room_participants 中所有该用户的记录
+        if ((!rooms || rooms.length === 0)) {
+          const { data: allMyParticipants } = await db.collection('room_participants')
+            .where({ openid: OPENID })
+            .orderBy('joinedAt', 'desc')
+            .limit(100)
+            .get();
+
+          const allRoomIds = [...new Set(allMyParticipants.map(p => p.roomId).filter(Boolean))];
+          console.log('[getMyRooms] 二次备选查询(所有参与记录)找到房间数:', allRoomIds.length);
+
+          if (allRoomIds.length > 0) {
+            let finalWhere = { roomId: _.in(allRoomIds) };
+            if (status === 'voting') finalWhere.status = 'voting';
+            else if (status === 'locked') finalWhere.status = 'locked';
+
+            const finalRes = await db.collection('rooms').where(finalWhere).orderBy('createdAt', 'desc').get();
+            rooms = finalRes.data || [];
+            console.log('[getMyRooms] 二次备选查询返回房间数:', rooms.length);
+          }
         }
       } catch (fallbackErr) {
         console.error('getMyRooms 备选查询失败:', fallbackErr);
@@ -105,7 +130,7 @@ exports.main = async (event) => {
         code: 0,
         data: [],
         msg: '获取成功',
-        debug: { openid: OPENID, whereClause, source: 'primary' }
+        debug: { openid: OPENID, whereClause, source: 'primary', hint: '主查询未找到房间，已尝试备选查询' }
       };
     }
 
